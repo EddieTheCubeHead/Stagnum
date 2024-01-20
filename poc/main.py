@@ -38,7 +38,7 @@ async def root():
 
 @application.get("/auth/login")
 async def login(request: Request):
-    scope = "streaming user-read-email user-read-private"
+    scope = "streaming user-read-email user-read-private user-modify-playback-state app-remote-control"
     state = create_random_string(16)
     auth_query_parameters = (f"response_type=code&client_id={client_id}&scope={scope}"
                              f"&redirect_uri={redirect_url}&state={state}")
