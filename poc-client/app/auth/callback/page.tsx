@@ -20,6 +20,7 @@ export default function Page() {
         axios.get(`http://localhost:8000/auth/callback?code=${code}`, {})
             .then(function (response) {
                 console.log(response);
+                axios.get(`http://localhost:8000/playget`)
                 return response.data.token
             }).catch((error) => {
                 console.log('Request failed', error);
