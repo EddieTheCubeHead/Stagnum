@@ -1,4 +1,4 @@
-# Poolify
+# Stagnum
 
 A pool-based playback system around Spotify.
 
