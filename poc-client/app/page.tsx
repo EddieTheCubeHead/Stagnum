@@ -8,13 +8,11 @@ export default function Home() {
   const handleLoginRequest = () => {
     console.log('Sending login request')
 
-  axios.post('http://localhost:8000/auth/login/no-redirect', {
-    playerId: '1',
-    resourceId: '1xpGyKyV26uPstk1Elgp9Q?si=4s6mjPfYQtytwcchBnEu0w'
+  axios.get('http://localhost:8000/auth/login/no-redirect', {
   })
     .then(function (response) {
-      console.log(response);
-      router.push('/dashboard', { scroll: false })
+      console.log(response.data.url);
+      router.push(response.data.url, { scroll: false })
     }).catch(() => {
       console.log('Request failed');
     })
