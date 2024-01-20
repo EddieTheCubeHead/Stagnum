@@ -9,7 +9,8 @@ export default function Page() {
 
     useEffect(() => {
         if (code) {
-            handleTokenRequest(code);
+            console.log('Code', code)
+            const token = handleTokenRequest(code);
         }
       }, [code]);
   
@@ -19,7 +20,7 @@ export default function Page() {
         axios.get(`http://localhost:8000/auth/callback?code=${code}`, {})
             .then(function (response) {
                 console.log(response);
-                //return response.data.token
+                return response.data.token
             }).catch((error) => {
                 console.log('Request failed', error);
             })
@@ -27,6 +28,7 @@ export default function Page() {
 
     return (
         <main >
+            <h1>We get token here</h1>
         </main>
     );
 }
