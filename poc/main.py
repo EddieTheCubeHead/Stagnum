@@ -88,10 +88,15 @@ class PlayData(BaseModel):
     resource_id: Optional[str]
 
 
-@application.get("/play")
+@application.get("/playget")
 async def play(request: Request):
-    auth_headers = {"Authorization": f"Bearer {json_token_holder['token']}"}
-    response = requests.put("https://api.spotify.com/v1/me/player/play",
-                            data={"context_uri": "2gEw7vtjgKB6MpxQ9vhhov?si=cd63f80cae0149d1", "position_ms": 0},
-                            headers=auth_headers)
+    auth_headers = {"Authorization": f"Bearer {json_token_holder['token']}", "Content-Type": "application/json"}
+    requests.put("https://api.spotify.com/v1/me/player/play",
+                 json={"context_uri": "spotify:album:1xpGyKyV26uPstk1Elgp9Q",
+                       "position_ms": 0},
+                 headers=auth_headers)
+
+
+@application.post("/play")
+async def play(play_data: PlayData, request: Request):
     pass
