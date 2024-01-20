@@ -38,9 +38,11 @@ async def root():
 
 @application.get("/auth/login")
 async def login(request: Request):
-    scope = "streaming user-read-email user-read-private user-modify-playback-state app-remote-control"
+    scopes = ["streaming", "user-read-email", "user-read-private", "user-modify-playback-state", "app-remote-control",
+              "user-read-playback-state"]
+    scopes_string = " ".join(scopes)
     state = create_random_string(16)
-    auth_query_parameters = (f"response_type=code&client_id={client_id}&scope={scope}"
+    auth_query_parameters = (f"response_type=code&client_id={client_id}&scope={scopes_string}"
                              f"&redirect_uri={redirect_url}&state={state}")
     return RedirectResponse("https://accounts.spotify.com/authorize?" + auth_query_parameters)
 
@@ -92,11 +94,21 @@ class PlayData(BaseModel):
 async def play(request: Request):
     auth_headers = {"Authorization": f"Bearer {json_token_holder['token']}", "Content-Type": "application/json"}
     requests.put("https://api.spotify.com/v1/me/player/play",
-                 json={"context_uri": "spotify:album:1xpGyKyV26uPstk1Elgp9Q",
-                       "position_ms": 0},
+                 json={"context_uri": "spotify:album:6eUW0wxWtzkFdaEFsTJto6",
+                       "position_ms": 0,
+                       "offset": {"position": 0}},
                  headers=auth_headers)
 
 
 @application.post("/play")
 async def play(play_data: PlayData, request: Request):
+    devices = json.loads(requests.get(f"https://api.spotify.com/v1/me/player/devices").content.decode())["devices"]
+    pass
+
+
+@application.get("/play")
+async def play(request: Request):
+    auth_headers = {"Authorization": f"Bearer {json_token_holder['token']}", "Content-Type": "application/json"}
+    data = requests.get(f"https://api.spotify.com/v1/me/player/devices", headers=auth_headers)
+    devices = json.loads(data.content.decode())["devices"]
     pass
