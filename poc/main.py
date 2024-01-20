@@ -23,6 +23,9 @@ with open("poc/secrets.json", "r") as secret_file:
 
 
 redirect_url = "http://localhost:8000/auth/callback"
+json_token_holder = {
+    "token": None
+}
 
 
 @application.get("/")
@@ -44,16 +47,22 @@ async def auth_callback(request: Request):
     code = request.query_params.get("code")
     form = {
         "code": code,
-        "redirect_url": redirect_url,
+        "redirect_uri": redirect_url,
         "grant_type": "authorization_code"
     }
+    token = base64.b64encode((client_id + ':' + client_secret).encode('ascii')).decode('ascii')
     headers = {
-        "Authorization": f"Basic {base64.b64encode(bytes(client_id + ':' + client_secret, encoding='ascii'))}",
+        "Authorization": "Basic " + token,
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
     data = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=form)
-    pass
+    json_token_holder["token"] = json.loads(data.content.decode("utf-8"))["access_token"]
+
+
+@application.get("/auth/token")
+async def get_token(request: Request):
+    return {"token": json_token_holder["token"]}
 
 
 def create_random_string(length: int) -> str:
