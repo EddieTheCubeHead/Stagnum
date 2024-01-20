@@ -5,6 +5,7 @@ import requests
 import base64
 
 from fastapi import FastAPI
+from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
@@ -68,3 +69,17 @@ async def get_token(request: Request):
 def create_random_string(length: int) -> str:
     chars = string.ascii_letters + string.digits
     return "".join(random.choice(chars) for _ in range(length))
+
+
+class PlayData(BaseModel):
+    player_id: str
+    resource_id: str | None
+
+
+@application.get("/play")
+async def play(request: Request):
+    auth_headers = {"Authorization": f"Bearer {json_token_holder['token']}"}
+    response = requests.put("https://api.spotify.com/v1/me/player/play",
+                            data={"context_uri": "2gEw7vtjgKB6MpxQ9vhhov?si=cd63f80cae0149d1", "position_ms": 0},
+                            headers=auth_headers)
+    pass
