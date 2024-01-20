@@ -10,6 +10,8 @@ export default function Page() {
     axios.get('http://localhost:8000/play', {})
         .then(function (response) {
             console.log(response);
+        }).catch(() => {
+            console.log('Request failed');
         })
     }
 
