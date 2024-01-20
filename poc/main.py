@@ -1,6 +1,8 @@
 import json
 import string
 import random
+from typing import Optional
+
 import requests
 import base64
 
@@ -73,7 +75,7 @@ def create_random_string(length: int) -> str:
 
 class PlayData(BaseModel):
     player_id: str
-    resource_id: str | None
+    resource_id: Optional[str]
 
 
 @application.get("/play")
