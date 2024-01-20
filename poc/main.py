@@ -25,7 +25,7 @@ with open("poc/secrets.json", "r") as secret_file:
     client_secret = secrets["client_secret"]
 
 
-redirect_url = "http://localhost:8000/auth/callback"
+redirect_url = "http://localhost:3000/auth/callback"
 json_token_holder = {
     "token": None
 }
@@ -70,6 +70,7 @@ async def auth_callback(request: Request):
 
     data = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=form)
     json_token_holder["token"] = json.loads(data.content.decode("utf-8"))["access_token"]
+    return {"token": json_token_holder["token"]}
 
 
 @application.get("/auth/token")
