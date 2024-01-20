@@ -9,6 +9,7 @@ export default function Page() {
 
     useEffect(() => {
         if (code) {
+            console.log('Code', code)
             handleTokenRequest(code);
         }
       }, [code]);
