@@ -45,6 +45,15 @@ async def login(request: Request):
     return RedirectResponse("https://accounts.spotify.com/authorize?" + auth_query_parameters)
 
 
+@application.get("/auth/login/no-redirect")
+async def login(request: Request):
+    scope = "streaming user-read-email user-read-private"
+    state = create_random_string(16)
+    auth_query_parameters = (f"response_type=code&client_id={client_id}&scope={scope}"
+                             f"&redirect_uri={redirect_url}&state={state}")
+    return {"url": "https://accounts.spotify.com/authorize?" + auth_query_parameters}
+
+
 @application.get("/auth/callback")
 async def auth_callback(request: Request):
     code = request.query_params.get("code")
@@ -74,7 +83,7 @@ def create_random_string(length: int) -> str:
 
 
 class PlayData(BaseModel):
-    player_id: str
+    player_name: str
     resource_id: Optional[str]
 
 
