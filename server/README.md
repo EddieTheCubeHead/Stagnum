@@ -1,5 +1,12 @@
 # Stagnum server
 
+- [Development setup](#development-setup)
+  - [Installing python](#installing-python)
+  - [Creating a virtual environment](#creating-a-virtual-environment)
+  - [Installing dependencies](#installing-dependencies)
+  - [Running the server](#running-the-server)
+- [Running with docker](#running-with-docker)
+
 ## Development setup
 
 ### Installing python
@@ -7,7 +14,7 @@
 Development is conducted in python 3.12. You can download it from
 [the official python website](https://www.python.org/downloads/).
 
-### Creating venv
+### Creating a virtual environment
 
 It's recommended to create a virtual environment for each python program you run locally.
 This prevents the packages you install from polluting the global package pool and prevents
