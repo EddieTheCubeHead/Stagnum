@@ -96,9 +96,9 @@ server should respond with the following message:
 ## Running with docker
 
 If you don't need to do development work on the server and just want it running to, for
-example, test the backend, it is recommended to run the server with docker. You can find
-detailed instructions for installing Docker from their
-[Get started -site](https://www.docker.com/get-started/).
+example, test the frontend against it, it is recommended to run the server with docker.
+You can find detailed instructions for installing Docker from their
+["Get started" site](https://www.docker.com/get-started/).
 
 Once you have Docker installed and running on your computer, running the server is as
 simple as entering the following commands in the project root.
