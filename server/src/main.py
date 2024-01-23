@@ -1,13 +1,9 @@
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+import os
 
-application = FastAPI()
+import uvicorn
 
-
-application.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"],
-                           allow_headers=["*"])
-
-
-@application.get("/")
-async def root():
-    return {"message": "Hello World"}
+if __name__ == "__main__":
+    uvicorn.run("api.routes:application",
+                host=os.getenv("HOST", default="127.0.0.1"),
+                port=int(os.getenv("PORT", default="8000")),
+                reload=bool(os.getenv("RELOAD", "True")))

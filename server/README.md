@@ -68,21 +68,9 @@ server folder.
 
 ### Running the server
 
-The server is run using `uvicorn`. Once you have installed the dependencies you can use
-one of the following commands to run the server locally, depending on your working
-directory.
-
-```
-// Working in project root
-uvicorn server.src.main:application --reload
-
-// Working in server folder
-uvicorn src.main:application --reload
-```
-
-The `--reload` argument causes the server to reload on code changes enabling live testing
-during development. If you prefer to manually restart the server instead, you can omit the
-argument.
+The server can be run by simply running the `src/main.py` script. You can customize `HOST`, `PORT` and `RELOAD`
+values with env variables. Defaults are `HOST=127.0.0.1`, `PORT=8000` and `RELOAD=True`. Host and port control
+where the server is hosted, while reload controls whether the server application auto-reloads upon changes.
 
 You can validate the server is working by going to `localhost:8000` in your browser. The
 server should respond with the following message:
