@@ -83,7 +83,8 @@ server should respond with the following message:
 
 ### Running the test set
 
-After you have the venv setup, you can install testing requirements by running the following command:
+After you have the venv setup, you can install testing requirements by running the following command in
+repository root:
 
 ```
 pip install -r server/test_requirements.txt
@@ -91,7 +92,7 @@ pip install -r server/test_requirements.txt
 
 This install both the requirements of the server **and** the requirements for testing (like `pytest`).
 
-After running this command you can run the test set with the command:
+After running this command you can run the test set at repository root with the command:
 
 ```
 pytest server
