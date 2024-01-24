@@ -3,7 +3,7 @@ import json
 from sqlalchemy import String, select
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 
-from database.master_connection import ConnectionManager
+from database.database_connection import ConnectionManager
 
 
 class _TestDbObjectBase(DeclarativeBase):
