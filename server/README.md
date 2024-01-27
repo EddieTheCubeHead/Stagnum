@@ -160,3 +160,15 @@ export DATABASE_CONNECTION_STRING="postgresql://postgres:my_pass@localhost:5432/
 // Powershell
 $Env:DATABASE_CONNECTION_STRING = "postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```
+
+### Running migrations
+
+For now migrations are not automatically ran with the server. This is subject to change as the team explores
+alembic more.
+
+After you have installed requirements or test requirements in venv and set the environment variable for database
+connection string according to the previous chapter, you can run migrations with the following command:
+
+```bash
+alembic upgrade head
+```
