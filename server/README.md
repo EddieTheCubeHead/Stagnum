@@ -130,11 +130,11 @@ following message is returned, if everything works correctly:
 
 ## Running PostgreSQL locally
 
+### Install and setup PostgreSQL (quick tutorial)
+
 **Note:** you don't need to follow these instructions if you already know how to work with PostgreSQL, in that
 case, just set up a local database, and set env variable `DATABASE_CONNECTION_STRING` to a conn string for said
 database. (`postgresql://postgres:password@localhost:5432/my_database`)
-
-### Install and setup PostgreSQL (quick tutorial)
 
 You can install PostgreSQL from [their website](https://www.postgresql.org/). Install PostgreSQL and pgAdmin 4.
 Store your password in your database manager of choice and remember the port you set, or preferably, just use the
