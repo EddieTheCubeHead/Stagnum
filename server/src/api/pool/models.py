@@ -1,8 +1,12 @@
 from pydantic import BaseModel
 
 
+class PoolContent(BaseModel):
+    spotify_uri: str
+
+
 class PoolCreationData(BaseModel):
-    spotify_uris: list[str]
+    spotify_uris: list[PoolContent]
 
 
 class PoolTrack(BaseModel):
