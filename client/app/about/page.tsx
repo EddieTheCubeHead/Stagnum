@@ -5,8 +5,7 @@ export default function About() {
         <h1 className="text-3xl font-bold">About Stagnum</h1>
       </div>
         <p className="mt-4 text-lg">
-      Stagnum is an open source project that aims to be a simple and intuitive
-      music player.
+        Stagnum is an open source project that aims to be a simple and intuitive alternative way of controlling your Spotify.
         </p>
     </main>
   );
