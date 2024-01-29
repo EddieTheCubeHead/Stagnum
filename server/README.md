@@ -10,6 +10,7 @@
 - [Running with docker](#running-with-docker)
 - [Running PostgreSQL locally](#running-postgresql-locally)
   - [Install and setup PostgreSQL (quick tutorial)](#install-and-setup-postgresql-quick-tutorial)
+  - [Creating and running migrations](#creating-and-running-migrations)
 
 ## Development setup
 
