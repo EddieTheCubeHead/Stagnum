@@ -37,11 +37,8 @@ export default function Login() {
         className="flex text-black z-10 w-full h-full min-h-screen justify-center items-center flex-col
        gap-4"
       >
-        <input
-          type="tel"
-          placeholder="Login with your Spotify"
-          className="text-xl text-black px-6 py-4 w-80 bg-white rounded-full"
-        />
+        <p className="text-xl text-black">Login with your Spotify</p>
+
         <button
           className="bg-[#1ED760] py-2 w-36 rounded-full text-xl font-semibold"
           onClick={handleLoginRequest}
