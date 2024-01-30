@@ -32,7 +32,7 @@ export default function Login() {
           alt={"Home background"}
         />
       </div>
-      {/* <button onClick={handleLoginRequest}>Login button</button> */}
+      <button onClick={handleLoginRequest}>Login button</button>
       <section
         className="flex text-black z-10 w-full h-full min-h-screen justify-center items-center flex-col
        gap-4"
