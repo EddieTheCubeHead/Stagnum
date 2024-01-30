@@ -2,7 +2,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from database.database_connection import ConnectionManager
-from api.routes import application
+from api.application import application
 
 
 @pytest.fixture

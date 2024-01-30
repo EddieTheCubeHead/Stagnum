@@ -6,9 +6,11 @@
   - [Installing dependencies](#installing-dependencies)
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)
+  - [Viewing API documentation](#viewing-api-documentation)
 - [Running with docker](#running-with-docker)
 - [Running PostgreSQL locally](#running-postgresql-locally)
   - [Install and setup PostgreSQL (quick tutorial)](#install-and-setup-postgresql-quick-tutorial)
+  - [Creating and running migrations](#creating-and-running-migrations)
 
 ## Development setup
 
@@ -100,6 +102,10 @@ After running this command you can run the test set at repository root with the 
 ```bash
 pytest server
 ```
+
+### Viewing API documentation
+
+Once the server is running you can visit the `docs` route to check the API documentation.
 
 ## Running with docker
 
