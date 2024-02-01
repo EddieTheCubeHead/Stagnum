@@ -8,8 +8,6 @@ services:
     restart: always
     ports:
       - 80:3000
-    environment:
-      HOST: 0.0.0.0
     networks:
       - outgoing
       - internal
@@ -23,7 +21,6 @@ services:
     depends_on:
       - database
     environment:
-      HOST: 0.0.0.0
       DATABASE_CONNECTION_URL: postgresql://root:pass@database:5432/data
     networks: 
       - outgoing
