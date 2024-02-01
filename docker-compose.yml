@@ -24,7 +24,7 @@ services:
       - database
     environment:
       HOST: 0.0.0.0
-      DATABASE_CONNECTION_STRING: postgresql://root:pass@database:5432/data
+      DATABASE_CONNECTION_URL: postgresql://root:pass@database:5432/data
     networks: 
       - outgoing
       - internal
