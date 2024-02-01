@@ -1,3 +1,6 @@
+import string
+import random
+
 from fastapi import APIRouter
 
 from api.auth.models import LoginRedirect, LoginSuccess
@@ -16,10 +19,17 @@ _required_scopes = [
 ]
 
 
+def _create_random_string(length: int) -> str:
+    chars = string.ascii_letters + string.digits
+    return "".join(random.choice(chars) for _ in range(length))
+
+
 @router.get("/login")
 async def login() -> LoginRedirect:
     base_url = "https://accounts.spotify.com/authorize?"
-    return LoginRedirect(redirect_uri=f"{base_url}scopes={' '.join(_required_scopes)}")
+    scopes_string = " ".join(_required_scopes)
+    state = _create_random_string(16)
+    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}")
 
 
 @router.get("/login/callback")
