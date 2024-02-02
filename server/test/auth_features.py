@@ -1,9 +1,12 @@
 import re
+import datetime
 
 import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
+from api.auth.dependencies import AuthDatabaseConnectionRaw
+from api.auth.routes import cleanup_state_strings
 from api.common.dependencies import DatabaseConnection
 from database.entities import LoginState
 
@@ -91,3 +94,42 @@ def should_get_spotify_client_id_from_env_and_include_in_response(test_client: T
 def should_return_internal_server_error_if_no_client_id_in_env(test_client: TestClient, validate_response):
     response = test_client.get("/auth/login?client_redirect_uri=test")
     validate_response(response, 500)
+
+
+def should_cleanup_expired_states_from_database_on_cleanup_job(monkeypatch, _base_call, validate_response,
+                                                               _get_query_parameter, db_connection):
+    response = _base_call()
+    data_json = validate_response(response)
+    state_string = _get_query_parameter(data_json["redirect_uri"], "state")
+    soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15, seconds=1)
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, *args):
+            return soon
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    cleanup_state_strings(AuthDatabaseConnectionRaw(db_connection))
+    with db_connection.session() as session:
+        found_state = session.scalar(select(LoginState).where(LoginState.state_string == state_string))
+    assert found_state is None
+
+
+@pytest.mark.wip
+def should_not_cleanup_non_expired_states_from_database_on_cleanup_job(monkeypatch, _base_call, validate_response,
+                                                                       _get_query_parameter, db_connection):
+    response = _base_call()
+    data_json = validate_response(response)
+    state_string = _get_query_parameter(data_json["redirect_uri"], "state")
+    soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=14)
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, *args):
+            return soon
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    cleanup_state_strings(AuthDatabaseConnectionRaw(db_connection))
+    with db_connection.session() as session:
+        found_state = session.scalar(select(LoginState).where(LoginState.state_string == state_string))
+    assert found_state

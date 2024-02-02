@@ -1,6 +1,7 @@
 import os
 import string
 import random
+import datetime
 
 from fastapi import APIRouter, HTTPException
 from fastapi_utils.tasks import repeat_every
@@ -43,3 +44,13 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
 @router.get("/login/callback")
 async def login_callback() -> LoginSuccess:
     pass
+
+
+def cleanup_state_strings(auth_database_connection: AuthDatabaseConnection):
+    auth_database_connection.delete_expired_states(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
+
+
+@router.on_event("startup")
+@repeat_every(seconds=120)
+def cleanup_state_strings_scheduled(auth_database_connection: AuthDatabaseConnection):
+    cleanup_state_strings(auth_database_connection)
