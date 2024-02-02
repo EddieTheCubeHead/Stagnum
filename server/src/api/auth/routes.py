@@ -1,7 +1,9 @@
+import os
 import string
 import random
 
 from fastapi import APIRouter
+from fastapi_utils.tasks import repeat_every
 
 from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.models import LoginRedirect, LoginSuccess
@@ -31,8 +33,9 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
     scopes_string = " ".join(_required_scopes)
     state = _create_random_string(16)
     auth_database_connection.save_state(state)
+    client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}"
-                                      f"&redirect_uri={client_redirect_uri}")
+                                      f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
 
 
 @router.get("/login/callback")
