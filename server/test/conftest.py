@@ -12,14 +12,6 @@ from api.application import application
 from database.entities import EntityBase, LoginState
 
 
-class DependencyHolder:
-    def __init__(self, fixture):
-        self._fixture = fixture
-
-    def __call__(self):
-        return self._fixture
-
-
 @pytest.fixture
 def spotify_client():
     return AsyncMock()
@@ -35,8 +27,8 @@ def db_connection(tmp_path) -> ConnectionManager:
 @pytest.fixture
 def application_with_dependencies(spotify_client, db_connection):
     initialized_connection = db_connection
-    application.dependency_overrides[SpotifyClientRaw] = DependencyHolder(spotify_client)
-    application.dependency_overrides[ConnectionManager] = DependencyHolder(initialized_connection)
+    application.dependency_overrides[SpotifyClientRaw] = lambda: spotify_client
+    application.dependency_overrides[ConnectionManager] = lambda: initialized_connection
     return application
 
 
