@@ -25,7 +25,7 @@ with open("poc/secrets.json", "r") as secret_file:
     client_secret = secrets["client_secret"]
 
 
-redirect_url = "http://localhost:3000/auth/callback"
+redirect_url = "http://localhost:8000/auth/callback"
 json_token_holder = {
     "token": None
 }

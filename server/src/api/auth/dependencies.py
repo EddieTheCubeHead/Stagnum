@@ -21,5 +21,9 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             session.execute(delete(LoginState).where(LoginState.insert_time_stamp < delete_before))
 
+    def is_valid_state(self, state_string: str) -> bool:
+        with self._database_connection.session() as session:
+            return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
+
 
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]
