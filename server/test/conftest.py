@@ -1,6 +1,4 @@
-import functools
 import json
-from functools import partial
 from unittest.mock import AsyncMock
 
 import pytest
@@ -10,7 +8,7 @@ from starlette.testclient import TestClient
 from api.common.dependencies import SpotifyClientRaw
 from database.database_connection import ConnectionManager
 from api.application import create_app
-from database.entities import EntityBase, LoginState
+from database.entities import EntityBase
 
 
 @pytest.fixture
@@ -47,6 +45,6 @@ def test_client(application_with_dependencies) -> TestClient:
 @pytest.fixture
 def validate_response():
     def wrapper(response, code: int = 200):
-        assert response.status_code == code
+        assert response.status_code == code, f"Expected response with status code {code}, got {response.status_code}"
         return json.loads(response.content.decode("utf-8"))
     return wrapper

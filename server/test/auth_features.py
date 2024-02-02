@@ -29,34 +29,40 @@ def _get_query_parameter():
     return wrapper
 
 
-def should_have_required_scopes_in_login_redirect_response(test_client, validate_response, _required_headers,
+@pytest.fixture
+def _base_call(monkeypatch, test_client):
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
+    return lambda: test_client.get("/auth/login?client_redirect_uri=test")
+
+
+def should_have_required_scopes_in_login_redirect_response(_base_call, validate_response, _required_headers,
                                                            _get_query_parameter):
-    response = test_client.get("/auth/login?client_redirect_uri=test")
+    response = _base_call()
     data_json = validate_response(response)
     scopes_strings = _get_query_parameter(data_json["redirect_uri"], "scopes").split(" ")
     for header in _required_headers:
         assert header in scopes_strings
 
 
-def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(test_client, validate_response,
+def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(_base_call, validate_response,
                                                                            _get_query_parameter):
-    response = test_client.get("/auth/login?client_redirect_uri=test")
+    response = _base_call()
     data_json = validate_response(response)
     state_string = _get_query_parameter(data_json["redirect_uri"], "state")
     assert re.match(r"\w{16}", state_string), (f"State string '{state_string}' does not consist of sixteen "
                                                f"digits or letters")
 
 
-def should_have_random_state_in_login_redirect_response(test_client, validate_response, _get_query_parameter):
-    responses = [test_client.get("/auth/login?client_redirect_uri=test") for _ in range(10)]
+def should_have_random_state_in_login_redirect_response(_base_call, validate_response, _get_query_parameter):
+    responses = [_base_call() for _ in range(10)]
     response_contents = [validate_response(response) for response in responses]
     state_strings = [_get_query_parameter(data["redirect_uri"], "state") for data in response_contents]
     assert len(set(state_strings)) == 10, f"Did not find 10 unique strings in collection '{state_strings}'"
 
 
-def should_save_state_in_database(test_client: TestClient, db_connection: DatabaseConnection, validate_response,
+def should_save_state_in_database(_base_call, db_connection: DatabaseConnection, validate_response,
                                   _get_query_parameter):
-    response = test_client.get("/auth/login?client_redirect_uri=test")
+    response = _base_call()
     data_json = validate_response(response)
     state_string = _get_query_parameter(data_json["redirect_uri"], "state")
     with db_connection.session() as session:
@@ -64,8 +70,9 @@ def should_save_state_in_database(test_client: TestClient, db_connection: Databa
     assert result, f"Did not find state with state string '{state_string}' from database after login route was called."
 
 
-def should_get_redirect_url_from_query_and_include_in_response(test_client: TestClient, validate_response,
+def should_get_redirect_url_from_query_and_include_in_response(monkeypatch, test_client: TestClient, validate_response,
                                                                _get_query_parameter):
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
     expected_redirect_uri = "https://example.redirect.test"
     response = test_client.get(f"/auth/login?client_redirect_uri={expected_redirect_uri}")
     data_json = validate_response(response)
@@ -79,3 +86,8 @@ def should_get_spotify_client_id_from_env_and_include_in_response(test_client: T
     response = test_client.get(f"/auth/login?client_redirect_uri=test")
     data_json = validate_response(response)
     assert expected_client_id == _get_query_parameter(data_json["redirect_uri"], "client_id")
+
+
+def should_return_internal_server_error_if_no_client_id_in_env(test_client: TestClient, validate_response):
+    response = test_client.get("/auth/login?client_redirect_uri=test")
+    validate_response(response, 500)
