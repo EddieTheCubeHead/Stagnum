@@ -18,8 +18,9 @@ def spotify_client():
 
 
 @pytest.fixture
-def db_connection(tmp_path) -> ConnectionManager:
-    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", True)
+def db_connection(tmp_path, pytestconfig) -> ConnectionManager:
+    echo = "-v" in pytestconfig.invocation_params.args
+    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", echo)
     connection.init_objects(EntityBase)
     return connection
 

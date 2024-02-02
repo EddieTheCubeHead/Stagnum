@@ -26,12 +26,13 @@ def _create_random_string(length: int) -> str:
 
 
 @router.get("/login")
-async def login(auth_database_connection: AuthDatabaseConnection) -> LoginRedirect:
+async def login(client_redirect_uri: str, auth_database_connection: AuthDatabaseConnection) -> LoginRedirect:
     base_url = "https://accounts.spotify.com/authorize?"
     scopes_string = " ".join(_required_scopes)
     state = _create_random_string(16)
     auth_database_connection.save_state(state)
-    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}")
+    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}"
+                                      f"&redirect_uri={client_redirect_uri}")
 
 
 @router.get("/login/callback")

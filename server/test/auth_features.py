@@ -1,5 +1,4 @@
 import re
-from unittest.mock import Mock, AsyncMock
 
 import pytest
 from sqlalchemy import select
@@ -21,7 +20,7 @@ def _required_headers():
 
 @pytest.fixture
 def _get_query_parameter():
-    restricted_characters = r":\/?#\[\]@!$&'()*+,;="
+    restricted_characters = r"&"
 
     def wrapper(query_string, parameter_name) -> str:
         match = re.match(fr".*[&?]{parameter_name}=([^{restricted_characters}]+)(?:$|&.*)", query_string)
@@ -32,7 +31,7 @@ def _get_query_parameter():
 
 def should_have_required_scopes_in_login_redirect_response(test_client, validate_response, _required_headers,
                                                            _get_query_parameter):
-    response = test_client.get("/auth/login")
+    response = test_client.get("/auth/login?client_redirect_uri=test")
     data_json = validate_response(response)
     scopes_strings = _get_query_parameter(data_json["redirect_uri"], "scopes").split(" ")
     for header in _required_headers:
@@ -41,7 +40,7 @@ def should_have_required_scopes_in_login_redirect_response(test_client, validate
 
 def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(test_client, validate_response,
                                                                            _get_query_parameter):
-    response = test_client.get("/auth/login")
+    response = test_client.get("/auth/login?client_redirect_uri=test")
     data_json = validate_response(response)
     state_string = _get_query_parameter(data_json["redirect_uri"], "state")
     assert re.match(r"\w{16}", state_string), (f"State string '{state_string}' does not consist of sixteen "
@@ -49,18 +48,25 @@ def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(test_
 
 
 def should_have_random_state_in_login_redirect_response(test_client, validate_response, _get_query_parameter):
-    responses = [test_client.get("/auth/login") for _ in range(10)]
+    responses = [test_client.get("/auth/login?client_redirect_uri=test") for _ in range(10)]
     response_contents = [validate_response(response) for response in responses]
     state_strings = [_get_query_parameter(data["redirect_uri"], "state") for data in response_contents]
     assert len(set(state_strings)) == 10, f"Did not find 10 unique strings in collection '{state_strings}'"
 
 
-@pytest.mark.wip
 def should_save_state_in_database(test_client: TestClient, db_connection: DatabaseConnection, validate_response,
                                   _get_query_parameter):
-    response = test_client.get("/auth/login")
+    response = test_client.get("/auth/login?client_redirect_uri=test")
     data_json = validate_response(response)
     state_string = _get_query_parameter(data_json["redirect_uri"], "state")
     with db_connection.session() as session:
         result = session.scalar(select(LoginState).where(LoginState.state_string == state_string))
     assert result, f"Did not find state with state string '{state_string}' from database after login route was called."
+
+
+def should_get_redirect_url_from_query_and_include_in_response(test_client: TestClient, validate_response,
+                                                               _get_query_parameter):
+    expected_redirect_uri = "https://example.redirect.test"
+    response = test_client.get(f"/auth/login?client_redirect_uri={expected_redirect_uri}")
+    data_json = validate_response(response)
+    assert expected_redirect_uri == _get_query_parameter(data_json["redirect_uri"], "redirect_uri")
