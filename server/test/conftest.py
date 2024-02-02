@@ -1,22 +1,23 @@
+import functools
 import json
-from asyncio import sleep
+from functools import partial
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import FastAPI
 from starlette.testclient import TestClient
 
 from api.common.dependencies import SpotifyClientRaw
 from database.database_connection import ConnectionManager
 from api.application import application
-from database.entities import EntityBase
+from database.entities import EntityBase, LoginState
 
 
-@pytest.fixture
-def db_connection() -> ConnectionManager:
-    connection_manager = ConnectionManager("sqlite:///:memory:")
-    connection_manager.init_objects(EntityBase)
-    return connection_manager
+class DependencyHolder:
+    def __init__(self, fixture):
+        self._fixture = fixture
+
+    def __call__(self):
+        return self._fixture
 
 
 @pytest.fixture
@@ -25,30 +26,23 @@ def spotify_client():
 
 
 @pytest.fixture
-def spotify_client_dependency(spotify_client):
-    # We have to do this wrapper - hackery because of how pytest fixtures interact with FastAPI dependencies:
-    # pytest fixtures are called on insert, while FastAPI dependency overrides are callables. Thus, we need to return
-    # a callable (wrapper).
-    #
-    # The reason we don't return AsyncMock straight from here is to enable us to use the spotify_client fixture
-    # elsewhere. Because pytest caches fixtures within scope (default: test), we can set mock values on the fixture
-    # inside other tests and fixtures. This way we don't need to set all necessary return values here.
-    def wrapper():
-        return spotify_client
-    return wrapper
+def db_connection(tmp_path) -> ConnectionManager:
+    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", True)
+    connection.init_objects(EntityBase)
+    return connection
 
 
 @pytest.fixture
-def insert_dependencies(spotify_client_dependency):
-    def wrapper(application_to_mock: FastAPI):
-        application_to_mock.dependency_overrides.update({SpotifyClientRaw: spotify_client_dependency})
-    return wrapper
+def application_with_dependencies(spotify_client, db_connection):
+    initialized_connection = db_connection
+    application.dependency_overrides[SpotifyClientRaw] = DependencyHolder(spotify_client)
+    application.dependency_overrides[ConnectionManager] = DependencyHolder(initialized_connection)
+    return application
 
 
 @pytest.fixture
-def test_client(insert_dependencies) -> TestClient:
-    test_client = TestClient(application)
-    insert_dependencies(application)
+def test_client(application_with_dependencies) -> TestClient:
+    test_client = TestClient(application_with_dependencies)
     return test_client
 
 

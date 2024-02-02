@@ -2,6 +2,11 @@ import re
 from unittest.mock import Mock, AsyncMock
 
 import pytest
+from sqlalchemy import select
+from starlette.testclient import TestClient
+
+from api.common.dependencies import DatabaseConnection
+from database.entities import LoginState
 
 
 @pytest.fixture
@@ -48,3 +53,14 @@ def should_have_random_state_in_login_redirect_response(test_client, validate_re
     response_contents = [validate_response(response) for response in responses]
     state_strings = [_get_query_parameter(data["redirect_uri"], "state") for data in response_contents]
     assert len(set(state_strings)) == 10, f"Did not find 10 unique strings in collection '{state_strings}'"
+
+
+@pytest.mark.wip
+def should_save_state_in_database(test_client: TestClient, db_connection: DatabaseConnection, validate_response,
+                                  _get_query_parameter):
+    response = test_client.get("/auth/login")
+    data_json = validate_response(response)
+    state_string = _get_query_parameter(data_json["redirect_uri"], "state")
+    with db_connection.session() as session:
+        result = session.scalar(select(LoginState).where(LoginState.state_string == state_string))
+    assert result, f"Did not find state with state string '{state_string}' from database after login route was called."

@@ -3,6 +3,7 @@ import random
 
 from fastapi import APIRouter
 
+from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.models import LoginRedirect, LoginSuccess
 from api.common import SpotifyClient
 
@@ -25,10 +26,11 @@ def _create_random_string(length: int) -> str:
 
 
 @router.get("/login")
-async def login() -> LoginRedirect:
+async def login(auth_database_connection: AuthDatabaseConnection) -> LoginRedirect:
     base_url = "https://accounts.spotify.com/authorize?"
     scopes_string = " ".join(_required_scopes)
     state = _create_random_string(16)
+    auth_database_connection.save_state(state)
     return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}")
 
 

@@ -8,8 +8,8 @@ from sqlalchemy.orm import sessionmaker, Session
 
 class ConnectionManager:
 
-    def __init__(self, db_address: str):
-        self.engine = create_engine(db_address, echo=False)
+    def __init__(self, db_address: str, echo: bool = False):
+        self.engine = create_engine(db_address, echo=echo)
         self._session = sessionmaker()
         self._session.configure(bind=self.engine)
 
