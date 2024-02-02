@@ -8,11 +8,14 @@ from starlette.testclient import TestClient
 from api.common.dependencies import SpotifyClientRaw
 from database.database_connection import ConnectionManager
 from api.application import application
+from database.entities import EntityBase
 
 
 @pytest.fixture
 def db_connection() -> ConnectionManager:
-    return ConnectionManager("sqlite:///:memory:")
+    connection_manager = ConnectionManager("sqlite:///:memory:")
+    connection_manager.init_objects(EntityBase)
+    return connection_manager
 
 
 @pytest.fixture
