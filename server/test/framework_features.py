@@ -30,7 +30,7 @@ def should_have_automatic_insert_timestamp(db_connection: ConnectionManager):
     assert actual_object.insert_time_stamp - datetime.now() < timedelta(milliseconds=10)
 
 
-def should_return_hello_world_from_server_root(test_server):
-    response = test_server.get("/")
+def should_return_hello_world_from_server_root(test_client):
+    response = test_client.get("/")
     response_message = json.loads(response.content.decode("utf-8"))
     assert response_message.pop("message") == "Hello World!"
