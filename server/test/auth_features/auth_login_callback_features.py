@@ -5,8 +5,9 @@ import random
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from sqlalchemy import select
 
-from database.entities import LoginState
+from database.entities import LoginState, User
 
 
 @pytest.fixture
@@ -136,7 +137,26 @@ def should_always_have_grant_type_as_auth_code_in_spotify_api_request(correct_en
 
 
 def should_get_user_data_after_token_received_and_save_it(correct_env_variables, base_auth_callback_call,
-                                                          requests_client_with_auth_mock, requests_client):
+                                                          requests_client_with_auth_mock, requests_client,
+                                                          db_connection):
     base_auth_callback_call()
     call = requests_client.get.call_args
     assert call[0][0] == "https://api.spotify.com/v1/me"
+    with db_connection.session() as session:
+        user_data = session.scalar(select(User).where(User.spotify_email == "test.user@example.test"))
+    assert user_data is not None
+
+
+def should_update_user_data_on_token_receive_if_it_exists(correct_env_variables, base_auth_callback_call,
+                                                          requests_client_with_auth_mock, requests_client,
+                                                          db_connection):
+    with db_connection.session() as session:
+        session.add(User(spotify_email="test.user@example.test", spotify_username="Old Name",
+                         spotify_avatar_url="https://old.avatar.url"))
+    base_auth_callback_call()
+    call = requests_client.get.call_args
+    assert call[0][0] == "https://api.spotify.com/v1/me"
+    with db_connection.session() as session:
+        user_data = session.scalar(select(User).where(User.spotify_email == "test.user@example.test"))
+    assert user_data.spotify_username == "Test User"
+    assert user_data.spotify_avatar_url == "https://image.example.com"

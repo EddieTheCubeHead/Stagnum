@@ -51,6 +51,7 @@ async def login_callback(state: str, code: str, redirect_uri: str, auth_database
     token_result = spotify_client.get_token(code, client_id, client_secret, redirect_uri)
     token = f"{token_result.token_type} {token_result.access_token}"
     me_result = spotify_client.get_me(token)
+    auth_database_connection.update_logged_in_user(me_result, token)
     return LoginSuccess(access_token=token)
 
 
