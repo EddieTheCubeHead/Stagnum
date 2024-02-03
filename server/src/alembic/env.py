@@ -30,7 +30,7 @@ target_metadata = database.entities.EntityBase.metadata
 
 
 def get_database_url():
-    return os.getenv("DATABASE_CONNECTION_STRING", default="sqlite:///:memory:")
+    return os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
 
 
 def run_migrations_offline() -> None:
