@@ -139,4 +139,4 @@ def should_get_user_data_after_token_received_and_save_it(correct_env_variables,
                                                           requests_client_with_auth_mock, requests_client):
     base_auth_callback_call()
     call = requests_client.get.call_args
-    pass
+    assert call[0][0] == "https://api.spotify.com/v1/me"

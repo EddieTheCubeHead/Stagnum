@@ -48,8 +48,10 @@ async def login_callback(state: str, code: str, redirect_uri: str, auth_database
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
-    spotify_result = spotify_client.get_token(code, client_id, client_secret, redirect_uri)
-    return LoginSuccess(access_token=f"{spotify_result.token_type} {spotify_result.access_token}")
+    token_result = spotify_client.get_token(code, client_id, client_secret, redirect_uri)
+    token = f"{token_result.token_type} {token_result.access_token}"
+    me_result = spotify_client.get_me(token)
+    return LoginSuccess(access_token=token)
 
 
 def cleanup_state_strings(auth_database_connection: AuthDatabaseConnection):

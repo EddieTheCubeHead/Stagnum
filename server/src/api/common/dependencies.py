@@ -8,6 +8,7 @@ from fastapi import Depends
 
 from api.common.models import SpotifyTokenResponse
 from database.database_connection import ConnectionManager
+from database.entities import User
 
 
 class RequestsClientRaw:
@@ -45,6 +46,16 @@ class SpotifyClientRaw:
         return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
                                     scopes=parsed_data["scopes"].split(" "), expires_in=parsed_data["expires_in"],
                                     refresh_token=parsed_data["refresh_token"])
+
+    def get_me(self, token: str):
+        headers = {
+            "Authorization": token
+        }
+        data = self._request_client.get("https://api.spotify.com/v1/me", headers=headers)
+        parsed_data = json.loads(data.content.decode("utf8"))
+        user_avatar_url = parsed_data["images"][0]["url"] if len(parsed_data["images"]) > 0 else None
+        return User(spotify_email=parsed_data["email"], spotify_username=parsed_data["display_name"],
+                    spotify_avatar_url=user_avatar_url)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
