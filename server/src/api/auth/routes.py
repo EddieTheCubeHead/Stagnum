@@ -42,10 +42,14 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
 
 
 @router.get("/login/callback")
-async def login_callback(state: str, auth_database_connection: AuthDatabaseConnection) -> LoginSuccess:
+async def login_callback(state: str, code: str, redirect_uri: str, auth_database_connection: AuthDatabaseConnection,
+                         spotify_client: SpotifyClient) -> LoginSuccess:
     if not auth_database_connection.is_valid_state(state):
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
-    return LoginSuccess(access_token="test")
+    client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
+    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
+    spotify_result = spotify_client.get_token(code, client_id, client_secret, redirect_uri)
+    return LoginSuccess(access_token=f"{spotify_result.token_type} {spotify_result.access_token}")
 
 
 def cleanup_state_strings(auth_database_connection: AuthDatabaseConnection):

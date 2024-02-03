@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from datetime import timedelta, datetime
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
@@ -20,7 +20,7 @@ def application() -> FastAPI:
 
 @pytest.fixture
 def requests_client():
-    return AsyncMock()
+    return Mock()
 
 
 @pytest.fixture

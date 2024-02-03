@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 from typing import ContextManager
 
@@ -8,7 +9,9 @@ from sqlalchemy.orm import sessionmaker, Session
 
 class ConnectionManager:
 
-    def __init__(self, db_address: str, echo: bool = False):
+    def __init__(self, db_address: str = None, echo: bool = False):
+        if db_address is None:
+            db_address = os.getenv("DATABASE_CONNECTION_URI", default="sqlite:///:memory:")
         self.engine = create_engine(db_address, echo=echo)
         self._session = sessionmaker()
         self._session.configure(bind=self.engine)
