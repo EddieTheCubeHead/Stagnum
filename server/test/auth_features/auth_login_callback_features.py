@@ -46,7 +46,7 @@ def default_token_return():
         "refresh_token": "my refresh token"
     }
     response = Mock()
-    response.code = 200
+    response.status_code = 200
     response.content = json.dumps(return_json).encode("utf-8")
     return response
 
@@ -66,7 +66,7 @@ def default_me_return():
         ]
     }
     response = Mock()
-    response.code = 200
+    response.status_code = 200
     response.content = json.dumps(return_json).encode("utf-8")
     return response
 
@@ -183,10 +183,21 @@ def should_throw_exception_on_token_auth_if_not_logged_in(auth_test):
     assert exception_info.value.detail == "Invalid bearer token!"
 
 
-@pytest.mark.wip
 def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, correct_env_variables, validate_response,
                                                                 base_auth_callback_call,
                                                                 requests_client_with_auth_mock):
     response = base_auth_callback_call()
     json_data = validate_response(response)
     auth_test(json_data["access_token"])
+
+
+@pytest.mark.parametrize("code", [401, 403, 404, 500])
+def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_variables, validate_response,
+                                                                 base_auth_callback_call, requests_client,
+                                                                 requests_client_with_auth_mock, code):
+    requests_client.post.return_value.status_code = code
+    expected_error_message = "my error message"
+    requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+    response = base_auth_callback_call()
+    json_data = validate_response(response, code)
+    assert json_data["detail"] == expected_error_message

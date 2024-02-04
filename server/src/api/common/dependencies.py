@@ -5,6 +5,7 @@ from typing import Annotated
 
 import requests
 from fastapi import Depends, HTTPException, Header
+from requests import Response
 
 from api.common.models import SpotifyTokenResponse
 from database.database_connection import ConnectionManager
@@ -25,6 +26,13 @@ class RequestsClientRaw:
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
+def _validate_data(raw_data: Response) -> dict:
+    parsed_data = json.loads(raw_data.content.decode("utf8"))
+    if raw_data.status_code != 200:
+        raise HTTPException(status_code=raw_data.status_code, detail=parsed_data["error"])
+    return parsed_data
+
+
 class SpotifyClientRaw:
     def __init__(self, request_client: RequestsClient):
         self._request_client = request_client
@@ -42,7 +50,7 @@ class SpotifyClientRaw:
         }
 
         data = self._request_client.post("https://accounts.spotify.com/api/token", headers=headers, data=form)
-        parsed_data = json.loads(data.content.decode("utf8"))
+        parsed_data = _validate_data(data)
         return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
                                     scopes=parsed_data["scopes"].split(" "), expires_in=parsed_data["expires_in"],
                                     refresh_token=parsed_data["refresh_token"])
