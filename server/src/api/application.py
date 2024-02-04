@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from api import pool, search, auth
+from api.common.dependencies import DatabaseConnection
 
 
 def create_app() -> FastAPI:

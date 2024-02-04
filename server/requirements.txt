@@ -5,4 +5,4 @@ sqlalchemy==2.0.25
 alembic==1.13.1
 psycopg2==2.9.9
 requests==2.31.0
-fastapi_utils==0.2.1
+APScheduler==3.10.4

@@ -9,4 +9,4 @@ pytest-alembic==0.10.7
 psycopg2==2.9.9
 pytest-asyncio==0.23.4
 requests==2.31.0
-fastapi_utils==0.2.1
+APScheduler==3.10.4

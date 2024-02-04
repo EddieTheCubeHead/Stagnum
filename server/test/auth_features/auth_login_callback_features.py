@@ -150,6 +150,7 @@ def should_always_have_grant_type_as_auth_code_in_spotify_api_request(correct_en
     assert call.kwargs["data"]["grant_type"] == "authorization_code"
 
 
+@pytest.mark.wip
 def should_get_user_data_after_token_received_and_save_it(correct_env_variables, base_auth_callback_call,
                                                           requests_client_with_auth_mock, requests_client,
                                                           db_connection):

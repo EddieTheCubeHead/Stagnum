@@ -3,13 +3,15 @@ import string
 import random
 import datetime
 
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import APIRouter, HTTPException
-from fastapi_utils.tasks import repeat_every
 
 from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.models import LoginRedirect, LoginSuccess
 from api.common import SpotifyClient
 from api.common.dependencies import TokenHolder
+from database.database_connection import ConnectionManager
 
 router = APIRouter(
     prefix="/auth",
@@ -57,12 +59,21 @@ async def login_callback(state: str, code: str, redirect_uri: str, auth_database
     return LoginSuccess(access_token=token)
 
 
-def cleanup_state_strings(auth_database_connection: AuthDatabaseConnection):
-    auth_database_connection.delete_expired_states(
+scheduler_db_connection = AuthDatabaseConnection(ConnectionManager())
+
+
+def cleanup_state_strings(db_connection: AuthDatabaseConnection = None):
+    if db_connection is None:
+        db_connection = scheduler_db_connection
+    db_connection.delete_expired_states(
         datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
 
 
 @router.on_event("startup")
-@repeat_every(seconds=120)
-def cleanup_state_strings_scheduled(auth_database_connection: AuthDatabaseConnection):
-    cleanup_state_strings(auth_database_connection)
+def setup_scheduler():
+    job_stores = {
+        "default": MemoryJobStore()
+    }
+    scheduler = AsyncIOScheduler(jobstores=job_stores)
+    scheduler.start()
+    scheduler.add_job(cleanup_state_strings, "interval", seconds=3)
