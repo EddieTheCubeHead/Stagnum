@@ -4,7 +4,7 @@ import json
 from typing import Annotated
 
 import requests
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Header
 
 from api.common.models import SpotifyTokenResponse
 from database.database_connection import ConnectionManager
@@ -26,7 +26,7 @@ RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
 class SpotifyClientRaw:
-    def __init__(self, request_client: RequestsClient) -> SpotifyTokenResponse:
+    def __init__(self, request_client: RequestsClient):
         self._request_client = request_client
 
     def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str):
@@ -62,3 +62,29 @@ SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
 
 
 DatabaseConnection = Annotated[ConnectionManager, Depends()]
+
+
+class TokenHolderRaw:
+
+    def __init__(self):
+        self._tokens: dict[str, User] = {}
+
+    def add_token(self, token: str, user: User):
+        self._tokens[token] = user
+
+    def validate_token(self, token: str):
+        if token not in self._tokens:
+            raise HTTPException(status_code=403, detail="Invalid bearer token!")
+
+    def get_user(self, token: str) -> User:
+        return self._tokens[token]
+
+
+TokenHolder = Annotated[TokenHolderRaw, Depends()]
+
+
+def validate_token_raw(token: Annotated[str, Header()], token_holder: TokenHolder):
+    token_holder.validate_token(token)
+
+
+validate_token = Depends(validate_token_raw)

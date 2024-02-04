@@ -9,6 +9,7 @@ from fastapi_utils.tasks import repeat_every
 from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.models import LoginRedirect, LoginSuccess
 from api.common import SpotifyClient
+from api.common.dependencies import TokenHolder
 
 router = APIRouter(
     prefix="/auth",
@@ -43,7 +44,7 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
 
 @router.get("/login/callback")
 async def login_callback(state: str, code: str, redirect_uri: str, auth_database_connection: AuthDatabaseConnection,
-                         spotify_client: SpotifyClient) -> LoginSuccess:
+                         spotify_client: SpotifyClient, token_holder: TokenHolder) -> LoginSuccess:
     if not auth_database_connection.is_valid_state(state):
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
@@ -52,11 +53,13 @@ async def login_callback(state: str, code: str, redirect_uri: str, auth_database
     token = f"{token_result.token_type} {token_result.access_token}"
     me_result = spotify_client.get_me(token)
     auth_database_connection.update_logged_in_user(me_result, token)
+    token_holder.add_token(token, me_result)
     return LoginSuccess(access_token=token)
 
 
 def cleanup_state_strings(auth_database_connection: AuthDatabaseConnection):
-    auth_database_connection.delete_expired_states(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
+    auth_database_connection.delete_expired_states(
+        datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
 
 
 @router.on_event("startup")

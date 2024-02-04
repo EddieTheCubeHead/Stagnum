@@ -5,8 +5,11 @@ import random
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
+from api.common.dependencies import TokenHolder, validate_token, TokenHolderRaw, validate_token_raw
 from database.entities import LoginState, User
 
 
@@ -73,6 +76,17 @@ def requests_client_with_auth_mock(requests_client, default_token_return, defaul
     requests_client.post = Mock(return_value=default_token_return)
     requests_client.get = Mock(return_value=default_me_return)
     return default_token_return.content
+
+
+@pytest.fixture
+def auth_test(test_client):
+    token_holder = TokenHolder()
+    test_client.app.dependency_overrides[TokenHolderRaw] = lambda: token_holder
+
+    def auth_test_wrapper(token):
+        return validate_token_raw(token, token_holder)
+
+    return auth_test_wrapper
 
 
 def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct_env_variables, test_client,
@@ -160,3 +174,19 @@ def should_update_user_data_on_token_receive_if_it_exists(correct_env_variables,
         user_data = session.scalar(select(User).where(User.spotify_email == "test.user@example.test"))
     assert user_data.spotify_username == "Test User"
     assert user_data.spotify_avatar_url == "https://image.example.com"
+
+
+def should_throw_exception_on_token_auth_if_not_logged_in(auth_test):
+    with pytest.raises(HTTPException) as exception_info:
+        auth_test("my token")
+    assert exception_info.value.status_code == 403
+    assert exception_info.value.detail == "Invalid bearer token!"
+
+
+@pytest.mark.wip
+def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, correct_env_variables, validate_response,
+                                                                base_auth_callback_call,
+                                                                requests_client_with_auth_mock):
+    response = base_auth_callback_call()
+    json_data = validate_response(response)
+    auth_test(json_data["access_token"])
