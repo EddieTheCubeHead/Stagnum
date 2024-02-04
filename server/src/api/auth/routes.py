@@ -9,8 +9,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.models import LoginRedirect, LoginSuccess
-from api.common import SpotifyClient
-from api.common.dependencies import TokenHolder
+from api.common.dependencies import TokenHolder, SpotifyClient
 from database.database_connection import ConnectionManager
 
 router = APIRouter(
@@ -32,7 +31,7 @@ def _create_random_string(length: int) -> str:
 
 
 @router.get("/login")
-async def login(client_redirect_uri: str, auth_database_connection: AuthDatabaseConnection) -> LoginRedirect:
+async def login(client_redirect_url: str, auth_database_connection: AuthDatabaseConnection) -> LoginRedirect:
     base_url = "https://accounts.spotify.com/authorize?"
     scopes_string = " ".join(_required_scopes)
     state = _create_random_string(16)
@@ -40,19 +39,19 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     if client_id is None:
         raise HTTPException(status_code=500)
-    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
-                                      f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
+    return LoginRedirect(redirect_url=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
+                                      f"&redirect_url={client_redirect_url}&client_id={client_id}")
 
 
 @router.get("/login/callback")
-async def login_callback(state: str, code: str, client_redirect_uri: str,
+async def login_callback(state: str, code: str, client_redirect_url: str,
                          auth_database_connection: AuthDatabaseConnection, spotify_client: SpotifyClient,
                          token_holder: TokenHolder) -> LoginSuccess:
     if not auth_database_connection.is_valid_state(state):
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
-    token_result = spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
+    token_result = spotify_client.get_token(code, client_id, client_secret, client_redirect_url)
     token = f"{token_result.token_type} {token_result.access_token}"
     me_result = spotify_client.get_me(token)
     auth_database_connection.update_logged_in_user(me_result, state)

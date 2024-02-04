@@ -11,7 +11,8 @@ from database.entities import EntityBase
 
 class ConnectionManager:
 
-    # De-referencing sqlite in-memory engine even briefly drops all data. This forces the engine into global state
+    # De-referencing sqlite in-memory engine even briefly drops all data, which is bad.
+    # We implement here an approach that forces the engine into global state but only if it's an in-memory engine
     # thus preventing us from dropping data. Not perfect but good enough. We're mostly using Postgre anyway.
     _sqlite_in_memory_engine = None
 

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class LoginRedirect(BaseModel):
-    redirect_uri: str
+    redirect_url: str
 
 
 class LoginSuccess(BaseModel):

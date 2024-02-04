@@ -13,6 +13,11 @@ from database.entities import User
 
 
 class RequestsClientRaw:
+    """A class to enable easy mocking of requests functionality with FastAPI dependency system.
+
+    Only houses wrapper functions for requests calls, no actual logic should ever reside here, as this class won't
+    get any test coverage due to always being mocked in tests.
+    """
 
     @functools.wraps(requests.get)
     def get(self, *args, **kwargs):
