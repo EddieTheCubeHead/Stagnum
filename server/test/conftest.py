@@ -27,7 +27,6 @@ def requests_client():
 def db_connection(tmp_path, pytestconfig) -> ConnectionManager:
     echo = "-v" in pytestconfig.invocation_params.args
     connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", echo)
-    connection.init_objects(EntityBase)
     return connection
 
 
