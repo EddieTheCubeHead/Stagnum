@@ -83,6 +83,8 @@ on setting environment variables:
 
 There are further optional environment variables you can use to customize the behaviour of the server.
 
+- `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation, default
+`sqlite:///:memory:`
 - `HOST`: control the host ip of the server, default `127.0.0.1`
 - `PORT`: control the port of the server, default `8000`
 - `RELOAD`: control whether the server should auto-reload on updates, default `True`
@@ -132,8 +134,13 @@ simple as entering the following commands in the project root.
 
 ```bash
 docker build -t stagnum-server ./server
-docker run -p 8080:8080 stagnum-server
+docker run -p 8080:8080 stagnum-server \
+-e SPOTIFY_CLIENT_ID={client id} \
+-e SPOTIFY_CLIENT_SECRET={client secret} \
+-e DATABASE_CONNECTION_URL={db url}
 ```
+
+Replace the values in brackets with correct ones.
 
 You can browse to `localhost:8080` to verify the server is running. Once again the
 following message is returned, if everything works correctly:
