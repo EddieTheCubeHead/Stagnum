@@ -11,7 +11,7 @@ class ConnectionManager:
 
     def __init__(self, db_address: str = None, echo: bool = False):
         if db_address is None:
-            db_address = os.getenv("DATABASE_CONNECTION_URI", default="sqlite:///:memory:")
+            db_address = os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
         self.engine = create_engine(db_address, echo=echo)
         self._session = sessionmaker()
         self._session.configure(bind=self.engine)
