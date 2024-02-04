@@ -55,7 +55,7 @@ async def login_callback(state: str, code: str, client_redirect_uri: str,
     token_result = spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
     token = f"{token_result.token_type} {token_result.access_token}"
     me_result = spotify_client.get_me(token)
-    auth_database_connection.update_logged_in_user(me_result, token)
+    auth_database_connection.update_logged_in_user(me_result, state)
     token_holder.add_token(token, me_result)
     return LoginSuccess(access_token=token)
 
@@ -66,7 +66,6 @@ scheduler_db_connection = AuthDatabaseConnection(ConnectionManager())
 def cleanup_state_strings(db_connection: AuthDatabaseConnection = None):
     if db_connection is None:
         db_connection = scheduler_db_connection
-    print("Cleaning up state strings...")
     db_connection.delete_expired_states(
         datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
 

@@ -25,7 +25,7 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
 
-    def update_logged_in_user(self, user: User, token: str):
+    def update_logged_in_user(self, user: User, state: str):
         with self._database_connection.session() as session:
             existing_user = session.scalar(select(User).where(User.spotify_id == user.spotify_id))
             if existing_user is not None:
@@ -35,6 +35,8 @@ class AuthDatabaseConnectionRaw:
                     existing_user.spotify_avatar_url = user.spotify_avatar_url
             else:
                 session.add(user)
+            state = session.scalar(select(LoginState).where(LoginState.state_string == state))
+            session.delete(state)
 
 
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]

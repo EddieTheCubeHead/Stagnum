@@ -97,6 +97,15 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct
     assert exception["detail"] == "Login state is invalid or expired"
 
 
+def should_delete_state_from_database_on_successful_login(correct_env_variables, base_auth_callback_call,
+                                                          requests_client_with_auth_mock, db_connection,
+                                                          valid_state_string):
+    base_auth_callback_call()
+    with db_connection.session() as session:
+        state = session.scalar(select(LoginState).where(LoginState.state_string == valid_state_string))
+    assert state is None
+
+
 def should_return_token_from_spotify_if_state_is_valid(correct_env_variables, base_auth_callback_call,
                                                        validate_response, requests_client_with_auth_mock):
     response = base_auth_callback_call()
@@ -151,7 +160,6 @@ def should_always_have_grant_type_as_auth_code_in_spotify_api_request(correct_en
     assert call.kwargs["data"]["grant_type"] == "authorization_code"
 
 
-@pytest.mark.wip
 def should_get_user_data_after_token_received_and_save_it(correct_env_variables, base_auth_callback_call,
                                                           requests_client_with_auth_mock, requests_client,
                                                           db_connection):
