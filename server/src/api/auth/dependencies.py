@@ -27,7 +27,7 @@ class AuthDatabaseConnectionRaw:
 
     def update_logged_in_user(self, user: User, token: str):
         with self._database_connection.session() as session:
-            existing_user = session.scalar(select(User).where(User.spotify_email == user.spotify_email))
+            existing_user = session.scalar(select(User).where(User.spotify_id == user.spotify_id))
             if existing_user is not None:
                 if existing_user.spotify_username != user.spotify_username:
                     existing_user.spotify_username = user.spotify_username

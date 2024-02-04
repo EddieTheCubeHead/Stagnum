@@ -43,6 +43,14 @@ def should_have_random_state_in_login_redirect_response(base_auth_login_call, va
     assert len(set(state_strings)) == 10, f"Did not find 10 unique strings in collection '{state_strings}'"
 
 
+def should_have_response_type_as_code_in_login_redirect_response(base_auth_login_call, validate_response,
+                                                                 get_query_parameter):
+    response = base_auth_login_call()
+    data_json = validate_response(response)
+    response_type_string = get_query_parameter(data_json["redirect_uri"], "response_type")
+    assert response_type_string == "code"
+
+
 def should_save_state_in_database(base_auth_login_call, db_connection: DatabaseConnection, validate_response,
                                   get_query_parameter):
     response = base_auth_login_call()

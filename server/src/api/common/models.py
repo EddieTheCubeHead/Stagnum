@@ -9,6 +9,5 @@ class NamedResource(BaseModel):
 class SpotifyTokenResponse(BaseModel):
     access_token: str
     token_type: str
-    scopes: list[str]
     expires_in: int
     refresh_token: str

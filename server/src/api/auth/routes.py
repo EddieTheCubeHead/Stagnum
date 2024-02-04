@@ -40,18 +40,19 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     if client_id is None:
         raise HTTPException(status_code=500)
-    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}"
+    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
                                       f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
 
 
 @router.get("/login/callback")
-async def login_callback(state: str, code: str, redirect_uri: str, auth_database_connection: AuthDatabaseConnection,
-                         spotify_client: SpotifyClient, token_holder: TokenHolder) -> LoginSuccess:
+async def login_callback(state: str, code: str, client_redirect_uri: str,
+                         auth_database_connection: AuthDatabaseConnection, spotify_client: SpotifyClient,
+                         token_holder: TokenHolder) -> LoginSuccess:
     if not auth_database_connection.is_valid_state(state):
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
-    token_result = spotify_client.get_token(code, client_id, client_secret, redirect_uri)
+    token_result = spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
     token = f"{token_result.token_type} {token_result.access_token}"
     me_result = spotify_client.get_me(token)
     auth_database_connection.update_logged_in_user(me_result, token)
@@ -65,6 +66,7 @@ scheduler_db_connection = AuthDatabaseConnection(ConnectionManager())
 def cleanup_state_strings(db_connection: AuthDatabaseConnection = None):
     if db_connection is None:
         db_connection = scheduler_db_connection
+    print("Cleaning up state strings...")
     db_connection.delete_expired_states(
         datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15))
 
@@ -76,4 +78,4 @@ def setup_scheduler():
     }
     scheduler = AsyncIOScheduler(jobstores=job_stores)
     scheduler.start()
-    scheduler.add_job(cleanup_state_strings, "interval", seconds=3)
+    scheduler.add_job(cleanup_state_strings, "interval", minutes=1)

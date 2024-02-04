@@ -9,12 +9,12 @@ from database.entities import LoginState, User
 
 def should_have_functioning_database_connection(db_connection: ConnectionManager):
     with db_connection.session() as session:
-        my_object = User(spotify_email="tester.email@example.test", spotify_username="Test User",
+        my_object = User(spotify_id="test user", spotify_username="Test User",
                          spotify_avatar_url="https://picture.spotify.com")
         session.add(my_object)
 
     with db_connection.session() as session:
-        actual_object = session.scalar(select(User).where(User.spotify_email == "tester.email@example.test"))
+        actual_object = session.scalar(select(User).where(User.spotify_id == "test user"))
 
     assert actual_object.spotify_username == "Test User"
 

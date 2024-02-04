@@ -21,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         'User',
-        sa.Column('spotify_email', sa.String(length=128), nullable=False),
+        sa.Column('spotify_id', sa.String(length=128), nullable=False),
         sa.Column('spotify_username', sa.String(length=64), nullable=False),
         sa.Column('spotify_avatar_url', sa.String(length=256), nullable=False),
         sa.PrimaryKeyConstraint('spotify_email')

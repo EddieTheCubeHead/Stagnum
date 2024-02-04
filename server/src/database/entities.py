@@ -15,7 +15,7 @@ class EntityBase(DeclarativeBase):
 
 class User(EntityBase):
 
-    spotify_email: Mapped[str] = mapped_column(String(128), primary_key=True)
+    spotify_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     spotify_username: Mapped[str] = mapped_column(String(64))
     spotify_avatar_url: Mapped[str] = mapped_column(String(256))
 

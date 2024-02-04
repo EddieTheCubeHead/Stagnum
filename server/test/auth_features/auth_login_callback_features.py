@@ -25,7 +25,7 @@ def correct_env_variables(monkeypatch):
 @pytest.fixture
 def base_auth_callback_call(correct_env_variables, test_client, valid_state_string):
     return lambda: test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                                   f"&code=12345abcde&redirect_uri=test_uri")
+                                   f"&code=12345abcde&client_redirect_uri=test_uri")
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def default_me_return():
     return_json = {
         "country": "Finland",
         "display_name": "Test User",
-        "email": "test.user@example.test",
+        "id": "test user",
         "images": [
             {
                 "url": "https://image.example.com",
@@ -91,7 +91,8 @@ def auth_test(test_client):
 
 def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct_env_variables, test_client,
                                                                          validate_response):
-    response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde&redirect_uri=test_uri")
+    response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
+                               f"&client_redirect_uri=test_uri")
     exception = validate_response(response, 403)
     assert exception["detail"] == "Login state is invalid or expired"
 
@@ -128,7 +129,7 @@ def should_include_code_from_query_in_spotify_api_request(correct_env_variables,
                                                           requests_client_with_auth_mock, requests_client):
     expected_code = "my_auth_code"
     test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                    f"&code={expected_code}&redirect_uri=test_uri")
+                    f"&code={expected_code}&client_redirect_uri=test_uri")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["code"] == expected_code
 
@@ -138,7 +139,7 @@ def should_include_redirect_uri_from_query_in_spotify_api_request(correct_env_va
                                                                   requests_client):
     expected_uri = "my_redirect_uri"
     test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                    f"&code=12345abcde&redirect_uri={expected_uri}")
+                    f"&code=12345abcde&client_redirect_uri={expected_uri}")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["redirect_uri"] == expected_uri
 
@@ -158,7 +159,7 @@ def should_get_user_data_after_token_received_and_save_it(correct_env_variables,
     call = requests_client.get.call_args
     assert call[0][0] == "https://api.spotify.com/v1/me"
     with db_connection.session() as session:
-        user_data = session.scalar(select(User).where(User.spotify_email == "test.user@example.test"))
+        user_data = session.scalar(select(User).where(User.spotify_id == "test user"))
     assert user_data is not None
 
 
@@ -166,13 +167,13 @@ def should_update_user_data_on_token_receive_if_it_exists(correct_env_variables,
                                                           requests_client_with_auth_mock, requests_client,
                                                           db_connection):
     with db_connection.session() as session:
-        session.add(User(spotify_email="test.user@example.test", spotify_username="Old Name",
+        session.add(User(spotify_id="test user", spotify_username="Old Name",
                          spotify_avatar_url="https://old.avatar.url"))
     base_auth_callback_call()
     call = requests_client.get.call_args
     assert call[0][0] == "https://api.spotify.com/v1/me"
     with db_connection.session() as session:
-        user_data = session.scalar(select(User).where(User.spotify_email == "test.user@example.test"))
+        user_data = session.scalar(select(User).where(User.spotify_id == "test user"))
     assert user_data.spotify_username == "Test User"
     assert user_data.spotify_avatar_url == "https://image.example.com"
 
