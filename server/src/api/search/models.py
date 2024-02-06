@@ -1,8 +1,16 @@
+from enum import Enum
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
 from api.common.models import NamedResource
+
+
+class SpotifyPlayableType(Enum):
+    Track = "track",
+    Album = "album",
+    Artist = "artist",
+    Playlist = "playlist"
 
 
 class SpotifyPlayable(BaseModel):

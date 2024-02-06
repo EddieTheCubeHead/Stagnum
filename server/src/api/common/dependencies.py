@@ -1,4 +1,3 @@
-import base64
 import functools
 import json
 from typing import Annotated
@@ -7,7 +6,6 @@ import requests
 from fastapi import Depends, HTTPException, Header
 from requests import Response
 
-from api.common.models import SpotifyTokenResponse
 from database.database_connection import ConnectionManager
 from database.entities import User
 
@@ -42,32 +40,13 @@ class SpotifyClientRaw:
     def __init__(self, request_client: RequestsClient):
         self._request_client = request_client
 
-    def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str):
-        form = {
-            "code": code,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code"
-        }
-        token = base64.b64encode((client_id + ':' + client_secret).encode('ascii')).decode('ascii')
-        headers = {
-            "Authorization": "Basic " + token,
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
+    def get(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
+        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
+        return self._request_client.get(f"{url}{query}", *args, **kwargs)
 
-        data = self._request_client.post("https://accounts.spotify.com/api/token", headers=headers, data=form)
-        parsed_data = _validate_data(data)
-        return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
-                                    expires_in=parsed_data["expires_in"], refresh_token=parsed_data["refresh_token"])
-
-    def get_me(self, token: str):
-        headers = {
-            "Authorization": token
-        }
-        data = self._request_client.get("https://api.spotify.com/v1/me", headers=headers)
-        parsed_data = json.loads(data.content.decode("utf8"))
-        user_avatar_url = parsed_data["images"][0]["url"] if len(parsed_data["images"]) > 0 else None
-        return User(spotify_id=parsed_data["id"], spotify_username=parsed_data["display_name"],
-                    spotify_avatar_url=user_avatar_url)
+    def post(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
+        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
+        return self._request_client.post(f"{url}{query}", *args, **kwargs)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
@@ -95,8 +74,9 @@ class TokenHolderRaw:
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
-def validate_token_raw(token: Annotated[str, Header()], token_holder: TokenHolder):
+def validated_token_raw(token: Annotated[str, Header()], token_holder: TokenHolder):
     token_holder.validate_token(token)
+    return token
 
 
-validate_token = Depends(validate_token_raw)
+validated_token = Annotated[str, Depends(validated_token_raw)]

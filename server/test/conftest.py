@@ -7,7 +7,7 @@ import pytest
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 
-from api.common.dependencies import SpotifyClientRaw, RequestsClientRaw
+from api.common.dependencies import SpotifyClientRaw, RequestsClientRaw, TokenHolder, TokenHolderRaw
 from database.database_connection import ConnectionManager
 from api.application import create_app
 from database.entities import EntityBase
@@ -50,3 +50,17 @@ def validate_response():
         return json.loads(response.content.decode("utf-8"))
 
     return wrapper
+
+
+@pytest.fixture
+def mock_token_holder(application):
+    token_holder = TokenHolder()
+    application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
+    return token_holder
+
+
+@pytest.fixture
+def valid_token_header(mock_token_holder):
+    token = "my test token"
+    mock_token_holder.add_token(token, Mock())
+    return {"token": token}

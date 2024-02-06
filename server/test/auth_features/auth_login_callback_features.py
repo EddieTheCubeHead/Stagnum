@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
-from api.common.dependencies import TokenHolder, validate_token, TokenHolderRaw, validate_token_raw
+from api.common.dependencies import validated_token_raw
 from database.entities import LoginState, User
 
 
@@ -79,12 +79,10 @@ def requests_client_with_auth_mock(requests_client, default_token_return, defaul
 
 
 @pytest.fixture
-def auth_test(test_client):
-    token_holder = TokenHolder()
-    test_client.app.dependency_overrides[TokenHolderRaw] = lambda: token_holder
+def auth_test(test_client, mock_token_holder):
 
     def auth_test_wrapper(token):
-        return validate_token_raw(token, token_holder)
+        return validated_token_raw(token, mock_token_holder)
 
     return auth_test_wrapper
 
@@ -198,7 +196,8 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
                                                                 requests_client_with_auth_mock):
     response = base_auth_callback_call()
     json_data = validate_response(response)
-    auth_test(json_data["access_token"])
+    actual_token = auth_test(json_data["access_token"])
+    assert actual_token == json_data["access_token"]
 
 
 @pytest.mark.parametrize("code", [401, 403, 404, 500])

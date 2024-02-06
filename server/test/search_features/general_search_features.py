@@ -220,5 +220,11 @@ def mock_spotify_general_search(requests_client, create_mock_album_search_result
     return wrapper
 
 
-def should_return_spotify_get_search_data_from_search(mock_spotify_general_search):
-    print(mock_spotify_general_search("my query"))
+@pytest.mark.wip
+def should_return_spotify_get_search_data_from_search(test_client, valid_token_header, mock_spotify_general_search,
+                                                      validate_response):
+    query = "my query"
+    mock_spotify_general_search(query)
+    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    validate_response(result)
+    pass

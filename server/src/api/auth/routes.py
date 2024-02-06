@@ -4,7 +4,7 @@ import random
 
 from fastapi import APIRouter, HTTPException
 
-from api.auth.dependencies import AuthDatabaseConnection
+from api.auth.dependencies import AuthDatabaseConnection, AuthSpotifyClient
 from api.auth.models import LoginRedirect, LoginSuccess
 from api.common.dependencies import TokenHolder, SpotifyClient
 
@@ -42,7 +42,7 @@ async def login(client_redirect_url: str, auth_database_connection: AuthDatabase
 
 @router.get("/login/callback")
 async def login_callback(state: str, code: str, client_redirect_url: str,
-                         auth_database_connection: AuthDatabaseConnection, spotify_client: SpotifyClient,
+                         auth_database_connection: AuthDatabaseConnection, spotify_client: AuthSpotifyClient,
                          token_holder: TokenHolder) -> LoginSuccess:
     if not auth_database_connection.is_valid_state(state):
         raise HTTPException(status_code=403, detail="Login state is invalid or expired")
