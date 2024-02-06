@@ -2,11 +2,10 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from api import pool, search, auth
-from api.common.dependencies import DatabaseConnection
 
 
 def create_app() -> FastAPI:
-    application = FastAPI()
+    application = FastAPI(lifespan=auth.setup_scheduler)
     application.include_router(auth.router)
     application.include_router(search.router)
     application.include_router(pool.router)
