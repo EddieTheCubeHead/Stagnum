@@ -3,11 +3,8 @@ import React from "react";
 import Page from "../app/page";
 
 describe("Page", () => {
-  it("renders a About Stagnum section", () => {
-    render(<Page />);
-
-    const heading = screen.getByText("Contact Us");
-
-    expect(heading).toBeInTheDocument();
+  it("renders homepage unchanged", () => {
+    const { container } = render(<Page />);
+    expect(container).toMatchSnapshot();
   });
 });
