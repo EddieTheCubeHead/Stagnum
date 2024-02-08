@@ -25,7 +25,7 @@ def correct_env_variables(monkeypatch):
 @pytest.fixture
 def base_auth_callback_call(correct_env_variables, test_client, valid_state_string):
     return lambda: test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                                   f"&code=12345abcde&client_redirect_url=test_url")
+                                   f"&code=12345abcde&client_redirect_uri=test_url")
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def auth_test(test_client):
 def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct_env_variables, test_client,
                                                                          validate_response):
     response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
-                               f"&client_redirect_url=test_url")
+                               f"&client_redirect_uri=test_url")
     exception = validate_response(response, 403)
     assert exception["detail"] == "Login state is invalid or expired"
 
@@ -138,7 +138,7 @@ def should_include_code_from_query_in_spotify_api_request(correct_env_variables,
                                                           requests_client_with_auth_mock, requests_client):
     expected_code = "my_auth_code"
     test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                    f"&code={expected_code}&client_redirect_url=test_url")
+                    f"&code={expected_code}&client_redirect_uri=test_url")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["code"] == expected_code
 
@@ -148,7 +148,7 @@ def should_include_redirect_url_from_query_in_spotify_api_request(correct_env_va
                                                                   requests_client):
     expected_url = "my_redirect_url"
     test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                    f"&code=12345abcde&client_redirect_url={expected_url}")
+                    f"&code=12345abcde&client_redirect_uri={expected_url}")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["redirect_uri"] == expected_url
 
