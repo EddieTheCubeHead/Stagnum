@@ -7,9 +7,9 @@ from api.common.models import NamedResource
 
 
 class SpotifyPlayableType(Enum):
-    Track = "track",
-    Album = "album",
-    Artist = "artist",
+    Track = "track"
+    Album = "album"
+    Artist = "artist"
     Playlist = "playlist"
 
 
