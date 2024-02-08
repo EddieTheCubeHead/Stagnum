@@ -5,7 +5,8 @@ from fastapi import Depends
 
 from api.common.dependencies import SpotifyClient
 from api.common.models import NamedResource
-from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult
+from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult, \
+    SpotifyPlayableType
 
 
 def _get_sharpest_icon(icons: list[dict]) -> str:
@@ -65,17 +66,21 @@ def _build_paginated_result(result_data, builder_function: Callable) -> Paginate
     )
 
 
+def _auth_header(token: str) -> dict:
+    return {
+        "Authorization": token
+    }
+
+
 class SearchSpotifyClientRaw:
     def __init__(self, spotify_client: SpotifyClient):
         self._spotify_client = spotify_client
 
-    def get_search(self, query: str, token: str, types: list[str], offset: int = 0, limit: int = 20)\
+    def get_general_search(self, query: str, token: str, types: list[str]) \
             -> GeneralSearchResult:
         search_types = ",".join(types)
-        headers = {
-            "Authorization": token
-        }
-        query_string = f"search?q={query}&type={search_types}&offset={offset}&limit={limit}"
+        headers = _auth_header(token)
+        query_string = f"search?q={query}&type={search_types}&offset=0&limit=20"
         result = self._spotify_client.get(query_string, headers=headers)
         artist_result = _build_paginated_result(result["artists"], _build_artist)
         album_result = _build_paginated_result(result["albums"], _build_album)
@@ -83,6 +88,13 @@ class SearchSpotifyClientRaw:
         playlists_result = _build_paginated_result(result["playlists"], _build_playlist)
         return GeneralSearchResult(tracks=tracks_result, artists=artist_result, albums=album_result,
                                    playlists=playlists_result)
+
+    def get_track_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
+            -> PaginatedSearchResult[Track]:
+        headers = _auth_header(token)
+        query_string = f"search?q={query}&type={SpotifyPlayableType.Track.value}&offset={offset}&limit={limit}"
+        result = self._spotify_client.get(query_string, headers=headers)
+        return _build_paginated_result(result["tracks"], _build_track)
 
 
 SearchSpotifyClient = Annotated[SearchSpotifyClientRaw, Depends()]
