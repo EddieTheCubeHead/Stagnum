@@ -11,7 +11,7 @@ def should_cleanup_expired_states_from_database_on_cleanup_job(monkeypatch, base
                                                                get_query_parameter, db_connection):
     response = base_auth_login_call()
     data_json = validate_response(response)
-    state_string = get_query_parameter(data_json["redirect_url"], "state")
+    state_string = get_query_parameter(data_json["redirect_uri"], "state")
     soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15, seconds=1)
 
     class MockDateTime:
@@ -31,7 +31,7 @@ def should_not_cleanup_non_expired_states_from_database_on_cleanup_job(monkeypat
                                                                        db_connection):
     response = base_auth_login_call()
     data_json = validate_response(response)
-    state_string = get_query_parameter(data_json["redirect_url"], "state")
+    state_string = get_query_parameter(data_json["redirect_uri"], "state")
     soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=14)
 
     class MockDateTime:
