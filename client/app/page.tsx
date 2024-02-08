@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-white text-black flex flex-col w-full h-full">
