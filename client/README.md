@@ -4,6 +4,7 @@
   - [Installing Node.js](#installing-node.js)
   - [Installing dependencies](#installing-dependencies)
   - [Running the client locally](#running-the-client-locally)
+- [Running tests](#running-tests)
 - [Running with docker](#running-with-docker)
 
 ## Development setup
@@ -32,6 +33,20 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to verify that the client is running.
 
 The application will automatically update once you save your code changes.
+
+## Running with docker
+
+To run tests once for the application you can simply run
+
+```bash
+npm run test
+```
+
+Or you can run them continuously after every change with
+
+```bash
+npm run test:watch
+```
 
 ## Running with docker
 
