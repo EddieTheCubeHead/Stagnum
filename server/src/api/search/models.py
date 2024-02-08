@@ -15,7 +15,6 @@ class SpotifyPlayableType(Enum):
 
 class SpotifyPlayable(BaseModel):
     name: str
-    icon_link: str
     uri: str  # spotify unique uri: spotify:track:4PTG3Z6ehGkBFwjybzWkR8
 
 
@@ -28,14 +27,15 @@ class Track(SpotifyPlayable):
 class Album(SpotifyPlayable):
     artists: list[NamedResource]
     year: int
+    icon_link: str
 
 
 class Artist(SpotifyPlayable):
-    pass
+    icon_link: str
 
 
 class Playlist(SpotifyPlayable):
-    pass
+    icon_link: str
 
 
 PlayableType = TypeVar("PlayableType", bound=SpotifyPlayable)

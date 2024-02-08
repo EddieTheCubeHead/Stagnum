@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from api.common.dependencies import validated_token, SpotifyClient
+from api.search.dependencies import SearchSpotifyClient
 from api.search.models import GeneralSearchResult, PaginatedSearchResult, Playlist, Artist, Album, Track, \
     SpotifyPlayableType
 
@@ -11,8 +12,8 @@ router = APIRouter(
 
 
 @router.get("/")
-async def search(query: str, token: validated_token, spotify_client: SpotifyClient) -> GeneralSearchResult:
-    all_playable_types = (e.value for e in SpotifyPlayableType)
+async def search(query: str, token: validated_token, spotify_client: SearchSpotifyClient) -> GeneralSearchResult:
+    all_playable_types = [e.value[0] for e in SpotifyPlayableType]
     return spotify_client.get_search(query, token, all_playable_types)
 
 

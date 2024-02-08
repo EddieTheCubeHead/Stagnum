@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.auth.dependencies import AuthDatabaseConnection, AuthSpotifyClient
 from api.auth.models import LoginRedirect, LoginSuccess
-from api.common.dependencies import TokenHolder, SpotifyClient
+from api.common.dependencies import TokenHolder
 
 
 router = APIRouter(
@@ -36,8 +36,8 @@ async def login(client_redirect_url: str, auth_database_connection: AuthDatabase
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     if client_id is None:
         raise HTTPException(status_code=500)
-    return LoginRedirect(redirect_url=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
-                                      f"&redirect_url={client_redirect_url}&client_id={client_id}")
+    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
+                                      f"&redirect_uri={client_redirect_url}&client_id={client_id}")
 
 
 @router.get("/login/callback")

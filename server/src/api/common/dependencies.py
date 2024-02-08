@@ -57,8 +57,7 @@ DatabaseConnection = Annotated[ConnectionManager, Depends()]
 
 class TokenHolderRaw:
 
-    def __init__(self):
-        self._tokens: dict[str, User] = {}
+    _tokens: dict[str, User] = {}
 
     def add_token(self, token: str, user: User):
         self._tokens[token] = user

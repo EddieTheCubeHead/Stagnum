@@ -1,4 +1,5 @@
 import random
+from unittest.mock import Mock
 
 import pytest
 
@@ -111,7 +112,7 @@ def create_mock_track_search_result(faker, create_mock_artist_search_result, cre
             "restrictions": {
                 "reason": "market"
             },
-            "name": {track_name},
+            "name": track_name,
             "popularity": random.randint(1, 10),
             "preview_url": f"https://track.preview.spotify/{track_id}",
             "track_number": random.randint(1, album["total_tracks"]),
@@ -222,9 +223,9 @@ def mock_spotify_general_search(requests_client, create_mock_album_search_result
 
 @pytest.mark.wip
 def should_return_spotify_get_search_data_from_search(test_client, valid_token_header, mock_spotify_general_search,
-                                                      validate_response):
+                                                      validate_response, requests_client):
     query = "my query"
-    mock_spotify_general_search(query)
+    requests_client.get = Mock(return_value=mock_spotify_general_search(query))
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
     validate_response(result)
     pass
