@@ -1,4 +1,4 @@
-import random
+import json
 from unittest.mock import Mock
 
 import pytest
@@ -13,12 +13,16 @@ def mock_spotify_general_search(requests_client, create_mock_album_search_result
         tracks = [create_mock_track_search_result() for _ in range(limit)]
         albums = [create_mock_album_search_result(artist) for artist in artists]
         playlists = [create_mock_playlist_search_result() for _ in range(limit)]
-        return {
+        return_json = {
             "tracks": create_paginated_search_result(query, limit, tracks),
             "artists": create_paginated_search_result(query, limit, artists),
             "albums": create_paginated_search_result(query, limit, albums),
             "playlists": create_paginated_search_result(query, limit, playlists)
         }
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(return_json).encode("utf-8")
+        return response
 
     return wrapper
 

@@ -51,7 +51,7 @@ def create_mock_album_search_result(faker, create_mock_artist_search_result):
                 "spotify": f"https://album.url.spotify.com/{album_id}"
             },
             "href": f"https://spotify.api/resource:album:{album_id}",
-            "id": {album_id},
+            "id": album_id,
             "images": [
                 {
                     "url": f"https://pic.spotify.url/{album_name}",

@@ -24,18 +24,18 @@ async def search_tracks(token: validated_token, spotify_client: SearchSpotifyCli
 
 
 @router.get("/albums")
-async def search_albums(token: validated_token, query: str, limit: int = 20, offset: int = 0) \
-        -> PaginatedSearchResult[Album]:
-    pass
+async def search_albums(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+                        limit: int = 20) -> PaginatedSearchResult[Album]:
+    return spotify_client.get_album_search(query, token, offset, limit)
 
 
 @router.get("/artists")
-async def search_artists(token: validated_token, query: str, limit: int = 20, offset: int = 0) \
-        -> PaginatedSearchResult[Artist]:
-    pass
+async def search_artists(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+                         limit: int = 20) -> PaginatedSearchResult[Artist]:
+    return spotify_client.get_artist_search(query, token, offset, limit)
 
 
 @router.get("/playlists")
-async def search_playlists(token: validated_token, query: str, limit: int = 20, offset: int = 0) \
-        -> PaginatedSearchResult[Playlist]:
-    pass
+async def search_playlists(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+                           limit: int = 20) -> PaginatedSearchResult[Playlist]:
+    return spotify_client.get_playlist_search(query, token, offset, limit)

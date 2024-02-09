@@ -3,11 +3,12 @@ import json
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from requests import Response
 from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse
-from api.common.dependencies import DatabaseConnection, SpotifyClient, _validate_data
+from api.common.dependencies import DatabaseConnection, SpotifyClient
 from database.entities import LoginState, User
 
 
@@ -43,6 +44,13 @@ class AuthDatabaseConnectionRaw:
 
 
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]
+
+
+def _validate_data(raw_data: Response) -> dict:
+    parsed_data = json.loads(raw_data.content.decode("utf8"))
+    if raw_data.status_code != 200:
+        raise HTTPException(status_code=raw_data.status_code, detail=parsed_data["error"])
+    return parsed_data
 
 
 class AuthSpotifyClientRaw:
