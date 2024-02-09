@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-from datetime import timedelta, datetime
 import json
 from unittest.mock import Mock
 
@@ -7,10 +5,9 @@ import pytest
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 
-from api.common.dependencies import SpotifyClientRaw, RequestsClientRaw, TokenHolder, TokenHolderRaw
+from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw
 from database.database_connection import ConnectionManager
 from api.application import create_app
-from database.entities import EntityBase
 
 
 @pytest.fixture

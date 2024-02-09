@@ -2,12 +2,11 @@ import base64
 import json
 import string
 import random
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
-from starlette.testclient import TestClient
 
 from api.common.dependencies import validated_token_raw
 from database.entities import LoginState, User

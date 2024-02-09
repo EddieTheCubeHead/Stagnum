@@ -1,5 +1,4 @@
 import functools
-import json
 from typing import Annotated
 
 import requests

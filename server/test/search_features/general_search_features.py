@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock
 
 import pytest
@@ -111,4 +110,3 @@ def should_accept_any_date_starting_with_year(test_client, valid_token_header, m
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
     search_result = validate_response(result)
     assert search_result["albums"]["results"][0]["year"] == 2021
-
