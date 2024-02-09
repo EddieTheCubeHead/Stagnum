@@ -64,3 +64,14 @@ def valid_token_header(mock_token_holder):
     token = "my test token"
     mock_token_holder.add_token(token, Mock())
     return {"token": token}
+
+
+@pytest.fixture
+def build_success_response():
+    def wrapper(data: dict):
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(data).encode("utf-8")
+        return response
+
+    return wrapper

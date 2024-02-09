@@ -6,17 +6,14 @@ import pytest
 
 @pytest.fixture
 def create_album_paginated_search(create_mock_album_search_result, create_paginated_search_result,
-                                  create_mock_artist_search_result):
+                                  create_mock_artist_search_result, build_success_response):
     def wrapper(query: str, limit: int = 20):
         artists = [create_mock_artist_search_result() for _ in range(limit)]
         albums = [create_mock_album_search_result(artist) for artist in artists]
         return_json = {
             "albums": create_paginated_search_result(query, limit, albums)
         }
-        response = Mock()
-        response.status_code = 200
-        response.content = json.dumps(return_json).encode("utf-8")
-        return response
+        return build_success_response(return_json)
 
     return wrapper
 

@@ -5,16 +5,14 @@ import pytest
 
 
 @pytest.fixture
-def create_playlist_paginated_search(create_mock_playlist_search_result, create_paginated_search_result):
+def create_playlist_paginated_search(create_mock_playlist_search_result, create_paginated_search_result,
+                                     build_success_response):
     def wrapper(query: str, limit: int = 20):
         playlists = [create_mock_playlist_search_result() for _ in range(limit)]
         return_json = {
             "playlists": create_paginated_search_result(query, limit, playlists)
         }
-        response = Mock()
-        response.status_code = 200
-        response.content = json.dumps(return_json).encode("utf-8")
-        return response
+        return build_success_response(return_json)
 
     return wrapper
 
