@@ -100,3 +100,15 @@ def should_return_none_size_if_only_image(test_client, valid_token_header, mock_
     search_result = validate_response(result)
     assert search_result["albums"]["results"][0]["icon_link"] == "my_expected_image_url"
 
+
+@pytest.mark.parametrize("date_string", ["2021-01-10", "2021-01", "2021"])
+def should_accept_any_date_starting_with_year(test_client, valid_token_header, mock_spotify_general_search,
+                                              validate_response, requests_client, build_success_response, date_string):
+    query = "test query"
+    search_result = mock_spotify_general_search(query)
+    search_result["albums"]["items"][0]["release_date"] = date_string
+    requests_client.get = Mock(return_value=build_success_response(search_result))
+    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    search_result = validate_response(result)
+    assert search_result["albums"]["results"][0]["year"] == 2021
+
