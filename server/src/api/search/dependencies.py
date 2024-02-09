@@ -11,10 +11,10 @@ from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchRes
 
 
 def _get_sharpest_icon(icons: list[dict]) -> str:
-    max_size = icons[0]["height"]
+    max_size = icons[0]["height"] if icons[0]["height"] is not None else 0
     biggest_icon = icons[0]["url"]
     for icon in icons:
-        if icon["height"] > max_size:
+        if (icon["height"] or 0) > max_size:
             max_size = icon["height"]
             biggest_icon = icon["url"]
     return biggest_icon
@@ -33,7 +33,7 @@ def _build_track(track_data: dict) -> Track:
 def _build_album(album_data: dict) -> Album:
     return Album(
         artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in album_data["artists"]],
-        year=datetime.datetime.strptime(album_data["release_date"], "%Y-%m").year,
+        year=int(album_data["release_date"][:4]),
         icon_link=_get_sharpest_icon(album_data["images"]),
         name=album_data["name"],
         uri=album_data["uri"]

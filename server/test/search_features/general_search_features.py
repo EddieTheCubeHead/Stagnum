@@ -57,3 +57,7 @@ def should_call_spotify_with_the_provided_query(test_client, valid_token_header,
     types = ",".join(["track", "album", "artist", "playlist"])
     full_query = f"https://api.spotify.com/v1/search?q={query}&type={types}&offset=0&limit=20"
     requests_client.get.assert_called_with(full_query, headers={"Authorization": valid_token_header["token"]})
+
+
+def should_return_largest_image():
+    pass

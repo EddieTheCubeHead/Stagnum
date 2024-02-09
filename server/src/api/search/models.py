@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
+from pydantic.generics import GenericModel
 
 from api.common.models import NamedResource
 
@@ -41,7 +44,7 @@ class Playlist(SpotifyPlayable):
 PlayableType = TypeVar("PlayableType", bound=SpotifyPlayable)
 
 
-class PaginatedSearchResult(BaseModel, Generic[PlayableType]):
+class PaginatedSearchResult(GenericModel, Generic[PlayableType]):
     limit: int
     offset: int
     total: int
