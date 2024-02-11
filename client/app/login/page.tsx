@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Box, Button, Link, Typography } from "@mui/material";
+import { signIn } from "next-auth/react";
 
 export default function Login() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function Login() {
   return (
     <main className="relative min-h-screen w-full h-full flex px-36">
       <Link href="/" className=" pt-4 w-full z-10">
-        <Typography className="text-3xl font-semibold text-[#1ED760]">
+        <Typography className="text-3xl font-semibold text-[#09C949]">
           Stagnum
         </Typography>
       </Link>
@@ -44,8 +45,9 @@ export default function Login() {
         </Typography>
 
         <Button
-          className="bg-[#1ED760] py-2 w-36 rounded-full text-xl font-semibold"
+          className="bg-[#09C949] py-2 w-36 rounded-full text-xl font-semibold"
           // onClick={handleLoginRequest}
+          onClick={() => signIn("spotify", { callbackUrl: "/" })}
         >
           Login
         </Button>
@@ -54,7 +56,7 @@ export default function Login() {
           <Link href="/about">About Stagnum</Link>
           <Link
             href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-            className="text-[#1ED760]"
+            className="text-[#09C949]"
             target="_blank"
           >
             Contact Us
