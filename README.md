@@ -17,11 +17,11 @@ docker compose up -d
 
 # Developing
 
-The suggested way of developing is with docker compose watch this allows for live reloading of changes. The liveload affects both frontend and backend.
+## Docker Compose
+To get changes made to the docker containers rebuild and deploy the images.
 
-## Live reload
 ```bash
-docker compose watch
+docker compose up --build --force-recreation
 ```
 
 ## Frontend
