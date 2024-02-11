@@ -43,8 +43,9 @@ const Sidebar = ({ view, setView, setGlobalPlaylistId }: any) => {
   return (
     <div className="w-64 text-neutral-400 grow-0 shrink-0 h-screen border-r border-neutral-900 p-5 text-sm hidden md:inline-flex">
       <div className="space-y-4">
-        <div className="mt-1 mb-5">
-          <SpotifySVG />
+        <div className="mt-1 mb-5 text-3xl font-semibold text-[#09C949]">
+          {/* <SpotifySVG /> */}
+          Stagnum
         </div>
 
         <button className="flex items-center space-x-2 hover:text-white">
