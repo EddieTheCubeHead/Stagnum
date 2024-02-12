@@ -2,7 +2,7 @@ import os
 
 import uvicorn
 
-def _inject_secret(secret_name:str):
+def _inject_secret(secret_name: str):
     env_name = secret_name.upper()
     with open(f"/run/secrets/{secret_name}") as secret_file:
         secret = secret_file.read()
