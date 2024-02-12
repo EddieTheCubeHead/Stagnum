@@ -25,7 +25,7 @@ docker compose up -d
 # Developing
 Set the same secrets files
 
-To see more about developing and running from `client/README.md` and `server/README.md`.
+See more about developing and running from `client/README.md` and `server/README.md`.
 
 ## Docker Compose
 To get changes made to the docker containers rebuild and deploy the images.
