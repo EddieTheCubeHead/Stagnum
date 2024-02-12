@@ -11,7 +11,7 @@ More info TBA.
 The suggested way of running the project is with docker compose. This project uses secrets so you need to setup secret files.
 
 ## Setup secrets
-Create files `secret_spotify_client_id.txt` and `secret_spotify_client_secret.txt` and fill them with spotify. You need to get these secrets from [Spotify](https://developer.spotify.com/dashboard). 
+Create files `secret_spotify_client_id.txt` and `secret_spotify_client_secret.txt` and fill them with your spotify app credentials. You need to get these secrets from [Spotify](https://developer.spotify.com/dashboard). 
 See more about these secrets `server/README.md`.
 
 ## Run
