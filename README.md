@@ -8,7 +8,14 @@ converted into an OSS project after the course ends.
 More info TBA.
 
 # Running the project
-The suggested way of running the project is with docker compose.
+The suggested way of running the project is with docker compose. This project uses secrets so you need to setup secret files.
+
+## Setup secrets
+Create files `secret_spotify_client_id.txt` and `secret_spotify_client_secret.txt` and fill them with your spotify app credentials. You need to get these secrets from [Spotify](https://developer.spotify.com/dashboard). 
+See more about these secrets `server/README.md`.
+
+## Run
+To run the project after you have setup the secrets.
 
 ```bash
 docker compose up -d
@@ -16,12 +23,15 @@ docker compose up -d
 
 
 # Developing
+Set the same secrets files
 
-The suggested way of developing is with docker compose watch this allows for live reloading of changes. The liveload affects both frontend and backend.
+See more about developing and running from `client/README.md` and `server/README.md`.
 
-## Live reload
+## Docker Compose
+To get changes made to the docker containers rebuild and deploy the images.
+
 ```bash
-docker compose watch
+docker compose up --build --force-recreation
 ```
 
 ## Frontend

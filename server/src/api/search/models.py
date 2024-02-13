@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Any, Callable, get_args
 
 from pydantic import BaseModel
 from pydantic.generics import GenericModel
+from pydantic_core import core_schema
 
 from api.common.models import NamedResource
 
@@ -51,8 +52,24 @@ class PaginatedSearchResult(GenericModel, Generic[PlayableType]):
     results: list[PlayableType]
 
 
+class TrackSearchResult(PaginatedSearchResult[Track]):
+    pass
+
+
+class AlbumSearchResult(PaginatedSearchResult[Album]):
+    pass
+
+
+class ArtistSearchResult(PaginatedSearchResult[Artist]):
+    pass
+
+
+class PlaylistSearchResult(PaginatedSearchResult[Playlist]):
+    pass
+
+
 class GeneralSearchResult(BaseModel):
-    tracks: PaginatedSearchResult[Track]
-    albums: PaginatedSearchResult[Album]
-    artists: PaginatedSearchResult[Artist]
-    playlists: PaginatedSearchResult[Playlist]
+    tracks: TrackSearchResult
+    albums: AlbumSearchResult
+    artists: ArtistSearchResult
+    playlists: PlaylistSearchResult

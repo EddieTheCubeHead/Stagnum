@@ -9,5 +9,4 @@ ENV HOST="0.0.0.0"
 ENV PORT="8080"
 ENV RELOAD="False"
 
-RUN alembic upgrade head
-CMD ["python", "src/main.py"]
+CMD bash -c "echo 'Starting alembic upgrade!' && alembic upgrade head && echo 'Starting python server!' && python src/main.py"
