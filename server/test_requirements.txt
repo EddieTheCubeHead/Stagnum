@@ -10,3 +10,4 @@ psycopg2==2.9.9
 pytest-asyncio==0.23.4
 requests==2.31.0
 APScheduler==3.10.4
+Faker==22.6.0

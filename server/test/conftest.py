@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-from datetime import timedelta, datetime
 import json
 from unittest.mock import Mock
 
@@ -7,10 +5,9 @@ import pytest
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 
-from api.common.dependencies import SpotifyClientRaw, RequestsClientRaw
+from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw
 from database.database_connection import ConnectionManager
 from api.application import create_app
-from database.entities import EntityBase
 
 
 @pytest.fixture
@@ -48,5 +45,30 @@ def validate_response():
     def wrapper(response, code: int = 200):
         assert response.status_code == code, f"Expected response with status code {code}, got {response.status_code}"
         return json.loads(response.content.decode("utf-8"))
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_token_holder(application):
+    token_holder = TokenHolder()
+    application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
+    return token_holder
+
+
+@pytest.fixture
+def valid_token_header(mock_token_holder):
+    token = "my test token"
+    mock_token_holder.add_token(token, Mock())
+    return {"token": token}
+
+
+@pytest.fixture
+def build_success_response():
+    def wrapper(data: dict):
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(data).encode("utf-8")
+        return response
 
     return wrapper
