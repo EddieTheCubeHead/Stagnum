@@ -25,6 +25,14 @@ def _get_sharpest_icon(icons: list[dict]) -> str:
     return biggest_icon
 
 
+def _build_tracks(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
+    # Weird bug at least in my test set where this fails pydantic validation if we return the list comprehension.
+    # Extracting it into a separate variable fixed the bug. Mb investigate and report to pydantic?
+    tracks = [PoolTrack(name=track["name"], spotify_icon_uri=icon_uri, spotify_track_uri=track["uri"]) for track in
+              tracks]
+    return tracks
+
+
 class PoolSpotifyClientRaw:
 
     def __init__(self, spotify_client: SpotifyClient):
@@ -58,7 +66,11 @@ class PoolSpotifyClientRaw:
                          spotify_track_uri=track_data["uri"])
 
     def _fetch_album(self, token: str, album_id: str) -> PoolCollection:
-        pass
+        raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=_auth_header(token))
+        album_data = json.loads(raw_album_data.content.decode("utf-8"))
+        sharpest_icon_url = _get_sharpest_icon(album_data["images"])
+        tracks = _build_tracks(album_data["tracks"]["items"], sharpest_icon_url)
+        return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks)
 
     def _fetch_artist(self, token: str, track_id: str) -> PoolCollection:
         pass
@@ -71,16 +83,20 @@ PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
 
 
 def _create_pool_member_entities(pool: Pool, user: User, session: Session):
+    current_sort_order = 0
     for track in pool.tracks:
         session.add(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
-                               image_url=track.spotify_icon_uri, name=track.name))
+                               image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order))
+        current_sort_order += 1
     for collection in pool.collections:
         parent = PoolMember(user_id=user.spotify_id, image_url=collection.spotify_icon_uri,
                             name=collection.name)
         session.add(parent)
         for track in collection.tracks:
             session.add(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
-                                   image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id))
+                                   image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id,
+                                   sort_order=current_sort_order))
+            current_sort_order += 1
 
 
 class PoolDatabaseConnectionRaw:

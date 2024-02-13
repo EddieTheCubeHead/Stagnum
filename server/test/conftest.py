@@ -116,13 +116,13 @@ def create_mock_artist_search_result(faker):
 
 
 @pytest.fixture
-def create_mock_album_search_result(faker, create_mock_artist_search_result):
+def create_mock_album_search_result(faker):
 
-    def wrapper(artist):
+    def wrapper(artist: dict, tracks: list[dict] | None = None):
         album_name = faker.text(max_nb_chars=25)[:-1]
         album_id = faker.uuid4()
         album_release_date = faker.date(pattern=_DATE_PATTERN)
-        return {
+        album_data = {
             "album_type": "normal",
             "total_tracks": random.randint(4, 20),
             "available_markets": ["FI"],
@@ -157,15 +157,28 @@ def create_mock_album_search_result(faker, create_mock_artist_search_result):
                 },
             ]
         }
+        if tracks is not None:
+            [track.pop("album", None) for track in tracks]
+            album_data["tracks"] = {
+                "href": f"{album_data['href']}/tracks?offset=0&limit=20",
+                "limit": 20,
+                "next": f"{album_data['href']}/tracks?offset=20&limit=20",
+                "offset": 0,
+                "previous": None,
+                "total": len(tracks) + random.randint(1, 20),
+                "items": tracks
+            }
+        return album_data
     return wrapper
+
 
 
 @pytest.fixture
 def create_mock_track_search_result(faker, create_mock_artist_search_result, create_mock_album_search_result):
-    def wrapper():
+    def wrapper(artist_in: dict | None = None):
         track_name = faker.text(max_nb_chars=25)[:-1]
         track_id = faker.uuid4()
-        artist = create_mock_artist_search_result()
+        artist = artist_in if artist_in is not None else create_mock_artist_search_result()
         album = create_mock_album_search_result(artist)
         return {
             "album": album,
