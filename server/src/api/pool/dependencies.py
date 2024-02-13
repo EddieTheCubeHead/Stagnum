@@ -25,11 +25,19 @@ def _get_sharpest_icon(icons: list[dict]) -> str:
     return biggest_icon
 
 
-def _build_tracks(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
+def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
     # Weird bug at least in my test set where this fails pydantic validation if we return the list comprehension.
     # Extracting it into a separate variable fixed the bug. Mb investigate and report to pydantic?
     tracks = [PoolTrack(name=track["name"], spotify_icon_uri=icon_uri, spotify_track_uri=track["uri"]) for track in
               tracks]
+    return tracks
+
+
+def _build_tracks_without_image(tracks: list[dict]) -> list[PoolTrack]:
+    tracks = [PoolTrack(name=track["name"],
+                        spotify_icon_uri=_get_sharpest_icon(track["album"]["images"]),
+                        spotify_track_uri=track["uri"])
+              for track in tracks]
     return tracks
 
 
@@ -69,14 +77,25 @@ class PoolSpotifyClientRaw:
         raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=_auth_header(token))
         album_data = json.loads(raw_album_data.content.decode("utf-8"))
         sharpest_icon_url = _get_sharpest_icon(album_data["images"])
-        tracks = _build_tracks(album_data["tracks"]["items"], sharpest_icon_url)
+        tracks = _build_tracks_with_image(album_data["tracks"]["items"], sharpest_icon_url)
         return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks)
 
-    def _fetch_artist(self, token: str, track_id: str) -> PoolCollection:
-        pass
+    def _fetch_artist(self, token: str, artist_id: str) -> PoolCollection:
+        token_header = _auth_header(token)
+        raw_artist_data = self._spotify_client.get(f"artists/{artist_id}", headers=token_header)
+        artist_data = json.loads(raw_artist_data.content.decode("utf-8"))
+        raw_artist_track_data = self._spotify_client.get(f"artists/{artist_id}/top-tracks", headers=token_header)
+        artist_track_data = json.loads(raw_artist_track_data.content.decode("utf-8"))
+        tracks = _build_tracks_without_image(artist_track_data["tracks"])
+        return PoolCollection(name=artist_data["name"], spotify_icon_uri=_get_sharpest_icon(artist_data["images"]),
+                              tracks=tracks)
 
-    def _fetch_playlist(self, token: str, track_id: str) -> PoolCollection:
-        pass
+    def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
+        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
+        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
+        tracks = _build_tracks_without_image(playlist_data["tracks"]["items"])
+        return PoolCollection(name=playlist_data["name"], spotify_icon_uri=_get_sharpest_icon(playlist_data["images"]),
+                              tracks=tracks)
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
@@ -93,9 +112,9 @@ def _create_pool_member_entities(pool: Pool, user: User, session: Session):
                             name=collection.name)
         session.add(parent)
         for track in collection.tracks:
-            session.add(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
-                                   image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id,
-                                   sort_order=current_sort_order))
+            parent.children.append(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
+                                              image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id,
+                                              sort_order=current_sort_order))
             current_sort_order += 1
 
 

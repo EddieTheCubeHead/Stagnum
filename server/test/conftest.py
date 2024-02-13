@@ -216,12 +216,12 @@ def create_mock_track_search_result(faker, create_mock_artist_search_result, cre
 
 @pytest.fixture
 def create_mock_playlist_search_result(faker):
-    def wrapper():
+    def wrapper(tracks: list[dict] | None = None):
         playlist_id = faker.uuid4()
         playlist_name = faker.text(max_nb_chars=25)[:-1]
         playlist_owner = faker.name()
         playlist_owner_id = faker.uuid4()
-        return {
+        playlist_data = {
             "collaborative": random.choice((True, False)),
             "description": faker.paragraph(nb_sentences=2),
             "external_urls": {
@@ -260,5 +260,16 @@ def create_mock_playlist_search_result(faker):
             "type": "playlist",
             "uri": f"spotify:playlist:{playlist_id}"
         }
+        if tracks is not None:
+            playlist_data["tracks"] = {
+                "href": f"{playlist_data['href']}/tracks?offset=0&limit=50",
+                "limit": 50,
+                "next": f"{playlist_data['href']}/tracks?offset=50&limit=50",
+                "offset": 0,
+                "previous": None,
+                "total": len(tracks) + random.randint(1, 20),
+                "items": tracks
+            }
+        return playlist_data
 
     return wrapper

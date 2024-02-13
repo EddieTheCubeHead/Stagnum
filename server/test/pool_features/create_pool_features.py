@@ -1,11 +1,13 @@
 import json
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, and_
+from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent, PoolCreationData
+from api.search.models import Album
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
@@ -50,21 +52,133 @@ def should_save_pool_in_database_with_user_id_when_created(test_client: TestClie
     assert actual_pool_content is not None
 
 
-@pytest.mark.wip
-def should_be_able_to_create_pool_from_album(test_client: TestClient, db_connection: ConnectionManager,
-                                             valid_token_header, create_mock_album_search_result, validate_response,
+def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header,
+                                             create_mock_album_search_result, validate_response,
                                              create_mock_track_search_result, create_mock_artist_search_result,
                                              build_success_response, requests_client, create_pool_creation_data_json):
     artist = create_mock_artist_search_result()
     tracks = [create_mock_track_search_result(artist) for _ in range(12)]
     album = create_mock_album_search_result(artist, tracks)
     requests_client.get = Mock(return_value=build_success_response(album))
-
     data_json = create_pool_creation_data_json(album["uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    requests_client.get.assert_called_with(f"https://api.spotify.com/v1/albums/{album['id']}",
+                                           headers={"Authorization": valid_token_header["token"]})
     pool_response = validate_response(result)
     assert pool_response["tracks"] == []
     assert len(pool_response["collections"][0]["tracks"]) == len(tracks)
     for expected_track, actual_track in zip(tracks, pool_response["collections"][0]["tracks"]):
         assert actual_track["name"] == expected_track["name"]
+
+
+def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
+                                                create_mock_album_search_result, create_mock_track_search_result,
+                                                create_mock_artist_search_result, build_success_response,
+                                                requests_client, create_pool_creation_data_json, logged_in_user_id):
+    artist = create_mock_artist_search_result()
+    tracks = [create_mock_track_search_result(artist) for _ in range(12)]
+    album = create_mock_album_search_result(artist, tracks)
+    requests_client.get = Mock(return_value=build_success_response(album))
+    data_json = create_pool_creation_data_json(album["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    with db_connection.session() as session:
+        actual_parent = session.scalar(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                           .options(joinedload(PoolMember.children)))
+    assert actual_parent.name == album["name"]
+    assert len(actual_parent.children) == len(tracks)
+    for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
+        assert actual_track.name == expected_track["name"]
+
+
+def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_token_header, validate_response,
+                                              create_mock_track_search_result, create_mock_artist_search_result,
+                                              build_success_response, requests_client, create_pool_creation_data_json):
+    artist = create_mock_artist_search_result()
+    tracks = {
+        "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
+    }
+    requests_client.get = Mock(side_effect=[build_success_response(artist), build_success_response(tracks)])
+    data_json = create_pool_creation_data_json(artist["uri"])
+
+    result = test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    assert requests_client.get.call_args_list[0] == call(f"https://api.spotify.com/v1/artists/{artist['id']}",
+                                                         headers={"Authorization": valid_token_header["token"]})
+    assert (requests_client.get.call_args_list[1]
+            == call(f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks",
+                    headers={"Authorization": valid_token_header["token"]}))
+    pool_response = validate_response(result)
+    assert pool_response["tracks"] == []
+    assert len(pool_response["collections"][0]["tracks"]) == len(tracks["tracks"])
+    for expected_track, actual_track in zip(tracks["tracks"], pool_response["collections"][0]["tracks"]):
+        assert actual_track["name"] == expected_track["name"]
+
+
+def should_save_artist_top_ten_tracks_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
+                                                          create_mock_artist_search_result, requests_client,
+                                                          create_mock_track_search_result, build_success_response,
+                                                          create_pool_creation_data_json, logged_in_user_id):
+    artist = create_mock_artist_search_result()
+    tracks = {
+        "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
+    }
+    requests_client.get = Mock(side_effect=[build_success_response(artist), build_success_response(tracks)])
+    data_json = create_pool_creation_data_json(artist["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    with db_connection.session() as session:
+        actual_parent = session.scalar(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                           .options(joinedload(PoolMember.children)))
+    assert actual_parent.name == artist["name"]
+    assert len(actual_parent.children) == len(tracks["tracks"])
+    for expected_track, actual_track in zip(tracks["tracks"],
+                                            sorted(actual_parent.children, key=lambda x: x.sort_order)):
+        assert actual_track.name == expected_track["name"]
+
+
+def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_token_header,
+                                                create_mock_playlist_search_result, validate_response,
+                                                create_mock_track_search_result, build_success_response,
+                                                requests_client, create_pool_creation_data_json):
+    tracks = [create_mock_track_search_result() for _ in range(30)]
+    playlist = create_mock_playlist_search_result(tracks)
+    requests_client.get = Mock(return_value=build_success_response(playlist))
+    data_json = create_pool_creation_data_json(playlist["uri"])
+
+    result = test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
+                                           headers={"Authorization": valid_token_header["token"]})
+    pool_response = validate_response(result)
+    assert pool_response["tracks"] == []
+    assert len(pool_response["collections"][0]["tracks"]) == len(tracks)
+    for expected_track, actual_track in zip(tracks, pool_response["collections"][0]["tracks"]):
+        assert actual_track["name"] == expected_track["name"]
+
+
+def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
+                                                   create_mock_playlist_search_result, create_mock_track_search_result,
+                                                   build_success_response, requests_client,
+                                                   create_pool_creation_data_json, logged_in_user_id):
+    tracks = [create_mock_track_search_result() for _ in range(30)]
+    playlist = create_mock_playlist_search_result(tracks)
+    requests_client.get = Mock(return_value=build_success_response(playlist))
+    data_json = create_pool_creation_data_json(playlist["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    with db_connection.session() as session:
+        actual_parent = session.scalar(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                           .options(joinedload(PoolMember.children)))
+    assert actual_parent.name == playlist["name"]
+    assert len(actual_parent.children) == len(tracks)
+    for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
+        assert actual_track.name == expected_track["name"]
