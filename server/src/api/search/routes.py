@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from api.common.dependencies import validated_token
 from api.search.dependencies import SearchSpotifyClient
 from api.search.models import GeneralSearchResult, PaginatedSearchResult, Playlist, Artist, Album, Track, \
-    SpotifyPlayableType
+    SpotifyPlayableType, TrackSearchResult, AlbumSearchResult, ArtistSearchResult, PlaylistSearchResult
 
 router = APIRouter(
     prefix="/search",
@@ -19,23 +19,23 @@ async def search(query: str, token: validated_token, spotify_client: SearchSpoti
 
 @router.get("/tracks")
 async def search_tracks(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
-                        limit: int = 20) -> PaginatedSearchResult[Track]:
+                        limit: int = 20) -> TrackSearchResult:
     return spotify_client.get_track_search(query, token, offset, limit)
 
 
 @router.get("/albums")
 async def search_albums(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
-                        limit: int = 20) -> PaginatedSearchResult[Album]:
+                        limit: int = 20) -> AlbumSearchResult:
     return spotify_client.get_album_search(query, token, offset, limit)
 
 
 @router.get("/artists")
 async def search_artists(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
-                         limit: int = 20) -> PaginatedSearchResult[Artist]:
+                         limit: int = 20) -> ArtistSearchResult:
     return spotify_client.get_artist_search(query, token, offset, limit)
 
 
 @router.get("/playlists")
 async def search_playlists(token: validated_token, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
-                           limit: int = 20) -> PaginatedSearchResult[Playlist]:
+                           limit: int = 20) -> PlaylistSearchResult:
     return spotify_client.get_playlist_search(query, token, offset, limit)
