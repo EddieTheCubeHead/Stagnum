@@ -2,6 +2,7 @@ import json
 from typing import Annotated
 
 from fastapi import Depends
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection
@@ -118,6 +119,10 @@ def _create_pool_member_entities(pool: Pool, user: User, session: Session):
             current_sort_order += 1
 
 
+def _purge_existing_pool(user, session):
+    session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
@@ -125,6 +130,7 @@ class PoolDatabaseConnectionRaw:
 
     def save_pool(self, pool: Pool, user: User):
         with self._database_connection.session() as session:
+            _purge_existing_pool(user, session)
             _create_pool_member_entities(pool, user, session)
 
 

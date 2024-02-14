@@ -23,7 +23,6 @@ def create_pool_creation_data_json():
     return wrapper
 
 
-
 def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
                                                                              valid_token_header,
                                                                              validate_response,
@@ -182,3 +181,29 @@ def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, vali
     assert len(actual_parent.children) == len(tracks)
     for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
         assert actual_track.name == expected_track["name"]
+
+
+def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid_token_header, db_connection,
+                                                  create_mock_album_search_result, create_mock_track_search_result,
+                                                  create_mock_artist_search_result, build_success_response,
+                                                  requests_client, create_pool_creation_data_json, logged_in_user_id):
+    old_artist = create_mock_artist_search_result()
+    old_tracks = [create_mock_track_search_result(old_artist) for _ in range(12)]
+    old_album = create_mock_album_search_result(old_artist, old_tracks)
+    requests_client.get = Mock(return_value=build_success_response(old_album))
+    old_data_json = create_pool_creation_data_json(old_album["uri"])
+    test_client.post("/pool", json=old_data_json, headers=valid_token_header)
+
+    artist = create_mock_artist_search_result()
+    tracks = [create_mock_track_search_result(artist) for _ in range(12)]
+    album = create_mock_album_search_result(artist, tracks)
+    requests_client.get = Mock(return_value=build_success_response(album))
+    data_json = create_pool_creation_data_json(album["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    with db_connection.session() as session:
+        actual_results = session.scalars(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                           .options(joinedload(PoolMember.children))).unique().all()
+    assert len(actual_results) == 1
