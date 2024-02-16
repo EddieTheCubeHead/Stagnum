@@ -19,12 +19,16 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - database
-    environment:
-      DATABASE_CONNECTION_URL: postgresql://root:pass@database:5432/data
+      database:
+        condition: service_healthy
     networks: 
       - outgoing
       - internal
+    environment:
+      DATABASE_CONNECTION_URL: postgresql://root:pass@database:5432/data
+    secrets:
+      - spotify_client_id
+      - spotify_client_secret
   database:
     image: postgres:latest
     restart: always
@@ -32,6 +36,12 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d data"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     ports:
       - 5432:5432
     volumes:
@@ -39,7 +49,11 @@ services:
     networks:
       - internal
 
-
+secrets:
+  spotify_client_id:
+    file: ./secret_spotify_client_id.txt
+  spotify_client_secret:
+    file: ./secret_spotify_client_secret.txt
 
 volumes:
   data:

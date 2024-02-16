@@ -1,13 +1,22 @@
-from typing import Generic, TypeVar
+from enum import Enum
+from typing import Generic, TypeVar, Any, Callable, get_args
 
 from pydantic import BaseModel
+from pydantic.generics import GenericModel
+from pydantic_core import core_schema
 
 from api.common.models import NamedResource
 
 
+class SpotifyPlayableType(Enum):
+    Track = "track"
+    Album = "album"
+    Artist = "artist"
+    Playlist = "playlist"
+
+
 class SpotifyPlayable(BaseModel):
     name: str
-    icon_link: str
     uri: str  # spotify unique uri: spotify:track:4PTG3Z6ehGkBFwjybzWkR8
 
 
@@ -20,20 +29,21 @@ class Track(SpotifyPlayable):
 class Album(SpotifyPlayable):
     artists: list[NamedResource]
     year: int
+    icon_link: str
 
 
 class Artist(SpotifyPlayable):
-    pass
+    icon_link: str
 
 
 class Playlist(SpotifyPlayable):
-    pass
+    icon_link: str
 
 
 PlayableType = TypeVar("PlayableType", bound=SpotifyPlayable)
 
 
-class PaginatedSearchResult(BaseModel, Generic[PlayableType]):
+class PaginatedSearchResult(GenericModel, Generic[PlayableType]):
     limit: int
     offset: int
     total: int
@@ -42,8 +52,24 @@ class PaginatedSearchResult(BaseModel, Generic[PlayableType]):
     results: list[PlayableType]
 
 
+class TrackSearchResult(PaginatedSearchResult[Track]):
+    pass
+
+
+class AlbumSearchResult(PaginatedSearchResult[Album]):
+    pass
+
+
+class ArtistSearchResult(PaginatedSearchResult[Artist]):
+    pass
+
+
+class PlaylistSearchResult(PaginatedSearchResult[Playlist]):
+    pass
+
+
 class GeneralSearchResult(BaseModel):
-    tracks: PaginatedSearchResult[Track]
-    albums: PaginatedSearchResult[Album]
-    artists: PaginatedSearchResult[Artist]
-    playlists: PaginatedSearchResult[Playlist]
+    tracks: TrackSearchResult
+    albums: AlbumSearchResult
+    artists: ArtistSearchResult
+    playlists: PlaylistSearchResult

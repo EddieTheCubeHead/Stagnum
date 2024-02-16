@@ -1,12 +1,47 @@
 'use client'
 
-import { Avatar, Box, Button, List, ListItem, ListItemButton, ListItemText, TextField, ThemeProvider, Typography } from "@mui/material";
-import Link from "next/link";
-import { useState } from "react";
-import theme from '@/services/stagnumTheme'
+import axios from 'axios'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function Home() {
-  const [showSearchBar, setShowSearchBar] = useState(false)
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
+  )
+}
+
+function HomeContent() {
+  const [token, setToken] = useState('')
+
+  const queryParams = useSearchParams()
+  const code = queryParams.get('code')
+  const state = queryParams.get('state')
+  const client_redirect_uri = 'http://localhost:80'
+
+  useEffect(() => {
+    if (code && state) {
+      handleTokenRequest(code, state)
+    }
+  }, [])
+
+  useEffect(() => {
+    console.log('Token:', token)
+  }, [token])
+
+  const handleTokenRequest = (code: string, state: string) => {
+    console.log('Sending play request')
+
+    axios.get('http://localhost:8080/auth/login/callback',
+      { params: { state, code, client_redirect_uri } })
+      .then(function (response) {
+        console.log(response)
+        setToken(response.data.access_token)
+      }).catch((error) => {
+        console.log('Request failed', error)
+      })
+  }
 
   return (
     <main>
