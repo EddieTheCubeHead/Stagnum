@@ -40,9 +40,15 @@ class LoggingConfiguration:
 
 
 def _build_configuration_from_config(log_type: str) -> LoggingConfiguration:
-    log_file = get_config(f"{log_type}_log_file".upper()) + ".log"
+    log_file = get_config(f"{log_type}_log_file".upper())
     log_stream = get_config(f"{log_type}_log_stream".upper())
     log_level = get_config(f"{log_type}_log_level".upper())
+    if log_file in [None, ""]:
+        log_file = None
+    else:
+        log_file = f"{log_file}.log"
+    if log_stream in [None, ""]:
+        log_stream = None
     return LoggingConfiguration(log_file, log_stream, log_level)
 
 

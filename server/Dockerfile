@@ -9,4 +9,8 @@ ENV HOST="0.0.0.0"
 ENV PORT="8080"
 ENV RELOAD="False"
 
+# Disable logging for sqlalchemy as it's mainly used for local debugging with database
+ENV SQLALCHEMY_LOG_FILE=""
+ENV SQLALCHEMY_LOG_STREAM=""
+
 CMD bash -c "echo 'Starting alembic upgrade!' && alembic upgrade head && echo 'Starting python server!' && python src/main.py"
