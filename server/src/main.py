@@ -22,7 +22,7 @@ def _inject_secret(secret_name: str):
 
 def _inject_secrets():
     secret_files = ["spotify_client_id", "spotify_client_secret"]
-    
+    _logger.debug(f"Injecting secrets from the following files: {secret_files}")
     for secret_file in secret_files:
         _inject_secret(secret_file)
 

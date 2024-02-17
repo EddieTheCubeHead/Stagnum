@@ -1,5 +1,10 @@
+from logging import getLogger
+
 from api.pool.models import Pool, PoolTrack, PoolCollection
 from database.entities import PoolMember
+
+
+_logger = getLogger("main.api.pool.helpers")
 
 
 def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
@@ -8,6 +13,7 @@ def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
 
 
 def create_pool_return_model(pool: list[PoolMember]) -> Pool:
+    _logger.debug(f"Creating pool return model from {len(pool)} members.")
     tracks = []
     collections = []
     for pool_member in pool:
