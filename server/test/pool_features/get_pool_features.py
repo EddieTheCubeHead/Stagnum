@@ -12,10 +12,9 @@ def should_get_all_existing_tracks(existing_pool, test_client, valid_token_heade
 
 def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_token_header, validate_response,
                                                           create_mock_track_search_result, build_success_response,
-                                                          requests_client, create_pool_creation_data_json,
-                                                          create_mock_artist_search_result,
-                                                          create_mock_album_search_result, logged_in_user_id,
-                                                          create_mock_playlist_search_result, existing_pool):
+                                                          requests_client, create_mock_artist_search_result,
+                                                          create_mock_album_search_result, existing_pool,
+                                                          create_mock_playlist_search_result):
     artist = create_mock_artist_search_result()
     artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
     album = create_mock_album_search_result(artist, [create_mock_track_search_result(artist) for _ in range(12)])
