@@ -6,7 +6,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
-from api.pool.models import PoolContent, PoolCreationData
+from api.pool.models import PoolContent, PoolCreationData, Pool
 from api.search.models import Album
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
@@ -14,11 +14,9 @@ from database.entities import PoolMember
 
 @pytest.fixture
 def create_pool_creation_data_json():
-    def wrapper(uri: str):
+    def wrapper(*uris: str):
         return PoolCreationData(
-            spotify_uris=[
-                PoolContent(spotify_uri=uri)
-            ]
+            spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
         ).dict()
     return wrapper
 
@@ -207,3 +205,35 @@ def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid
             and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
                                            .options(joinedload(PoolMember.children))).unique().all()
     assert len(actual_results) == 1
+
+
+@pytest.mark.wip
+def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestClient, valid_token_header,
+                                                             validate_response, create_mock_track_search_result,
+                                                             build_success_response, requests_client,
+                                                             create_pool_creation_data_json, db_connection,
+                                                             create_mock_artist_search_result,
+                                                             create_mock_album_search_result, logged_in_user_id,
+                                                             create_mock_playlist_search_result):
+    tracks = [create_mock_track_search_result() for _ in range(10)]
+    artist = create_mock_artist_search_result()
+    artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
+    album = create_mock_album_search_result(artist, [create_mock_track_search_result(artist) for _ in range(12)])
+    playlist = create_mock_playlist_search_result([create_mock_track_search_result() for _ in range(23)])
+    responses = [build_success_response(track) for track in tracks]
+    responses.extend([build_success_response(artist), build_success_response(artist_tracks),
+                      build_success_response(album), build_success_response(playlist)])
+    requests_client.get = Mock(side_effect=responses)
+    data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks], artist["uri"], album["uri"],
+                                               playlist["uri"])
+
+    response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+    pool_response = validate_response(response)
+    assert len(pool_response["tracks"]) == len(tracks)
+    assert len(pool_response["collections"]) == 3
+
+    with db_connection.session() as session:
+        actual_results = session.scalars(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                         .options(joinedload(PoolMember.children))).unique().all()
+        assert len(actual_results) == len(tracks) + 3
