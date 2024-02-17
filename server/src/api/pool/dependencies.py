@@ -160,5 +160,10 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
+    def get_pool(self, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            whole_pool = _get_user_pool(user, session)
+        return whole_pool
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

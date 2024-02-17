@@ -218,6 +218,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
                                                playlist["uri"])
 
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+
     pool_response = validate_response(response)
     assert len(pool_response["tracks"]) == len(tracks)
     assert len(pool_response["collections"]) == 3

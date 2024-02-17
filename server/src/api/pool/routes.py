@@ -21,8 +21,10 @@ async def create_pool(base_collection: PoolCreationData, token: validated_token,
 
 
 @router.get("/")
-async def get_pool() -> Pool:
-    pass
+async def get_pool(token: validated_token, database_connection: PoolDatabaseConnection,
+                   token_holder: TokenHolder) -> Pool:
+    pool = database_connection.get_pool(token_holder.get_user(token))
+    return create_pool_return_model(pool)
 
 
 @router.post("/content")
