@@ -172,7 +172,6 @@ def create_mock_album_search_result(faker):
     return wrapper
 
 
-
 @pytest.fixture
 def create_mock_track_search_result(faker, create_mock_artist_search_result, create_mock_album_search_result):
     def wrapper(artist_in: dict | None = None):

@@ -3,7 +3,7 @@ from database.entities import PoolMember
 
 
 def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
-    return [PoolTrack(name=track.name, spotify_icon_uri=collection.image_url, spotify_content_uri=track.content_uri)
+    return [PoolTrack(name=track.name, spotify_icon_uri=collection.image_url, spotify_track_uri=track.content_uri)
             for track in collection.children]
 
 
