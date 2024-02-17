@@ -38,5 +38,6 @@ class PoolMember(EntityBase):
     parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), default=None, nullable=True)
     weight: Mapped[float] = mapped_column(Integer(), default=1, nullable=False)
 
-    parent: Mapped["PoolMember"] = relationship(lazy="joined")
-    children: Mapped[list["PoolMember"]] = relationship(lazy="joined")
+    parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
+    children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent",
+                                                        cascade="all, delete-orphan")
