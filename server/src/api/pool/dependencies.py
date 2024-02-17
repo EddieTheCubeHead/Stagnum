@@ -2,7 +2,7 @@ import json
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import delete, and_, select
+from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection
@@ -79,7 +79,8 @@ class PoolSpotifyClientRaw:
         album_data = json.loads(raw_album_data.content.decode("utf-8"))
         sharpest_icon_url = _get_sharpest_icon(album_data["images"])
         tracks = _build_tracks_with_image(album_data["tracks"]["items"], sharpest_icon_url)
-        return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks)
+        return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks,
+                              spotify_collection_uri=album_data["uri"])
 
     def _fetch_artist(self, token: str, artist_id: str) -> PoolCollection:
         token_header = _auth_header(token)
@@ -89,14 +90,14 @@ class PoolSpotifyClientRaw:
         artist_track_data = json.loads(raw_artist_track_data.content.decode("utf-8"))
         tracks = _build_tracks_without_image(artist_track_data["tracks"])
         return PoolCollection(name=artist_data["name"], spotify_icon_uri=_get_sharpest_icon(artist_data["images"]),
-                              tracks=tracks)
+                              tracks=tracks, spotify_collection_uri=artist_data["uri"])
 
     def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
         raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
         playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
         tracks = _build_tracks_without_image(playlist_data["tracks"]["items"])
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=_get_sharpest_icon(playlist_data["images"]),
-                              tracks=tracks)
+                              tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
@@ -110,7 +111,7 @@ def _create_pool_member_entities(pool: Pool, user: User, session: Session):
         current_sort_order += 1
     for collection in pool.collections:
         parent = PoolMember(user_id=user.spotify_id, image_url=collection.spotify_icon_uri,
-                            name=collection.name)
+                            name=collection.name, content_uri=collection.spotify_collection_uri)
         session.add(parent)
         for track in collection.tracks:
             parent.children.append(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
@@ -129,6 +130,14 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
         .options(joinedload(PoolMember.children))).unique().all())
 
 
+def _delete_pool_member(content_uri: str, user: User, session: Session):
+    possible_parent = session.scalar(
+        select(PoolMember).where(and_(PoolMember.content_uri == content_uri, PoolMember.user_id == user.spotify_id)))
+    session.execute(delete(PoolMember).where(
+        and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)))
+    session.delete(possible_parent)
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
@@ -142,6 +151,12 @@ class PoolDatabaseConnectionRaw:
     def add_to_pool(self, pool: Pool, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
             _create_pool_member_entities(pool, user, session)
+            whole_pool = _get_user_pool(user, session)
+        return whole_pool
+
+    def delete_from_pool(self, content_uri: str, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            _delete_pool_member(content_uri, user, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 

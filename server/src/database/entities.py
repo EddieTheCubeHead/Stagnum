@@ -33,11 +33,12 @@ class PoolMember(EntityBase):
     name: Mapped[str] = mapped_column(String(64), nullable=False)
     user_id: Mapped[str] = mapped_column(String(64), nullable=False)
     image_url: Mapped[str] = mapped_column(String(64), nullable=False)
-    content_uri: Mapped[str] = mapped_column(String(64), default=None, nullable=True)
+    content_uri: Mapped[str] = mapped_column(String(64), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
     parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), default=None, nullable=True)
     weight: Mapped[float] = mapped_column(Integer(), default=1, nullable=False)
 
-    parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
+    parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children",
+                                                cascade="save-update")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent",
-                                                        cascade="all, delete-orphan")
+                                                        cascade="all, delete")

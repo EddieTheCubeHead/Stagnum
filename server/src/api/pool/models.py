@@ -18,6 +18,7 @@ class PoolTrack(BaseModel):
 class PoolCollection(BaseModel):
     name: str
     spotify_icon_uri: str
+    spotify_collection_uri: str
     tracks: list[PoolTrack]
 
 

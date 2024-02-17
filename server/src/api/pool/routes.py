@@ -33,6 +33,8 @@ async def add_content(to_add: PoolContent, token: validated_token, spotify_clien
     return create_pool_return_model(whole_pool)
 
 
-@router.delete("/content")
-async def delete_content(to_delete: PoolContent) -> Pool:
-    pass
+@router.delete("/content/{spotify_uri}")
+async def delete_content(spotify_uri: str, token: validated_token, database_connection: PoolDatabaseConnection,
+                         token_holder: TokenHolder) -> Pool:
+    whole_pool = database_connection.delete_from_pool(spotify_uri, token_holder.get_user(token))
+    return create_pool_return_model(whole_pool)
