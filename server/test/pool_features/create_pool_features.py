@@ -12,15 +12,6 @@ from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
 
-@pytest.fixture
-def create_pool_creation_data_json():
-    def wrapper(*uris: str):
-        return PoolCreationData(
-            spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
-        ).dict()
-    return wrapper
-
-
 def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
                                                                              valid_token_header,
                                                                              validate_response,
@@ -207,7 +198,6 @@ def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid
     assert len(actual_results) == 1
 
 
-@pytest.mark.wip
 def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestClient, valid_token_header,
                                                              validate_response, create_mock_track_search_result,
                                                              build_success_response, requests_client,

@@ -2,8 +2,8 @@ import json
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import delete
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, and_, select
+from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection
 from api.pool.models import PoolContent, Pool, PoolCollection, PoolTrack
@@ -123,15 +123,27 @@ def _purge_existing_pool(user, session):
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
 
 
+def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
+    return list(session.scalars(
+        select(PoolMember).where(and_(PoolMember.user_id == user.spotify_id, PoolMember.parent_id == None))
+        .options(joinedload(PoolMember.children))).unique().all())
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
         self._database_connection = database_connection
 
-    def save_pool(self, pool: Pool, user: User):
+    def create_pool(self, pool: Pool, user: User):
         with self._database_connection.session() as session:
             _purge_existing_pool(user, session)
             _create_pool_member_entities(pool, user, session)
+
+    def add_to_pool(self, pool: Pool, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            _create_pool_member_entities(pool, user, session)
+            whole_pool = _get_user_pool(user, session)
+        return whole_pool
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
