@@ -1,0 +1,11 @@
+{
+  "MAIN_LOG_FILE": "stagnum_server",
+  "MAIN_LOG_STREAM": "stdout",
+  "MAIN_LOG_LEVEL": "DEBUG",
+  "UVICORN_LOG_FILE": "stagnum_server",
+  "UVICORN_LOG_STREAM": "stdout",
+  "UVICORN_LOG_LEVEL": "INFO",
+  "SQLALCHEMY_LOG_FILE": "sqlalchemy",
+  "SQLALCHEMY_LOG_STREAM": null,
+  "SQLALCHEMY_LOG_LEVEL": "DEBUG"
+}

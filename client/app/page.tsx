@@ -18,7 +18,7 @@ function HomeContent() {
   const queryParams = useSearchParams()
   const code = queryParams.get('code')
   const state = queryParams.get('state')
-  const client_redirect_uri = 'http://localhost:80'
+  const client_redirect_uri = 'http://localhost:3000'
 
   useEffect(() => {
     if (code && state) {
