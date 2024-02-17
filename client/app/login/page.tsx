@@ -1,20 +1,22 @@
 'use client'
 
 import axios from 'axios'
-import { useRouter } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Box, Button, Link, Typography } from '@mui/material'
 
 export default function Login() {
   const router = useRouter()
+
   const handleLoginRequest = () => {
     console.log('Sending login request')
+    const client_redirect_uri = 'http://localhost:80'
 
     axios
-      .get('http://localhost:8000/auth/login/no-redirect', {})
+      .get('http://localhost:8080/auth/login', { params: { client_redirect_uri } })
       .then(function (response) {
-        console.log(response.data.url)
-        router.push(response.data.url, { scroll: false })
+        console.log(response.data.redirect_uri)
+        router.push(response.data.redirect_uri)
       })
       .catch(() => {
         console.log('Request failed')
