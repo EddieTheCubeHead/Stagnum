@@ -7,6 +7,7 @@
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)
   - [Viewing API documentation](#viewing-api-documentation)
+  - [Logging configuration]()
 - [Running with docker](#running-with-docker)
 - [Running PostgreSQL locally](#running-postgresql-locally)
   - [Install and setup PostgreSQL (quick tutorial)](#install-and-setup-postgresql-quick-tutorial)
@@ -118,6 +119,25 @@ pytest server
 ### Viewing API documentation
 
 Once the server is running you can visit the `docs` route to check the API documentation.
+
+
+### Logging configuration
+
+Logging can be configured with either environment variables, or through config.json in the server root.
+
+Logging is divided into SQLAlchemy, Uvicorn (FastAPI) and Main loggers. Each has configurable output file, output
+stream and logging level. Setting an output stream or file as null means logging is not performed to that source.
+This means the following environment variables can be used to overwrite the values in the config file:
+
+ - `MAIN_LOG_FILE` default: `"stagnum_server"`
+ - `MAIN_LOG_STREAM` default: `"stdout"`
+ - `MAIN_LOG_LEVEL` default: `"DEBUG"`
+ - `UVICORN_LOG_FILE` default: `"stagun_server"`
+ - `UVICORN_LOG_STREAM` default: `"stdout"`
+ - `UVICORN_LOG_LEVEL` default: `"INFO"`
+ - `SQLALCHEMY_LOG_FILE` default: `"sqlalchemy"`
+ - `SQLALCHEMY_LOG_STREAM` default: `null`
+ - `SQLALCHEMY_LOG_LEVEL` default: `"DEBUG"`
 
 ## Running with docker
 
