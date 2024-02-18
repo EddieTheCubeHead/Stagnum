@@ -22,9 +22,9 @@ def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_tok
     responses = [build_success_response(artist), build_success_response(artist_tracks), build_success_response(album),
                  build_success_response(playlist)]
     requests_client.get = Mock(side_effect=responses)
-    test_client.post("/pool/content", json=PoolContent(spotify_uri=artist["uri"]).dict(), headers=valid_token_header)
-    test_client.post("/pool/content", json=PoolContent(spotify_uri=album["uri"]).dict(), headers=valid_token_header)
-    test_client.post("/pool/content", json=PoolContent(spotify_uri=playlist["uri"]).dict(), headers=valid_token_header)
+    test_client.post("/pool/content", json=PoolContent(spotify_uri=artist["uri"]).model_dump(), headers=valid_token_header)
+    test_client.post("/pool/content", json=PoolContent(spotify_uri=album["uri"]).model_dump(), headers=valid_token_header)
+    test_client.post("/pool/content", json=PoolContent(spotify_uri=playlist["uri"]).model_dump(), headers=valid_token_header)
 
     response = test_client.get("/pool", headers=valid_token_header)
 
