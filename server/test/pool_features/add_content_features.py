@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-import pytest
 from sqlalchemy import select, and_
 
 from api.pool.models import PoolContent
@@ -12,7 +11,7 @@ def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_
                                                                     valid_token_header, validate_response):
     track = create_mock_track_search_result()
     requests_client.get = Mock(return_value=build_success_response(track))
-    pool_content_data = PoolContent(spotify_uri=track["uri"]).dict()
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
 
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
@@ -26,7 +25,7 @@ def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mo
                                                                        logged_in_user_id):
     track = create_mock_track_search_result()
     requests_client.get = Mock(return_value=build_success_response(track))
-    pool_content_data = PoolContent(spotify_uri=track["uri"]).dict()
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
 
     test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
@@ -41,7 +40,7 @@ def should_preserve_existing_pool_members_on_new_member_addition(create_mock_tra
                                                                  existing_pool):
     track = create_mock_track_search_result()
     requests_client.get = Mock(return_value=build_success_response(track))
-    pool_content_data = PoolContent(spotify_uri=track["uri"]).dict()
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
 
     test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
@@ -59,7 +58,7 @@ def should_correctly_construct_pool_after_collection_addition(create_mock_track_
     tracks = [create_mock_track_search_result() for _ in range(35)]
     playlist = create_mock_playlist_search_result(tracks)
     requests_client.get = Mock(return_value=build_success_response(playlist))
-    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).dict()
+    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
 
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
@@ -80,7 +79,7 @@ def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_
     tracks = [create_mock_track_search_result(artist) for _ in range(8)]
     album = create_mock_album_search_result(artist, tracks)
     requests_client.get = Mock(return_value=build_success_response(album))
-    pool_content_data = PoolContent(spotify_uri=album["uri"]).dict()
+    pool_content_data = PoolContent(spotify_uri=album["uri"]).model_dump()
 
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
