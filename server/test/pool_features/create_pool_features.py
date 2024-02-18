@@ -1,13 +1,9 @@
-import json
 from unittest.mock import Mock, call
 
-import pytest
 from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
-from api.pool.models import PoolContent, PoolCreationData, Pool
-from api.search.models import Album
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 

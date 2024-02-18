@@ -2,8 +2,8 @@ from fastapi import APIRouter
 
 from api.common.dependencies import validated_token
 from api.search.dependencies import SearchSpotifyClient
-from api.search.models import GeneralSearchResult, PaginatedSearchResult, Playlist, Artist, Album, Track, \
-    SpotifyPlayableType, TrackSearchResult, AlbumSearchResult, ArtistSearchResult, PlaylistSearchResult
+from api.search.models import GeneralSearchResult, SpotifyPlayableType, TrackSearchResult, AlbumSearchResult, \
+    ArtistSearchResult, PlaylistSearchResult
 
 router = APIRouter(
     prefix="/search",
