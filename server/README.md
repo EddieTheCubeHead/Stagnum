@@ -134,10 +134,11 @@ simple as entering the following commands in the project root.
 
 ```bash
 docker build -t stagnum-server ./server
-docker run -p 8080:8080 stagnum-server \
+docker run -p 8080:8080 \
 -e SPOTIFY_CLIENT_ID={client id} \
 -e SPOTIFY_CLIENT_SECRET={client secret} \
--e DATABASE_CONNECTION_URL={db url}
+-e DATABASE_CONNECTION_URL={db url} \
+stagnum-server
 ```
 
 Replace the values in brackets with correct ones.
