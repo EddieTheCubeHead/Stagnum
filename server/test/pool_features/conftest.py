@@ -13,7 +13,7 @@ def create_pool_creation_data_json():
     def wrapper(*uris: str):
         return PoolCreationData(
             spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
-        ).dict()
+        ).model_dump()
     return wrapper
 
 

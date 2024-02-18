@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import delete, and_, select, or_
+from sqlalchemy import delete, and_, select
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection
