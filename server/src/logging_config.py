@@ -4,7 +4,9 @@ import sys
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL, FileHandler, Handler, Formatter, StreamHandler, getLogger
 from typing import Any
 
-# Borrowed from my own project: ClusterBot (see EddieTheCubeHead in github)  - Eetu
+# Borrowed from ClusterBot by Eddie and discord.py by Rapptz:
+# https://github.com/EddieTheCubeHead/ClusterBot/blob/master/services/logging_service.py
+# https://github.com/Rapptz/discord.py/blob/master/discord/utils.py line 1262
 
 _LOG_LEVELS = {
     "DEBUG": DEBUG,
@@ -57,7 +59,7 @@ def _get_formatter(handler: Handler) -> Formatter:
         if isinstance(handler, StreamHandler) and stream_supports_colour(handler.stream):
             return _ColourFormatter()
     dt_fmt = "%Y-%m-%d %H:%M:%S"
-    return Formatter("{asctime} {levelname:<8} {name:<32} {message}", dt_fmt, style="{")
+    return Formatter("{asctime} {levelname:<8} {name:<30} {message}", dt_fmt, style="{")
 
 
 def _ensure_file(file_name: str):
@@ -168,7 +170,7 @@ class _ColourFormatter(Formatter):
 
     FORMATS = {
         level: Formatter(
-            f'\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)-32s\x1b[0m %(message)s',
+            f'\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)-30s\x1b[0m %(message)s',
             '%Y-%m-%d %H:%M:%S',
         )
         for level, colour in LEVEL_COLOURS
