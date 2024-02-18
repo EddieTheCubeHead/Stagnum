@@ -7,7 +7,7 @@
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)
   - [Viewing API documentation](#viewing-api-documentation)
-  - [Logging configuration]()
+  - [Logging configuration](#logging-configuration)
 - [Running with docker](#running-with-docker)
 - [Running PostgreSQL locally](#running-postgresql-locally)
   - [Install and setup PostgreSQL (quick tutorial)](#install-and-setup-postgresql-quick-tutorial)

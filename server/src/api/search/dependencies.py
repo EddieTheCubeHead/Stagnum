@@ -1,6 +1,5 @@
 import json
 from logging import getLogger
-
 from typing import Annotated
 
 from fastapi import Depends
