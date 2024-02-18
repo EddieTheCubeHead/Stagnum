@@ -42,3 +42,11 @@ class PoolMember(EntityBase):
                                                 cascade="save-update")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent",
                                                         cascade="all, delete")
+
+
+class PlaybackSession(EntityBase):
+
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
+    current_track_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), nullable=False)
+    next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
