@@ -31,7 +31,7 @@ class PoolMember(EntityBase):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(64), nullable=False)
-    user_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
     image_url: Mapped[str] = mapped_column(String(64), nullable=False)
     content_uri: Mapped[str] = mapped_column(String(64), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
