@@ -29,11 +29,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
+        cache: 'yarn'
         #cache-dependency-path: ./client/package-lock.json
 
-    - run: pnpm ci
+    - run: yarn i
 
-    - run: pnpm run build --if-present
+    - run: yarn run build --if-present
 
-    - run: pnpm test
+    - run: yarn test
