@@ -30,9 +30,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-        #cache-dependency-path: ./client/package-lock.json
+        cache-dependency-path: ./client/package.json
 
-    - run: yarn i
+    - run: yarn i --no-lockfile
 
     - run: yarn run build --if-present
 
