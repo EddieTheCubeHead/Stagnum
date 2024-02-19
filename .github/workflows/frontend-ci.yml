@@ -32,7 +32,7 @@ jobs:
         cache: 'yarn'
         cache-dependency-path: ./client/package.json
 
-    - run: yarn i --no-lockfile
+    - run: yarn install --no-lockfile
 
     - run: yarn run build --if-present
 
