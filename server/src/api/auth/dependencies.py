@@ -1,6 +1,7 @@
 import base64
 import json
 from datetime import datetime
+from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
@@ -12,16 +13,21 @@ from api.common.dependencies import DatabaseConnection, SpotifyClient
 from database.entities import LoginState, User
 
 
+_logger = getLogger("main.api.auth.dependencies")
+
+
 class AuthDatabaseConnectionRaw:
     def __init__(self, database_connection: DatabaseConnection):
         self._database_connection = database_connection
 
     def save_state(self, state_string: str):
+        _logger.debug(f"Saving state string {state_string} to database")
         with self._database_connection.session() as session:
             new_state = LoginState(state_string=state_string)
             session.add(new_state)
 
     def delete_expired_states(self, delete_before: datetime):
+        _logger.debug(f"Deleting state strings created before {delete_before}")
         with self._database_connection.session() as session:
             session.execute(delete(LoginState).where(LoginState.insert_time_stamp < delete_before))
 
@@ -30,6 +36,7 @@ class AuthDatabaseConnectionRaw:
             return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
 
     def update_logged_in_user(self, user: User, state: str):
+        _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
             existing_user = session.scalar(select(User).where(User.spotify_id == user.spotify_id))
             if existing_user is not None:

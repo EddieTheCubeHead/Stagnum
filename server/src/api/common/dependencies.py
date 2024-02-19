@@ -1,4 +1,5 @@
 import functools
+from logging import getLogger
 from typing import Annotated
 
 import requests
@@ -7,6 +8,9 @@ from requests import Response
 
 from database.database_connection import ConnectionManager
 from database.entities import User
+
+
+_logger = getLogger("main.api.common.dependencies")
 
 
 class RequestsClientRaw:
@@ -18,10 +22,12 @@ class RequestsClientRaw:
 
     @functools.wraps(requests.get)
     def get(self, *args, **kwargs):
+        _logger.debug(f"GET: {args} {kwargs}")
         return requests.get(*args, **kwargs)
 
     @functools.wraps(requests.post)
     def post(self, *args, **kwargs):
+        _logger.debug(f"POST: {args} {kwargs}")
         return requests.post(*args, **kwargs)
 
 
@@ -34,10 +40,12 @@ class SpotifyClientRaw:
 
     def get(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
         url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
+        _logger.debug(f"Calling spotify API at GET {url}{query} with args: {args} and kwargs: {kwargs}")
         return self._request_client.get(f"{url}{query}", *args, **kwargs)
 
     def post(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
         url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
+        _logger.debug(f"Calling spotify API at POST {url}{query} with args: {args} and kwargs: {kwargs}")
         return self._request_client.post(f"{url}{query}", *args, **kwargs)
 
 
@@ -56,6 +64,7 @@ class TokenHolderRaw:
 
     def validate_token(self, token: str):
         if token not in self._tokens:
+            _logger.error(f"Token {token} not found in {self._tokens}")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
 
     def get_user(self, token: str) -> User:
@@ -66,6 +75,7 @@ TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
 def validated_token_raw(token: Annotated[str, Header()], token_holder: TokenHolder):
+    _logger.debug(f"Validating token {token}")
     token_holder.validate_token(token)
     return token
 
