@@ -24,21 +24,24 @@ class RequestsClientRaw:
     def get(self, *args, **kwargs):
         _logger.debug(f"GET: {args} {kwargs}")
         result = requests.get(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        _logger.debug(f"Call result: {result.status_code} ; "
+                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
     @functools.wraps(requests.post)
     def post(self, *args, **kwargs):
         _logger.debug(f"POST: {args} {kwargs}")
         result = requests.post(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        _logger.debug(f"Call result: {result.status_code} ; "
+                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
     @functools.wraps(requests.put)
     def put(self, *args, **kwargs):
         _logger.debug(f"PUT {args} {kwargs}")
         result = requests.put(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        _logger.debug(f"Call result: {result.status_code} ; "
+                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
 
