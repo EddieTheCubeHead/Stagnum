@@ -16,7 +16,8 @@ def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(cre
     test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     actual_call = requests_client.put.call_args
-    call_uri = actual_call.kwargs["data"]["uris"][0]
+    assert actual_call.kwargs["json"]["position_ms"] == 0
+    call_uri = actual_call.kwargs["json"]["uris"][0]
     assert call_uri in track_uris
 
 
@@ -33,7 +34,8 @@ def should_start_pool_playback_from_collection_tracks_when_posting_collection(cr
     test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     actual_call = requests_client.put.call_args
-    call_uri = actual_call.kwargs["data"]["uris"][0]
+    assert actual_call.kwargs["json"]["position_ms"] == 0
+    call_uri = actual_call.kwargs["json"]["uris"][0]
     assert call_uri in [track["uri"] for track in tracks]
 
 
@@ -52,5 +54,6 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(c
     test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     actual_call = requests_client.put.call_args
-    call_uri = actual_call.kwargs["data"]["uris"][0]
+    assert actual_call.kwargs["json"]["position_ms"] == 0
+    call_uri = actual_call.kwargs["json"]["uris"][0]
     assert call_uri == tracks[0]["uri"]

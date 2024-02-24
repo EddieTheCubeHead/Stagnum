@@ -98,7 +98,9 @@ class PoolSpotifyClientRaw:
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
     def start_playback(self, token: str, track_uri: str):
-        self._spotify_client.put(f"me/player/play", data={"uris": [track_uri]}, headers=_auth_header(token))
+        header = _auth_header(token)
+        header["Content-Type"] = "application/json"
+        self._spotify_client.put(f"me/player/play", json={"uris": [track_uri], "position_ms": 0}, headers=header)
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]

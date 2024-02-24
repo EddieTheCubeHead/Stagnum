@@ -23,17 +23,23 @@ class RequestsClientRaw:
     @functools.wraps(requests.get)
     def get(self, *args, **kwargs):
         _logger.debug(f"GET: {args} {kwargs}")
-        return requests.get(*args, **kwargs)
+        result = requests.get(*args, **kwargs)
+        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        return result
 
     @functools.wraps(requests.post)
     def post(self, *args, **kwargs):
         _logger.debug(f"POST: {args} {kwargs}")
-        return requests.post(*args, **kwargs)
+        result = requests.post(*args, **kwargs)
+        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        return result
 
     @functools.wraps(requests.put)
     def put(self, *args, **kwargs):
         _logger.debug(f"PUT {args} {kwargs}")
-        return requests.put(*args, **kwargs)
+        result = requests.put(*args, **kwargs)
+        _logger.debug(f"Call result: {result.status_code} ; {result.content}")
+        return result
 
 
 RequestsClient = Annotated[RequestsClientRaw, Depends()]

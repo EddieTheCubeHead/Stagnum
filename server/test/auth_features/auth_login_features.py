@@ -22,7 +22,7 @@ def should_have_required_scopes_in_login_redirect_response(base_auth_login_call,
                                                            get_query_parameter):
     response = base_auth_login_call()
     data_json = validate_response(response)
-    scopes_strings = get_query_parameter(data_json["redirect_uri"], "scopes").split(" ")
+    scopes_strings = get_query_parameter(data_json["redirect_uri"], "scope").split(" ")
     for header in required_headers:
         assert header in scopes_strings
 
