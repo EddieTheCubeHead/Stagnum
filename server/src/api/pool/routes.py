@@ -3,7 +3,7 @@ from logging import getLogger
 from fastapi import APIRouter
 
 from api.common.dependencies import validated_token, TokenHolder
-from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection
+from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService
 from api.pool.helpers import create_pool_return_model
 from api.pool.models import PoolCreationData, Pool, PoolContent
 
@@ -20,10 +20,11 @@ router = APIRouter(
 @router.post("/")
 async def create_pool(base_collection: PoolCreationData, token: validated_token,
                       spotify_client: PoolSpotifyClient, database_connection: PoolDatabaseConnection,
-                      token_holder: TokenHolder) -> Pool:
+                      token_holder: TokenHolder, pool_playback_service: PoolPlaybackService) -> Pool:
     _logger.debug(f"POST /pool called with collection {base_collection} and token {token}")
     pool_content = spotify_client.get_pool_content(token, *base_collection.spotify_uris)
     database_connection.create_pool(pool_content, token_holder.get_user(token))
+    pool_playback_service.start_playback(token)
     return pool_content
 
 

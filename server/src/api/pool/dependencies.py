@@ -1,14 +1,16 @@
 import json
+import random
 from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends
 from sqlalchemy import delete, and_, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, join
 
-from api.common.dependencies import SpotifyClient, DatabaseConnection
+from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon
 from api.pool.models import PoolContent, Pool, PoolCollection, PoolTrack
+from api.search.models import Track
 from database.entities import PoolMember, User
 
 
@@ -95,6 +97,9 @@ class PoolSpotifyClientRaw:
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
+    def start_playback(self, token: str, track_uri: str):
+        self._spotify_client.put(f"me/player/play", data={"uris": [track_uri]}, headers=_auth_header(token))
+
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
 
@@ -129,6 +134,12 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
     return list(session.scalars(
         select(PoolMember).where(and_(PoolMember.user_id == user.spotify_id, PoolMember.parent_id == None))
         .options(joinedload(PoolMember.children))).unique().all())
+
+
+def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
+    _logger.debug(f"Getting playable tracks for user {user.spotify_username}")
+    return list(session.scalars(select(PoolMember).where(
+        and_(PoolMember.user_id == user.spotify_id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
 
 
 def _delete_pool_member(content_uri: str, user: User, session: Session):
@@ -168,5 +179,27 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
+    def get_playable_tracks(self, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            all_tracks = _get_playable_tracks(user, session)
+        return all_tracks
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
+
+
+class PoolPlaybackServiceRaw:
+
+    def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
+                 token_holder: TokenHolder):
+        self._database_connection = database_connection
+        self._spotify_client = spotify_client
+        self._token_holder = token_holder
+
+    def start_playback(self, token: str):
+        user = self._token_holder.get_user(token)
+        all_tracks = self._database_connection.get_playable_tracks(user)
+        self._spotify_client.start_playback(token, random.choice(all_tracks).content_uri)
+
+
+PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]

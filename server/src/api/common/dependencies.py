@@ -30,6 +30,11 @@ class RequestsClientRaw:
         _logger.debug(f"POST: {args} {kwargs}")
         return requests.post(*args, **kwargs)
 
+    @functools.wraps(requests.put)
+    def put(self, *args, **kwargs):
+        _logger.debug(f"PUT {args} {kwargs}")
+        return requests.put(*args, **kwargs)
+
 
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
@@ -47,6 +52,11 @@ class SpotifyClientRaw:
         url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
         _logger.debug(f"Calling spotify API at POST {url}{query} with args: {args} and kwargs: {kwargs}")
         return self._request_client.post(f"{url}{query}", *args, **kwargs)
+
+    def put(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
+        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
+        _logger.debug(f"Calling spotify API at PUT {url}{query} with args: {args} and kwargs: {kwargs}")
+        return self._request_client.put(f"{url}{query}", *args, **kwargs)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
