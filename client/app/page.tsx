@@ -1,5 +1,10 @@
 'use client'
 
+import Footer from '@/components/layout/Footer'
+import SideMenu from '@/components/layout/SideMenu'
+import stagnumTheme from '@/services/stagnumTheme'
+import theme from '@/services/stagnumTheme'
+import { Box, Grid, TextField, ThemeProvider } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -13,8 +18,9 @@ export default function HomePage() {
 }
 
 function HomeContent() {
+  const [showSearchBar, setShowSearchBar] = useState(false)
   const [token, setToken] = useState('')
-
+  const [query, setQuery] = useState('')
   const queryParams = useSearchParams()
   const code = queryParams.get('code')
   const state = queryParams.get('state')
@@ -27,8 +33,23 @@ function HomeContent() {
   }, [])
 
   useEffect(() => {
-    console.log('Token:', token)
-  }, [token])
+    handleSearchRequest(query)
+  }, [query])
+
+  const handleSearchRequest = (searchQuery: string) => {
+    console.log('Searching song with:', searchQuery)
+
+    axios.get('http://localhost:8080/search/tracks',
+      {
+        params: { query },
+        headers: { token }
+      })
+      .then(function (response) {
+        console.log(response)
+      }).catch((error) => {
+        console.log('Request failed', error)
+      })
+  }
 
   const handleTokenRequest = (code: string, state: string) => {
     console.log('Sending play request')
@@ -44,47 +65,45 @@ function HomeContent() {
   }
 
   return (
-    <main>
-      <ThemeProvider theme={theme}>
-        <Box sx={{ bgcolor: theme.palette.primary.light }} className="relative min-h-screen flex flex-col w-full h-full">
+    <ThemeProvider theme={theme}>
+      <Box>
+        <Grid container spacing={1} sx={{
+          bgcolor: stagnumTheme.palette.primary.dark,
+        }}>
 
-          <Box sx={{ bgcolor: theme.palette.primary.main }} className="fixed flex flex-col h-full px-12 py-16 w-96">
-            <List>
-              <ListItemButton sx={{}} onClick={() => setShowSearchBar(!showSearchBar)}>
-                <ListItemText>Search</ListItemText>
-              </ListItemButton>
-            </List>
-          </Box>
+          <Grid item xs={3}>
+            <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
+          </Grid>
 
-          <Box className="relative flex flex-col h-full ml-96">
-            <Avatar sx={{ margin: 2 }} className="absolute right-0 h-20 w-20" >My Profile</Avatar>
-            <Box sx={{}}>
+          <Grid item xs={9}>
+            <Box sx={{
+              bgcolor: theme.palette.primary.main,
+              width: 'auto',
+              height: 800,
+              borderRadius: 3,
+              boxShadow: 2
+            }}>
               {showSearchBar == true &&
                 <TextField
-                  sx={{ margin: 4, width: 500 }}
-                  id="standard-search"
-                  label="Search field"
-                  type="search"
-                  variant="standard"
+                  sx={{
+                    bgcolor: stagnumTheme.palette.primary.light,
+                    margin: 1,
+                    width: 500,
+                    borderRadius: 3,
+                    boxShadow: 2
+                  }}
+                  id='standard-search'
+                  label='Search field'
+                  type='search'
+                  onChange={(e) => setQuery(e.target.value)}
                 />
               }
             </Box>
-            <Box sx={{ bgcolor: theme.palette.primary.dark }} className="fixed bottom-0 left-0 w-full py-4 px-12 flex">
-              <Box className="flex gap-4 w-96">
-                <Link href="/about">About Stagnum</Link>
-                <Link
-                  href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-                  target="_blank"
-                  className="text-[#1ED760]"
-                >
-                  Contact Us
-                </Link>
-              </Box>
-              <Typography>Media Player</Typography>
-            </Box>
-          </Box>
-        </Box>
-      </ThemeProvider>
-    </main >
-  );
+          </Grid>
+
+        </Grid>
+      </Box>
+      <Footer />
+    </ThemeProvider>
+  )
 }
