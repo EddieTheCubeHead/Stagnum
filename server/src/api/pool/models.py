@@ -13,6 +13,7 @@ class PoolTrack(BaseModel):
     name: str
     spotify_icon_uri: str
     spotify_track_uri: str
+    duration_ms: int
 
 
 class PoolCollection(BaseModel):
