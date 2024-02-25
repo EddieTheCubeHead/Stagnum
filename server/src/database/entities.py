@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Integer, ForeignKey
+from sqlalchemy import String, DateTime, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
 
 
@@ -47,7 +47,7 @@ class PoolMember(EntityBase):
 
 class PlaybackSession(EntityBase):
 
-    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
+    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     current_track_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)

@@ -1,3 +1,4 @@
+import datetime
 import json
 import random
 from logging import getLogger
@@ -11,8 +12,7 @@ from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHold
 from api.common.helpers import get_sharpest_icon
 from api.pool.models import PoolContent, Pool, PoolCollection, PoolTrack
 from api.search.models import Track
-from database.entities import PoolMember, User
-
+from database.entities import PoolMember, User, PlaybackSession
 
 _logger = getLogger("main.api.pool.dependencies")
 
@@ -159,6 +159,20 @@ def _delete_pool_member(content_uri: str, user: User, session: Session):
     session.delete(possible_parent)
 
 
+def _update_user_playback(existing_playback: PlaybackSession, playing_track: PoolMember):
+    existing_playback.current_track_id = playing_track.content_uri
+    existing_playback.next_song_change_timestamp += datetime.timedelta(milliseconds=playing_track.duration_ms)
+
+
+def _crete_user_playback(session: Session, user: User, playing_track: PoolMember):
+    end_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(milliseconds=playing_track.duration_ms)
+    session.add(PlaybackSession(
+        current_track_id=playing_track.content_uri,
+        next_song_change_timestamp=end_time,
+        user_id=user.spotify_id
+    ))
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
@@ -191,6 +205,15 @@ class PoolDatabaseConnectionRaw:
             all_tracks = _get_playable_tracks(user, session)
         return all_tracks
 
+    def save_playback_status(self, user: User, playing_track: PoolMember):
+        with self._database_connection.session() as session:
+            existing_playback = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+            if existing_playback is not None:
+                _update_user_playback(existing_playback, playing_track)
+            else:
+                _crete_user_playback(session, user, playing_track)
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -206,7 +229,9 @@ class PoolPlaybackServiceRaw:
     def start_playback(self, token: str):
         user = self._token_holder.get_user(token)
         all_tracks = self._database_connection.get_playable_tracks(user)
-        self._spotify_client.start_playback(token, random.choice(all_tracks).content_uri)
+        next_track = random.choice(all_tracks)
+        self._spotify_client.start_playback(token, next_track.content_uri)
+        self._database_connection.save_playback_status(user, next_track)
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
