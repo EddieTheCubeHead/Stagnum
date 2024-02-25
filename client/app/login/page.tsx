@@ -27,9 +27,9 @@ export default function Login() {
 
   return (
     <main className="relative min-h-screen w-full h-full flex flex-row-reverse px-24">
-      <Link href="/" className=" pt-4 w-full z-10 justify-end flex">
+      <Box className=" pt-4 w-full z-10 justify-end flex">
         {/* <Typography className='text-3xl font-semibold text-[#1ED760]'>Stagnum</Typography> */}
-      </Link>
+      </Box>
       <Box className="top-0 left-0 w-full h-full absolute flex">
         <Image
           src={require("@/public/homeBG.jpg")}
