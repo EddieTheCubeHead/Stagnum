@@ -1,18 +1,19 @@
 import stagnumTheme from "@/theme/stagnumTheme";
-import { Box, Grid, TextField, ThemeProvider } from "@mui/material";
+import Track from "@/types/trackTypes";
+import { Box, Card, Grid, TextField, ThemeProvider, Typography } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
     token: string
-    showSearchBar: boolean
 }
 
-export default function Search({ token, showSearchBar }: Props) {
+export default function Search({ token }: Props) {
     const mounted = useRef(false);
     const [query, setQuery] = useState('')
+    const [trackList, setTrackList] = useState<Track[]>([])
 
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
     const handleSearchRequest = (searchQuery: string) => {
         console.log('Searching song with:', searchQuery)
@@ -24,6 +25,8 @@ export default function Search({ token, showSearchBar }: Props) {
             })
             .then(function (response) {
                 console.log(response)
+                setTrackList(response.data.results)
+                console.log(trackList)
             }).catch((error) => {
                 console.log('Request failed', error)
             })
@@ -62,25 +65,32 @@ export default function Search({ token, showSearchBar }: Props) {
             <Box sx={{
                 bgcolor: stagnumTheme.palette.primary.main,
                 width: 'auto',
-                height: 800,
+                height: 'auto',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
-                {showSearchBar == true &&
-                    <TextField
-                        sx={{
-                            bgcolor: stagnumTheme.palette.primary.light,
-                            margin: 1,
-                            width: 500,
-                            borderRadius: 3,
-                            boxShadow: 2
-                        }}
-                        id='standard-search'
-                        label='Search field'
-                        type='search'
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                }
+                <TextField
+                    sx={{
+                        bgcolor: stagnumTheme.palette.primary.light,
+                        margin: 1,
+                        width: 500,
+                        borderRadius: 3,
+                        boxShadow: 2
+                    }}
+                    id='standard-search'
+                    label='Search field'
+                    type='search'
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                <Grid container spacing={1}>
+                    {trackList.map((track, key) => (
+                        <Grid item xs={2} key={key}>
+                            <Card>
+                                <Typography variant="h6" color="initial">{track.name}</Typography>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
             </Box>
         </Grid>
     )

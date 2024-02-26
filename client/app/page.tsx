@@ -3,9 +3,9 @@
 import Footer from '@/components/layout/Footer'
 import Search from '@/components/layout/Search'
 import SideMenu from '@/components/layout/SideMenu'
-import stagnumTheme from '@/theme/stagnumTheme'
+import stagnumDarkTheme from '@/theme/stagnumTheme'
 import theme from '@/theme/stagnumTheme'
-import { Box, Grid, TextField, ThemeProvider } from '@mui/material'
+import { Box, CssBaseline, Grid, TextField, ThemeProvider } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -47,18 +47,22 @@ function HomeContent() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box>
-        <Grid container spacing={1}>
+      <CssBaseline />
+      <Box sx={{
+        margin: 1
+      }}>
+        <Grid container spacing={1} sx={{}}>
 
           <Grid item xs={3}>
             <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
           </Grid>
 
-          <Search token={token} showSearchBar={showSearchBar} />
-
+          {showSearchBar == true &&
+            <Search token={token} />
+          }
         </Grid>
       </Box>
       <Footer />
-    </ThemeProvider>
+    </ThemeProvider >
   )
 }

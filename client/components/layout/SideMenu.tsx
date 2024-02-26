@@ -12,7 +12,7 @@ export default function SideMenu({ setShowSearchBar, showSearchBar }: Props) {
             <Box sx={{
                 bgcolor: stagnumTheme.palette.primary.main,
                 width: 'auto',
-                height: 800,
+                height: 'auto',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
