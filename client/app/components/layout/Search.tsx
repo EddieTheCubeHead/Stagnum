@@ -85,7 +85,9 @@ export default function Search({ token }: Props) {
                 <Grid container spacing={1}>
                     {trackList.map((track, key) => (
                         <Grid item xs={2} key={key}>
-                            <Card>
+                            <Card sx={{
+                                backgroundColor: 'white'
+                            }}>
                                 <Typography variant="h6" color="initial">{track.name}</Typography>
                             </Card>
                         </Grid>

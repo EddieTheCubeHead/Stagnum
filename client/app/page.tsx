@@ -1,8 +1,8 @@
 'use client'
 
-import Footer from '@/components/layout/Footer'
-import Search from '@/components/layout/Search'
-import SideMenu from '@/components/layout/SideMenu'
+import Footer from '@/app/components/layout/Footer'
+import Search from '@/app/components/layout/Search'
+import SideMenu from '@/app/components/layout/SideMenu'
 import stagnumDarkTheme from '@/theme/stagnumTheme'
 import theme from '@/theme/stagnumTheme'
 import { Box, CssBaseline, Grid, TextField, ThemeProvider } from '@mui/material'
