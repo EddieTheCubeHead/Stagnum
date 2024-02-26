@@ -1,4 +1,3 @@
-"use client";
 import { createTheme } from "@mui/material";
 
 //MUI default font is Roboto
