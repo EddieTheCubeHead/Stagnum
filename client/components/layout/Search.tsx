@@ -4,14 +4,28 @@ import { Box, Card, Grid, TextField, ThemeProvider, Typography } from "@mui/mate
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
-type Props = {
+interface Props {
     token: string
 }
 
 export default function Search({ token }: Props) {
     const mounted = useRef(false);
     const [query, setQuery] = useState('')
-    const [trackList, setTrackList] = useState<Track[]>([])
+    const [trackList, setTrackList] = useState<Track[]>([{
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    }])
 
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
@@ -82,13 +96,16 @@ export default function Search({ token }: Props) {
                     type='search'
                     onChange={(e) => setQuery(e.target.value)}
                 />
-                <Grid container spacing={1}>
+                <Grid container spacing={1} sx={{
+                    padding: 1
+                }}>
                     {trackList.map((track, key) => (
-                        <Grid item xs={2} key={key}>
+                        <Grid item xs={2} key={key} columns={10}>
                             <Card sx={{
-                                backgroundColor: 'white'
+                                backgroundColor: 'white',
+                                height: 100
                             }}>
-                                <Typography variant="h6" color="initial">{track.name}</Typography>
+                                <Typography fontSize={18} color="initial">{track.name}</Typography>
                             </Card>
                         </Grid>
                     ))}

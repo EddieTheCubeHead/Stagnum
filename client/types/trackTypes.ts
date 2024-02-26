@@ -11,5 +11,5 @@ export default interface Track {
         name: string,
         link: string
     },
-    duration_ms: 0
+    duration_ms: number
 }
