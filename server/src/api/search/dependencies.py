@@ -1,23 +1,17 @@
-import datetime
 import json
-from typing import Annotated, Callable
+from logging import getLogger
+from typing import Annotated
 
 from fastapi import Depends
 
 from api.common.dependencies import SpotifyClient
+from api.common.helpers import get_sharpest_icon
 from api.common.models import NamedResource
 from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult, \
     SpotifyPlayableType, ArtistSearchResult, AlbumSearchResult, TrackSearchResult, PlaylistSearchResult
 
 
-def _get_sharpest_icon(icons: list[dict]) -> str:
-    max_size = icons[0]["height"] if icons[0]["height"] is not None else 0
-    biggest_icon = icons[0]["url"]
-    for icon in icons:
-        if (icon["height"] or 0) > max_size:
-            max_size = icon["height"]
-            biggest_icon = icon["url"]
-    return biggest_icon
+_logger = getLogger("main.api.search.dependencies")
 
 
 def _build_track(track_data: dict) -> Track:
@@ -45,7 +39,7 @@ def _build_artist(artist_data: dict) -> Artist:
     return Artist(
         name=artist_data["name"],
         uri=artist_data["uri"],
-        icon_link=_get_sharpest_icon(artist_data["images"])
+        icon_link=get_sharpest_icon(artist_data["images"])
     )
 
 
@@ -64,7 +58,7 @@ def _build_album(album_data: dict) -> Album:
     return Album(
         artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in album_data["artists"]],
         year=int(album_data["release_date"][:4]),
-        icon_link=_get_sharpest_icon(album_data["images"]),
+        icon_link=get_sharpest_icon(album_data["images"]),
         name=album_data["name"],
         uri=album_data["uri"]
     )
@@ -85,7 +79,7 @@ def _build_playlist(playlist_data: dict) -> Playlist:
     return Playlist(
         name=playlist_data["name"],
         uri=playlist_data["uri"],
-        icon_link=_get_sharpest_icon(playlist_data["images"])
+        icon_link=get_sharpest_icon(playlist_data["images"])
     )
 
 
@@ -125,7 +119,9 @@ class SearchSpotifyClientRaw:
         search_types = ",".join(types)
         headers = _auth_header(token)
         query_string = f"search?q={query}&type={search_types}&offset={offset}&limit={limit}"
+        _logger.debug(f"Searching spotify with query '{query_string}'")
         raw_result = self._spotify_client.get(query_string, headers=headers)
+        _logger.debug(f"Received result {raw_result}")
         return json.loads(raw_result.content.decode("utf8"))
 
     def get_track_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
