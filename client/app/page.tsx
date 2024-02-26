@@ -1,9 +1,10 @@
 'use client'
 
 import Footer from '@/components/layout/Footer'
+import Search from '@/components/layout/Search'
 import SideMenu from '@/components/layout/SideMenu'
-import stagnumTheme from '@/services/stagnumTheme'
-import theme from '@/services/stagnumTheme'
+import stagnumTheme from '@/theme/stagnumTheme'
+import theme from '@/theme/stagnumTheme'
 import { Box, Grid, TextField, ThemeProvider } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
@@ -20,7 +21,6 @@ export default function HomePage() {
 function HomeContent() {
   const [showSearchBar, setShowSearchBar] = useState(false)
   const [token, setToken] = useState('')
-  const [query, setQuery] = useState('')
   const queryParams = useSearchParams()
   const code = queryParams.get('code')
   const state = queryParams.get('state')
@@ -31,25 +31,6 @@ function HomeContent() {
       handleTokenRequest(code, state)
     }
   }, [])
-
-  useEffect(() => {
-    handleSearchRequest(query)
-  }, [query])
-
-  const handleSearchRequest = (searchQuery: string) => {
-    console.log('Searching song with:', searchQuery)
-
-    axios.get('http://localhost:8080/search/tracks',
-      {
-        params: { query },
-        headers: { token }
-      })
-      .then(function (response) {
-        console.log(response)
-      }).catch((error) => {
-        console.log('Request failed', error)
-      })
-  }
 
   const handleTokenRequest = (code: string, state: string) => {
     console.log('Sending play request')
@@ -67,39 +48,13 @@ function HomeContent() {
   return (
     <ThemeProvider theme={theme}>
       <Box>
-        <Grid container spacing={1} sx={{
-          bgcolor: stagnumTheme.palette.primary.dark,
-        }}>
+        <Grid container spacing={1}>
 
           <Grid item xs={3}>
             <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
           </Grid>
 
-          <Grid item xs={9}>
-            <Box sx={{
-              bgcolor: theme.palette.primary.main,
-              width: 'auto',
-              height: 800,
-              borderRadius: 3,
-              boxShadow: 2
-            }}>
-              {showSearchBar == true &&
-                <TextField
-                  sx={{
-                    bgcolor: stagnumTheme.palette.primary.light,
-                    margin: 1,
-                    width: 500,
-                    borderRadius: 3,
-                    boxShadow: 2
-                  }}
-                  id='standard-search'
-                  label='Search field'
-                  type='search'
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              }
-            </Box>
-          </Grid>
+          <Search token={token} showSearchBar={showSearchBar} />
 
         </Grid>
       </Box>

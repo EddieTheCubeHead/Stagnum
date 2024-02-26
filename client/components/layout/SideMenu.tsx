@@ -1,5 +1,5 @@
 import { Box, List, ListItemButton, ListItemText, ThemeProvider } from "@mui/material"
-import stagnumTheme from '@/services/stagnumTheme'
+import stagnumTheme from '@/theme/stagnumTheme'
 
 type Props = {
     setShowSearchBar: (show: boolean) => void

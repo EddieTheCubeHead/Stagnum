@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, ThemeProvider, Box } from '@mui/material'
-import stagnumTheme from '@/services/stagnumTheme';
+import stagnumTheme from '@/theme/stagnumTheme';
 
 const Footer = () => {
 
