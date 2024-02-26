@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
-import theme from "./theme"
+import theme from "./utils/theme"
 
 export default function HomePage() {
   return (
