@@ -13,9 +13,11 @@
   "dependencies": {
     "@babel/preset-env": "^7.23.9",
     "@babel/preset-react": "^7.23.3",
+    "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.15.7",
+    "@mui/material-nextjs": "^5.15.11",
     "@types/jest": "^29.5.12",
     "axios": "^1.6.7",
     "next": "14.1.0",
