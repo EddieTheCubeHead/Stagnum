@@ -1,10 +1,9 @@
 import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
-import { Box, Card, Grid, TextField, ThemeProvider, Typography } from "@mui/material";
+import { Box, Grid, TextField, } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { Header3, Text } from "../textComponents";
-import DefaultButton from "../buttons/defaulButton";
+import TrackCard from "./TrackCard";
 
 interface Props {
     token: string
@@ -110,20 +109,7 @@ export default function Search({ token }: Props) {
                                 width: '100%',
                                 paddingTop: '100%',
                             }}>
-                                <Card sx={{
-                                    backgroundColor: theme.palette.secondary.main,
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                }}>
-                                    <Header3 text={track.name} />
-                                    <DefaultButton text={"Play"} action={() => { }} />
-                                </Card>
+                                <TrackCard track={track} />
                             </Box>
                         </Grid>
                     ))}
