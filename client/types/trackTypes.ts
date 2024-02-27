@@ -1,12 +1,9 @@
+import Artist from "./artistTypes"
+
 export default interface Track {
     name: string,
     uri: string,
-    artists: [
-        {
-            name: string,
-            link: string
-        }
-    ],
+    artists: Artist[],
     album: {
         name: string,
         link: string
