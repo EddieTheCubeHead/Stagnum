@@ -1,5 +1,5 @@
 import { Box, List, ListItemButton, ListItemText, ThemeProvider } from "@mui/material"
-import stagnumTheme from '@/theme/stagnumTheme'
+import theme from '@/utils/theme'
 
 type Props = {
     setShowSearchBar: (show: boolean) => void
@@ -8,9 +8,9 @@ type Props = {
 
 export default function SideMenu({ setShowSearchBar, showSearchBar }: Props) {
     return (
-        <ThemeProvider theme={stagnumTheme}>
+        <ThemeProvider theme={theme}>
             <Box sx={{
-                bgcolor: stagnumTheme.palette.primary.main,
+                bgcolor: theme.palette.secondary.dark,
                 width: 'auto',
                 height: 'auto',
                 borderRadius: 3,
@@ -18,7 +18,7 @@ export default function SideMenu({ setShowSearchBar, showSearchBar }: Props) {
             }}>
                 <List>
                     <ListItemButton sx={{
-                        bgcolor: stagnumTheme.palette.primary.light,
+                        bgcolor: theme.palette.secondary.main,
                         marginX: 1,
                         borderRadius: 2
                     }} onClick={() => setShowSearchBar(!showSearchBar)}>

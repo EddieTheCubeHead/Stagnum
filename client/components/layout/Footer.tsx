@@ -1,13 +1,13 @@
 import React from 'react'
 import { Link, ThemeProvider, Box } from '@mui/material'
-import stagnumTheme from '@/theme/stagnumTheme';
+import theme from '@/utils/theme';
 
 const Footer = () => {
 
     return (
-        <ThemeProvider theme={stagnumTheme}>
+        <ThemeProvider theme={theme}>
             <Box sx={{
-                bgcolor: stagnumTheme.palette.primary.main,
+                bgcolor: theme.palette.secondary.dark,
                 flexGrow: 1,
                 height: 60,
                 position: 'fixed',
@@ -19,13 +19,13 @@ const Footer = () => {
                     padding: 1
                 }}>
                     <Link sx={{
-                        color: stagnumTheme.palette.primary.contrastText,
+                        color: theme.palette.primary.contrastText,
                         paddingRight: 2
                     }}
                         href="/about">About Stagnum</Link>
                     <Link
                         sx={{
-                            color: stagnumTheme.palette.secondary.main
+                            color: theme.palette.secondary.main
                         }}
                         href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
                         target="_blank"

@@ -3,14 +3,12 @@
 import Footer from '@/components/layout/Footer'
 import Search from '@/components/layout/Search'
 import SideMenu from '@/components/layout/SideMenu'
-import stagnumDarkTheme from '@/theme/stagnumTheme'
-import theme from '@/theme/stagnumTheme'
-import { Box, CssBaseline, Grid, TextField, ThemeProvider } from '@mui/material'
+import { Box, CssBaseline, Grid, TextField } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from "@emotion/react";
-import theme from "./theme";
+import theme from "../utils/theme";
 
 
 

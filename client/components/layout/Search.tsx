@@ -1,8 +1,10 @@
-import stagnumTheme from "@/theme/stagnumTheme";
+import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
 import { Box, Card, Grid, TextField, ThemeProvider, Typography } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
+import { Header3, Text } from "../textComponents";
+import DefaultButton from "../buttons/defaulButton";
 
 interface Props {
     token: string
@@ -25,7 +27,77 @@ export default function Search({ token }: Props) {
             link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
         },
         duration_ms: 172087
-    }])
+    }, {
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    }, {
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    }, {
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    }, {
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    }, {
+        name: 'Auto jää (feat. Käärijä)',
+        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
+        artists: [
+            {
+                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
+                link: 'Antti Tuisku'
+            }
+        ],
+        album: {
+            name: 'Auto jää (feat. Käärijä)',
+            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
+        },
+        duration_ms: 172087
+    },])
 
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
@@ -77,7 +149,7 @@ export default function Search({ token }: Props) {
     return (
         <Grid item xs={9}>
             <Box sx={{
-                bgcolor: stagnumTheme.palette.primary.main,
+                bgcolor: theme.palette.secondary.dark,
                 width: 'auto',
                 height: 'auto',
                 borderRadius: 3,
@@ -85,7 +157,7 @@ export default function Search({ token }: Props) {
             }}>
                 <TextField
                     sx={{
-                        bgcolor: stagnumTheme.palette.primary.light,
+                        bgcolor: theme.palette.secondary.main,
                         margin: 1,
                         width: 500,
                         borderRadius: 3,
@@ -96,20 +168,33 @@ export default function Search({ token }: Props) {
                     type='search'
                     onChange={(e) => setQuery(e.target.value)}
                 />
-                <Grid container spacing={1} sx={{
-                    padding: 1
-                }}>
+                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
                     {trackList.map((track, key) => (
-                        <Grid item xs={2} key={key} columns={10}>
-                            <Card sx={{
-                                backgroundColor: 'white',
-                                height: 100
+                        <Grid item xs={2} key={key}>
+                            <Box style={{
+                                position: 'relative',
+                                width: '100%',
+                                paddingTop: '100%',
                             }}>
-                                <Typography fontSize={18} color="initial">{track.name}</Typography>
-                            </Card>
+                                <Card sx={{
+                                    backgroundColor: theme.palette.secondary.main,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                }}>
+                                    <Header3 text={track.name} />
+                                    <DefaultButton text={"Play"} action={() => { }} />
+                                </Card>
+                            </Box>
                         </Grid>
                     ))}
                 </Grid>
+
             </Box>
         </Grid>
     )
