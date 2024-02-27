@@ -11,7 +11,7 @@ on:
 
 
 jobs:
-  build-frontedn:
+  build-frontend:
     runs-on: ubuntu-latest
 
     strategy:

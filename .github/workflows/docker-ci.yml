@@ -5,7 +5,7 @@ on:
     types: [ "published" ]
 
 jobs:
-  create_docker_images:
+  create-docker-images:
     runs-on: ubuntu-latest
 
     steps:    
