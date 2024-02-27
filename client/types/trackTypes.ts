@@ -1,4 +1,8 @@
-import Artist from "./artistTypes"
+
+interface Artist {
+    name: string
+    link: string
+}
 
 export default interface Track {
     name: string,

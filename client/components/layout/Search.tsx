@@ -18,22 +18,12 @@ export default function Search({ token }: Props) {
         uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
         artists: [
             {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    }, {
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
+                name: 'Antti Tuisku',
+                link: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt'
+            },
             {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
+                name: "Käärijä",
+                link: "https://api.spotify.com/v1/artists/6LkMGN0t3HDNL8hIvma70r"
             }
         ],
         album: {
@@ -41,63 +31,7 @@ export default function Search({ token }: Props) {
             link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
         },
         duration_ms: 172087
-    }, {
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
-            {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    }, {
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
-            {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    }, {
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
-            {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    }, {
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
-            {
-                name: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt',
-                link: 'Antti Tuisku'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    },])
+    }])
 
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
