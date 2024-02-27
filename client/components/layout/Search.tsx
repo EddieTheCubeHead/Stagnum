@@ -1,16 +1,17 @@
-import theme from "@/utils/theme";
-import Track from "@/types/trackTypes";
-import { Box, Grid, TextField, } from "@mui/material";
-import axios from "axios";
-import { useEffect, useRef, useState } from "react";
-import TrackCard from "./TrackCard";
+import theme from '@/utils/theme'
+import Track from '@/types/trackTypes'
+import { Box, Grid, MenuItem, Select, TextField, } from '@mui/material'
+import axios from 'axios'
+import { useEffect, useRef, useState } from 'react'
+import TrackCard from './trackCard'
+import SearchInput from '../inputfields.tsx/searchInput'
 
 interface Props {
     token: string
 }
 
 export default function Search({ token }: Props) {
-    const mounted = useRef(false);
+    const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [trackList, setTrackList] = useState<Track[]>([{
         name: 'Auto jää (feat. Käärijä)',
@@ -21,8 +22,8 @@ export default function Search({ token }: Props) {
                 link: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt'
             },
             {
-                name: "Käärijä",
-                link: "https://api.spotify.com/v1/artists/6LkMGN0t3HDNL8hIvma70r"
+                name: 'Käärijä',
+                link: 'https://api.spotify.com/v1/artists/6LkMGN0t3HDNL8hIvma70r'
             }
         ],
         album: {
@@ -64,7 +65,7 @@ export default function Search({ token }: Props) {
             // Set a timeout to execute the search after 2 seconds
             const timeout = setTimeout(() => {
                 handleSearchRequest(query)
-            }, 2000);
+            }, 2000)
 
             // Save the timeout ID for cleanup
             setSearchTimeout(timeout)
@@ -88,19 +89,7 @@ export default function Search({ token }: Props) {
                 borderRadius: 3,
                 boxShadow: 2
             }}>
-                <TextField
-                    sx={{
-                        bgcolor: theme.palette.secondary.main,
-                        margin: 1,
-                        width: 500,
-                        borderRadius: 3,
-                        boxShadow: 2
-                    }}
-                    id='standard-search'
-                    label='Search field'
-                    type='search'
-                    onChange={(e) => setQuery(e.target.value)}
-                />
+                <SearchInput setQuery={setQuery} />
                 <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
                     {trackList.map((track, key) => (
                         <Grid item xs={2} key={key}>

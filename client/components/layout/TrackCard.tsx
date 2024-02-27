@@ -4,7 +4,7 @@ import DefaultButton from "../buttons/defaulButton";
 import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
 
-export default function TrackCard(Props: { track: Track }) {
+export default function TrackCard(props: { track: Track }) {
     return (
         <Card sx={{
             backgroundColor: theme.palette.secondary.main,
@@ -17,7 +17,7 @@ export default function TrackCard(Props: { track: Track }) {
             flexDirection: 'column',
             justifyContent: 'space-between',
         }}>
-            <Header3 text={Props.track.name} />
+            <Header3 text={props.track.name} />
             <DefaultButton text={"Add to pool"} action={() => { }} />
         </Card>
     )
