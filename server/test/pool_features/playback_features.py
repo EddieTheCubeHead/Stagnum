@@ -3,8 +3,23 @@ from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
+from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession
+
+
+@pytest.fixture
+def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
+                      build_success_response, requests_client, create_pool_creation_data_json,
+                      test_client: TestClient, valid_token_header):
+    tracks = [create_mock_track_search_result() for _ in range(15)]
+    responses = [build_success_response(track) for track in tracks]
+    requests_client.get = Mock(side_effect=responses)
+    track_uris = [track["uri"] for track in tracks]
+    data_json = create_pool_creation_data_json(*track_uris)
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    return tracks
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -49,7 +64,7 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(c
                                                                                requests_client, build_success_response,
                                                                                create_pool_creation_data_json,
                                                                                test_client, valid_token_header, repeat):
-    # use only one track so test fails on repeats if main collection is ever used
+    # use only one track so test fails with repeats if main collection is ever used
     tracks = [create_mock_track_search_result() for _ in range(1)]
     playlist = create_mock_playlist_search_result(tracks)
     requests_client.get = Mock(return_value=build_success_response(playlist))
@@ -80,3 +95,7 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
         playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
     expected_end_time = start_time + datetime.timedelta(milliseconds=tracks[0]["duration_ms"])
     assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(milliseconds=100)
+
+
+def should_add_song_to_playback_if_state_next_song_is_under_seven_seconds_away(existing_playback):
+    pass
