@@ -1,8 +1,8 @@
 'use client'
 
-import Footer from '@/components/layout/Footer'
-import Search from '@/components/layout/Search'
-import SideMenu from '@/components/layout/SideMenu'
+import Footer from '@/components/layout/footer'
+import Search from '@/components/layout/search'
+import SideMenu from '@/components/layout/sideMenu'
 import { Box, CssBaseline, Grid, TextField } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
