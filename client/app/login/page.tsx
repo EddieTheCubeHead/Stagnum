@@ -26,11 +26,27 @@ export default function Login() {
   };
 
   return (
-    <main className="relative min-h-screen w-full h-full flex flex-row-reverse px-24">
-      <Box className=" pt-4 w-full z-10 justify-end flex">
+    <Box
+      width={"100%"}
+      height={"100%"}
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "row-reverse",
+        px: 18,
+      }}
+    >
+      <Box justifyContent={"end"} display={"flex"} width={"100%"}>
         {/* <Typography className='text-3xl font-semibold text-[#1ED760]'>Stagnum</Typography> */}
       </Box>
-      <Box className="top-0 left-0 w-full h-full absolute flex">
+      <Box
+        display={"flex"}
+        top={0}
+        left={0}
+        position={"absolute"}
+        width={"100%"}
+        height={"100%"}
+      >
         <Image
           src={require("@/public/homeBG.jpg")}
           fill
@@ -38,22 +54,27 @@ export default function Login() {
         />
       </Box>
       <Box
-        className="flex text-white z-10 w-full h-full min-h-screen justify-center items-center flex-col
-       gap-4"
+        display={"flex"}
+        width={"100%"}
+        height={"100%"}
+        justifyContent={"center"}
+        alignItems={"center"}
+        flexDirection={"column"}
+        minHeight={"100vh"}
+        zIndex={1}
+        color={"white"}
+        gap={2}
       >
-        <Stack
-          spacing={1}
-          direction={"row"}
-          alignItems={"end"}
-          className="ml-[21rem]"
-        >
-          <Typography className="text-xl font-semibold">For</Typography>
+        <Stack spacing={1} direction={"row"} alignItems={"end"} ml={42}>
+          <Typography fontSize={"1.25rem"} fontWeight={600}>
+            For
+          </Typography>
           <Image
             src={require("@/public/Spotify_Logo_RGB_Green.png")}
             width={120}
             height={70}
             alt={"Home background"}
-            className="object-contain"
+            style={{ objectFit: "contain" }}
           />
         </Stack>
         <Image
@@ -61,38 +82,48 @@ export default function Login() {
           width={500}
           height={400}
           alt={"Home background"}
-          className="object-contain -mt-8"
+          style={{ objectFit: "contain", marginTop: "-2.25rem" }}
         />
 
-        <Typography className="text-3xl">
+        <Typography variant="caption" fontSize={"2rem"}>
           Simplified Collaborative Listening
         </Typography>
-        <Stack spacing={1} direction={"row"} className="mt-4 items-center">
-          <Typography className="text-xl text-white">
+        <Stack spacing={2} direction={"row"} mt={2} alignItems={"center"}>
+          <Typography variant="h5" color={"white"}>
             Login with your Spotify
           </Typography>
 
           <Button
-            className="bg-[#42b74c] py-2 w-36 rounded-full text-xl font-semibold text-white hover:bg-white hover:text-[#42b74c]"
+            type="submit"
+            variant="contained"
+            color="success"
+            sx={{
+              py: 1,
+              width: "8rem",
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              color: "white",
+              borderRadius: "2rem",
+            }}
             onClick={handleLoginRequest}
           >
             Login
           </Button>
         </Stack>
 
-        <Box className="flex gap-4">
-          <Link href="/about" className="text-white">
+        <Box display={"flex"} gap={2}>
+          <Link href="/about" color={"#ffffff"}>
             About Stagnum
           </Link>
           <Link
             href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-            className="text-[#42b74c]"
+            color={"#42b74c"}
             target="_blank"
           >
             Contact Us
           </Link>
         </Box>
       </Box>
-    </main>
+    </Box>
   );
 }
