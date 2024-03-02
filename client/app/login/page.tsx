@@ -4,6 +4,7 @@ import axios from "axios";
 import { redirect, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Box, Button, Link, Stack, Typography } from "@mui/material";
+import DefaultButton from "../components/buttons/defaulButton";
 
 export default function Login() {
   const router = useRouter();
@@ -93,22 +94,7 @@ export default function Login() {
             Login with your Spotify
           </Typography>
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="success"
-            sx={{
-              py: 1,
-              width: "8rem",
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              color: "white",
-              borderRadius: "2rem",
-            }}
-            onClick={handleLoginRequest}
-          >
-            Login
-          </Button>
+          <DefaultButton action={handleLoginRequest} text="Login" />
         </Stack>
 
         <Box display={"flex"} gap={2}>
