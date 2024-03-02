@@ -1,9 +1,9 @@
 "use client";
 
 import axios from "axios";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Box, Button, Link, Stack, Typography } from "@mui/material";
+import { Box, Link, Stack, Typography } from "@mui/material";
 import DefaultButton from "../components/buttons/defaulButton";
 
 export default function Login() {
