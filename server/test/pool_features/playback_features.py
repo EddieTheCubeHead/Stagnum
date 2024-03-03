@@ -1,5 +1,4 @@
 import datetime
-import re
 from unittest.mock import Mock
 
 import pytest
@@ -7,7 +6,7 @@ from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.common.dependencies import RequestsClient, SpotifyClientRaw
-from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw
+from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw
 from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession
@@ -41,6 +40,11 @@ def pool_db_connection(db_connection: ConnectionManager):
 @pytest.fixture
 def pool_spotify_client(requests_client: RequestsClient):
     return PoolSpotifyClientRaw(SpotifyClientRaw(requests_client))
+
+
+@pytest.fixture
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder):
+    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder)
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -118,25 +122,75 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
     assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(milliseconds=100)
 
 
-@pytest.mark.wip
 def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
-                                                                             fixed_track_length_ms,
-                                                                             pool_db_connection,
-                                                                             pool_spotify_client,
-                                                                             requests_client, get_query_parameter,
-                                                                             valid_token_header):
-    soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-        milliseconds=(fixed_track_length_ms - 1000))
+                                                                             fixed_track_length_ms, valid_token_header,
+                                                                             playback_service, requests_client,
+                                                                             get_query_parameter):
+    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
+    soon = datetime.datetime.now() + delta_to_soon
+    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
 
     class MockDateTime:
         @classmethod
-        def now(cls, *args):
-            return soon
+        def now(cls, tz_info=None):
+            return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    queue_next_songs(pool_db_connection, pool_spotify_client)
+    queue_next_songs(playback_service)
     actual_call = requests_client.post.call_args
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_call.args[0], "uri")
     assert called_uri in [track["uri"] for track in existing_playback]
     assert actual_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+
+
+def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, monkeypatch,
+                                                                                fixed_track_length_ms,
+                                                                                playback_service, requests_client):
+    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 3000))
+    soon = datetime.datetime.now() + delta_to_soon
+    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, tz_info=None):
+            return soon if tz_info is None else soon_utc
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    queue_next_songs(playback_service)
+    actual_call = requests_client.post.call_args
+    assert actual_call is None
+
+
+def should_add_remaining_playback_time_to_next_song_change_timestamp(existing_playback, monkeypatch,
+                                                                     fixed_track_length_ms, playback_service,
+                                                                     requests_client, db_connection):
+    start_time = datetime.datetime.now()
+    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
+    soon = datetime.datetime.now() + delta_to_soon
+    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, tz_info=None):
+            return soon if tz_info is None else soon_utc
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    queue_next_songs(playback_service)
+
+    delta_to_soon = datetime.timedelta(milliseconds=fixed_track_length_ms)
+    soon = datetime.datetime.now() + delta_to_soon
+    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, tz_info=None):
+            return soon if tz_info is None else soon_utc
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    queue_next_songs(playback_service)
+
+    expected_delta = start_time + datetime.timedelta(milliseconds=(fixed_track_length_ms * 2))
+    with db_connection.session() as session:
+        playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
+    assert playback_state.next_song_change_timestamp - expected_delta < datetime.timedelta(milliseconds=10)

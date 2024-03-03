@@ -249,5 +249,22 @@ class PoolPlaybackServiceRaw:
         self._spotify_client.start_playback(token, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
 
+    def update_user_playbacks(self):
+        _logger.debug("Queueing next songs")
+
+        active_playbacks = self._database_connection.get_playbacks_to_update()
+        for playback in active_playbacks:
+            _logger.info(f"Queueing next song for user {playback.user_id}")
+            self._update_playback(playback)
+
+    def _update_playback(self, playback: PlaybackSession):
+        user_token = self._token_holder.get_from_user_id(playback.user_id)
+        user = self._token_holder.get_from_token(user_token)
+        playable_tracks = self._database_connection.get_playable_tracks(user)
+        next_song: PoolMember = random.choice(playable_tracks)
+        _logger.debug(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
+        self._spotify_client.set_next_song(user_token, next_song.content_uri)
+        self._database_connection.save_playback_status(user, next_song)
+
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
