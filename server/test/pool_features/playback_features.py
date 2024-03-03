@@ -1,25 +1,46 @@
 import datetime
+import re
 from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
+from api.common.dependencies import RequestsClient, SpotifyClientRaw
+from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw
+from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession
 
 
 @pytest.fixture
+def fixed_track_length_ms(minutes: int = 3, seconds: int = 30):
+    return (minutes * 60 + seconds) * 1000
+
+
+@pytest.fixture
 def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
                       build_success_response, requests_client, create_pool_creation_data_json,
-                      test_client: TestClient, valid_token_header):
+                      test_client: TestClient, valid_token_header, fixed_track_length_ms):
     tracks = [create_mock_track_search_result() for _ in range(15)]
+    for track in tracks:
+        track["duration_ms"] = fixed_track_length_ms
     responses = [build_success_response(track) for track in tracks]
     requests_client.get = Mock(side_effect=responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
     test_client.post("/pool", json=data_json, headers=valid_token_header)
     return tracks
+
+
+@pytest.fixture
+def pool_db_connection(db_connection: ConnectionManager):
+    return PoolDatabaseConnectionRaw(db_connection)
+
+
+@pytest.fixture
+def pool_spotify_client(requests_client: RequestsClient):
+    return PoolSpotifyClientRaw(SpotifyClientRaw(requests_client))
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -97,5 +118,25 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
     assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(milliseconds=100)
 
 
-def should_add_song_to_playback_if_state_next_song_is_under_seven_seconds_away(existing_playback):
-    pass
+@pytest.mark.wip
+def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
+                                                                             fixed_track_length_ms,
+                                                                             pool_db_connection,
+                                                                             pool_spotify_client,
+                                                                             requests_client, get_query_parameter,
+                                                                             valid_token_header):
+    soon = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+        milliseconds=(fixed_track_length_ms - 1000))
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, *args):
+            return soon
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    queue_next_songs(pool_db_connection, pool_spotify_client)
+    actual_call = requests_client.post.call_args
+    assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
+    called_uri = get_query_parameter(actual_call.args[0], "uri")
+    assert called_uri in [track["uri"] for track in existing_playback]
+    assert actual_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]

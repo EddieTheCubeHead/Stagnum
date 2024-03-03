@@ -4,14 +4,14 @@ import random
 from logging import getLogger
 from typing import Annotated
 
+import pytz
 from fastapi import Depends
 from sqlalchemy import delete, and_, select
-from sqlalchemy.orm import Session, joinedload, join
+from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon
 from api.pool.models import PoolContent, Pool, PoolCollection, PoolTrack
-from api.search.models import Track
 from database.entities import PoolMember, User, PlaybackSession
 
 _logger = getLogger("main.api.pool.dependencies")
@@ -104,7 +104,11 @@ class PoolSpotifyClientRaw:
     def start_playback(self, token: str, track_uri: str):
         header = _auth_header(token)
         header["Content-Type"] = "application/json"
-        self._spotify_client.put(f"me/player/play", json={"uris": [track_uri], "position_ms": 0}, headers=header)
+        self._spotify_client.put("me/player/play", json={"uris": [track_uri], "position_ms": 0}, headers=header)
+
+    def set_next_song(self, token: str, track_uri: str):
+        header = _auth_header(token)
+        self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
@@ -160,14 +164,21 @@ def _delete_pool_member(content_uri: str, user: User, session: Session):
 
 
 def _update_user_playback(existing_playback: PlaybackSession, playing_track: PoolMember):
-    existing_playback.current_track_id = playing_track.content_uri
-    existing_playback.next_song_change_timestamp += datetime.timedelta(milliseconds=playing_track.duration_ms)
+    existing_playback.current_track_id = playing_track.id
+    existing_playback.next_song_change_timestamp = pytz.UTC.localize(existing_playback.next_song_change_timestamp)
+    if existing_playback.next_song_change_timestamp < datetime.datetime.now(datetime.timezone.utc):
+        new_end_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            milliseconds=playing_track.duration_ms)
+    else:
+        new_end_time = existing_playback.next_song_change_timestamp + datetime.timedelta(
+            milliseconds=playing_track.duration_ms)
+    existing_playback.next_song_change_timestamp = new_end_time
 
 
 def _crete_user_playback(session: Session, user: User, playing_track: PoolMember):
     end_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(milliseconds=playing_track.duration_ms)
     session.add(PlaybackSession(
-        current_track_id=playing_track.content_uri,
+        current_track_id=playing_track.id,
         next_song_change_timestamp=end_time,
         user_id=user.spotify_id
     ))
@@ -214,6 +225,14 @@ class PoolDatabaseConnectionRaw:
             else:
                 _crete_user_playback(session, user, playing_track)
 
+    def get_playbacks_to_update(self) -> list[PlaybackSession]:
+        cutoff_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=2)
+        with self._database_connection.session() as session:
+            playbacks = session.scalars(select(PlaybackSession).where(
+                and_(PlaybackSession.is_active,
+                     PlaybackSession.next_song_change_timestamp < cutoff_time))).unique().all()
+        return playbacks
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -227,7 +246,7 @@ class PoolPlaybackServiceRaw:
         self._token_holder = token_holder
 
     def start_playback(self, token: str):
-        user = self._token_holder.get_user(token)
+        user = self._token_holder.get_from_token(token)
         all_tracks = self._database_connection.get_playable_tracks(user)
         next_track = random.choice(all_tracks)
         self._spotify_client.start_playback(token, next_track.content_uri)

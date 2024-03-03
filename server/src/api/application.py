@@ -22,6 +22,8 @@ async def setup_scheduler(_: FastAPI):
     scheduler.start()
     _logger.debug("Adding cleanup state strings job")
     scheduler.add_job(auth.cleanup_state_strings, "interval", minutes=1)
+    _logger.debug("Adding queue next songs job")
+    scheduler.add_job(pool.queue_next_songs, "interval", seconds=1)
     yield
 
 

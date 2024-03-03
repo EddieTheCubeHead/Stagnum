@@ -77,17 +77,22 @@ DatabaseConnection = Annotated[ConnectionManager, Depends()]
 class TokenHolderRaw:
 
     _tokens: dict[str, User] = {}
+    _user_tokens: dict[str, str] = {}
 
     def add_token(self, token: str, user: User):
         self._tokens[token] = user
+        self._user_tokens[user.spotify_id] = token
 
     def validate_token(self, token: str):
         if token not in self._tokens:
             _logger.error(f"Token {token} not found in {self._tokens}")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
 
-    def get_user(self, token: str) -> User:
+    def get_from_token(self, token: str) -> User:
         return self._tokens[token]
+
+    def get_from_user_id(self, user_id: str) -> str:
+        return self._user_tokens[user_id]
 
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
