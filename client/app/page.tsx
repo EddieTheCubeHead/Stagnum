@@ -12,6 +12,7 @@ export default function HomePage() {
   )
 }
 
+
 function HomeContent() {
   const [token, setToken] = useState('')
 
