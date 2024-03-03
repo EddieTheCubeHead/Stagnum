@@ -4,7 +4,6 @@ import random
 from logging import getLogger
 from typing import Annotated
 
-import pytz
 from fastapi import Depends
 from sqlalchemy import delete, and_, select
 from sqlalchemy.orm import Session, joinedload
