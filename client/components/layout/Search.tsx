@@ -1,10 +1,17 @@
 import theme from '@/utils/theme'
 import Track from '@/types/trackTypes'
-import { Box, Grid, MenuItem, Select, TextField, } from '@mui/material'
+import { Box, Grid, MenuItem, Select, TextField, Typography, } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import TrackCard from './trackCard'
 import SearchInput from '../inputfields.tsx/searchInput'
+import { Header2, Header3 } from '../textComponents'
+import Playlist from '@/types/playlistTypes'
+import Album from '@/types/albumTypes'
+import Artist from '@/types/artistTypes'
+import AlbumCard from './albumCard'
+import PlaylistCard from './playlistCard'
+import ArtistCard from './artistCard'
 
 interface Props {
     token: string
@@ -13,39 +20,27 @@ interface Props {
 export default function Search({ token }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
-    const [trackList, setTrackList] = useState<Track[]>([{
-        name: 'Auto jää (feat. Käärijä)',
-        uri: 'spotify:track:3rsDUslPzGw6sGHjkM4lg2',
-        artists: [
-            {
-                name: 'Antti Tuisku',
-                link: 'https://api.spotify.com/v1/artists/54CMkgIraCOO9pSRfPKiKt'
-            },
-            {
-                name: 'Käärijä',
-                link: 'https://api.spotify.com/v1/artists/6LkMGN0t3HDNL8hIvma70r'
-            }
-        ],
-        album: {
-            name: 'Auto jää (feat. Käärijä)',
-            link: 'https://api.spotify.com/v1/albums/68VvJB0YdL5CIwTd7c3gag'
-        },
-        duration_ms: 172087
-    }])
+    const [trackList, setTrackList] = useState<Track[]>([])
+    const [artistList, setArtistList] = useState<Artist[]>([])
+    const [playlistList, setPlaylistList] = useState<Playlist[]>([])
+    const [albumList, setAlbumList] = useState<Album[]>([])
 
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
     const handleSearchRequest = (searchQuery: string) => {
         console.log('Searching song with:', searchQuery)
 
-        axios.get('http://localhost:8080/search/tracks',
+        axios.get('http://localhost:8080/search',
             {
                 params: { query },
                 headers: { token }
             })
             .then(function (response) {
                 console.log(response)
-                setTrackList(response.data.results)
+                setTrackList(response.data.tracks.results)
+                setAlbumList(response.data.albums.results)
+                setArtistList(response.data.artists.results)
+                setPlaylistList(response.data.playlists.results)
                 console.log(trackList)
             }).catch((error) => {
                 console.log('Request failed', error)
@@ -91,17 +86,87 @@ export default function Search({ token }: Props) {
             }}>
                 <SearchInput setQuery={setQuery} />
                 <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                    {trackList.map((track, key) => (
-                        <Grid item xs={2} key={key}>
-                            <Box style={{
-                                position: 'relative',
-                                width: '100%',
-                                paddingTop: '100%',
-                            }}>
-                                <TrackCard track={track} />
+                    {trackList &&
+                        <Grid item xs={10}>
+                            <Box sx={{ height: 'auto' }}>
+                                <Header2 text={'Tracks'} />
+
+                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
+                                    {trackList.slice(0, 5).map((track, key) => (
+                                        <Grid item xs={2} key={key}>
+                                            <Box style={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                paddingTop: '100%',
+                                            }}>
+                                                <TrackCard track={track} />
+                                            </Box>
+                                        </Grid>
+                                    ))}
+                                </Grid>
                             </Box>
                         </Grid>
-                    ))}
+                    }
+                    {albumList &&
+                        <Grid item xs={10}>
+                            <Box sx={{ height: 'auto' }}>
+                                <Header2 text={'Album'} />
+                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
+                                    {albumList.slice(0, 5).map((album, key) => (
+                                        <Grid item xs={2} key={key}>
+                                            <Box style={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                paddingTop: '100%',
+                                            }}>
+                                                <AlbumCard album={album} />
+                                            </Box>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Box>
+                        </Grid>
+                    }
+                    {playlistList &&
+                        <Grid item xs={10}>
+                            <Box sx={{ height: 'auto' }}>
+                                <Header2 text={'Playlists'} />
+                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
+                                    {playlistList.slice(0, 5).map((playlist, key) => (
+                                        <Grid item xs={2} key={key}>
+                                            <Box style={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                paddingTop: '100%',
+                                            }}>
+                                                <PlaylistCard playlist={playlist} />
+                                            </Box>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Box>
+                        </Grid>
+                    }
+                    {artistList &&
+                        <Grid item xs={10}>
+                            <Box sx={{ height: 'auto' }}>
+                                <Header2 text={'Artists'} />
+                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
+                                    {artistList.slice(0, 5).map((artist, key) => (
+                                        <Grid item xs={2} key={key}>
+                                            <Box style={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                paddingTop: '100%',
+                                            }}>
+                                                <ArtistCard artist={artist} />
+                                            </Box>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Box>
+                        </Grid>
+                    }
                 </Grid>
 
             </Box>
