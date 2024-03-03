@@ -196,7 +196,6 @@ def should_add_remaining_playback_time_to_next_song_change_timestamp(existing_pl
     assert playback_state.next_song_change_timestamp - expected_delta < datetime.timedelta(milliseconds=10)
 
 
-@pytest.mark.wip
 def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
                                                     valid_token_header, mock_token_holder: TokenHolder,
                                                     logged_in_user_id, fixed_track_length_ms, monkeypatch):
