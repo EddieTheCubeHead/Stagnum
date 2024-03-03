@@ -165,13 +165,10 @@ def _delete_pool_member(content_uri: str, user: User, session: Session):
 
 def _update_user_playback(existing_playback: PlaybackSession, playing_track: PoolMember):
     existing_playback.current_track_id = playing_track.id
-    existing_playback.next_song_change_timestamp = pytz.UTC.localize(existing_playback.next_song_change_timestamp)
-    if existing_playback.next_song_change_timestamp < datetime.datetime.now(datetime.timezone.utc):
-        new_end_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-            milliseconds=playing_track.duration_ms)
-    else:
-        new_end_time = existing_playback.next_song_change_timestamp + datetime.timedelta(
-            milliseconds=playing_track.duration_ms)
+    delta = max(existing_playback.next_song_change_timestamp - datetime.datetime.now(),
+                datetime.timedelta(milliseconds=0))
+    new_end_time = datetime.datetime.now(datetime.timezone.utc) + delta + datetime.timedelta(
+        milliseconds=playing_track.duration_ms)
     existing_playback.next_song_change_timestamp = new_end_time
 
 
