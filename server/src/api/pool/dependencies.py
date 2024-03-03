@@ -255,19 +255,16 @@ class PoolPlaybackServiceRaw:
         self._database_connection.save_playback_status(user, next_track)
 
     def update_user_playbacks(self):
-        _logger.debug("Queueing next songs")
-
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
             _logger.info(f"Queueing next song for user {playback.user_id}")
             self._update_playback(playback)
 
     def _update_playback(self, playback: PlaybackSession):
-        try:
-            user_token = self._token_holder.get_from_user_id(playback.user_id)
-        except KeyError:
+        if not self._token_holder.is_user_logged_in(playback.user_id):
             self._database_connection.set_playback_as_inactive(playback)
             return
+        user_token = self._token_holder.get_from_user_id(playback.user_id)
         user = self._token_holder.get_from_token(user_token)
         playable_tracks = self._database_connection.get_playable_tracks(user)
         next_song: PoolMember = random.choice(playable_tracks)
