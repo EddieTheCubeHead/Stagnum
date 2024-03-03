@@ -84,7 +84,7 @@ class TokenHolderRaw:
         self._user_tokens[user.spotify_id] = token
 
     def validate_token(self, token: str):
-        if token not in self._tokens:
+        if not self.is_logged_in(token):
             _logger.error(f"Token {token} not found in {self._tokens}")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
 
@@ -93,6 +93,13 @@ class TokenHolderRaw:
 
     def get_from_user_id(self, user_id: str) -> str:
         return self._user_tokens[user_id]
+
+    def log_out(self, token: str):
+        user_id = self._tokens.pop(token).spotify_id
+        self._user_tokens.pop(user_id)
+
+    def is_logged_in(self, token: str):
+        return token in self._tokens
 
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]

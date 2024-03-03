@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
-from api.common.dependencies import RequestsClient, SpotifyClientRaw
+from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolder
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw
 from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
@@ -194,3 +194,28 @@ def should_add_remaining_playback_time_to_next_song_change_timestamp(existing_pl
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
     assert playback_state.next_song_change_timestamp - expected_delta < datetime.timedelta(milliseconds=10)
+
+
+@pytest.mark.wip
+def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
+                                                    valid_token_header, mock_token_holder: TokenHolder,
+                                                    logged_in_user_id, fixed_track_length_ms, monkeypatch):
+    mock_token_holder.log_out(valid_token_header["token"])
+
+    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
+    soon = datetime.datetime.now() + delta_to_soon
+    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
+
+    class MockDateTime:
+        @classmethod
+        def now(cls, tz_info=None):
+            return soon if tz_info is None else soon_utc
+
+    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    queue_next_songs(playback_service)
+
+    with db_connection.session() as session:
+        playback_state: PlaybackSession = session.scalar(
+            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
+
+    assert not playback_state.is_active

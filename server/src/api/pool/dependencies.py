@@ -230,6 +230,11 @@ class PoolDatabaseConnectionRaw:
                      PlaybackSession.next_song_change_timestamp < cutoff_time))).unique().all()
         return playbacks
 
+    def set_playback_as_inactive(self, playback: PlaybackSession):
+        with self._database_connection.session() as session:
+            playback = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == playback.user_id))
+            playback.is_active = False
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -258,7 +263,11 @@ class PoolPlaybackServiceRaw:
             self._update_playback(playback)
 
     def _update_playback(self, playback: PlaybackSession):
-        user_token = self._token_holder.get_from_user_id(playback.user_id)
+        try:
+            user_token = self._token_holder.get_from_user_id(playback.user_id)
+        except KeyError:
+            self._database_connection.set_playback_as_inactive(playback)
+            return
         user = self._token_holder.get_from_token(user_token)
         playable_tracks = self._database_connection.get_playable_tracks(user)
         next_song: PoolMember = random.choice(playable_tracks)
