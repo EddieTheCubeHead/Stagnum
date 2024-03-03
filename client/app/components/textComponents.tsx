@@ -1,17 +1,37 @@
-import { Typography } from "@mui/material";
+import { Typography, TypographyProps } from "@mui/material";
 
-export function Header1(props: { text: string }) {
-  return <Typography fontSize={30}>{props.text}</Typography>;
+interface CustomTypographyProps extends TypographyProps {
+  text: string;
 }
 
-export function Header2(props: { text: string }) {
-  return <Typography fontSize={24}>{props.text}</Typography>;
+export function Header1({ text, ...typographyProps }: CustomTypographyProps) {
+  return (
+    <Typography fontSize={30} {...typographyProps}>
+      {text}
+    </Typography>
+  );
 }
 
-export function Header3(props: { text: string }) {
-  return <Typography fontSize={18}>{props.text}</Typography>;
+export function Header2({ text, ...typographyProps }: CustomTypographyProps) {
+  return (
+    <Typography fontSize={24} {...typographyProps}>
+      {text}
+    </Typography>
+  );
 }
 
-export function Text(props: { text: string }) {
-  return <Typography fontSize={14}>{props.text}</Typography>;
+export function Header3({ text, ...typographyProps }: CustomTypographyProps) {
+  return (
+    <Typography fontSize={18} {...typographyProps}>
+      {text}
+    </Typography>
+  );
+}
+
+export function Text({ text, ...typographyProps }: CustomTypographyProps) {
+  return (
+    <Typography fontSize={14} {...typographyProps}>
+      {text}
+    </Typography>
+  );
 }
