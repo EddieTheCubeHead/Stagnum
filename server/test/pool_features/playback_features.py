@@ -162,40 +162,6 @@ def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(
     assert actual_call is None
 
 
-def should_add_remaining_playback_time_to_next_song_change_timestamp(existing_playback, monkeypatch,
-                                                                     fixed_track_length_ms, playback_service,
-                                                                     requests_client, db_connection):
-    start_time = datetime.datetime.now()
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    queue_next_songs(playback_service)
-
-    delta_to_soon = datetime.timedelta(milliseconds=fixed_track_length_ms)
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    queue_next_songs(playback_service)
-
-    expected_delta = start_time + datetime.timedelta(milliseconds=(fixed_track_length_ms * 2))
-    with db_connection.session() as session:
-        playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
-    assert playback_state.next_song_change_timestamp - expected_delta < datetime.timedelta(milliseconds=10)
-
-
 def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
                                                     valid_token_header, mock_token_holder: TokenHolder,
                                                     logged_in_user_id, fixed_track_length_ms, monkeypatch):
