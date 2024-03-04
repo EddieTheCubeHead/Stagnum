@@ -1,7 +1,6 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import Search from '@/components/layout/search'
 import SideMenu from '@/components/layout/sideMenu'
 import { Box, CssBaseline, Grid, Stack, TextField } from '@mui/material'
 import axios from 'axios'
@@ -62,10 +61,6 @@ function HomeContent() {
               <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} token={token} />
             </Stack>
           </Grid>
-
-          {showSearchBar == true &&
-            <Search token={token} />
-          }
         </Grid>
       </Box>
       <Footer />
