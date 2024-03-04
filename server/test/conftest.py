@@ -1,5 +1,6 @@
 import json
 import random
+import re
 from unittest.mock import Mock
 
 import pytest
@@ -271,4 +272,15 @@ def create_mock_playlist_search_result(faker):
             }
         return playlist_data
 
+    return wrapper
+
+
+@pytest.fixture
+def get_query_parameter():
+    restricted_characters = r"&"
+
+    def wrapper(query_string, parameter_name) -> str:
+        match = re.match(fr".*[&?]{parameter_name}=([^{restricted_characters}]+)(?:$|&.*)", query_string)
+        assert match, f"Could not find query parameter {parameter_name} in query '{query_string}'"
+        return match.group(1)
     return wrapper

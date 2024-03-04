@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select
 
 from api.auth.dependencies import AuthDatabaseConnectionRaw
-from api.auth.scheduler import cleanup_state_strings
+from api.auth.tasks import cleanup_state_strings
 from database.entities import LoginState
 
 
