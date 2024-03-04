@@ -31,7 +31,7 @@ export const generateMockUserData = (count: number) => {
  *
  * @example
  * // Import the MockData module
- * import { generateMockUserData } from './MockData';
+ * import { generateMockUserData } from '../app/utils/MockData';
  *
  * // Generate mock user data with 5 users
  * const mockUsers = generateMockUserData(5);
