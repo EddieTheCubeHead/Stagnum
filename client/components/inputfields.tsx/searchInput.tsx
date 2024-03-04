@@ -8,13 +8,12 @@ export default function SearchInput(props: { setQuery: Dispatch<SetStateAction<s
             sx={{
                 bgcolor: theme.palette.secondary.main,
                 margin: 1,
+                display: 'flex',
                 borderRadius: 3,
                 boxShadow: 2
             }}
             id='standard-search'
             label='Search field'
-            type='search'
-            variant="standard"
             onChange={(e) => props.setQuery(e.target.value)}
         />
     )
