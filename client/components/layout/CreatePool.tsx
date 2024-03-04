@@ -2,13 +2,13 @@ import { Box, Card, CardMedia, Grid, IconButton } from "@mui/material";
 import { Header1, Header3 } from "../textComponents";
 import React, { useState } from "react";
 import DefaultButton from "../buttons/defaulButton";
-import Search from "./Search";
-import Track from "@/types/trackTypes";
+import Search from "./search";
 import Album from "@/types/albumTypes";
 import Playlist from "@/types/playlistTypes";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Artist from "@/types/artistTypes";
 import axios from "axios";
+import Track from "@/types/trackTypes";
 
 interface Props {
   token: string;
