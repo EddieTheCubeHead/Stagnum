@@ -73,7 +73,7 @@ export default function Login() {
           <Image
             src={require("@/public/Spotify_Logo_RGB_Green.png")}
             width={120}
-            height={70}
+            height={40}
             alt={"Home background"}
             style={{ objectFit: "contain" }}
           />
@@ -81,7 +81,7 @@ export default function Login() {
         <Image
           src={require("@/public/Stagnum_Logo.png")}
           width={500}
-          height={400}
+          height={100}
           alt={"Home background"}
           style={{ objectFit: "contain", marginTop: "-2.25rem" }}
         />

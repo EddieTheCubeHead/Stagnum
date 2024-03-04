@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body style={{ minWidth: "100vw", overflowX: "hidden" }}>
         <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
       </body>
     </html>
