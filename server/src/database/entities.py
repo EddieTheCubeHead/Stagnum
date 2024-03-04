@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Integer, ForeignKey
+from sqlalchemy import String, DateTime, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
 
 
@@ -34,6 +34,7 @@ class PoolMember(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
     image_url: Mapped[str] = mapped_column(String(64), nullable=False)
     content_uri: Mapped[str] = mapped_column(String(64), nullable=False)
+    duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
     parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), default=None, nullable=True)
     weight: Mapped[float] = mapped_column(Integer(), default=1, nullable=False)
@@ -42,3 +43,11 @@ class PoolMember(EntityBase):
                                                 cascade="save-update")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent",
                                                         cascade="all, delete")
+
+
+class PlaybackSession(EntityBase):
+
+    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
+    current_track_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
+    next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
