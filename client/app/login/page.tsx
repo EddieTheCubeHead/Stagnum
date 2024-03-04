@@ -4,7 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Box, Link, Stack, Typography } from "@mui/material";
-import DefaultButton from "../components/buttons/defaulButton";
+import DefaultButton from "@/components/buttons/defaulButton";
 
 export default function Login() {
   const router = useRouter();

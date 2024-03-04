@@ -3,9 +3,16 @@ import { Header3 } from "../textComponents";
 import DefaultButton from "../buttons/defaulButton";
 import theme from "@/utils/theme";
 import Artist from "@/types/artistTypes";
+import Track from "@/types/trackTypes";
+import Album from "@/types/albumTypes";
+import Playlist from "@/types/playlistTypes";
 
-export default function ArtistCard(props: { artist: Artist }) {
+export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
     const imageUrl = props.artist.icon_link
+
+    const handelAdding = () => {
+        props.handleAdd(props.artist)
+    }
 
     return (
         <Card
@@ -26,7 +33,7 @@ export default function ArtistCard(props: { artist: Artist }) {
                 marginRight: 1,
                 marginBottom: 1
             }}>
-                <DefaultButton text={"Add to pool"} action={() => { }} />
+                <DefaultButton text={"Add to pool"} action={handelAdding} />
             </Box>
         </Card>
     )

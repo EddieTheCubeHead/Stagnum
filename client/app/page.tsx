@@ -1,8 +1,8 @@
 "use client";
 
-import Footer from "@/components/layout/footer";
-import Search from "@/components/layout/search";
-import SideMenu from "@/components/layout/sideMenu";
+import Footer from "@/components/layout/Footer";
+import Search from "@/components/layout/Search";
+import SideMenu from "@/components/layout/SideMenu";
 import {
   Box,
   CssBaseline,
@@ -18,6 +18,9 @@ import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import CreatePool from "@/components/layout/CreatePool";
 import { Header1, Header2 } from "@/components/textComponents";
+import Album from "@/types/albumTypes";
+import Playlist from "@/types/playlistTypes";
+import Track from "@/types/trackTypes";
 
 export default function HomePage() {
   return (
@@ -122,7 +125,9 @@ function HomeContent() {
             </Box>
           </Grid>
 
-          {showSearchBar && <Search token={token} />}
+          {showSearchBar && <Search token={token} handleAdd={function (newAdd: Track | Album | Playlist): void {
+            throw new Error("Function not implemented.");
+          } } />}
           {showCreatePool && (
             <Grid item xs={9}>
               <CreatePool token={token} />
@@ -131,7 +136,7 @@ function HomeContent() {
           {!showSearchBar && !showCreatePool ? (
             <Grid
               item
-              xs={9}
+              xs={10}
               display="flex"
               justifyContent="center"
               alignItems="center"

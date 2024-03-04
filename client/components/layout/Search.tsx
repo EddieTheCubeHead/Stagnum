@@ -15,7 +15,7 @@ import ArtistCard from './artistCard'
 
 interface Props {
     token: string
-    handleAdd: (newAdd: Track | Album | Playlist) => void
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
 }
 
 export default function Search({ token, handleAdd }: Props) {
@@ -88,7 +88,6 @@ export default function Search({ token, handleAdd }: Props) {
     }, [query])
 
     return (
-        <Grid item xs={9}>
             <Box sx={{
                 bgcolor: theme.palette.secondary.dark,
                 width: 'auto',
@@ -98,7 +97,7 @@ export default function Search({ token, handleAdd }: Props) {
             }}>
                 <SearchInput setQuery={setQuery} />
                 <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                    {trackList &&
+                    {/*{trackList &&
                         <Grid item xs={10}>
                             <Box sx={{ height: 'auto' }}>
                                 <Header2 text={'Tracks'} />
@@ -111,14 +110,14 @@ export default function Search({ token, handleAdd }: Props) {
                                                 width: '100%',
                                                 paddingTop: '100%',
                                             }}>
-                                                <TrackCard track={track} />
+                                                <TrackCard track={track} handleAdd={handleAdd}/>
                                             </Box>
                                         </Grid>
                                     ))}
                                 </Grid>
                             </Box>
                         </Grid>
-                    }
+                    }*/}
                     {albumList &&
                         <Grid item xs={10}>
                             <Box sx={{ height: 'auto' }}>
@@ -131,7 +130,7 @@ export default function Search({ token, handleAdd }: Props) {
                                                 width: '100%',
                                                 paddingTop: '100%',
                                             }}>
-                                                <AlbumCard album={album} />
+                                                <AlbumCard album={album} handleAdd={handleAdd}/>
                                             </Box>
                                         </Grid>
                                     ))}
@@ -139,7 +138,7 @@ export default function Search({ token, handleAdd }: Props) {
                             </Box>
                         </Grid>
                     }
-                    {playlistList &&
+                    {/*{playlistList &&
                         <Grid item xs={10}>
                             <Box sx={{ height: 'auto' }}>
                                 <Header2 text={'Playlists'} />
@@ -158,7 +157,7 @@ export default function Search({ token, handleAdd }: Props) {
                                 </Grid>
                             </Box>
                         </Grid>
-                    }
+                    }*/}
                     {artistList &&
                         <Grid item xs={10}>
                             <Box sx={{ height: 'auto' }}>
@@ -171,7 +170,7 @@ export default function Search({ token, handleAdd }: Props) {
                                                 width: '100%',
                                                 paddingTop: '100%',
                                             }}>
-                                                <ArtistCard artist={artist} />
+                                                <ArtistCard artist={artist} handleAdd={handleAdd}/>
                                             </Box>
                                         </Grid>
                                     ))}
@@ -181,6 +180,5 @@ export default function Search({ token, handleAdd }: Props) {
                     }
                 </Grid>
             </Box>
-        </Grid>
     )
 }

@@ -5,15 +5,16 @@ import theme from "@/utils/theme";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
+import Artist from "@/types/artistTypes";
 
-export default function PlaylistCard(props: { playlist: Playlist, handleAdd: (newAdd: Track | Album | Playlist) => void }) {
+export default function PlaylistCard(props: { playlist: Playlist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void }) {
     const imageUrl = props.playlist.icon_link
 
     const handelAdding = () => {
         props.handleAdd(props.playlist)
     }
 
-    return (
+    return (<Box>
         <Card
             sx={{
                 backgroundImage: `url(${imageUrl})`,
@@ -35,5 +36,6 @@ export default function PlaylistCard(props: { playlist: Playlist, handleAdd: (ne
                 <DefaultButton text={"Add to pool"} action={handelAdding} />
             </Box>
         </Card>
+        </Box>
     )
 }

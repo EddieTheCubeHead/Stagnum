@@ -2,9 +2,15 @@ import { Box, Card } from "@mui/material";
 import { Header3 } from "../textComponents";
 import DefaultButton from "../buttons/defaulButton";
 import Album from "@/types/albumTypes";
+import Track from "@/types/trackTypes";
+import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
 
-export default function AlbumCard(props: { album: Album }) {
+export default function AlbumCard(props: { album: Album, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void }) {
     const imageUrl = props.album.icon_link
+    const handelAdding = () => {
+        props.handleAdd(props.album)
+    }
 
     return (
         <Card
@@ -25,7 +31,7 @@ export default function AlbumCard(props: { album: Album }) {
                 marginRight: 1,
                 marginBottom: 1
             }}>
-                <DefaultButton text={"Add to pool"} action={() => { }} />
+                <DefaultButton text={"Add to pool"} action={handelAdding} />
             </Box>
         </Card>
     )

@@ -1,45 +1,63 @@
-import {
-  Box,
-  Card,
-  CardMedia,
-  Grid,
-  IconButton,
-  TextField,
-} from "@mui/material";
+import { Box, Card, CardMedia, Grid, IconButton } from "@mui/material";
 import { Header1, Header3 } from "../textComponents";
 import React, { useState } from "react";
 import DefaultButton from "../buttons/defaulButton";
-import Search from "./search";
+import Search from "./Search";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
 import Playlist from "@/types/playlistTypes";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Artist from "@/types/artistTypes";
+import axios from "axios";
 
 interface Props {
   token: string;
 }
 
 export default function CreatePool({ token }: Props) {
-  const [poolName, setPoolName] = useState("");
-  const [poolDesc, setPoolDesc] = useState("");
   const [selectedCollections, setSellectedCollections] = useState<
-    Array<Track | Album | Playlist>
+    Array<Track | Album | Playlist | Artist>
   >([]);
 
-  const createPool = () => {};
+  const createPool = () => {
+    const requestData = {
+      spotify_uris: [
+        {
+          spotify_uri: selectedCollections[0].uri,
+        },
+      ],
+    };
 
-  const handleAdd = (newAdd: Track | Album | Playlist) => {
+    axios
+      .post("http://localhost:8000/pool", requestData, {
+        headers: { token },
+      })
+      .then(function (response) {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log("Request failed", error);
+      });
+  };
+
+  const handleAdd = (newAdd: Track | Album | Playlist | Artist) => {
     setSellectedCollections((curCollections) => [...curCollections, newAdd]);
   };
 
-  const handleDelete = (itemToDelete: Track | Album | Playlist) => {
+  const handleDelete = (itemToDelete: Track | Album | Playlist | Artist) => {
     setSellectedCollections((curCollections) =>
       curCollections.filter((collection) => collection !== itemToDelete)
     );
   };
 
   return (
-    <Grid container sx={{ bgcolor: "secondary.main", borderRadius: 1 }}>
+    <Grid
+      container
+      sx={{
+        bgcolor: "secondary.main",
+        borderRadius: 1,
+      }}
+    >
       <Grid
         item
         xs={12}
@@ -50,65 +68,69 @@ export default function CreatePool({ token }: Props) {
           <Header1 text="Create a Pool" fontWeight={"bold"} />
         </Box>
       </Grid>
+
+      <Grid item xs={9}>
+        <Search token={token} handleAdd={handleAdd} />
+        <Grid item></Grid>
+      </Grid>
+      <Grid
+        item
+        xs={3}
+        container
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        {selectedCollections.map((item, key) => (
+          <Grid
+            item
+            xs={5}
+            key={key}
+            container
+            direction={"column"}
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            m={1}
+            sx={{ bgcolor: "secondary.light", borderRadius: 1 }}
+          >
+            <Grid
+              item
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              m={1}
+            >
+              <CardMedia
+                component="img"
+                image={item.icon_link}
+                alt={item.name}
+              />
+            </Grid>
+            <Grid
+              item
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              m={1}
+            >
+              <Header3 fontWeight={"bold"} text={item.name} />
+              <IconButton onClick={() => handleDelete(item)}>
+                <DeleteIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+        ))}
+      </Grid>
       <Grid
         item
         xs={12}
-        container
-        sx={{ bgcolor: "secondary.light", borderRadius: 1 }}
-        m={2}
+        marginY={2}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
       >
-        <Grid item xs={5} container rowGap={2} m={2} direction={"column"}>
-          <Grid item container>
-            <Grid item xs={12}>
-              <Search token={token} handleAdd={handleAdd} />
-            </Grid>
-          </Grid>
-          <Grid item></Grid>
-        </Grid>
-        <Grid item xs={6} container>
-          {selectedCollections.map((item, key) => (
-            <Grid item xs={2} key={key} container m={1}>
-              <Card sx={{ bgcolor: "secondary.main" }}>
-                <Grid
-                  item
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  m={1}
-                >
-                  <CardMedia
-                    component="img"
-                    sx={{ width: 151 }}
-                    image={item.icon_link}
-                    alt={item.name}
-                  />
-                </Grid>
-                <Grid
-                  item
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  m={1}
-                >
-                  <Header3 fontWeight={"bold"} text={item.name} />
-                  <IconButton onClick={() => handleDelete(item)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-        <Grid
-          item
-          xs={2}
-          marginY={2}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-        >
-          <DefaultButton text="create" action={() => {}} />
-        </Grid>
+        <DefaultButton text="create" action={createPool} />
       </Grid>
     </Grid>
   );
