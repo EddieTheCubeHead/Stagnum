@@ -1,64 +1,115 @@
-'use client'
+"use client";
 
-import axios from 'axios'
-import { redirect, useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { Box, Button, Link, Typography } from '@mui/material'
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Box, Link, Stack, Typography } from "@mui/material";
+import DefaultButton from "../components/buttons/defaulButton";
 
 export default function Login() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleLoginRequest = () => {
-    console.log('Sending login request')
-    const client_redirect_uri = 'http://localhost:80'
+    console.log("Sending login request");
+    const client_redirect_uri = "http://localhost:80";
 
     axios
-      .get('http://localhost:8080/auth/login', { params: { client_redirect_uri } })
+      .get("http://localhost:8080/auth/login", {
+        params: { client_redirect_uri },
+      })
       .then(function (response) {
-        console.log(response.data.redirect_uri)
-        router.push(response.data.redirect_uri)
+        console.log(response.data.redirect_uri);
+        router.push(response.data.redirect_uri);
       })
       .catch(() => {
-        console.log('Request failed')
-      })
-  }
+        console.log("Request failed");
+      });
+  };
 
   return (
-    <main className='relative min-h-screen w-full h-full flex px-36'>
-      <Link href='/' className=' pt-4 w-full z-10'>
-        <Typography className='text-3xl font-semibold text-[#1ED760]'>Stagnum</Typography>
-      </Link>
-      <Box className='top-0 left-0 w-full h-full absolute flex'>
+    <Box
+      width={"100%"}
+      height={"100%"}
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "row-reverse",
+        px: 18,
+      }}
+    >
+      <Box justifyContent={"end"} display={"flex"} width={"100%"}>
+        {/* <Typography className='text-3xl font-semibold text-[#1ED760]'>Stagnum</Typography> */}
+      </Box>
+      <Box
+        display={"flex"}
+        top={0}
+        left={0}
+        position={"absolute"}
+        width={"100%"}
+        height={"100%"}
+      >
         <Image
-          src={require('@/public/homeBG.jpg')}
+          src={require("@/public/homeBG.jpg")}
           fill
-          alt={'Home background'}
+          alt={"Home background"}
         />
       </Box>
       <Box
-        className='flex text-black z-10 w-full h-full min-h-screen justify-center items-center flex-col
-       gap-4'
+        display={"flex"}
+        width={"100%"}
+        height={"100%"}
+        justifyContent={"center"}
+        alignItems={"center"}
+        flexDirection={"column"}
+        minHeight={"100vh"}
+        zIndex={1}
+        color={"white"}
+        gap={2}
       >
-        <Typography className='text-xl text-black'>Login with your Spotify</Typography>
+        <Stack spacing={1} direction={"row"} alignItems={"end"} ml={42}>
+          <Typography fontSize={"1.25rem"} fontWeight={600}>
+            For
+          </Typography>
+          <Image
+            src={require("@/public/Spotify_Logo_RGB_Green.png")}
+            width={120}
+            height={70}
+            alt={"Home background"}
+            style={{ objectFit: "contain" }}
+          />
+        </Stack>
+        <Image
+          src={require("@/public/Stagnum_Logo.png")}
+          width={500}
+          height={400}
+          alt={"Home background"}
+          style={{ objectFit: "contain", marginTop: "-2.25rem" }}
+        />
 
-        <Button
-          className='bg-[#1ED760] py-2 w-36 rounded-full text-xl font-semibold'
-          onClick={handleLoginRequest}
-        >
-          Login
-        </Button>
+        <Typography variant="caption" fontSize={"2rem"}>
+          Simplified Collaborative Listening
+        </Typography>
+        <Stack spacing={2} direction={"row"} mt={2} alignItems={"center"}>
+          <Typography variant="h5" color={"white"}>
+            Login with your Spotify
+          </Typography>
 
-        <Box className='flex gap-4'>
-          <Link href='/about'>About Stagnum</Link>
+          <DefaultButton action={handleLoginRequest} text="Login" />
+        </Stack>
+
+        <Box display={"flex"} gap={2}>
+          <Link href="/about" color={"#ffffff"}>
+            About Stagnum
+          </Link>
           <Link
-            href='https://github.com/EddieTheCubeHead/Stagnum/discussions'
-            className='text-[#1ED760]'
-            target='_blank'
+            href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
+            color={"#42b74c"}
+            target="_blank"
           >
             Contact Us
           </Link>
         </Box>
       </Box>
-    </main>
-  )
+    </Box>
+  );
 }
