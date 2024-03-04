@@ -1,6 +1,6 @@
 import theme from '@/utils/theme'
 import Track from '@/types/trackTypes'
-import { Box, Grid, MenuItem, Select, TextField, Typography, } from '@mui/material'
+import { Box, Grid, MenuItem, Select, Stack, TextField, Typography, } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import TrackCard from './cards/trackCard'
@@ -20,10 +20,72 @@ interface Props {
 export default function Search({ token }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
-    const [trackList, setTrackList] = useState<Track[]>([])
+    const [trackList, setTrackList] = useState<Track[]>([{
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }, {
+        duration_ms: 172087,
+        name: "Auto jää (feat. Käärijä)",
+        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
+    }])
     const [artistList, setArtistList] = useState<Artist[]>([])
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
-    const [albumList, setAlbumList] = useState<Album[]>([])
+    const [albumList, setAlbumList] = useState<Album[]>([{
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }, {
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }, {
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }, {
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }, {
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }, {
+        icon_link: "https://i.scdn.co/image/ab67616d0000b2739bbb9f1a2d191cdfb753edfc",
+        name: "It's Crazy It's Party (feat. Tommy Cash)",
+        uri: "spotify:album:0YFNkhRzugyL2Td9loECCh",
+        year: 2023
+    }])
 
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
@@ -79,95 +141,45 @@ export default function Search({ token }: Props) {
         <Grid item xs={9}>
             <Box sx={{
                 bgcolor: theme.palette.secondary.dark,
-                width: 'auto',
                 height: '90vh',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
                 <SearchInput setQuery={setQuery} />
-                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
+                <Stack >
                     {trackList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Tracks'} />
-
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {trackList.slice(0, 5).map((track, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <TrackCard track={track} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
+                        <Box >
+                            <Header2 text={'Tracks'} />
+                            <Box sx={{ display: 'flex', margin: 1 }}>
+                                {trackList.slice(0, 5).map((track, key) => (
+                                    <TrackCard track={track} key={key} />
+                                ))}
                             </Box>
-                        </Grid>
+                        </Box>
                     }
                     {albumList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Album'} />
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {albumList.slice(0, 5).map((album, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <AlbumCard album={album} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
+                        <Box >
+                            <Header2 text={'Album'} />
+                            <Box sx={{ display: 'flex', margin: 1 }}>
+                                {albumList.slice(0, 5).map((album, key) => (
+                                    <AlbumCard album={album} key={key} />
+                                ))}
                             </Box>
-                        </Grid>
+
+                        </Box>
                     }
                     {playlistList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Playlists'} />
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {playlistList.slice(0, 5).map((playlist, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <PlaylistCard playlist={playlist} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
+                        <Box >
+                            <Header2 text={'Playlists'} />
+                            {playlistList.slice(0, 5).map((playlist, key) => (
+
+
+                                <PlaylistCard playlist={playlist} />
+
+                            ))}
+                        </Box>
                     }
-                    {artistList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Artists'} />
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {artistList.slice(0, 5).map((artist, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <ArtistCard artist={artist} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    }
-                </Grid>
+                </Stack>
 
             </Box>
         </Grid>

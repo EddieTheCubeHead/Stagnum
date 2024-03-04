@@ -59,7 +59,7 @@ function HomeContent() {
           <Grid item xs={3}>
             <Stack spacing={1}>
               <MainHeaderCard />
-              <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
+              <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} token={token} />
             </Stack>
           </Grid>
 

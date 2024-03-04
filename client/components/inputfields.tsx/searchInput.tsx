@@ -8,7 +8,6 @@ export default function SearchInput(props: { setQuery: Dispatch<SetStateAction<s
             sx={{
                 bgcolor: theme.palette.secondary.main,
                 margin: 1,
-                width: 500,
                 borderRadius: 3,
                 boxShadow: 2
             }}

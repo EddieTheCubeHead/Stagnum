@@ -9,11 +9,8 @@ export default function TrackCard(props: { track: Track }) {
         <Card
             sx={{
                 backgroundColor: theme.palette.secondary.main,
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
+                maxHeight: 300,
+                maxWidth: 300,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
