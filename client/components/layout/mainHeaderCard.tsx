@@ -7,21 +7,21 @@ import Image from 'next/image'
 export default function MainHeaderCard() {
 
     return (
-        <Grid item xs={9}>
-            <Box sx={{
-                bgcolor: theme.palette.secondary.dark,
-                width: 'auto',
-                height: '10vh',
-                borderRadius: 3,
-                boxShadow: 2
-            }}>
-                <Image
-                    src={require("@/public/Stagnum_Logo.png")}
-                    height={45}
-                    alt={"Home background"}
-                    style={{ objectFit: "contain", margin: 10 }}
-                />
-            </Box>
-        </Grid>
+        <Box sx={{
+            bgcolor: theme.palette.secondary.dark,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '10vh',
+            borderRadius: 3,
+            boxShadow: 2
+        }}>
+            <Image
+                src={require("@/public/Stagnum_Logo.png")}
+                height={45}
+                alt={"Home background"}
+                style={{ objectFit: "contain", margin: 10 }}
+            />
+        </Box>
     )
 }

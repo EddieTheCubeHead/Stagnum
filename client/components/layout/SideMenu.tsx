@@ -11,8 +11,7 @@ export default function SideMenu({ setShowSearchBar, showSearchBar }: Props) {
         <ThemeProvider theme={theme}>
             <Box sx={{
                 bgcolor: theme.palette.secondary.dark,
-                width: 'auto',
-                height: '70vh',
+                height: '80vh',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
