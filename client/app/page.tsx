@@ -53,15 +53,10 @@ function HomeContent() {
       <Box sx={{
         margin: 1
       }}>
-        <Grid container spacing={1} sx={{}}>
-
-          <Grid item xs={3}>
-            <Stack spacing={1}>
-              <MainHeaderCard />
-              <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} token={token} />
-            </Stack>
-          </Grid>
-        </Grid>
+        <Stack spacing={1}>
+          <MainHeaderCard />
+          <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} token={token} />
+        </Stack>
       </Box>
       <Footer />
     </ThemeProvider >

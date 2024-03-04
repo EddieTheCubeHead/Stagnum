@@ -1,5 +1,4 @@
-import { Box, List, ListItemButton, ListItemText, Stack, ThemeProvider } from "@mui/material"
-import theme from '@/utils/theme'
+import { Box, List, Stack } from "@mui/material"
 import { useEffect, useRef, useState } from "react"
 import Track from "@/types/trackTypes"
 import Artist from "@/types/artistTypes"
@@ -7,8 +6,7 @@ import Playlist from "@/types/playlistTypes"
 import Album from "@/types/albumTypes"
 import axios from "axios"
 import SearchInput from "../inputfields.tsx/searchInput"
-import { Header2 } from "../textComponents"
-import TrackCard from "./cards/trackCard"
+import AlbumCard from "./cards/albumCard"
 
 export default function SideMenup(props: {
     token: string,
@@ -74,23 +72,21 @@ export default function SideMenup(props: {
     }, [query])
 
     return (
-        <ThemeProvider theme={theme}>
-            <Box sx={{
-                bgcolor: theme.palette.secondary.dark,
-                borderRadius: 3,
-                boxShadow: 2
-            }}>
-                <List>
-                    <SearchInput setQuery={setQuery} />
-                </List>
-                <Stack spacing={2} sx={{ margin: 2 }}>
-                    {trackList &&
-                        trackList.slice(0, 5).map((track, key) => (
-                            <TrackCard track={track} key={key} />
-                        ))
-                    }
-                </Stack>
-            </Box>
-        </ThemeProvider>
+        <Box sx={{
+            bgcolor: "secondary.dark",
+            borderRadius: 3,
+            boxShadow: 2
+        }}>
+            <List>
+                <SearchInput setQuery={setQuery} />
+            </List>
+            <Stack spacing={2} sx={{ margin: 2 }}>
+                {albumList &&
+                    albumList.slice(0, 5).map((album, key) => (
+                        <AlbumCard album={album} key={key} />
+                    ))
+                }
+            </Stack>
+        </Box>
     )
 }
