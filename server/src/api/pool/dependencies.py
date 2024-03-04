@@ -1,4 +1,6 @@
+import datetime
 import json
+import random
 from logging import getLogger
 from typing import Annotated
 
@@ -6,11 +8,10 @@ from fastapi import Depends
 from sqlalchemy import delete, and_, select
 from sqlalchemy.orm import Session, joinedload
 
-from api.common.dependencies import SpotifyClient, DatabaseConnection
+from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon
 from api.pool.models import PoolContent, Pool, PoolCollection, PoolTrack
-from database.entities import PoolMember, User
-
+from database.entities import PoolMember, User, PlaybackSession
 
 _logger = getLogger("main.api.pool.dependencies")
 
@@ -24,15 +25,19 @@ def _auth_header(token: str) -> dict:
 def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
     # Weird bug at least in my test set where this fails pydantic validation if we return the list comprehension.
     # Extracting it into a separate variable fixed the bug. Mb investigate and report to pydantic?
-    tracks = [PoolTrack(name=track["name"], spotify_icon_uri=icon_uri, spotify_track_uri=track["uri"]) for track in
-              tracks]
+    tracks = [PoolTrack(name=track["name"],
+                        spotify_icon_uri=icon_uri,
+                        spotify_track_uri=track["uri"],
+                        duration_ms=track["duration_ms"])
+              for track in tracks]
     return tracks
 
 
 def _build_tracks_without_image(tracks: list[dict]) -> list[PoolTrack]:
     tracks = [PoolTrack(name=track["name"],
                         spotify_icon_uri=get_sharpest_icon(track["album"]["images"]),
-                        spotify_track_uri=track["uri"])
+                        spotify_track_uri=track["uri"],
+                        duration_ms=track["duration_ms"])
               for track in tracks]
     return tracks
 
@@ -68,7 +73,7 @@ class PoolSpotifyClientRaw:
         raw_track_data = self._spotify_client.get(f"tracks/{track_id}", headers=_auth_header(token))
         track_data = json.loads(raw_track_data.content.decode("utf-8"))
         return PoolTrack(name=track_data["name"], spotify_icon_uri=get_sharpest_icon(track_data["album"]["images"]),
-                         spotify_track_uri=track_data["uri"])
+                         spotify_track_uri=track_data["uri"], duration_ms=track_data["duration_ms"])
 
     def _fetch_album(self, token: str, album_id: str) -> PoolCollection:
         raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=_auth_header(token))
@@ -95,6 +100,15 @@ class PoolSpotifyClientRaw:
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
+    def start_playback(self, token: str, track_uri: str):
+        header = _auth_header(token)
+        header["Content-Type"] = "application/json"
+        self._spotify_client.put("me/player/play", json={"uris": [track_uri], "position_ms": 0}, headers=header)
+
+    def set_next_song(self, token: str, track_uri: str):
+        header = _auth_header(token)
+        self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
+
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
 
@@ -104,7 +118,8 @@ def _create_pool_member_entities(pool: Pool, user: User, session: Session):
     current_sort_order = 0
     for track in pool.tracks:
         session.add(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
-                               image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order))
+                               image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order,
+                               duration_ms=track.duration_ms))
         current_sort_order += 1
     for collection in pool.collections:
         parent = PoolMember(user_id=user.spotify_id, image_url=collection.spotify_icon_uri,
@@ -115,7 +130,7 @@ def _create_pool_member_entities(pool: Pool, user: User, session: Session):
         for track in collection.tracks:
             parent.children.append(PoolMember(user_id=user.spotify_id, content_uri=track.spotify_track_uri,
                                               image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id,
-                                              sort_order=current_sort_order))
+                                              sort_order=current_sort_order, duration_ms=track.duration_ms))
             current_sort_order += 1
 
 
@@ -131,6 +146,12 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
         .options(joinedload(PoolMember.children))).unique().all())
 
 
+def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
+    _logger.debug(f"Getting playable tracks for user {user.spotify_username}")
+    return list(session.scalars(select(PoolMember).where(
+        and_(PoolMember.user_id == user.spotify_id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
+
+
 def _delete_pool_member(content_uri: str, user: User, session: Session):
     _logger.debug(f"Deleting pool member with uri {content_uri} and all children "
                   f"from user {user.spotify_username}'s pool")
@@ -139,6 +160,24 @@ def _delete_pool_member(content_uri: str, user: User, session: Session):
     session.execute(delete(PoolMember).where(
         and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)))
     session.delete(possible_parent)
+
+
+def _update_user_playback(existing_playback: PlaybackSession, playing_track: PoolMember):
+    existing_playback.current_track_id = playing_track.id
+    delta = max(existing_playback.next_song_change_timestamp - datetime.datetime.now(),
+                datetime.timedelta(milliseconds=0))
+    new_end_time = datetime.datetime.now(datetime.timezone.utc) + delta + datetime.timedelta(
+        milliseconds=playing_track.duration_ms)
+    existing_playback.next_song_change_timestamp = new_end_time
+
+
+def _crete_user_playback(session: Session, user: User, playing_track: PoolMember):
+    end_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(milliseconds=playing_track.duration_ms)
+    session.add(PlaybackSession(
+        current_track_id=playing_track.id,
+        next_song_change_timestamp=end_time,
+        user_id=user.spotify_id
+    ))
 
 
 class PoolDatabaseConnectionRaw:
@@ -168,5 +207,69 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
+    def get_playable_tracks(self, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            all_tracks = _get_playable_tracks(user, session)
+        return all_tracks
+
+    def save_playback_status(self, user: User, playing_track: PoolMember):
+        with self._database_connection.session() as session:
+            existing_playback = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+            if existing_playback is not None:
+                _update_user_playback(existing_playback, playing_track)
+            else:
+                _crete_user_playback(session, user, playing_track)
+
+    def get_playbacks_to_update(self) -> list[PlaybackSession]:
+        cutoff_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=2)
+        with self._database_connection.session() as session:
+            playbacks = session.scalars(select(PlaybackSession).where(
+                and_(PlaybackSession.is_active,
+                     PlaybackSession.next_song_change_timestamp < cutoff_time))).unique().all()
+        return playbacks
+
+    def set_playback_as_inactive(self, playback: PlaybackSession):
+        with self._database_connection.session() as session:
+            playback = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == playback.user_id))
+            playback.is_active = False
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
+
+
+class PoolPlaybackServiceRaw:
+
+    def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
+                 token_holder: TokenHolder):
+        self._database_connection = database_connection
+        self._spotify_client = spotify_client
+        self._token_holder = token_holder
+
+    def start_playback(self, token: str):
+        user = self._token_holder.get_from_token(token)
+        all_tracks = self._database_connection.get_playable_tracks(user)
+        next_track = random.choice(all_tracks)
+        self._spotify_client.start_playback(token, next_track.content_uri)
+        self._database_connection.save_playback_status(user, next_track)
+
+    def update_user_playbacks(self):
+        active_playbacks = self._database_connection.get_playbacks_to_update()
+        for playback in active_playbacks:
+            _logger.info(f"Queueing next song for user {playback.user_id}")
+            self._update_playback(playback)
+
+    def _update_playback(self, playback: PlaybackSession):
+        if not self._token_holder.is_user_logged_in(playback.user_id):
+            self._database_connection.set_playback_as_inactive(playback)
+            return
+        user_token = self._token_holder.get_from_user_id(playback.user_id)
+        user = self._token_holder.get_from_token(user_token)
+        playable_tracks = self._database_connection.get_playable_tracks(user)
+        next_song: PoolMember = random.choice(playable_tracks)
+        _logger.debug(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
+        self._spotify_client.set_next_song(user_token, next_song.content_uri)
+        self._database_connection.save_playback_status(user, next_song)
+
+
+PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]

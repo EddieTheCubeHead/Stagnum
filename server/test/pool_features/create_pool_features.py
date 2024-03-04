@@ -33,7 +33,7 @@ def should_save_pool_in_database_with_user_id_when_created(test_client: TestClie
     test_client.post("/pool", json=data_json, headers=valid_token_header)
     with db_connection.session() as session:
         actual_pool_content = session.scalar(select(PoolMember).where(PoolMember.user_id == logged_in_user_id))
-    assert actual_pool_content is not None
+    assert actual_pool_content.duration_ms == my_track["duration_ms"]
 
 
 def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header,
@@ -76,6 +76,7 @@ def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_t
     assert actual_parent.name == album["name"]
     assert len(actual_parent.children) == len(tracks)
     for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
+        assert actual_track.duration_ms == expected_track["duration_ms"]
         assert actual_track.name == expected_track["name"]
 
 
@@ -124,6 +125,7 @@ def should_save_artist_top_ten_tracks_as_pool_in_database(test_client: TestClien
     assert len(actual_parent.children) == len(tracks["tracks"])
     for expected_track, actual_track in zip(tracks["tracks"],
                                             sorted(actual_parent.children, key=lambda x: x.sort_order)):
+        assert actual_track.duration_ms == expected_track["duration_ms"]
         assert actual_track.name == expected_track["name"]
 
 
@@ -166,6 +168,7 @@ def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, vali
     assert len(actual_parent.children) == len(tracks)
     for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
         assert actual_track.name == expected_track["name"]
+        assert actual_track.duration_ms == expected_track["duration_ms"]
 
 
 def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid_token_header, db_connection,

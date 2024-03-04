@@ -1,2 +1,2 @@
 from api.auth.routes import router
-from api.auth.scheduler import setup_scheduler
+from api.auth.tasks import cleanup_state_strings

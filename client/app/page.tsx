@@ -21,6 +21,7 @@ export default function HomePage() {
   )
 }
 
+
 function HomeContent() {
   const [showSearchBar, setShowSearchBar] = useState(false)
   const [token, setToken] = useState('')
