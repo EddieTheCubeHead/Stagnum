@@ -1,6 +1,7 @@
 import theme from '@/utils/theme'
 import { Box, Grid } from '@mui/material'
 import { Header2 } from '../textComponents'
+import Image from 'next/image'
 
 
 export default function MainHeaderCard() {
@@ -10,12 +11,16 @@ export default function MainHeaderCard() {
             <Box sx={{
                 bgcolor: theme.palette.secondary.dark,
                 width: 'auto',
-                height: '20vh',
+                height: '10vh',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
-                <Header2 text='Stagnum' />
-
+                <Image
+                    src={require("@/public/Stagnum_Logo.png")}
+                    height={45}
+                    alt={"Home background"}
+                    style={{ objectFit: "contain", margin: 10 }}
+                />
             </Box>
         </Grid>
     )
