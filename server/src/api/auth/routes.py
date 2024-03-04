@@ -41,7 +41,7 @@ async def login(client_redirect_uri: str, auth_database_connection: AuthDatabase
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     if client_id is None:
         raise HTTPException(status_code=500)
-    return LoginRedirect(redirect_uri=f"{base_url}scopes={scopes_string}&state={state}&response_type=code"
+    return LoginRedirect(redirect_uri=f"{base_url}scope={scopes_string}&state={state}&response_type=code"
                                       f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
 
 
