@@ -1,6 +1,6 @@
 import { Box, Card } from "@mui/material";
-import { Header3 } from "../textComponents";
-import DefaultButton from "../buttons/defaulButton";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
 import Album from "@/types/albumTypes";
 
 export default function AlbumCard(props: { album: Album }) {

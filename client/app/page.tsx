@@ -3,12 +3,13 @@
 import Footer from '@/components/layout/footer'
 import Search from '@/components/layout/search'
 import SideMenu from '@/components/layout/sideMenu'
-import { Box, CssBaseline, Grid, TextField } from '@mui/material'
+import { Box, CssBaseline, Grid, Stack, TextField } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
+import MainHeaderCard from '@/components/layout/mainHeaderCard'
 
 
 
@@ -40,7 +41,6 @@ function HomeContent() {
     axios.get('http://localhost:8080/auth/login/callback',
       { params: { state, code, client_redirect_uri } })
       .then(function (response) {
-        console.log(response)
         setToken(response.data.access_token)
       }).catch((error) => {
         console.log('Request failed', error)
@@ -56,7 +56,10 @@ function HomeContent() {
         <Grid container spacing={1} sx={{}}>
 
           <Grid item xs={3}>
-            <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
+            <Stack spacing={1}>
+              <MainHeaderCard />
+              <SideMenu setShowSearchBar={setShowSearchBar} showSearchBar={showSearchBar} />
+            </Stack>
           </Grid>
 
           {showSearchBar == true &&

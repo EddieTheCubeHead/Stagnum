@@ -1,11 +1,11 @@
 import { Box, Card } from "@mui/material";
-import { Header3 } from "../textComponents";
-import DefaultButton from "../buttons/defaulButton";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
 import theme from "@/utils/theme";
-import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
 
-export default function ArtistCard(props: { artist: Artist }) {
-    const imageUrl = props.artist.icon_link
+export default function PlaylistCard(props: { playlist: Playlist }) {
+    const imageUrl = props.playlist.icon_link
 
     return (
         <Card
@@ -20,7 +20,7 @@ export default function ArtistCard(props: { artist: Artist }) {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
             }}>
-            <Header3 text={props.artist.name} />
+            <Header3 text={props.playlist.name} />
             <Box sx={{
                 marginLeft: 'auto',
                 marginRight: 1,

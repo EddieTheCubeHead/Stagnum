@@ -3,15 +3,15 @@ import Track from '@/types/trackTypes'
 import { Box, Grid, MenuItem, Select, TextField, Typography, } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import TrackCard from './trackCard'
+import TrackCard from './cards/trackCard'
 import SearchInput from '../inputfields.tsx/searchInput'
 import { Header2, Header3 } from '../textComponents'
 import Playlist from '@/types/playlistTypes'
 import Album from '@/types/albumTypes'
 import Artist from '@/types/artistTypes'
-import AlbumCard from './albumCard'
-import PlaylistCard from './playlistCard'
-import ArtistCard from './artistCard'
+import AlbumCard from './cards/albumCard'
+import PlaylistCard from './cards/playlistCard'
+import ArtistCard from './cards/artistCard'
 
 interface Props {
     token: string
@@ -80,7 +80,7 @@ export default function Search({ token }: Props) {
             <Box sx={{
                 bgcolor: theme.palette.secondary.dark,
                 width: 'auto',
-                height: 'auto',
+                height: '90vh',
                 borderRadius: 3,
                 boxShadow: 2
             }}>
