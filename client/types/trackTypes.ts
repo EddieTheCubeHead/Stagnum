@@ -7,8 +7,8 @@ interface Artist {
 export default interface Track {
     name: string,
     uri: string,
-    artists?: Artist[],
-    album?: {
+    artists: Artist[],
+    album: {
         name: string,
         link: string
     },

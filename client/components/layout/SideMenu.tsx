@@ -18,35 +18,7 @@ export default function SideMenup(props: {
     const token: string = props.token
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
-    const [trackList, setTrackList] = useState<Track[]>([{
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }, {
-        duration_ms: 172087,
-        name: "Auto jää (feat. Käärijä)",
-        uri: "spotify:track:3rsDUslPzGw6sGHjkM4lg2"
-    }])
+    const [trackList, setTrackList] = useState<Track[]>([])
     const [artistList, setArtistList] = useState<Artist[]>([])
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
