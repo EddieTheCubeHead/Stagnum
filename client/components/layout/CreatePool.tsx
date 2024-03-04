@@ -24,14 +24,9 @@ export default function CreatePool({ token }: Props) {
   const [poolDesc, setPoolDesc] = useState("");
   const [selectedCollections, setSellectedCollections] = useState<
     Array<Track | Album | Playlist>
-  >([
-    {
-      name: "90s Ambient Techno Mix",
-      uri: "spotify:playlist:37i9dQZF1EIfMxLinpTxdB",
-      icon_link:
-        "https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large",
-    },
-  ]);
+  >([]);
+
+  const createPool = () => {};
 
   const handleAdd = (newAdd: Track | Album | Playlist) => {
     setSellectedCollections((curCollections) => [...curCollections, newAdd]);
@@ -62,31 +57,7 @@ export default function CreatePool({ token }: Props) {
         sx={{ bgcolor: "secondary.light", borderRadius: 1 }}
         m={2}
       >
-        <Grid item xs={4} container rowGap={2} m={2} direction={"column"}>
-          <Grid item>
-            <TextField
-              label="Pool name"
-              fullWidth
-              value={poolName}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setPoolName(event.target.value);
-              }}
-            />
-          </Grid>
-          <Grid item>
-            <TextField
-              label="Pool description"
-              value={poolDesc}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setPoolDesc(event.target.value);
-              }}
-              multiline
-              fullWidth
-              rows={5}
-            />
-          </Grid>
-        </Grid>
-        <Grid item xs={7} container rowGap={2} m={2} direction={"column"}>
+        <Grid item xs={5} container rowGap={2} m={2} direction={"column"}>
           <Grid item container>
             <Grid item xs={12}>
               <Search token={token} handleAdd={handleAdd} />
@@ -94,7 +65,7 @@ export default function CreatePool({ token }: Props) {
           </Grid>
           <Grid item></Grid>
         </Grid>
-        <Grid item xs={10} container direction={"row"}>
+        <Grid item xs={6} container>
           {selectedCollections.map((item, key) => (
             <Grid item xs={2} key={key} container m={1}>
               <Card sx={{ bgcolor: "secondary.main" }}>
