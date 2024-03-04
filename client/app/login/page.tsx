@@ -11,10 +11,10 @@ export default function Login() {
 
   const handleLoginRequest = () => {
     console.log("Sending login request");
-    const client_redirect_uri = "http://localhost:3000";
+    const client_redirect_uri = "http://localhost:80";
 
     axios
-      .get("http://localhost:8000/auth/login", {
+      .get("http://localhost:8080/auth/login", {
         params: { client_redirect_uri },
       })
       .then(function (response) {

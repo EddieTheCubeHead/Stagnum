@@ -1,9 +1,8 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import Search from "@/components/layout/search";
 import SideMenu from "@/components/layout/sideMenu";
-import { Box, CssBaseline, Grid, Stack, TextField } from "@mui/material";
+import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -11,11 +10,7 @@ import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
 import CreatePool from "@/components/layout/createPool";
-import { Header1 } from "@/components/textComponents";
 import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
 
 export default function HomePage() {
   return (
@@ -27,12 +22,14 @@ export default function HomePage() {
 
 function HomeContent() {
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [showCreatePool, setShowCreatePool] = useState(false);
+  const [selectedCollections, setSellectedCollections] = useState<Array<Album>>(
+    []
+  );
   const [token, setToken] = useState("");
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
-  const client_redirect_uri = "http://localhost:3000";
+  const client_redirect_uri = "http://localhost:80";
 
   useEffect(() => {
     if (code && state) {
@@ -44,7 +41,7 @@ function HomeContent() {
     console.log("Sending play request");
 
     axios
-      .get("http://localhost:8000/auth/login/callback", {
+      .get("http://localhost:8080/auth/login/callback", {
         params: { state, code, client_redirect_uri },
       })
       .then(function (response) {
@@ -55,19 +52,14 @@ function HomeContent() {
       });
   };
 
-  const handlePageChange = (page: string) => {
-    switch (page) {
-      case "search": {
-        setShowSearchBar((prev) => !prev);
-        setShowCreatePool(false);
-        break;
-      }
-      case "create": {
-        setShowCreatePool((prevCheck) => !prevCheck);
-        setShowSearchBar(false);
-        break;
-      }
-    }
+  const handleAdd = (newAdd: Album) => {
+    setSellectedCollections((curCollections) => [...curCollections, newAdd]);
+  };
+
+  const handleDelete = (itemToDelete: Album) => {
+    setSellectedCollections((curCollections) =>
+      curCollections.filter((collection) => collection !== itemToDelete)
+    );
   };
 
   return (
@@ -78,14 +70,26 @@ function HomeContent() {
           margin: 1,
         }}
       >
-        <Stack spacing={1}>
-          <MainHeaderCard />
-          <SideMenu
-            setShowSearchBar={setShowSearchBar}
-            showSearchBar={showSearchBar}
-            token={token}
-          />
-        </Stack>
+        <Grid container gap={1}>
+          <Grid item xs={4}>
+            <Stack spacing={1}>
+              <MainHeaderCard />
+              <SideMenu
+                setShowSearchBar={setShowSearchBar}
+                showSearchBar={showSearchBar}
+                token={token}
+                handleAdd={handleAdd}
+              />
+            </Stack>
+          </Grid>
+          <Grid item xs={7.9}>
+            <CreatePool
+              token={token}
+              selectedCollections={selectedCollections}
+              handleDelete={handleDelete}
+            />
+          </Grid>
+        </Grid>
       </Box>
       <Footer />
     </ThemeProvider>

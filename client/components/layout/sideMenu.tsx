@@ -12,6 +12,7 @@ export default function SideMenup(props: {
   token: string;
   setShowSearchBar: (show: boolean) => void;
   showSearchBar: boolean;
+  handleAdd: (newAdd: Album) => void;
 }) {
   const token: string = props.token;
   const mounted = useRef(false);
@@ -29,7 +30,7 @@ export default function SideMenup(props: {
     console.log("Searching song with:", searchQuery);
 
     axios
-      .get("http://localhost:8000/search", {
+      .get("http://localhost:8080/search", {
         params: { query },
         headers: { token },
       })
@@ -85,10 +86,9 @@ export default function SideMenup(props: {
         <SearchInput setQuery={setQuery} />
       </List>
       <Stack spacing={2} sx={{ margin: 2 }}>
-        {albumList &&
-          albumList
-            .slice(0, 5)
-            .map((album, key) => <AlbumCard album={album} key={key} />)}
+        {albumList.slice(0, 5).map((album, key) => (
+          <AlbumCard album={album} key={key} handleAdd={props.handleAdd} />
+        ))}
       </Stack>
     </Box>
   );

@@ -1,24 +1,21 @@
-import { Box, Card, CardMedia, Grid, IconButton } from "@mui/material";
+import { Box, CardMedia, Grid, IconButton } from "@mui/material";
 import { Header1, Header3 } from "../textComponents";
-import React, { useState } from "react";
+import React from "react";
 import DefaultButton from "../buttons/defaulButton";
-import Search from "./search";
 import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Artist from "@/types/artistTypes";
 import axios from "axios";
-import Track from "@/types/trackTypes";
-
 interface Props {
   token: string;
+  selectedCollections: Array<Album>;
+  handleDelete: (itemToDelete: Album) => void;
 }
 
-export default function CreatePool({ token }: Props) {
-  const [selectedCollections, setSellectedCollections] = useState<
-    Array<Track | Album | Playlist | Artist>
-  >([]);
-
+export default function CreatePool({
+  token,
+  selectedCollections,
+  handleDelete,
+}: Props) {
   const createPool = () => {
     const requestData = {
       spotify_uris: [
@@ -29,7 +26,7 @@ export default function CreatePool({ token }: Props) {
     };
 
     axios
-      .post("http://localhost:8000/pool", requestData, {
+      .post("http://localhost:8080/pool", requestData, {
         headers: { token },
       })
       .then(function (response) {
@@ -38,16 +35,6 @@ export default function CreatePool({ token }: Props) {
       .catch((error) => {
         console.log("Request failed", error);
       });
-  };
-
-  const handleAdd = (newAdd: Track | Album | Playlist | Artist) => {
-    setSellectedCollections((curCollections) => [...curCollections, newAdd]);
-  };
-
-  const handleDelete = (itemToDelete: Track | Album | Playlist | Artist) => {
-    setSellectedCollections((curCollections) =>
-      curCollections.filter((collection) => collection !== itemToDelete)
-    );
   };
 
   return (
@@ -68,14 +55,9 @@ export default function CreatePool({ token }: Props) {
           <Header1 text="Create a Pool" fontWeight={"bold"} />
         </Box>
       </Grid>
-
-      <Grid item xs={9}>
-        <Search token={token} handleAdd={handleAdd} />
-        <Grid item></Grid>
-      </Grid>
       <Grid
         item
-        xs={3}
+        xs={12}
         container
         display="flex"
         justifyContent="center"
@@ -92,7 +74,10 @@ export default function CreatePool({ token }: Props) {
             justifyContent="center"
             alignItems="center"
             m={1}
-            sx={{ bgcolor: "secondary.light", borderRadius: 1 }}
+            sx={{
+              bgcolor: "secondary.light",
+              borderRadius: 1,
+            }}
           >
             <Grid
               item
