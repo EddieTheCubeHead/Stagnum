@@ -27,6 +27,7 @@ export default function HomePage() {
   );
 }
 
+
 function HomeContent() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [showCreatePool, setShowCreatePool] = useState(false);
