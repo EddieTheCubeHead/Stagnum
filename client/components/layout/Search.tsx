@@ -1,9 +1,9 @@
 import theme from '@/utils/theme'
 import Track from '@/types/trackTypes'
-import { Box, Grid, MenuItem, Select, TextField, Typography, } from '@mui/material'
+import { Box, Button, Grid, MenuItem, Select, TextField, Typography, } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import TrackCard from './trackCard'
+import TrackCard from './TrackCard'
 import SearchInput from '../inputfields.tsx/searchInput'
 import { Header2, Header3 } from '../textComponents'
 import Playlist from '@/types/playlistTypes'
@@ -15,9 +15,10 @@ import ArtistCard from './artistCard'
 
 interface Props {
     token: string
+    handleAdd: (newAdd: Track | Album | Playlist) => void
 }
 
-export default function Search({ token }: Props) {
+export default function Search({ token, handleAdd }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -30,7 +31,7 @@ export default function Search({ token }: Props) {
     const handleSearchRequest = (searchQuery: string) => {
         console.log('Searching song with:', searchQuery)
 
-        axios.get('http://localhost:8080/search',
+        axios.get('http://localhost:8000/search',
             {
                 params: { query },
                 headers: { token }
@@ -46,6 +47,17 @@ export default function Search({ token }: Props) {
                 console.log('Request failed', error)
             })
     }
+    const playlist: Playlist = {
+        name: "90s Ambient Techno Mix",
+        uri: "spotify:playlist:37i9dQZF1EIfMxLinpTxdB",
+        icon_link:
+          "https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large",
+      }
+
+    const handelAdding = () => {
+        handleAdd(playlist)
+    }
+
 
     useEffect(() => {
         if (!mounted.current) {
@@ -139,7 +151,7 @@ export default function Search({ token }: Props) {
                                                 width: '100%',
                                                 paddingTop: '100%',
                                             }}>
-                                                <PlaylistCard playlist={playlist} />
+                                                <PlaylistCard playlist={playlist} handleAdd={handleAdd} />
                                             </Box>
                                         </Grid>
                                     ))}
@@ -168,7 +180,6 @@ export default function Search({ token }: Props) {
                         </Grid>
                     }
                 </Grid>
-
             </Box>
         </Grid>
     )

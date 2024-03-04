@@ -3,9 +3,15 @@ import { Header3 } from "../textComponents";
 import DefaultButton from "../buttons/defaulButton";
 import theme from "@/utils/theme";
 import Playlist from "@/types/playlistTypes";
+import Track from "@/types/trackTypes";
+import Album from "@/types/albumTypes";
 
-export default function PlaylistCard(props: { playlist: Playlist }) {
+export default function PlaylistCard(props: { playlist: Playlist, handleAdd: (newAdd: Track | Album | Playlist) => void }) {
     const imageUrl = props.playlist.icon_link
+
+    const handelAdding = () => {
+        props.handleAdd(props.playlist)
+    }
 
     return (
         <Card
@@ -26,7 +32,7 @@ export default function PlaylistCard(props: { playlist: Playlist }) {
                 marginRight: 1,
                 marginBottom: 1
             }}>
-                <DefaultButton text={"Add to pool"} action={() => { }} />
+                <DefaultButton text={"Add to pool"} action={handelAdding} />
             </Box>
         </Card>
     )
