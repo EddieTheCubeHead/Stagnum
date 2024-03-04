@@ -3,6 +3,8 @@
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { ThemeProvider } from '@emotion/react'
+import theme from "./utils/theme"
 
 export default function HomePage() {
   return (
@@ -45,6 +47,7 @@ function HomeContent() {
   }
 
   return (
+    <ThemeProvider theme={theme}>
     <main className='relative min-h-screen bg-white text-black flex flex-col w-full h-full'>
       <aside className='fixed flex flex-col bg-neutral-200 h-full px-12 py-16 w-96'>
         <ul className='flex flex-col gap-4'>
@@ -72,5 +75,6 @@ function HomeContent() {
         </div>
       </section>
     </main>
+    </ThemeProvider>
   )
 }

@@ -1,0 +1,18 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [ "published" ]
+
+jobs:
+  create-docker-images:
+    runs-on: ubuntu-latest
+
+    steps:    
+    - uses: actions/checkout@v3
+    
+    - name: Build the frontend Docker image
+      run: docker build ./client --file Dockerfile --tag stagnum-frontend:$(date +%s)
+    
+    - name: Build the backend Docker image
+      run: docker build ./server --file Dockerfile --tag stagnum-backend:$(data +%s)
