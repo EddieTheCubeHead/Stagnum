@@ -86,36 +86,6 @@ function HomeContent() {
             token={token}
           />
         </Stack>
-        {showSearchBar && (
-          <Search
-            token={token}
-            handleAdd={function (
-              newAdd: Track | Album | Playlist | Artist
-            ): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-        )}
-        {showCreatePool && (
-          <Grid item xs={9}>
-            <CreatePool token={token} />
-          </Grid>
-        )}
-        {!showSearchBar && !showCreatePool ? (
-          <Grid
-            item
-            xs={10}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Header1
-              text="Welcome to Stagnum!"
-              color={"primary.main"}
-              fontWeight={"bold"}
-            />
-          </Grid>
-        ) : null}
       </Box>
       <Footer />
     </ThemeProvider>

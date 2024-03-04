@@ -1,7 +1,6 @@
 import { Box, Card } from "@mui/material";
 import { Header3 } from "../../textComponents";
 import DefaultButton from "../../buttons/defaulButton";
-import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
 import Playlist from "@/types/playlistTypes";
@@ -14,7 +13,7 @@ export default function TrackCard(props: { track: Track, handleAdd: (newAdd: Tra
     return (
         <Card
             sx={{
-                backgroundColor: theme.palette.secondary.main,
+                backgroundColor: "secondary.main",
                 maxHeight: 300,
                 maxWidth: 300,
                 display: 'flex',
