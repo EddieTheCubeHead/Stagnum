@@ -1,20 +1,20 @@
 import { Box, Card } from "@mui/material";
-import { Header3 } from "../textComponents";
-import DefaultButton from "../buttons/defaulButton";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
 import theme from "@/utils/theme";
-import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
+import Artist from "@/types/artistTypes";
 
-export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
-    const imageUrl = props.artist.icon_link
+export default function PlaylistCard(props: { playlist: Playlist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void }) {
+    const imageUrl = props.playlist.icon_link
 
     const handelAdding = () => {
-        props.handleAdd(props.artist)
+        props.handleAdd(props.playlist)
     }
 
-    return (
+    return (<Box>
         <Card
             sx={{
                 backgroundImage: `url(${imageUrl})`,
@@ -27,7 +27,7 @@ export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: 
                 flexDirection: 'column',
                 justifyContent: 'space-between',
             }}>
-            <Header3 text={props.artist.name} />
+            <Header3 text={props.playlist.name} />
             <Box sx={{
                 marginLeft: 'auto',
                 marginRight: 1,
@@ -36,5 +36,6 @@ export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: 
                 <DefaultButton text={"Add to pool"} action={handelAdding} />
             </Box>
         </Card>
+        </Box>
     )
 }

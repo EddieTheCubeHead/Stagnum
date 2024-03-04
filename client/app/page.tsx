@@ -1,26 +1,14 @@
 "use client";
 
-import Footer from "@/components/layout/Footer";
-import Search from "@/components/layout/Search";
-import SideMenu from "@/components/layout/SideMenu";
-import {
-  Box,
-  CssBaseline,
-  Grid,
-  List,
-  ListItemButton,
-  ListItemText,
-} from "@mui/material";
+import Footer from "@/components/layout/footer";
+import Search from "@/components/layout/search";
+import SideMenu from "@/components/layout/sideMenu";
+import { Box, CssBaseline, Grid, TextField } from "@mui/material";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
-import CreatePool from "@/components/layout/CreatePool";
-import { Header1, Header2 } from "@/components/textComponents";
-import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
 
 export default function HomePage() {
   return (
@@ -29,7 +17,6 @@ export default function HomePage() {
     </Suspense>
   );
 }
-
 
 function HomeContent() {
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -62,21 +49,6 @@ function HomeContent() {
       });
   };
 
-  const handlePageChange = (page: string) => {
-    switch (page) {
-      case "search": {
-        setShowSearchBar((prev) => !prev);
-        setShowCreatePool(false);
-        break;
-      }
-      case "create": {
-        setShowCreatePool((prevCheck) => !prevCheck);
-        setShowSearchBar(false);
-        break;
-      }
-    }
-  };
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -85,69 +57,15 @@ function HomeContent() {
           margin: 1,
         }}
       >
-        <Grid container gap={1}>
-          <Grid item xs={2}>
-            <Box
-              sx={{
-                bgcolor: "secondary.dark",
-                width: "auto",
-                height: "auto",
-                borderRadius: 3,
-                boxShadow: 2,
-              }}
-            >
-              <List>
-                <ListItemButton
-                  sx={{
-                    bgcolor: "secondary.main",
-                    m: 1,
-                    borderRadius: 2,
-                  }}
-                  onClick={() => handlePageChange("search")}
-                >
-                  <ListItemText>
-                    <Header2 text="Search" fontWeight={"bold"} />
-                  </ListItemText>
-                </ListItemButton>
-                <ListItemButton
-                  sx={{
-                    bgcolor: "secondary.main",
-                    m: 1,
-                    borderRadius: 2,
-                  }}
-                  onClick={() => handlePageChange("create")}
-                >
-                  <ListItemText>
-                    <Header2 text="Create" fontWeight={"bold"} />
-                  </ListItemText>
-                </ListItemButton>
-              </List>
-            </Box>
+        <Grid container spacing={1} sx={{}}>
+          <Grid item xs={3}>
+            <SideMenu
+              setShowSearchBar={setShowSearchBar}
+              showSearchBar={showSearchBar}
+            />
           </Grid>
 
-          {showSearchBar && <Search token={token} handleAdd={function (newAdd: Track | Album | Playlist): void {
-            throw new Error("Function not implemented.");
-          } } />}
-          {showCreatePool && (
-            <Grid item xs={9}>
-              <CreatePool token={token} />
-            </Grid>
-          )}
-          {!showSearchBar && !showCreatePool ? (
-            <Grid
-              item
-              xs={10}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Header1
-                text="Welcome to Stagnum!"
-                color={"primary.main"}
-                fontWeight={"bold"}
-              />
-            </Grid>
-          ) : null}
+          {showSearchBar == true && <Search token={token} />}
         </Grid>
       </Box>
       <Footer />

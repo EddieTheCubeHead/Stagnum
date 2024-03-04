@@ -1,20 +1,23 @@
 import { Box, Card } from "@mui/material";
-import { Header3 } from "../textComponents";
-import DefaultButton from "../buttons/defaulButton";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
 import theme from "@/utils/theme";
+import Artist from "@/types/artistTypes";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
 import Playlist from "@/types/playlistTypes";
-import Artist from "@/types/artistTypes";
 
-export default function TrackCard(props: { track: Track, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
+export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
+    const imageUrl = props.artist.icon_link
+
     const handelAdding = () => {
-        props.handleAdd(props.track)
+        props.handleAdd(props.artist)
     }
+
     return (
         <Card
             sx={{
-                backgroundColor: theme.palette.secondary.main,
+                backgroundImage: `url(${imageUrl})`,
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -24,7 +27,7 @@ export default function TrackCard(props: { track: Track, handleAdd: (newAdd: Tra
                 flexDirection: 'column',
                 justifyContent: 'space-between',
             }}>
-            <Header3 text={props.track.name} />
+            <Header3 text={props.artist.name} />
             <Box sx={{
                 marginLeft: 'auto',
                 marginRight: 1,
