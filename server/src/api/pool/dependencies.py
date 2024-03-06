@@ -169,6 +169,7 @@ def _update_user_playback(existing_playback: PlaybackSession, playing_track: Poo
     new_end_time = datetime.datetime.now(datetime.timezone.utc) + delta + datetime.timedelta(
         milliseconds=playing_track.duration_ms)
     existing_playback.next_song_change_timestamp = new_end_time
+    existing_playback.is_active = True
 
 
 def _crete_user_playback(session: Session, user: User, playing_track: PoolMember):
@@ -256,7 +257,6 @@ class PoolPlaybackServiceRaw:
     def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
-            _logger.info(f"Queueing next song for user {playback.user_id}")
             self._update_playback(playback)
 
     def _update_playback(self, playback: PlaybackSession):
@@ -267,7 +267,7 @@ class PoolPlaybackServiceRaw:
         user = self._token_holder.get_from_token(user_token)
         playable_tracks = self._database_connection.get_playable_tracks(user)
         next_song: PoolMember = random.choice(playable_tracks)
-        _logger.debug(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
+        _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user_token, next_song.content_uri)
         self._database_connection.save_playback_status(user, next_song)
 
