@@ -96,7 +96,7 @@ class PoolSpotifyClientRaw:
     def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
         raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
         playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
-        tracks = _build_tracks_without_image(playlist_data["tracks"]["items"])
+        tracks = _build_tracks_without_image([track["track"] for track in playlist_data["tracks"]["items"]])
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
