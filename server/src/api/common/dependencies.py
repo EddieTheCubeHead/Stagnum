@@ -24,24 +24,24 @@ class RequestsClientRaw:
     def get(self, *args, **kwargs):
         _logger.debug(f"GET: {args} {kwargs}")
         result = requests.get(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; "
-                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+        _logger.info(f"Call result: {result.status_code} ; "
+                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
     @functools.wraps(requests.post)
     def post(self, *args, **kwargs):
         _logger.debug(f"POST: {args} {kwargs}")
         result = requests.post(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; "
-                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+        _logger.info(f"Call result: {result.status_code} ; "
+                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
     @functools.wraps(requests.put)
     def put(self, *args, **kwargs):
         _logger.debug(f"PUT {args} {kwargs}")
         result = requests.put(*args, **kwargs)
-        _logger.debug(f"Call result: {result.status_code} ; "
-                      f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+        _logger.info(f"Call result: {result.status_code} ; "
+                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
         return result
 
 
@@ -52,20 +52,20 @@ class SpotifyClientRaw:
     def __init__(self, request_client: RequestsClient):
         self._request_client = request_client
 
-    def get(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
-        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
-        _logger.debug(f"Calling spotify API at GET {url}{query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.get(f"{url}{query}", *args, **kwargs)
+    def get(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+        query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
+        _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
+        return self._request_client.get(f"{query}", *args, **kwargs)
 
-    def post(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
-        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
-        _logger.debug(f"Calling spotify API at POST {url}{query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.post(f"{url}{query}", *args, **kwargs)
+    def post(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+        query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
+        _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
+        return self._request_client.post(f"{query}", *args, **kwargs)
 
-    def put(self, query: str, *args, override_base_url: str = None, **kwargs) -> Response:
-        url = "https://api.spotify.com/v1/" if override_base_url is None else override_base_url
-        _logger.debug(f"Calling spotify API at PUT {url}{query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.put(f"{url}{query}", *args, **kwargs)
+    def put(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+        query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
+        _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")
+        return self._request_client.put(f"{query}", *args, **kwargs)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]

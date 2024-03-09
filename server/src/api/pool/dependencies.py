@@ -94,11 +94,24 @@ class PoolSpotifyClientRaw:
                               tracks=tracks, spotify_collection_uri=artist_data["uri"])
 
     def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
-        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
-        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
-        tracks = _build_tracks_without_image(playlist_data["tracks"]["items"])
+        playlist_data = self._fully_fetch_playlist(playlist_id, token)
+        tracks = _build_tracks_without_image([track["track"] for track in playlist_data["tracks"]["items"]])
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
+
+    def _fully_fetch_playlist(self, playlist_id, token):
+        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
+        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
+        if playlist_data["tracks"]["next"] is not None:
+            self._fetch_large_playlist_tracks(playlist_data, token)
+        return playlist_data
+
+    def _fetch_large_playlist_tracks(self, playlist_data, token: str):
+        track_walker = playlist_data["tracks"]
+        while track_walker["next"] is not None:
+            raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"])
+            track_walker = json.loads(raw_next_track_data.content.decode("utf-8"))
+            playlist_data["tracks"]["items"].extend(track_walker["items"])
 
     def start_playback(self, token: str, track_uri: str):
         header = _auth_header(token)
@@ -169,6 +182,7 @@ def _update_user_playback(existing_playback: PlaybackSession, playing_track: Poo
     new_end_time = datetime.datetime.now(datetime.timezone.utc) + delta + datetime.timedelta(
         milliseconds=playing_track.duration_ms)
     existing_playback.next_song_change_timestamp = new_end_time
+    existing_playback.is_active = True
 
 
 def _crete_user_playback(session: Session, user: User, playing_track: PoolMember):
@@ -256,7 +270,6 @@ class PoolPlaybackServiceRaw:
     def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
-            _logger.info(f"Queueing next song for user {playback.user_id}")
             self._update_playback(playback)
 
     def _update_playback(self, playback: PlaybackSession):
@@ -267,7 +280,7 @@ class PoolPlaybackServiceRaw:
         user = self._token_holder.get_from_token(user_token)
         playable_tracks = self._database_connection.get_playable_tracks(user)
         next_song: PoolMember = random.choice(playable_tracks)
-        _logger.debug(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
+        _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user_token, next_song.content_uri)
         self._database_connection.save_playback_status(user, next_song)
 
