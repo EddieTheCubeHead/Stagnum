@@ -15,6 +15,7 @@ def create_pool_creation_data_json():
         return PoolCreationData(
             spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
         ).model_dump()
+
     return wrapper
 
 
@@ -56,6 +57,7 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
                 "is_local": False,
                 "track": track
             })
+        batch = 100
         playlist_data = {
             "collaborative": False,
             "description": faker.paragraph(),
@@ -89,18 +91,39 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
             "public": True,
             "snapshot_id": faker.uuid4(),
             "tracks": {
-                "href": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks?offset=0&limit=100&locale=en",
-                "limit": 100,
-                "next": None if track_amount < 100 else f"https://api.spotify.fake/v1/playlists/{playlist_id}/"
-                                                        f"tracks?offset=100&limit=100&locale=en",
+                "href": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks?offset=0&limit={batch}&locale=en",
+                "limit": batch,
+                "next": None if track_amount < batch else f"https://api.spotify.fake/v1/playlists/{playlist_id}/"
+                                                          f"tracks?offset={batch}&limit={batch}&locale=en",
                 "offset": 0,
                 "previous": None,
                 "total": track_amount,
-                "items": playlist_tracks[:100]
+                "items": playlist_tracks[:batch]
             },
             "type": "playlist",
             "uri": f"spotify:playlist:{playlist_id}"
         }
 
-        return playlist_data
+        if track_amount <= batch:
+            return playlist_data
+
+        further_fetches = []
+        batch_walker = batch
+        while batch_walker <= track_amount:
+            further_fetches.append({
+                "href": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
+                        f"?offset={batch_walker}&limit={batch}&locale=en",
+                "limit": batch,
+                "next": None if track_amount < batch_walker + batch
+                            else f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
+                                 f"?offset={batch_walker + batch}&limit={batch}&locale=en",
+                "offset": batch_walker,
+                "previous": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
+                                 f"?offset={batch_walker - batch}&limit={batch}&locale=en",
+                "total": track_amount,
+                "items": playlist_tracks[batch_walker:batch_walker + batch]
+            })
+            batch_walker += batch
+        return playlist_data, *further_fetches
+
     return wrapper

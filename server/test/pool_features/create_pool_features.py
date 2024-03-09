@@ -1,5 +1,6 @@
 from unittest.mock import Mock, call
 
+import pytest
 from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
@@ -150,9 +151,8 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
 
 
 def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
-                                                   create_mock_playlist_fetch_result, create_mock_track_search_result,
-                                                   build_success_response, requests_client,
-                                                   create_pool_creation_data_json, logged_in_user_id):
+                                                   create_mock_playlist_fetch_result, build_success_response,
+                                                   requests_client, create_pool_creation_data_json, logged_in_user_id):
     playlist = create_mock_playlist_fetch_result(30)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
@@ -227,3 +227,26 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
             and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
                                          .options(joinedload(PoolMember.children))).unique().all()
         assert len(actual_results) == len(tracks) + 3
+
+
+@pytest.mark.wip
+def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_client: TestClient, valid_token_header,
+                                                                           db_connection, requests_client,
+                                                                           create_mock_playlist_fetch_result,
+                                                                           build_success_response, logged_in_user_id,
+                                                                           create_pool_creation_data_json):
+    playlist_length = 320
+    playlist_fetches = create_mock_playlist_fetch_result(playlist_length)
+    playlist = playlist_fetches[0]
+    responses = [build_success_response(data_point) for data_point in playlist_fetches]
+    requests_client.get = Mock(side_effect=responses)
+    data_json = create_pool_creation_data_json(playlist["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    with db_connection.session() as session:
+        actual_parent = session.scalar(select(PoolMember).where(
+            and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                                           .options(joinedload(PoolMember.children)))
+    assert actual_parent.name == playlist["name"]
+    assert len(actual_parent.children) == playlist_length
