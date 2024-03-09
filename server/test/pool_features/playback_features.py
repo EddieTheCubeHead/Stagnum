@@ -1,4 +1,5 @@
 import datetime
+import random
 from unittest.mock import Mock
 
 import pytest
@@ -66,12 +67,11 @@ def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(cre
 
 
 def should_start_pool_playback_from_collection_tracks_when_posting_collection(create_mock_track_search_result,
-                                                                              create_mock_playlist_search_result,
+                                                                              create_mock_playlist_fetch_result,
                                                                               requests_client, build_success_response,
                                                                               create_pool_creation_data_json,
                                                                               test_client, valid_token_header):
-    tracks = [create_mock_track_search_result() for _ in range(25)]
-    playlist = create_mock_playlist_search_result(tracks)
+    playlist = create_mock_playlist_fetch_result(25)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -80,18 +80,34 @@ def should_start_pool_playback_from_collection_tracks_when_posting_collection(cr
     actual_call = requests_client.put.call_args
     assert actual_call.kwargs["json"]["position_ms"] == 0
     call_uri = actual_call.kwargs["json"]["uris"][0]
-    assert call_uri in [track["uri"] for track in tracks]
+    expected_track_uris = [track["track"]["uri"] for track in playlist["tracks"]["items"]]
+    assert call_uri in expected_track_uris
+
+
+def should_start_pool_playback_from_playlist_fetch_data_correctly(create_mock_playlist_fetch_result,
+                                                                  requests_client, build_success_response,
+                                                                  create_pool_creation_data_json,
+                                                                  test_client, valid_token_header):
+    playlist = create_mock_playlist_fetch_result(30)
+    requests_client.get = Mock(return_value=build_success_response(playlist))
+    data_json = create_pool_creation_data_json(playlist["uri"])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    actual_call = requests_client.put.call_args
+    assert actual_call.kwargs["json"]["position_ms"] == 0
+    call_uri = actual_call.kwargs["json"]["uris"][0]
+    assert call_uri in [track["track"]["uri"] for track in playlist["tracks"]["items"]]
 
 
 @pytest.mark.parametrize("repeat", range(15))
 def should_not_start_pool_playback_from_collection_uri_when_posting_collection(create_mock_track_search_result,
-                                                                               create_mock_playlist_search_result,
+                                                                               create_mock_playlist_fetch_result,
                                                                                requests_client, build_success_response,
                                                                                create_pool_creation_data_json,
                                                                                test_client, valid_token_header, repeat):
     # use only one track so test fails with repeats if main collection is ever used
-    tracks = [create_mock_track_search_result() for _ in range(1)]
-    playlist = create_mock_playlist_search_result(tracks)
+    playlist = create_mock_playlist_fetch_result(1)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -100,7 +116,7 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(c
     actual_call = requests_client.put.call_args
     assert actual_call.kwargs["json"]["position_ms"] == 0
     call_uri = actual_call.kwargs["json"]["uris"][0]
-    assert call_uri == tracks[0]["uri"]
+    assert call_uri == playlist["tracks"]["items"][0]["track"]["uri"]
 
 
 def should_save_next_track_change_time_on_playback_start(create_mock_track_search_result, requests_client,
