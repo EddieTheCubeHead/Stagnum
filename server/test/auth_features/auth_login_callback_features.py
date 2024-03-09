@@ -1,7 +1,7 @@
 import base64
 import json
-import string
 import random
+import string
 from enum import Enum
 from unittest.mock import Mock
 
