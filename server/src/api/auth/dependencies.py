@@ -82,8 +82,8 @@ class AuthSpotifyClientRaw:
             "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        data = self._spotify_client.post("api/token", override_base_url="https://accounts.spotify.com/",
-                                         headers=headers, data=form)
+        data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
+                                         data=form)
         parsed_data = _validate_data(data)
         return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
                                     expires_in=parsed_data["expires_in"], refresh_token=parsed_data["refresh_token"])
