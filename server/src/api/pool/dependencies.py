@@ -94,11 +94,24 @@ class PoolSpotifyClientRaw:
                               tracks=tracks, spotify_collection_uri=artist_data["uri"])
 
     def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
-        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
-        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
-        tracks = _build_tracks_without_image(playlist_data["tracks"]["items"])
+        playlist_data = self._fully_fetch_playlist(playlist_id, token)
+        tracks = _build_tracks_without_image([track["track"] for track in playlist_data["tracks"]["items"]])
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
+
+    def _fully_fetch_playlist(self, playlist_id, token):
+        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
+        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
+        if playlist_data["tracks"]["next"] is not None:
+            self._fetch_large_playlist_tracks(playlist_data, token)
+        return playlist_data
+
+    def _fetch_large_playlist_tracks(self, playlist_data, token: str):
+        track_walker = playlist_data["tracks"]
+        while track_walker["next"] is not None:
+            raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"])
+            track_walker = json.loads(raw_next_track_data.content.decode("utf-8"))
+            playlist_data["tracks"]["items"].extend(track_walker["items"])
 
     def start_playback(self, token: str, track_uri: str):
         header = _auth_header(token)
