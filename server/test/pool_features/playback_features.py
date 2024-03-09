@@ -186,7 +186,6 @@ def should_inactivate_sessions_for_logged_out_users(db_connection, playback_serv
     assert not playback_state.is_active
 
 
-@pytest.mark.wip
 def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, existing_playback,
                                                      valid_token_header, mock_token_holder: TokenHolder,
                                                      logged_in_user_id, fixed_track_length_ms, monkeypatch,

@@ -2,6 +2,7 @@ import base64
 import json
 import string
 import random
+from enum import Enum
 from unittest.mock import Mock
 
 import pytest
@@ -50,8 +51,14 @@ def default_token_return():
     return response
 
 
+class SubscriptionType(Enum):
+    Premium = "premium"
+    Open = "open"
+    Free = "free"
+
+
 @pytest.fixture
-def default_me_return():
+def default_me_return(request):
     return_json = {
         "country": "Finland",
         "display_name": "Test User",
@@ -62,7 +69,8 @@ def default_me_return():
                 "height": 300,
                 "width": 300
             }
-        ]
+        ],
+        "product": request.param.value if hasattr(request, "param") else "premium"
     }
     response = Mock()
     response.status_code = 200
@@ -208,4 +216,14 @@ def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_var
     requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
     response = base_auth_callback_call()
     json_data = validate_response(response, code)
+    assert json_data["detail"] == expected_error_message
+
+
+@pytest.mark.parametrize("default_me_return", [SubscriptionType.Free, SubscriptionType.Open], indirect=True)
+def should_throw_exception_on_login_if_user_has_no_premium_subscription(correct_env_variables, default_me_return,
+                                                                        validate_response, base_auth_callback_call,
+                                                                        requests_client_with_auth_mock):
+    expected_error_message = "You need to have a Spotify Premium subscription to use Stagnum!"
+    response = base_auth_callback_call()
+    json_data = validate_response(response, 401)
     assert json_data["detail"] == expected_error_message
