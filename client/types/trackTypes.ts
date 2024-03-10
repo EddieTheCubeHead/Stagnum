@@ -13,4 +13,5 @@ export default interface Track {
         link: string
     },
     duration_ms: number
+    icon_link: string,
 }
