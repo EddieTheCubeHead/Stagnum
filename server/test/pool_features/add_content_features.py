@@ -50,13 +50,12 @@ def should_preserve_existing_pool_members_on_new_member_addition(create_mock_tra
     assert len(actual_pool_content) == len(existing_pool) + 1
 
 
-def should_correctly_construct_pool_after_collection_addition(create_mock_track_search_result, requests_client,
+def should_correctly_construct_pool_after_collection_addition(requests_client,
                                                               build_success_response, test_client,
                                                               valid_token_header, db_connection, logged_in_user_id,
-                                                              existing_pool, create_mock_playlist_search_result,
+                                                              existing_pool, create_mock_playlist_fetch_result,
                                                               validate_response):
-    tracks = [create_mock_track_search_result() for _ in range(35)]
-    playlist = create_mock_playlist_search_result(tracks)
+    playlist = create_mock_playlist_fetch_result(35)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
 
@@ -67,7 +66,7 @@ def should_correctly_construct_pool_after_collection_addition(create_mock_track_
             and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))).unique().all()
     assert len(actual_pool_content) == len(existing_pool) + 1
     pool_response = validate_response(response)
-    assert len(pool_response["collections"][0]["tracks"]) == len(tracks)
+    assert len(pool_response["collections"][0]["tracks"]) == len(playlist["tracks"]["items"])
 
 
 def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_track_search_result, requests_client,
