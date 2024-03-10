@@ -9,7 +9,7 @@ import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import CreatePool from "@/components/layout/createPool";
+import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
 
 export default function HomePage() {
