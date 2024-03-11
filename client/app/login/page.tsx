@@ -4,7 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Box, Link, Stack, Typography } from "@mui/material";
-import DefaultButton from "../components/buttons/defaulButton";
+import DefaultButton from "@/components/buttons/defaulButton";
 
 export default function Login() {
   const router = useRouter();
@@ -81,7 +81,7 @@ export default function Login() {
         <Image
           src={require("@/public/Stagnum_Logo.png")}
           width={500}
-          height={400}
+          height={100}
           alt={"Home background"}
           style={{ objectFit: "contain", marginTop: "-2.25rem" }}
         />
