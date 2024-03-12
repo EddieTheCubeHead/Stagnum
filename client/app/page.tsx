@@ -1,7 +1,6 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import SideMenu from "@/components/layout/sideMenu";
 import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
@@ -65,33 +64,26 @@ function HomeContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+
       <Box
         sx={{
-          margin: 1,
+          border: 'dashed grey',
+          width: '30%',
+          float: 'left',
+          padding: 1,
         }}
       >
-        <Grid container gap={1}>
-          <Grid item xs={4}>
-            <Stack spacing={1}>
-              <MainHeaderCard />
-              <SideMenu
-                setShowSearchBar={setShowSearchBar}
-                showSearchBar={showSearchBar}
-                token={token}
-                handleAdd={handleAdd}
-              />
-            </Stack>
-          </Grid>
-          <Grid item xs={7.9}>
-            <CreatePool
-              token={token}
-              selectedCollections={selectedCollections}
-              handleDelete={handleDelete}
-            />
-          </Grid>
-        </Grid>
+        <MainHeaderCard />
+        <Box sx={{
+          border: 'dashed grey',
+          width: '70%',
+          float: 'right',
+          padding: 1
+        }}>
+        </Box>
+
+        <Footer />
       </Box>
-      <Footer />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }

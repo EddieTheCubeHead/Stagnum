@@ -8,7 +8,6 @@ export default function MainHeaderCard() {
 
     return (
         <Box sx={{
-            bgcolor: theme.palette.secondary.dark,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
