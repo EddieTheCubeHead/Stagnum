@@ -1,6 +1,13 @@
 {
   "extends": ["next/core-web-vitals",
   "plugin:testing-library/react",
-  "plugin:jest-dom/recommended"
-  ]
+  "plugin:jest-dom/recommended",
+  "plugin:react/recommended",
+  "eslint:recommended"
+  ],
+  "rules": {
+    // Add any additional ESLint rules as you need 
+    "no-console": "off"
+  },
+  "plugins": ["testing-library", "jest-dom", "react"]
 }
