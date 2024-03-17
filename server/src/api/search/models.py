@@ -13,15 +13,12 @@ class SpotifyPlayableType(Enum):
     Playlist = "playlist"
 
 
-class SpotifyPlayable(BaseModel):
-    name: str
+class SpotifyPlayable(NamedResource):
     uri: str  # spotify unique uri: spotify:track:4PTG3Z6ehGkBFwjybzWkR8
 
 
-class Track(SpotifyPlayable):
-    artists: list[NamedResource]
-    album: NamedResource
-    duration_ms: int
+class Artist(SpotifyPlayable):
+    icon_link: str
 
 
 class Album(SpotifyPlayable):
@@ -30,8 +27,10 @@ class Album(SpotifyPlayable):
     icon_link: str
 
 
-class Artist(SpotifyPlayable):
-    icon_link: str
+class Track(SpotifyPlayable):
+    artists: list[NamedResource]
+    album: Album
+    duration_ms: int
 
 
 class Playlist(SpotifyPlayable):
