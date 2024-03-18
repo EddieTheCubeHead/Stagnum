@@ -6,7 +6,7 @@ import SearchInput from "../inputfields.tsx/searchInput"
 import Playlist from '@/types/playlistTypes'
 import Album from "@/types/albumTypes"
 import Artist from "@/types/artistTypes"
-import CollapseIconButton from "../buttons/collapseIconButton";
+import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 import ExpandedSearchContent from "./expandedSearchContent";
 
 interface Props {

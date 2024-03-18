@@ -3,9 +3,9 @@ import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import { Header3 } from "@/components/textComponents";
-import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
+import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 import Album from "@/types/albumTypes";
-import AddToPoolButton from "@/components/buttons/addToPoolButton";
+import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
 
 export default function PlaylistCard(props: {
     playlist: Playlist,
