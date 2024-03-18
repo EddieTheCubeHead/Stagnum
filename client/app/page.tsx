@@ -4,7 +4,7 @@ import Footer from "@/components/layout/footer";
 import SideMenu from "@/components/layout/sideMenu";
 import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, redirect } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
@@ -35,6 +35,10 @@ function HomeContent() {
   useEffect(() => {
     if (code && state) {
       handleTokenRequest(code, state);
+    }
+    // Delete when we have an actual routeguard
+    else {
+      redirect('/login')
     }
   }, []);
 
@@ -90,7 +94,7 @@ function HomeContent() {
           </Grid>
         </Grid>
       </Box>
-      <Footer />
+      <Footer token={token} />
     </ThemeProvider>
   );
 }
