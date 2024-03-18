@@ -6,11 +6,26 @@ interface Artist {
 
 export default interface Track {
     name: string,
+    link: string,
     uri: string,
-    artists: Artist[],
+    artists: [
+        {
+            name: string,
+            link: string
+        }
+    ],
     album: {
         name: string,
-        link: string
+        link: string,
+        uri: string,
+        artists: [
+            {
+                name: string,
+                link: string
+            }
+        ],
+        year: 0,
+        icon_link: string
     },
-    duration_ms: number
+    duration_ms: 0
 }
