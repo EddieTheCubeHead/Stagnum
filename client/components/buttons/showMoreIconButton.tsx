@@ -1,4 +1,4 @@
-import { IconButton, Menu, MenuItem } from "@mui/material";
+import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import React, { useState } from 'react';
 
@@ -23,17 +23,21 @@ export default function ShowMoreIconButton(props: {
 
     return (
         <>
-            <IconButton
-                aria-label=""
-                onClick={handleClick}
-                sx={{
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    margin: 1
-                }}
-            >
-                <MoreHorizIcon />
-            </IconButton>
+            <Tooltip title='Show more'>
+                <IconButton
+                    aria-label=""
+                    onClick={handleClick}
+                    sx={{
+                        "&:hover": {
+                            color: 'white',
+                        },
+                        color: 'black',
+                        margin: 1
+                    }}
+                >
+                    <MoreHorizIcon />
+                </IconButton>
+            </Tooltip>
             <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
@@ -41,8 +45,7 @@ export default function ShowMoreIconButton(props: {
                 sx={{
                 }}
             >
-                {/* Add more options here */}
-                <MenuItem onClick={handleOptionClick}>Add to Pool</MenuItem>
+                <MenuItem onClick={handleOptionClick}>Create pool</MenuItem>
             </Menu>
         </>
     )
