@@ -40,7 +40,7 @@ jobs:
 
     - run: yarn run lint:fix
 
-    - run: yarn prettier . --fix
+    - run: yarn prettier . --write
 
     - run: yarn run build 
 
