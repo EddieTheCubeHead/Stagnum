@@ -11,6 +11,7 @@ import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
 import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
+import { RouteGuard } from "@/components/routeguard/routeguard";
 
 export default function HomePage() {
   return (
@@ -41,7 +42,7 @@ function HomeContent() {
     console.log("Sending play request");
 
     axios
-      .get("http://localhost:8080/auth/login/callback", {
+      .get("http://localhost:8000/auth/login/callback", {
         params: { state, code, client_redirect_uri },
       })
       .then(function (response) {
@@ -65,32 +66,34 @@ function HomeContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          margin: 1,
-        }}
-      >
-        <Grid container gap={1}>
-          <Grid item xs={4}>
-            <Stack spacing={1}>
-              <MainHeaderCard />
-              <SideMenu
-                setShowSearchBar={setShowSearchBar}
-                showSearchBar={showSearchBar}
+      <RouteGuard token={token}>
+        <Box
+          sx={{
+            margin: 1,
+          }}
+        >
+          <Grid container gap={1}>
+            <Grid item xs={4}>
+              <Stack spacing={1}>
+                <MainHeaderCard />
+                <SideMenu
+                  setShowSearchBar={setShowSearchBar}
+                  showSearchBar={showSearchBar}
+                  token={token}
+                  handleAdd={handleAdd}
+                />
+              </Stack>
+            </Grid>
+            <Grid item xs={7.9}>
+              <CreatePool
                 token={token}
-                handleAdd={handleAdd}
+                selectedCollections={selectedCollections}
+                handleDelete={handleDelete}
               />
-            </Stack>
+            </Grid>
           </Grid>
-          <Grid item xs={7.9}>
-            <CreatePool
-              token={token}
-              selectedCollections={selectedCollections}
-              handleDelete={handleDelete}
-            />
-          </Grid>
-        </Grid>
-      </Box>
+        </Box>
+      </RouteGuard>
       <Footer />
     </ThemeProvider>
   );
