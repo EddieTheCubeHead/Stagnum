@@ -38,10 +38,10 @@ jobs:
 
     - run: yarn install --no-lockfile --production=false
 
-    - run: yarn run lint:fix
+    - run: yarn lint:fix
 
-    - run: yarn prettier . --write
+    - run: yarn format:fix
 
-    - run: yarn run build 
+    - run: yarn build 
 
-    - run: yarn run test
+    - run: yarn test
