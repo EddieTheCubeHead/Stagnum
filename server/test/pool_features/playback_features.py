@@ -1,6 +1,6 @@
 import datetime
 import random
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 from sqlalchemy import select
@@ -235,3 +235,17 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
             select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
 
     assert playback_state.is_active
+
+
+def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_header, test_client, requests_client,
+                                                get_query_parameter):
+    test_client.post("/pool/playback/skip", headers=valid_token_header)
+
+    actual_queue_call = requests_client.post.call_args_list[0]
+    actual_skip_call = requests_client.post.call_args_list[1]
+    assert actual_queue_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
+    called_uri = get_query_parameter(actual_queue_call.args[0], "uri")
+    assert called_uri in [track["uri"] for track in existing_playback]
+    assert actual_queue_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert actual_skip_call.args[0].startswith("https://api.spotify.com/v1/me/player/next")
+    assert actual_skip_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]

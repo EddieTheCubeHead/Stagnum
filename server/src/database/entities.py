@@ -18,7 +18,7 @@ class EntityBase(DeclarativeBase):
 class User(EntityBase):
     spotify_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     spotify_username: Mapped[str] = mapped_column(String(64))
-    spotify_avatar_url: Mapped[str] = mapped_column(String(256))
+    spotify_avatar_url: Mapped[str] = mapped_column(String(256), nullable=True)
 
 
 class LoginState(EntityBase):
@@ -27,10 +27,10 @@ class LoginState(EntityBase):
 
 class PoolMember(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
-    image_url: Mapped[str] = mapped_column(String(64), nullable=False)
-    content_uri: Mapped[str] = mapped_column(String(64), nullable=False)
+    image_url: Mapped[str] = mapped_column(String(256), nullable=False)
+    content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
     parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
