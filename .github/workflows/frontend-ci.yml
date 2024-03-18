@@ -10,7 +10,8 @@ on:
     branches: [ "master" ]
 
 permissions:
-  contents: read
+  checks: write
+  contents: write
 
 jobs:
   build-frontend:
@@ -27,6 +28,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -35,6 +37,12 @@ jobs:
         cache-dependency-path: ./client/package.json
 
     - run: yarn install --no-lockfile
+
+    - name: Run linters
+      uses: wearerequired/lint-action@v2
+      with:
+        eslint: true
+        prettier: true
 
     - run: yarn run build 
 
