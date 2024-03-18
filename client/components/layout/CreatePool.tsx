@@ -24,9 +24,10 @@ export default function CreatePool({
         },
       ],
     };
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     axios
-      .post("http://localhost:8080/pool", requestData, {
+      .post(`${backend_uri}/pool`, requestData, {
         headers: { token },
       })
       .then(function (response) {
