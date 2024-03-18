@@ -1,5 +1,8 @@
 import base64
 import json
+import os
+import random
+import string
 from datetime import datetime
 from logging import getLogger
 from typing import Annotated
@@ -8,10 +11,9 @@ from fastapi import Depends, HTTPException
 from requests import Response
 from sqlalchemy import delete, select
 
-from api.auth.models import SpotifyTokenResponse
-from api.common.dependencies import DatabaseConnection, SpotifyClient
+from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
+from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
 from database.entities import LoginState, User
-
 
 _logger = getLogger("main.api.auth.dependencies")
 
@@ -60,6 +62,9 @@ def _validate_data(raw_data: Response) -> dict:
     return parsed_data
 
 
+_ALLOWED_PRODUCT_TYPES = {"premium"}
+
+
 class AuthSpotifyClientRaw:
 
     def __init__(self, spotify_client: SpotifyClient):
@@ -89,9 +94,73 @@ class AuthSpotifyClientRaw:
         }
         data = self._spotify_client.get("me", headers=headers)
         parsed_data = json.loads(data.content.decode("utf8"))
+        if parsed_data["product"] not in _ALLOWED_PRODUCT_TYPES:
+            raise HTTPException(status_code=401,
+                                detail="You need to have a Spotify Premium subscription to use Stagnum!")
         user_avatar_url = parsed_data["images"][0]["url"] if len(parsed_data["images"]) > 0 else None
         return User(spotify_id=parsed_data["id"], spotify_username=parsed_data["display_name"],
                     spotify_avatar_url=user_avatar_url)
 
 
 AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
+
+_required_scopes = [
+    "user-read-playback-state",
+    "user-modify-playback-state",
+    "user-read-private",
+    "user-read-email"
+]
+
+
+def _create_random_string(length: int) -> str:
+    chars = string.ascii_letters + string.digits
+    return "".join(random.choice(chars) for _ in range(length))
+
+
+class AuthServiceRaw:
+
+    def __init__(self, spotify_client: AuthSpotifyClient, database_connection: AuthDatabaseConnection,
+                 token_holder: TokenHolder):
+        self._spotify_client = spotify_client
+        self._database_connection = database_connection
+        self._token_holder = token_holder
+
+    def build_redirect(self, client_redirect_uri: str) -> LoginRedirect:
+        base_url = "https://accounts.spotify.com/authorize?"
+        scopes_string = " ".join(_required_scopes)
+        state = _create_random_string(16)
+        self._database_connection.save_state(state)
+        client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
+        if client_id is None:
+            raise HTTPException(status_code=500)
+        return LoginRedirect(redirect_uri=f"{base_url}scope={scopes_string}&state={state}&response_type=code"
+                                          f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
+
+    def get_token(self, state: str, code: str, client_redirect_uri: str) -> LoginSuccess:
+        self._validate_state(state)
+        token = self._fetch_token(client_redirect_uri, code)
+        me_result = self._fetch_current_user(token)
+        self._database_connection.update_logged_in_user(me_result, state)
+        self._token_holder.add_token(token, me_result)
+        return LoginSuccess(access_token=token)
+
+    def _validate_state(self, state):
+        if not self._database_connection.is_valid_state(state):
+            _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
+            raise HTTPException(status_code=403, detail="Login state is invalid or expired")
+
+    def _fetch_token(self, client_redirect_uri, code):
+        client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
+        client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
+        _logger.debug(f"Fetching oauth auth token from spotify")
+        token_result = self._spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
+        token = f"{token_result.token_type} {token_result.access_token}"
+        return token
+
+    def _fetch_current_user(self, token) -> User:
+        _logger.debug(f"Fetching user data from spotify")
+        me_result = self._spotify_client.get_me(token)
+        return me_result
+
+
+AuthService = Annotated[AuthServiceRaw, Depends()]

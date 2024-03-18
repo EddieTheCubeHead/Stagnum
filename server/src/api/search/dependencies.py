@@ -10,17 +10,25 @@ from api.common.models import NamedResource
 from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult, \
     SpotifyPlayableType, ArtistSearchResult, AlbumSearchResult, TrackSearchResult, PlaylistSearchResult
 
-
 _logger = getLogger("main.api.search.dependencies")
 
 
 def _build_track(track_data: dict) -> Track:
+    album_artists = [NamedResource(name=artist["name"], link=artist["href"]) for artist in
+                     track_data["album"]["artists"]]
     return Track(
-        artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in track_data["artists"]],
-        album=NamedResource(name=track_data["album"]["name"], link=track_data["album"]["href"]),
+        artists=[NamedResource(name=artist["name"], link=artist["href"])
+                 for artist in track_data["artists"]],
+        album=Album(name=track_data["album"]["name"],
+                    uri=track_data["album"]["uri"],
+                    artists=album_artists,
+                    icon_link=get_sharpest_icon(track_data["album"]["images"]),
+                    year=int(track_data["album"]["release_date"][:4]),
+                    link=track_data["album"]["href"]),
         duration_ms=track_data["duration_ms"],
         name=track_data["name"],
-        uri=track_data["uri"]
+        uri=track_data["uri"],
+        link=track_data["href"]
     )
 
 
@@ -39,7 +47,8 @@ def _build_artist(artist_data: dict) -> Artist:
     return Artist(
         name=artist_data["name"],
         uri=artist_data["uri"],
-        icon_link=get_sharpest_icon(artist_data["images"])
+        icon_link=get_sharpest_icon(artist_data["images"]),
+        link=artist_data["href"]
     )
 
 
@@ -60,7 +69,8 @@ def _build_album(album_data: dict) -> Album:
         year=int(album_data["release_date"][:4]),
         icon_link=get_sharpest_icon(album_data["images"]),
         name=album_data["name"],
-        uri=album_data["uri"]
+        uri=album_data["uri"],
+        link=album_data["href"]
     )
 
 
@@ -79,7 +89,8 @@ def _build_playlist(playlist_data: dict) -> Playlist:
     return Playlist(
         name=playlist_data["name"],
         uri=playlist_data["uri"],
-        icon_link=get_sharpest_icon(playlist_data["images"])
+        icon_link=get_sharpest_icon(playlist_data["images"]),
+        link=playlist_data["href"]
     )
 
 
