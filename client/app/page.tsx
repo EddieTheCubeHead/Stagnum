@@ -12,7 +12,7 @@ import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
-import BetterSearch from "@/components/layout/betterSearch";
+import Search from "@/components/layout/search";
 
 export default function HomePage() {
   return (
@@ -40,7 +40,7 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      redirect('/login')
+      //redirect('/login')
     }
   }, []);
 
@@ -82,7 +82,7 @@ function HomeContent() {
         >
           <MainHeaderCard />
         </Box>
-        <BetterSearch token={token} handleAdd={handleAdd} />
+        <Search token={token} handleAdd={handleAdd} />
       </Box>
       <Footer token={token} />
     </ThemeProvider>
