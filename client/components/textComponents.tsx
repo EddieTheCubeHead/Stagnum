@@ -6,7 +6,7 @@ interface CustomTypographyProps extends TypographyProps {
 
 export function Header1({ text, ...typographyProps }: CustomTypographyProps) {
   return (
-    <Typography fontSize={30} {...typographyProps}>
+    <Typography fontSize={62} {...typographyProps}>
       {text}
     </Typography>
   );
