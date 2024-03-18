@@ -16,17 +16,7 @@ import React, { useEffect, useState } from "react";
 
 const Pool = () => {
   const [token, setToken] = useState("");
-  const queryParams = useSearchParams();
-  const code = queryParams.get("code");
-  const state = queryParams.get("state");
   const client_redirect_uri = "http://localhost:80";
-
-  useEffect(() => {
-    console.log(code, state);
-    if (code && state) {
-      handleTokenRequest(code, state);
-    }
-  }, []);
 
   const handleTokenRequest = (code: string, state: string) => {
     console.log("Sending play request");
@@ -83,7 +73,7 @@ const Pool = () => {
               }}
               id="standard-search"
               label="Search field"
-              onChange={() => {}}
+              onChange={() => { }}
             />
           </Stack>
         </Stack>
