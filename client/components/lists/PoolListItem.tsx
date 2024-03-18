@@ -8,8 +8,9 @@ import {
   ListItemText,
 } from "@mui/material";
 import React, { useState } from "react";
+import { PoolItem } from "./PoolList";
 
-const PoolListItem = ({ item }) => {
+const PoolListItem = (props: { item: PoolItem }) => {
   const [open, setOpen] = useState(false);
   const handleClick = () => {
     setOpen(!open);
@@ -26,14 +27,14 @@ const PoolListItem = ({ item }) => {
             color: theme.palette.secondary.main,
           },
         }}
-        onClick={item.isExpandable ? handleClick : () => {}}
+        onClick={props.item.isExpandable ? handleClick : () => { }}
       >
         <ListItemIcon>
           <Square color="primary" />
         </ListItemIcon>
-        <ListItemText primary={item.title} />
+        <ListItemText primary={props.item.title} />
         <Cancel color="error" />
-        {item.isExpandable ? (
+        {props.item.isExpandable ? (
           open ? (
             <ExpandLess color="primary" />
           ) : (
@@ -43,10 +44,10 @@ const PoolListItem = ({ item }) => {
           <></>
         )}
       </ListItemButton>
-      {item.isExpandable && open ? (
+      {props.item.isExpandable && open ? (
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {item.children?.map((child) => {
+            {props.item.children?.map((child) => {
               return (
                 <ListItemButton
                   key={child.id}

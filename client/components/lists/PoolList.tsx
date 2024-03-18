@@ -3,7 +3,7 @@ import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
 import PoolListItem from "./PoolListItem";
 
-interface PoolItem {
+export interface PoolItem {
   id: number
   title: string
   isExpandable: boolean
