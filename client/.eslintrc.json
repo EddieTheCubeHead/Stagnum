@@ -5,17 +5,19 @@
     "node": true,
     "es6": true
   },
-  "extends": ["next/core-web-vitals",
-  "plugin:testing-library/react",
-  "plugin:jest-dom/recommended",
-  "plugin:react/recommended",
-  "plugin:@typescript-eslint/recommended",
-  "eslint:recommended",
-  "plugin:prettier/recommended"
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "prettier",
+    "plugin:testing-library/react",
+    "plugin:jest-dom/recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
   ],
   "rules": {
-    "indent": ["error", 2], // Enforces consistent indentation using two spaces per indent level.
-    "semi": ["error", "always"], // Requires semicolons at the end of statements.
+    "indent": ["error", 4], // Enforces consistent indentation using two spaces per indent level.
+    // "semi": ["error", "always"], // Requires semicolons at the end of statements.
     "quotes": ["error", "single"], // Enforces the use of single quotes for string literals.
     "no-var": "error", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
     "no-unused-vars": "error", // Flags unused variables, helping to identify potential code issues.
@@ -38,5 +40,6 @@
     ], // Enforce explicit return types for functions except for expressions
     "@typescript-eslint/no-explicit-any": "off" // Allowing explicit any for cases like JSON parsing where TypeScript inference is limited
   },
+  "parser":"@typescript-eslint/parser",
   "plugins": ["testing-library", "jest-dom", "react", "prettier"]
 }
