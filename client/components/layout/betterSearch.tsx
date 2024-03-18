@@ -26,10 +26,12 @@ export default function Search({ token, handleAdd }: Props) {
         null
     )
 
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+
     const handleSearchRequest = () => {
 
         axios
-            .get("http://localhost:8080/search", {
+            .get(`${backend_uri}/search`, {
                 params: { query },
                 headers: { token },
             })
