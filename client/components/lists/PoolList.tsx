@@ -3,8 +3,15 @@ import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
 import PoolListItem from "./PoolListItem";
 
+interface PoolItem {
+  id: number
+  title: string
+  isExpandable: boolean
+  children?: PoolItem[]
+}
+
 const PoolList = () => {
-  const poolList = [
+  const poolList: PoolItem[] = [
     {
       id: 1,
       title: "Song Name",
