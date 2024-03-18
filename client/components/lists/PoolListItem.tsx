@@ -49,6 +49,7 @@ const PoolListItem = ({ item }) => {
             {item.children?.map((child) => {
               return (
                 <ListItemButton
+                  key={child.id}
                   sx={{
                     bgcolor: theme.palette.secondary.light,
                     mb: 2,

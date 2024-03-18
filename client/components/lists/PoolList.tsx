@@ -4,8 +4,6 @@ import List from "@mui/material/List";
 import PoolListItem from "./PoolListItem";
 
 const PoolList = () => {
-  const [open, setOpen] = React.useState(null);
-
   const poolList = [
     {
       id: 1,
@@ -18,46 +16,51 @@ const PoolList = () => {
       isExpandable: true,
       children: [
         {
+          id: 3,
           title: "Song Name",
           isExpandable: false,
         },
         {
+          id: 4,
           title: "Song Name",
           isExpandable: false,
         },
         {
+          id: 5,
           title: "Song Name",
           isExpandable: false,
         },
       ],
     },
     {
-      id: 3,
+      id: 6,
       title: "Song Name",
       isExpandable: false,
     },
     {
-      id: 4,
+      id: 7,
       title: "Song Name",
       isExpandable: false,
     },
     {
-      id: 5,
+      id: 8,
       title: "Album Name",
       isExpandable: true,
       children: [
         {
+          id: 9,
           title: "Song Name",
           isExpandable: false,
         },
         {
+          id: 10,
           title: "Song Name",
           isExpandable: false,
         },
       ],
     },
     {
-      id: 5,
+      id: 11,
       title: "Song Name",
       isExpandable: false,
     },
@@ -75,7 +78,7 @@ const PoolList = () => {
       }
     >
       {poolList.map((item) => {
-        return <PoolListItem item={item} />;
+        return <PoolListItem item={item} key={item.id} />;
       })}
     </List>
   );

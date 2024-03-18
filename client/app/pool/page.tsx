@@ -9,10 +9,42 @@ import {
   TextField,
   ThemeProvider,
 } from "@mui/material";
+import axios from "axios";
 import Image from "next/image";
-import React from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 const Pool = () => {
+  const [token, setToken] = useState("");
+  const queryParams = useSearchParams();
+  const code = queryParams.get("code");
+  const state = queryParams.get("state");
+  const client_redirect_uri = "http://localhost:80";
+
+  useEffect(() => {
+    console.log(code, state);
+    if (code && state) {
+      handleTokenRequest(code, state);
+    }
+  }, []);
+
+  const handleTokenRequest = (code: string, state: string) => {
+    console.log("Sending play request");
+
+    axios
+      .get("http://localhost:8080/auth/login/callback", {
+        params: { state, code, client_redirect_uri },
+      })
+      .then(function (response) {
+        console.log("Response ::: ", response);
+
+        setToken(response.data.access_token);
+      })
+      .catch((error) => {
+        console.log("Request failed", error);
+      });
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
