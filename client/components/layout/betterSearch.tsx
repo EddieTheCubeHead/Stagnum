@@ -1,5 +1,5 @@
 import Track from "@/types/trackTypes";
-import { Box, Stack } from "@mui/material";
+import { Box, Collapse, Stack } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import SearchInput from "../inputfields.tsx/searchInput"
@@ -362,14 +362,16 @@ export default function Search({ token, handleAdd }: Props) {
                 <Box sx={{
                     display: 'flex',
                 }}>
-                    {expanded &&
+                    <Collapse in={expanded} sx={{
+                        width: 1
+                    }}>
                         <ExpandedSearchContent
                             trackList={trackList}
                             albumList={albumList}
                             playlistList={playlistList}
                             artistList={artistList}
                             handleAdd={handleAdd} />
-                    }
+                    </Collapse>
                 </Box>
             </Stack>
         </Box>
