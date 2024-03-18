@@ -109,7 +109,8 @@ class PoolSpotifyClientRaw:
     def _fetch_large_playlist_tracks(self, playlist_data, token: str):
         track_walker = playlist_data["tracks"]
         while track_walker["next"] is not None:
-            raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"])
+            raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"],
+                                                           headers=_auth_header(token))
             track_walker = json.loads(raw_next_track_data.content.decode("utf-8"))
             playlist_data["tracks"]["items"].extend(track_walker["items"])
 
