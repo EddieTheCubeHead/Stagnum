@@ -36,7 +36,7 @@ jobs:
         cache: 'yarn'
         cache-dependency-path: ./client/package.json
 
-    - run: yarn install --no-lockfile
+    - run: yarn install --no-lockfile --production=false
 
     - name: Run linters
       uses: wearerequired/lint-action@v2
