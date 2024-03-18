@@ -5,8 +5,7 @@ from fastapi import APIRouter
 from api.common.dependencies import validated_token, TokenHolder
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService
 from api.pool.helpers import create_pool_return_model
-from api.pool.models import PoolCreationData, Pool, PoolContent
-
+from api.pool.models import PoolCreationData, Pool, PoolContent, PoolTrack
 
 _logger = getLogger("main.api.pool.routes")
 
@@ -39,7 +38,7 @@ async def get_pool(token: validated_token, database_connection: PoolDatabaseConn
 @router.post("/content")
 async def add_content(to_add: PoolContent, token: validated_token, spotify_client: PoolSpotifyClient,
                       database_connection: PoolDatabaseConnection, token_holder: TokenHolder) -> Pool:
-    _logger.debug(f"POST /pool called with content {to_add} and token {token}")
+    _logger.debug(f"POST /pool/content called with content {to_add} and token {token}")
     added_content = spotify_client.get_pool_content(token, to_add)
     whole_pool = database_connection.add_to_pool(added_content, token_holder.get_from_token(token))
     return create_pool_return_model(whole_pool)
@@ -48,6 +47,12 @@ async def add_content(to_add: PoolContent, token: validated_token, spotify_clien
 @router.delete("/content/{spotify_uri}")
 async def delete_content(spotify_uri: str, token: validated_token, database_connection: PoolDatabaseConnection,
                          token_holder: TokenHolder) -> Pool:
-    _logger.debug(f"DELETE /pool called with uri {spotify_uri} and token {token}")
+    _logger.debug(f"DELETE /pool/content/{{spotify_uri}} called with uri {spotify_uri} and token {token}")
     whole_pool = database_connection.delete_from_pool(spotify_uri, token_holder.get_from_token(token))
     return create_pool_return_model(whole_pool)
+
+
+@router.post("/playback/skip")
+async def skip_song(token: validated_token, pool_playback_service: PoolPlaybackService) -> PoolTrack:
+    _logger.debug(f"POST /pool/playback/skip called with token {token}")
+    return pool_playback_service.skip_song(token)

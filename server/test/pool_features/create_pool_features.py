@@ -249,3 +249,4 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_
                                            .options(joinedload(PoolMember.children)))
     assert actual_parent.name == playlist["name"]
     assert len(actual_parent.children) == playlist_length
+    assert requests_client.get.call_args.kwargs["headers"]["Authorization"] == valid_token_header["token"]
