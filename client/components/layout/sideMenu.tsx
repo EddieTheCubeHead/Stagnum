@@ -25,12 +25,13 @@ export default function SideMenup(props: {
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
+  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
   const handleSearchRequest = (searchQuery: string) => {
     console.log("Searching song with:", searchQuery);
 
     axios
-      .get("http://localhost:8080/search", {
+      .get(`${backend_uri}/search`, {
         params: { query },
         headers: { token },
       })

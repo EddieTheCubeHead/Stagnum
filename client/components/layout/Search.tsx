@@ -38,11 +38,13 @@ export default function Search({ token, handleAdd }: Props) {
     null
   );
 
+  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+
   const handleSearchRequest = (searchQuery: string) => {
     console.log("Searching song with:", searchQuery);
 
     axios
-      .get("http://localhost:8000/search", {
+      .get(`${backend_uri}/search`, {
         params: { query },
         headers: { token },
       })

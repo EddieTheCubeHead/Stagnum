@@ -29,7 +29,8 @@ function HomeContent() {
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
-  const client_redirect_uri = "http://localhost:80";
+  const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI_ROOT
 
   useEffect(() => {
     if (code && state) {
@@ -44,10 +45,8 @@ function HomeContent() {
   const handleTokenRequest = (code: string, state: string) => {
     console.log("Sending play request");
 
-    axios
-      .get("http://localhost:8080/auth/login/callback", {
-        params: { state, code, client_redirect_uri },
-      })
+    axios.get(`${backend_uri}/auth/login/callback`,
+      { params: { state, code, client_redirect_uri } })
       .then(function (response) {
         setToken(response.data.access_token);
       })

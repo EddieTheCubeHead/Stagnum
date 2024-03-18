@@ -11,11 +11,12 @@ export default function Login() {
 
   const handleLoginRequest = () => {
     console.log("Sending login request");
-    const client_redirect_uri = "http://localhost:80";
+    const frontend_uri = process.env.NEXT_PUBLIC_FRONTEND_URI;
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
 
     axios
-      .get("http://localhost:8080/auth/login", {
-        params: { client_redirect_uri },
+      .get(`${backend_uri}/auth/login`, {
+        params: { frontend_uri },
       })
       .then(function (response) {
         console.log(response.data.redirect_uri);
