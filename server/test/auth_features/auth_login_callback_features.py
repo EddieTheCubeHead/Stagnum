@@ -227,3 +227,22 @@ def should_throw_exception_on_login_if_user_has_no_premium_subscription(correct_
     response = base_auth_callback_call()
     json_data = validate_response(response, 401)
     assert json_data["detail"] == expected_error_message
+
+
+def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_response, base_auth_callback_call,
+                                              requests_client, default_token_return):
+    return_json = {
+        "country": "Finland",
+        "display_name": "Test User",
+        "id": "test user",
+        "images": [],
+        "product": "premium"
+    }
+    response = Mock()
+    response.status_code = 200
+    response.content = json.dumps(return_json).encode("utf-8")
+    requests_client.post = Mock(return_value=default_token_return)
+    requests_client.get = Mock(return_value=response)
+
+    response = base_auth_callback_call()
+    validate_response(response)
