@@ -12,7 +12,7 @@ const theme = createTheme({
     secondary: {
       main: "#616161", // Gray
       dark: "#212121", // Dark Grey
-      light: "#D9D9D9", // Light grey
+      light: "#757575", // Light grey
     },
     warning: {
       main: "#D21919", // red

@@ -1,37 +1,40 @@
 import { Box, Card } from "@mui/material";
-import { Header3 } from "../../textComponents";
-import DefaultButton from "../../buttons/defaulButton";
 import Album from "@/types/albumTypes";
+import Track from "@/types/trackTypes";
+import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
+import { Header3 } from "@/components/textComponents";
+import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
 
 export default function AlbumCard(props: {
-  album: Album;
-  handleAdd: (newAdd: Album) => void;
+    album: Album,
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
 }) {
-  const addAlbum = () => {
-    props.handleAdd(props.album);
-  };
+    const { album, handleAdd } = props;
 
-  return (
-    <Card
-      sx={{
-        backgroundColor: "secondary.main",
-        maxHeight: 300,
-        maxWidth: 300,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
-      <Header3 text={props.album.name} />
-      <Box
-        sx={{
-          marginLeft: "auto",
-          marginRight: 1,
-          marginBottom: 1,
-        }}
-      >
-        <DefaultButton text={"Add to pool"} action={addAlbum} />
-      </Box>
-    </Card>
-  );
+    const handelAdding = () => {
+        handleAdd(album);
+    };
+
+    return (
+        <Card sx={{ bgcolor: 'secondary.light' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {album.icon_link && (
+                        <Box
+                            sx={{
+                                width: 50,
+                                height: 50,
+                                backgroundImage: `url(${album.icon_link})`,
+                                backgroundSize: 'cover',
+                                margin: 1,
+                            }}
+                        />
+                    )}
+                    <Header3 text={album.name} />
+                </Box>
+                <ShowMoreIconButton handleAdding={handelAdding} />
+            </Box>
+        </Card>
+    );
 }

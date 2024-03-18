@@ -1,15 +1,22 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import { Box, CssBaseline, Grid, Stack } from "@mui/material";
+import { Box, CssBaseline } from "@mui/material";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
+import CollapseIconButton from "@/components/buttons/collapseIconButton";
+import SearchInput from "@/components/inputfields.tsx/searchInput";
+import Search from "@/components/layout/Search";
+import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
+import Track from "@/types/trackTypes";
+import ExpandedSearchContent from "@/components/layout/expandedSearchContent";
+import BetterSearch from "@/components/layout/betterSearch";
 
 export default function HomePage() {
   return (
@@ -20,11 +27,11 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const [showSearchBar, setShowSearchBar] = useState(false);
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album>>(
+  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
     []
   );
-  const [token, setToken] = useState("");
+  const [query, setQuery] = useState("")
+  const [token, setToken] = useState("")
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
@@ -51,37 +58,32 @@ function HomeContent() {
       });
   };
 
-  const handleAdd = (newAdd: Album) => {
-    setSellectedCollections((curCollections) => [...curCollections, newAdd]);
-  };
+  const handleAdd = (newAdd: Album | Track | Artist | Playlist) => {
+    setSellectedCollections((curCollections) => [...curCollections, newAdd])
+  }
 
-  const handleDelete = (itemToDelete: Album) => {
+  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
     setSellectedCollections((curCollections) =>
       curCollections.filter((collection) => collection !== itemToDelete)
-    );
-  };
+    )
+  }
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-
-      <Box
-        sx={{
-          border: 'dashed grey',
-          width: '30%',
-          float: 'left',
-          padding: 1,
-        }}
-      >
-        <MainHeaderCard />
-        <Box sx={{
-          border: 'dashed grey',
-          width: '70%',
-          float: 'right',
-          padding: 1
-        }}>
+      <Box sx={{
+        margin: 1.5,
+        display: 'flex'
+      }}>
+        <Box
+          sx={{
+            flex: 1,
+            padding: 1,
+          }}
+        >
+          <MainHeaderCard />
         </Box>
-
+        <BetterSearch token={token} handleAdd={handleAdd} />
         <Footer />
       </Box>
     </ThemeProvider >

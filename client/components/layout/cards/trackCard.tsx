@@ -1,33 +1,41 @@
-import { Box, Card } from "@mui/material";
-import { Header3 } from "../../textComponents";
-import DefaultButton from "../../buttons/defaulButton";
+import { Box, Card, IconButton } from "@mui/material";
 import Track from "@/types/trackTypes";
-import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
 import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
+import { Header3 } from "@/components/textComponents";
+import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
+import Album from "@/types/albumTypes";
 
-export default function TrackCard(props: { track: Track, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
+export default function TrackCard(props: {
+    track: Track,
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+}) {
+    const { track, handleAdd } = props;
+
     const handelAdding = () => {
-        props.handleAdd(props.track)
-    }
+        handleAdd(track);
+    };
+
     return (
-        <Card
-            sx={{
-                backgroundColor: "secondary.main",
-                maxHeight: 300,
-                maxWidth: 300,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-            }}>
-            <Header3 text={props.track.name} />
-            <Box sx={{
-                marginLeft: 'auto',
-                marginRight: 1,
-                marginBottom: 1
-            }}>
-                <DefaultButton text={"Add to pool"} action={handelAdding} />
+        <Card sx={{ bgcolor: 'secondary.light' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {// Track icons are not yet implemented on the backend side
+                    /*track.icon_link && (
+                        <Box
+                            sx={{
+                                width: 50,
+                                height: 50,
+                                backgroundImage: `url(${track.icon_link})`,
+                                backgroundSize: 'cover',
+                                margin: 1,
+                            }}
+                        />
+                        )*/}
+                    <Header3 text={track.name} sx={{ margin: 1 }} />
+                </Box>
+                <ShowMoreIconButton handleAdding={handelAdding} />
             </Box>
         </Card>
-    )
+    );
 }

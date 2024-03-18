@@ -2,23 +2,15 @@ import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
 import {
   Box,
-  Button,
-  Grid,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import TrackCard from "./cards/trackCard";
 import SearchInput from "../inputfields.tsx/searchInput";
-import { Header2, Header3 } from "../textComponents";
+import { Header2 } from "../textComponents";
 import Playlist from "@/types/playlistTypes";
 import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
-import AlbumCard from "./albumCard";
-import PlaylistCard from "./cards/playlistCard";
+import AlbumCard from "./cards/albumCard";
 import ArtistCard from "./cards/artistCard";
 
 interface Props {
@@ -27,12 +19,12 @@ interface Props {
 }
 
 export default function Search({ token, handleAdd }: Props) {
-  const mounted = useRef(false);
-  const [query, setQuery] = useState("");
-  const [trackList, setTrackList] = useState<Track[]>([]);
-  const [artistList, setArtistList] = useState<Artist[]>([]);
-  const [playlistList, setPlaylistList] = useState<Playlist[]>([]);
-  const [albumList, setAlbumList] = useState<Album[]>([]);
+  const mounted = useRef(false)
+  const [query, setQuery] = useState("")
+  const [trackList, setTrackList] = useState<Track[]>([])
+  const [artistList, setArtistList] = useState<Artist[]>([])
+  const [playlistList, setPlaylistList] = useState<Playlist[]>([])
+  const [albumList, setAlbumList] = useState<Album[]>([])
 
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
     null
@@ -47,17 +39,16 @@ export default function Search({ token, handleAdd }: Props) {
         headers: { token },
       })
       .then(function (response) {
-        console.log(response);
-        setTrackList(response.data.tracks.results);
-        setAlbumList(response.data.albums.results);
-        setArtistList(response.data.artists.results);
-        setPlaylistList(response.data.playlists.results);
-        console.log(trackList);
+        setTrackList(response.data.tracks.results)
+        setAlbumList(response.data.albums.results)
+        setArtistList(response.data.artists.results)
+        setPlaylistList(response.data.playlists.results)
       })
       .catch((error) => {
         console.log("Request failed", error);
       });
   };
+
   const playlist: Playlist = {
     name: "90s Ambient Techno Mix",
     uri: "spotify:playlist:37i9dQZF1EIfMxLinpTxdB",
@@ -71,10 +62,8 @@ export default function Search({ token, handleAdd }: Props) {
 
   useEffect(() => {
     if (!mounted.current) {
-      console.log(mounted.current);
       mounted.current = true;
     } else {
-      console.log(mounted.current);
       if (searchTimeout) {
         clearTimeout(searchTimeout);
       }
@@ -92,9 +81,9 @@ export default function Search({ token, handleAdd }: Props) {
         if (searchTimeout) {
           clearTimeout(searchTimeout);
         }
-      };
+      }
     }
-  }, [query]);
+  }, [query])
 
   return (
     <Box
@@ -107,93 +96,40 @@ export default function Search({ token, handleAdd }: Props) {
       }}
     >
       <SearchInput setQuery={setQuery} />
-      <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-        {/*{trackList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Tracks'} />
-
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {trackList.slice(0, 5).map((track, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <TrackCard track={track} handleAdd={handleAdd}/>
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    }*/}
-        {albumList && (
-          <Grid item xs={10}>
-            <Box sx={{ height: "auto" }}>
-              <Header2 text={"Album"} />
-              <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                {albumList.slice(0, 5).map((album, key) => (
-                  <Grid item xs={2} key={key}>
-                    <Box
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        paddingTop: "100%",
-                      }}
-                    >
-                      <AlbumCard album={album} handleAdd={handleAdd} />
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+      {albumList &&
+        <Box>
+          <Header2 text={"Album"} />
+          {albumList.slice(0, 5).map((album, key) => (
+            <Box
+              style={{
+                position: "relative",
+                width: "100%",
+                paddingTop: "100%",
+              }}
+              key={key}
+            >
+              <AlbumCard album={album} handleAdd={handleAdd} />
             </Box>
-          </Grid>
-        )}
-        {/*{playlistList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Playlists'} />
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {playlistList.slice(0, 5).map((playlist, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <PlaylistCard playlist={playlist} handleAdd={handleAdd} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    }*/}
-        {artistList && (
-          <Grid item xs={10}>
-            <Box sx={{ height: "auto" }}>
-              <Header2 text={"Artists"} />
-              <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                {artistList.slice(0, 5).map((artist, key) => (
-                  <Grid item xs={2} key={key}>
-                    <Box
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        paddingTop: "100%",
-                      }}
-                    >
-                      <ArtistCard artist={artist} handleAdd={handleAdd} />
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+          ))}
+        </Box>
+      }
+      {artistList && (
+        <Box>
+          <Header2 text={"Artists"} />
+          {artistList.slice(0, 5).map((artist, key) => (
+            <Box
+              style={{
+                position: "relative",
+                width: "100%",
+                paddingTop: "100%",
+              }}
+              key={key}
+            >
+              <ArtistCard artist={artist} handleAdd={handleAdd} />
             </Box>
-          </Grid>
-        )}
-      </Grid>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 }
