@@ -3,8 +3,9 @@ import Album from "@/types/albumTypes";
 import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
-import { Header3 } from "@/components/textComponents";
+import { Text } from "@/components/textComponents";
 import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
+import AddToPoolButton from "@/components/buttons/addToPoolButton";
 
 export default function AlbumCard(props: {
     album: Album,
@@ -16,8 +17,10 @@ export default function AlbumCard(props: {
         handleAdd(album);
     };
 
+    const truncatedName = album.name.length > 25 ? album.name.slice(0, 25) + "..." : album.name;
+
     return (
-        <Card sx={{ bgcolor: 'secondary.light' }}>
+        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {album.icon_link && (
@@ -31,9 +34,12 @@ export default function AlbumCard(props: {
                             }}
                         />
                     )}
-                    <Header3 text={album.name} />
+                    <Text text={truncatedName} />
                 </Box>
-                <ShowMoreIconButton handleAdding={handelAdding} />
+                <Box>
+                    <AddToPoolButton />
+                    <ShowMoreIconButton handleAdding={handelAdding} />
+                </Box>
             </Box>
         </Card>
     );

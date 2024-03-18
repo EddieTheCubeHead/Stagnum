@@ -2,9 +2,10 @@ import { Box, Card } from "@mui/material";
 import Artist from "@/types/artistTypes";
 import Track from "@/types/trackTypes";
 import Playlist from "@/types/playlistTypes";
-import { Header3 } from "@/components/textComponents";
+import { Text } from "@/components/textComponents";
 import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
 import Album from "@/types/albumTypes";
+import AddToPoolButton from "@/components/buttons/addToPoolButton";
 
 export default function ArtistCard(props: {
     artist: Artist,
@@ -16,8 +17,10 @@ export default function ArtistCard(props: {
         handleAdd(artist);
     };
 
+    const truncatedName = artist.name.length > 25 ? artist.name.slice(0, 25) + "..." : artist.name;
+
     return (
-        <Card sx={{ bgcolor: 'secondary.light' }}>
+        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {artist.icon_link && (
@@ -31,9 +34,12 @@ export default function ArtistCard(props: {
                             }}
                         />
                     )}
-                    <Header3 text={artist.name} />
+                    <Text text={truncatedName} />
                 </Box>
-                <ShowMoreIconButton handleAdding={handelAdding} />
+                <Box>
+                    <AddToPoolButton />
+                    <ShowMoreIconButton handleAdding={handelAdding} />
+                </Box>
             </Box>
         </Card>
     );

@@ -2,9 +2,10 @@ import { Box, Card, IconButton } from "@mui/material";
 import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
-import { Header3 } from "@/components/textComponents";
+import { Text } from "@/components/textComponents";
 import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
 import Album from "@/types/albumTypes";
+import AddToPoolButton from "@/components/buttons/addToPoolButton";
 
 export default function TrackCard(props: {
     track: Track,
@@ -16,25 +17,30 @@ export default function TrackCard(props: {
         handleAdd(track);
     };
 
+    const truncatedName = track.name.length > 25 ? track.name.slice(0, 25) + "..." : track.name;
+
+
     return (
-        <Card sx={{ bgcolor: 'secondary.light' }}>
+        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {// Track icons are not yet implemented on the backend side
-                    /*track.icon_link && (
+                    {track.album.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${track.icon_link})`,
+                                backgroundImage: `url(${track.album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
-                        )*/}
-                    <Header3 text={track.name} sx={{ margin: 1 }} />
+                    )}
+                    <Text text={truncatedName} sx={{ margin: 1 }} />
                 </Box>
-                <ShowMoreIconButton handleAdding={handelAdding} />
+                <Box>
+                    <AddToPoolButton />
+                    <ShowMoreIconButton handleAdding={handelAdding} />
+                </Box>
             </Box>
         </Card>
     );
