@@ -14,32 +14,108 @@ export default function ExpandedSearchContent(props: {
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
 }) {
     return (
-        <Stack>
+        <Stack sx={{ margin: 1, width: 1 }}>
+            <Header2 text={"Tracks"} sx={{ color: 'white' }} />
             <Box sx={{
-                margin: 2
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4,
+                    width: '20%'
+                }
             }}>
-                <Header2 text={"Tracks"} sx={{ color: 'white' }} />
-                {props.trackList.slice(0, 5).map((track, key) => (
+                {props.trackList.slice(0, 2).map((track, key) => (
                     <TrackCard key={key} track={track} handleAdd={props.handleAdd} />
                 ))}
-                <Box>
-                    <Header2 text={"Albums"} sx={{ color: 'white' }} />
-                    {props.albumList.slice(0, 5).map((album, key) => (
-                        <AlbumCard key={key} album={album} handleAdd={props.handleAdd} />
-                    ))}
-                </Box>
-                <Box>
-                    <Header2 text={"Playlists"} sx={{ color: 'white' }} />
-                    {props.playlistList.slice(0, 5).map((playlist, key) => (
-                        <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} />
-                    ))}
-                </Box>
-                <Box>
-                    <Header2 text={"Artists"} sx={{ color: 'white' }} />
-                    {props.artistList.slice(0, 5).map((artist, key) => (
-                        <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} />
-                    ))}
-                </Box>
+            </Box>
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4,
+                    width: '20%'
+                }
+            }}>
+                {props.trackList.slice(2, 4).map((track, key) => (
+                    <TrackCard key={key} track={track} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Header2 text={"Albums"} sx={{ color: 'white' }} />
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.albumList.slice(0, 2).map((album, key) => (
+                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.albumList.slice(2, 4).map((album, key) => (
+                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Header2 text={"Playlists"} sx={{ color: 'white' }} />
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.playlistList.slice(0, 2).map((playlist, key) => (
+                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.playlistList.slice(2, 4).map((playlist, key) => (
+                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Header2 text={"Artists"} sx={{ color: 'white' }} />
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.artistList.slice(0, 2).map((artist, key) => (
+                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} />
+                ))}
+            </Box>
+            <Box sx={{
+                margin: 1,
+                marginLeft: 2,
+                display: 'flex',
+                '& > *': {
+                    marginRight: 4
+                }
+            }}>
+                {props.artistList.slice(2, 4).map((artist, key) => (
+                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} />
+                ))}
             </Box>
         </Stack>
     )

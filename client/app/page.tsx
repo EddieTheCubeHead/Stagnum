@@ -7,15 +7,11 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
-import MainHeaderCard from "@/components/layout/mainHeaderCard";
+import MainHeaderCard from "@/components/layout/cards/mainHeaderCard";
 import Album from "@/types/albumTypes";
-import CollapseIconButton from "@/components/buttons/collapseIconButton";
-import SearchInput from "@/components/inputfields.tsx/searchInput";
-import Search from "@/components/layout/Search";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
-import ExpandedSearchContent from "@/components/layout/expandedSearchContent";
 import BetterSearch from "@/components/layout/betterSearch";
 
 export default function HomePage() {

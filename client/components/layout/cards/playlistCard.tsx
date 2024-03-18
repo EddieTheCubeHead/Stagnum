@@ -2,7 +2,7 @@ import { Box, Card } from "@mui/material";
 import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
-import { Text } from "@/components/textComponents";
+import { Header3 } from "@/components/textComponents";
 import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
 import Album from "@/types/albumTypes";
 import AddToPoolButton from "@/components/buttons/addToPoolButton";
@@ -34,7 +34,7 @@ export default function PlaylistCard(props: {
                             }}
                         />
                     )}
-                    <Text text={truncatedName} />
+                    <Header3 text={truncatedName} />
                 </Box>
                 <Box>
                     <AddToPoolButton />

@@ -2,7 +2,7 @@ import { Box, Card, IconButton } from "@mui/material";
 import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
-import { Text } from "@/components/textComponents";
+import { Header3 } from "@/components/textComponents";
 import ShowMoreIconButton from "@/components/buttons/showMoreIconButton";
 import Album from "@/types/albumTypes";
 import AddToPoolButton from "@/components/buttons/addToPoolButton";
@@ -35,7 +35,7 @@ export default function TrackCard(props: {
                             }}
                         />
                     )}
-                    <Text text={truncatedName} sx={{ margin: 1 }} />
+                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
                 </Box>
                 <Box>
                     <AddToPoolButton />
