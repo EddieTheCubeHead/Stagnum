@@ -10,10 +10,11 @@ import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
 export default function ArtistCard(props: {
     artist: Artist,
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+    token: string
 }) {
     const { artist, handleAdd } = props;
 
-    const handelAdding = () => {
+    const handleAdding = () => {
         handleAdd(artist);
     };
 
@@ -37,8 +38,8 @@ export default function ArtistCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton />
-                    <ShowMoreIconButton handleAdding={handelAdding} />
+                    <AddToPoolButton newAdd={artist} handleAdding={handleAdding} token={props.token} />
+                    <ShowMoreIconButton />
                 </Box>
             </Box>
         </Card>

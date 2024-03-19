@@ -1,7 +1,7 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import { Box, CssBaseline } from "@mui/material";
+import { Box, CssBaseline, Typography } from "@mui/material";
 import axios from "axios";
 import { useSearchParams, redirect } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -13,6 +13,7 @@ import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 import Search from "@/components/layout/search";
+import ManagePool from "@/components/layout/managePool";
 
 export default function HomePage() {
   return (
@@ -23,10 +24,9 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
+  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
     []
   );
-  const [query, setQuery] = useState("")
   const [token, setToken] = useState("")
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
@@ -58,12 +58,12 @@ function HomeContent() {
   };
 
   const handleAdd = (newAdd: Album | Track | Artist | Playlist) => {
-    setSellectedCollections((curCollections) => [...curCollections, newAdd])
+    setPool((curPool) => [...curPool, newAdd])
   }
 
   const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
-    setSellectedCollections((curCollections) =>
-      curCollections.filter((collection) => collection !== itemToDelete)
+    setPool((curPool) =>
+      curPool.filter((pool) => pool !== itemToDelete)
     )
   }
 
@@ -81,6 +81,7 @@ function HomeContent() {
           }}
         >
           <MainHeaderCard />
+          <ManagePool pool={pool} token={token} handleDelete={handleDelete} />
         </Box>
         <Search token={token} handleAdd={handleAdd} />
       </Box>

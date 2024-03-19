@@ -13,6 +13,7 @@ export default function Login() {
     console.log("Sending login request");
     const frontend_uri = process.env.NEXT_PUBLIC_FRONTEND_URI;
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
+    console.log(process.env.NEXT_PUBLIC_BACKEND_URI)
 
     axios
       .get(`${backend_uri}/auth/login`, {

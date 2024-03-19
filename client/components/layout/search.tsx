@@ -372,7 +372,8 @@ export default function Search({ token, handleAdd }: Props) {
                             albumList={albumList}
                             playlistList={playlistList}
                             artistList={artistList}
-                            handleAdd={handleAdd} />
+                            handleAdd={handleAdd}
+                            token={token} />
                     </Collapse>
                 </Box>
             </Stack>

@@ -3,9 +3,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import React, { useState } from 'react';
 
 export default function ShowMoreIconButton(props: {
-    handleAdding: () => void
 }) {
-    const { handleAdding } = props;
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -18,7 +16,6 @@ export default function ShowMoreIconButton(props: {
 
     const handleOptionClick = () => {
         handleClose();
-        handleAdding();
     };
 
     return (

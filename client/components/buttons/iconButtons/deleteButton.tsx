@@ -1,30 +1,32 @@
-import { IconButton, Tooltip } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
+import { Tooltip, IconButton } from "@mui/material";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import axios from "axios";
 import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
-import axios from "axios";
 
 interface Props {
-    newAdd: Track | Album | Playlist | Artist,
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    poolItem: Track | Album | Playlist | Artist
     token: string
+    handleDelete: (itemToDelete: Album | Track | Artist | Playlist) => void
 }
 
-export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) {
+export default function DeleteButton({
+    poolItem,
+    token,
+    handleDelete
+}: Props) {
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleClick = () => {
-        handleAdding(newAdd)
-
         axios
-            .get(`${backend_uri}/pool/content`, {
+            .get(`${backend_uri}/pool/content/${poolItem.uri}`, {
                 headers: { token },
             })
             .then(function () {
-                console.log(newAdd.name, 'deleted')
+                handleDelete(poolItem)
             })
             .catch((error) => {
                 console.log("Request failed", error);
@@ -32,7 +34,7 @@ export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) 
     };
 
     return (
-        <Tooltip title='Add to pool'>
+        <Tooltip title='Delete from pool'>
             <IconButton
                 aria-label=""
                 onClick={handleClick}
@@ -44,7 +46,7 @@ export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) 
                     margin: 1
                 }}
             >
-                <AddIcon />
+                <DeleteForeverIcon />
             </IconButton>
         </Tooltip >
     )

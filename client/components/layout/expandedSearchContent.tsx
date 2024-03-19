@@ -12,6 +12,7 @@ import ArtistCard from "./cards/artistCard";
 export default function ExpandedSearchContent(props: {
     trackList: Track[], albumList: Album[], playlistList: Playlist[], artistList: Artist[],
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+    token: string
 }) {
     return (
         <Stack sx={{ margin: 1, width: 1 }}>
@@ -26,7 +27,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.trackList.slice(0, 2).map((track, key) => (
-                    <TrackCard key={key} track={track} handleAdd={props.handleAdd} />
+                    <TrackCard key={key} track={track} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Box sx={{
@@ -39,7 +40,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.trackList.slice(2, 4).map((track, key) => (
-                    <TrackCard key={key} track={track} handleAdd={props.handleAdd} />
+                    <TrackCard key={key} track={track} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Header2 text={"Albums"} sx={{ color: 'white' }} />
@@ -52,7 +53,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.albumList.slice(0, 2).map((album, key) => (
-                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} />
+                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Box sx={{
@@ -64,7 +65,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.albumList.slice(2, 4).map((album, key) => (
-                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} />
+                    <AlbumCard key={key} album={album} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Header2 text={"Playlists"} sx={{ color: 'white' }} />
@@ -77,7 +78,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.playlistList.slice(0, 2).map((playlist, key) => (
-                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} />
+                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Box sx={{
@@ -89,7 +90,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.playlistList.slice(2, 4).map((playlist, key) => (
-                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} />
+                    <PlaylistCard key={key} playlist={playlist} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Header2 text={"Artists"} sx={{ color: 'white' }} />
@@ -102,7 +103,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.artistList.slice(0, 2).map((artist, key) => (
-                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} />
+                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
             <Box sx={{
@@ -114,7 +115,7 @@ export default function ExpandedSearchContent(props: {
                 }
             }}>
                 {props.artistList.slice(2, 4).map((artist, key) => (
-                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} />
+                    <ArtistCard key={key} artist={artist} handleAdd={props.handleAdd} token={props.token} />
                 ))}
             </Box>
         </Stack>
