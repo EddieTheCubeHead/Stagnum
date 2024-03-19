@@ -96,8 +96,8 @@ resource "aws_ecs_task_definition" "aws-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"] # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"    # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512 * 3     # Specifying the memory our task requires
-  cpu                      = 256 * 3     # Specifying the CPU our task requires
+  memory                   = 512 * 4     # Specifying the memory our task requires
+  cpu                      = 256 * 4     # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
@@ -177,7 +177,7 @@ resource "aws_ecs_service" "aws-service" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.aws-target_group.arn # Referencing our target group
-    container_name   = "${var.app_name}-container"
+    container_name   = "${var.app_name}-front-container"
     container_port   = 3000 # Specifying the container port
   }
 
