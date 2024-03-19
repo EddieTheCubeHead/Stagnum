@@ -81,7 +81,7 @@ resource "aws_ecs_task_definition" "aws-task" {
     },
     {
       "name": "${var.app_name}-data-container",
-      "image": "${aws_ecr_repository.ecr-repo.repository_url}",
+      "image": "postgres:latest",
       "essential": true,
       "portMappings": [
         {
