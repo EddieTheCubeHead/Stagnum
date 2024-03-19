@@ -72,7 +72,7 @@ export default function Search({ token, handleAdd }: Props) {
     }, [query])
 
     // ------------------- For local development
-    const track: Track[] = [
+    /*const track: Track[] = [
         {
             "name": "Austin",
             "link": "https://api.spotify.com/v1/tracks/4NJqhmkGN042BrvHoMKUrJ",
@@ -340,7 +340,7 @@ export default function Search({ token, handleAdd }: Props) {
         setArtistList(artist)
         setPlaylistList(playlist)
     }, [])
-    // ------------------- For local development
+    // ------------------- For local development*/
 
     return (
         <Box sx={{
