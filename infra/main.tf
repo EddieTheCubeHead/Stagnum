@@ -14,9 +14,22 @@ provider "aws" {
 }
 
 # Creating an ECR Repository
-resource "aws_ecr_repository" "ecr-repo"{
-    name = "${var.app_name}-repo"
+resource "aws_ecr_repository" "ecr-front-repo"{
+    name = "${var.app_name}-front-repo"
     force_delete = true
+}
+
+data "external" "front_build_dir"{
+  program = ["bash", "${path.module}/../client/"]
+}
+
+resource "aws_ecr_repository" "ecr-back-repo"{
+    name = "${var.app_name}-back-repo"
+    force_delete = true
+}
+
+data "external" "back_build_dir"{
+  program = ["bash", "${path.module}/../server/"]
 }
 
 # Creating an ECS cluster
@@ -55,7 +68,7 @@ resource "aws_ecs_task_definition" "aws-task" {
   [
     {
       "name": "${var.app_name}-front-container",
-      "image": "${aws_ecr_repository.ecr-repo.repository_url}",
+      "image": "${aws_ecr_repository.ecr-front-repo.repository_url}",
       "essential": true,
       "portMappings": [
         {
@@ -63,12 +76,16 @@ resource "aws_ecs_task_definition" "aws-task" {
           "hostPort": 3000
         }
       ],
+      "environment": [
+        { "name": "NEXT_PUBLIC_FRONTEND_URI", "value": ${var.NEXT_PUBLIC_FRONTEND_URI}},
+        { "name": "NEXT_PUBLIC_BACKEND_URI", "value": ${var.NEXT_PUBLIC_BACKEND_URI}}
+      ],
       "memory": 512,
       "cpu": 256
     },
     {
       "name": "${var.app_name}-back-container",
-      "image": "${aws_ecr_repository.ecr-repo.repository_url}",
+      "image": "${aws_ecr_repository.ecr-back-repo.repository_url}",
       "essential": true,
       "portMappings": [
         {
@@ -76,18 +93,26 @@ resource "aws_ecs_task_definition" "aws-task" {
           "hostPort": 8080
         }
       ],
+      "environment": [
+        { "name":"DATABASE_CONNECTION_URL", "value": postgresql://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@database:${var.DATABASE_PORT}/${var.POSTGRES_DB}}
+      ],
       "memory": 512,
       "cpu": 256
     },
     {
       "name": "${var.app_name}-data-container",
-      "image": "postgres:latest",
+      "image": "public.ecr.aws/docker/library/postgres:latest",
       "essential": true,
       "portMappings": [
         {
           "containerPort": 5432,
           "hostPort": 5432
         }
+      ],
+      "environment":[
+        { "name":"POSTGRES_USER", "value": ${var.POSTGRES_USER}},
+        { "name":"POSTGRES_PASSWORD","value": ${var.POSTGRES_PASSWORD}},
+        { "name":"POSTGRES_DB","value": ${var.POSTGRES_DB}}
       ],
       "memory": 512,
       "cpu": 256
