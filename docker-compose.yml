@@ -1,9 +1,5 @@
 version: "3.8"
 
-env_file:
-  - path: ./.env
-    required: true
-
 services:
   frontend:
     build:
@@ -15,6 +11,9 @@ services:
     networks:
       - outgoing
       - internal
+    env_file:
+      - path: ./.env
+        required: true
   backend:
     build:
       context: ./server/
@@ -33,6 +32,9 @@ services:
     secrets:
       - spotify_client_id
       - spotify_client_secret
+    env_file:
+      - path: ./.env
+        required: true
   database:
     image: postgres:latest
     restart: always
@@ -52,6 +54,10 @@ services:
       - data:/var/lib/postgresql/data
     networks:
       - internal
+    env_file:
+      - path: ./.env
+        required: true
+    
 
 secrets:
   spotify_client_id:

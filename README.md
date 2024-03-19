@@ -21,7 +21,7 @@ You can create secret files to pass sensitive data to the environment.
 Currently supported files `secret_spotify_client_id.txt` and `secret_spotify_client_secret.txt`. Add the files in the repository root and fill them with your spotify app credentials. You need to get these secrets from [Spotify](https://developer.spotify.com/dashboard). 
 See more about these secrets `server/README.md`.
 
-Fill the rest of example .env file with your environment variables.
+Fill the rest of example .env file with your environment variables according to the example.env.
 
 ## Run
 To run the project after you have setup the secrets and environment variables.
