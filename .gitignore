@@ -3,8 +3,14 @@
 __pycache__
 venv
 .venv
+
+# terraform
 .terraform
 .terraform.lock
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
 # log files
 *.log
 
