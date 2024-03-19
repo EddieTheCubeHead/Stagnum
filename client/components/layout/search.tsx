@@ -57,7 +57,7 @@ export default function Search({ token, handleAdd }: Props) {
             // Set a timeout to execute the search after 2 seconds
             const timeout = setTimeout(() => {
                 handleSearchRequest();
-            }, 2000);
+            }, 1000);
 
             // Save the timeout ID for cleanup
             setSearchTimeout(timeout);
