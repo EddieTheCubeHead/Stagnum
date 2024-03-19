@@ -39,7 +39,7 @@ export default function PlaylistCard(props: {
                 </Box>
                 <Box>
                     <AddToPoolButton newAdd={playlist} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton />
+                    <ShowMoreIconButton token={props.token} item={playlist} handleAdding={handleAdding} />
                 </Box>
             </Box>
         </Card>

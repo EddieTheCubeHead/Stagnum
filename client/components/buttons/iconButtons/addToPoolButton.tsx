@@ -14,17 +14,19 @@ interface Props {
 
 export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) {
 
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const backend_uri = 'http://localhost:8080'
 
     const handleClick = () => {
-        handleAdding(newAdd)
+        const requestData = {
+            spotify_uri: newAdd.uri,
+        };
 
         axios
-            .get(`${backend_uri}/pool/content`, {
+            .post(`${backend_uri}/pool/content`, requestData, {
                 headers: { token },
             })
             .then(function () {
-                console.log(newAdd.name, 'deleted')
+                handleAdding(newAdd)
             })
             .catch((error) => {
                 console.log("Request failed", error);

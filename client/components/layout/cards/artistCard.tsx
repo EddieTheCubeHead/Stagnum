@@ -39,7 +39,7 @@ export default function ArtistCard(props: {
                 </Box>
                 <Box>
                     <AddToPoolButton newAdd={artist} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton />
+                    <ShowMoreIconButton token={props.token} item={artist} handleAdding={handleAdding} />
                 </Box>
             </Box>
         </Card>

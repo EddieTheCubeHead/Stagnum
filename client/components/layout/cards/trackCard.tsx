@@ -40,7 +40,7 @@ export default function TrackCard(props: {
                 </Box>
                 <Box>
                     <AddToPoolButton handleAdding={handleAdding} newAdd={track} token={props.token} />
-                    <ShowMoreIconButton />
+                    <ShowMoreIconButton token={props.token} item={track} handleAdding={handleAdding} />
                 </Box>
             </Box>
         </Card>

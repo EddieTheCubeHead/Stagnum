@@ -39,7 +39,7 @@ export default function AlbumCard(props: {
                 </Box>
                 <Box>
                     <AddToPoolButton newAdd={album} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton />
+                    <ShowMoreIconButton token={props.token} item={album} handleAdding={handleAdding} />
                 </Box>
             </Box>
         </Card>

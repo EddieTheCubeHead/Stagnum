@@ -1,9 +1,23 @@
 import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import React, { useState } from 'react';
+import axios from "axios";
+import Album from "@/types/albumTypes";
+import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
+import Track from "@/types/trackTypes";
 
-export default function ShowMoreIconButton(props: {
-}) {
+interface Props {
+    token: string
+    item: Track | Album | Playlist | Artist
+    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+}
+
+export default function ShowMoreIconButton({
+    token,
+    item,
+    handleAdding
+}: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -14,8 +28,26 @@ export default function ShowMoreIconButton(props: {
         setAnchorEl(null);
     };
 
-    const handleOptionClick = () => {
-        handleClose();
+    const createPool = () => {
+        const requestData = {
+            spotify_uris: [
+                {
+                    spotify_uri: item.uri,
+                },
+            ],
+        };
+        const backend_uri = 'http://localhost:8080'
+
+        axios
+            .post(`${backend_uri}/pool`, requestData, {
+                headers: { token },
+            })
+            .then(function (response) {
+                handleAdding(item)
+            })
+            .catch((error) => {
+                console.log("Request failed", error);
+            });
     };
 
     return (
@@ -42,7 +74,7 @@ export default function ShowMoreIconButton(props: {
                 sx={{
                 }}
             >
-                <MenuItem onClick={handleOptionClick}>Create pool</MenuItem>
+                <MenuItem onClick={createPool}>Create pool</MenuItem>
             </Menu>
         </>
     )
