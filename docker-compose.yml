@@ -11,6 +11,9 @@ services:
     networks:
       - outgoing
       - internal
+    environment:
+      NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
+      NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
     env_file:
       - path: ./.env
         required: true
