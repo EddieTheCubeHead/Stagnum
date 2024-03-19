@@ -3,10 +3,12 @@
 __pycache__
 venv
 .venv
-
+.terraform
+.terraform.lock
 # log files
 *.log
 
 #Secrets!
+terraform.tfvars
 secret_spotify_client_id.txt
 secret_spotify_client_secret.txt
