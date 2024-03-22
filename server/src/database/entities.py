@@ -19,7 +19,9 @@ class User(EntityBase):
     spotify_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     spotify_username: Mapped[str] = mapped_column(String(64))
     spotify_avatar_url: Mapped[str] = mapped_column(String(256), nullable=True)
+
     session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user")
+    joined_pool: Mapped["PoolJoinedUser"] = relationship(lazy="joined", back_populates="user")
 
 
 class UserSession(EntityBase):
@@ -57,11 +59,21 @@ class Pool(EntityBase):
     name: Mapped[str] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
     owner_user_id: Mapped[int] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
+    joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
+
 
 class PoolJoinCode(EntityBase):
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"),
                                          primary_key=True)
     code: Mapped[str] = mapped_column(String(8), nullable=False)
+
+
+class PoolJoinedUser(EntityBase):
+    user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
+    pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+
+    pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="joined_users")
+    user: Mapped["User"] = relationship(lazy="joined", back_populates="joined_pool")
 
 
 class PlaybackSession(EntityBase):

@@ -9,7 +9,6 @@ from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, Poo
 
 _logger = getLogger("main.api.pool.routes")
 
-
 router = APIRouter(
     prefix="/pool",
     tags=["pool"]
@@ -21,10 +20,10 @@ async def create_pool(base_collection: PoolCreationData, user: validated_user,
                       spotify_client: PoolSpotifyClient, database_connection: PoolDatabaseConnection,
                       pool_playback_service: PoolPlaybackService) -> PoolFullContents:
     _logger.debug(f"POST /pool called with collection {base_collection} and token {user.session.user_token}")
-    pool_content = spotify_client.get_pool_content(user, *base_collection.spotify_uris)
-    database_connection.create_pool(pool_content)
+    pool_user_content = spotify_client.get_pool_content(user, *base_collection.spotify_uris)
+    database_connection.create_pool(pool_user_content)
     pool_playback_service.start_playback(user)
-    return pool_content
+    return PoolFullContents(users=[pool_user_content])
 
 
 @router.get("/")
@@ -36,20 +35,22 @@ async def get_pool(token: validated_user, database_connection: PoolDatabaseConne
 
 
 @router.post("/content")
-async def add_content(to_add: PoolContent, token: validated_user, spotify_client: PoolSpotifyClient,
+async def add_content(to_add: PoolContent, user: validated_user, spotify_client: PoolSpotifyClient,
                       database_connection: PoolDatabaseConnection, token_holder: TokenHolder) -> PoolFullContents:
-    _logger.debug(f"POST /pool/content called with content {to_add} and token {token}")
-    added_content = spotify_client.get_pool_content(token, to_add)
-    whole_pool = database_connection.add_to_pool(added_content, token_holder.get_from_token(token))
+    _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
+    added_content = spotify_client.get_pool_content(user, to_add)
+    whole_pool = database_connection.add_to_pool(added_content, user)
     return create_pool_return_model(whole_pool)
 
 
 @router.delete("/content/{spotify_uri}")
-async def delete_content(spotify_uri: str, token: validated_user, database_connection: PoolDatabaseConnection,
+async def delete_content(spotify_uri: str, user: validated_user, database_connection: PoolDatabaseConnection,
                          token_holder: TokenHolder) -> PoolFullContents:
-    _logger.debug(f"DELETE /pool/content/{{spotify_uri}} called with uri {spotify_uri} and token {token}")
-    whole_pool = database_connection.delete_from_pool(spotify_uri, token_holder.get_from_token(token))
-    return create_pool_return_model(whole_pool)
+    _logger.debug(
+        f"DELETE /pool/content/{{spotify_uri}} called with uri {spotify_uri} and token {user.session.user_token}")
+    whole_pool = database_connection.delete_from_pool(spotify_uri, user)
+    pool_users = database_connection.get_pool_users(user)
+    return create_pool_return_model(whole_pool, pool_users)
 
 
 @router.post("/playback/skip")

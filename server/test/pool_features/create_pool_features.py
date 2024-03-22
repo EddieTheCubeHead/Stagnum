@@ -9,7 +9,6 @@ from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
 
-@pytest.mark.wip
 def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
                                                                              valid_token_header,
                                                                              validate_response,
@@ -53,9 +52,10 @@ def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_toke
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/albums/{album['id']}",
                                            headers={"Authorization": valid_token_header["token"]})
     pool_response = validate_response(result)
-    assert pool_response["tracks"] == []
-    assert len(pool_response["collections"][0]["tracks"]) == len(tracks)
-    for expected_track, actual_track in zip(tracks, pool_response["collections"][0]["tracks"]):
+    user_pool = pool_response["users"][0]
+    assert user_pool["tracks"] == []
+    assert len(user_pool["collections"][0]["tracks"]) == len(tracks)
+    for expected_track, actual_track in zip(tracks, user_pool["collections"][0]["tracks"]):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -100,9 +100,10 @@ def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_tok
             == call(f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks",
                     headers={"Authorization": valid_token_header["token"]}))
     pool_response = validate_response(result)
-    assert pool_response["tracks"] == []
-    assert len(pool_response["collections"][0]["tracks"]) == len(tracks["tracks"])
-    for expected_track, actual_track in zip(tracks["tracks"], pool_response["collections"][0]["tracks"]):
+    user_pool = pool_response["users"][0]
+    assert user_pool["tracks"] == []
+    assert len(user_pool["collections"][0]["tracks"]) == len(tracks["tracks"])
+    for expected_track, actual_track in zip(tracks["tracks"], user_pool["collections"][0]["tracks"]):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -144,10 +145,11 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
                                            headers={"Authorization": valid_token_header["token"]})
     pool_response = validate_response(result)
-    assert pool_response["tracks"] == []
+    user_pool = pool_response["users"][0]
+    assert user_pool["tracks"] == []
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
-    assert len(pool_response["collections"][0]["tracks"]) == len(expected_tracks)
-    for expected_track, actual_track in zip(expected_tracks, pool_response["collections"][0]["tracks"]):
+    assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks)
+    for expected_track, actual_track in zip(expected_tracks, user_pool["collections"][0]["tracks"]):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -220,8 +222,9 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["tracks"]) == len(tracks)
-    assert len(pool_response["collections"]) == 3
+    user_pool = pool_response["users"][0]
+    assert len(user_pool["tracks"]) == len(tracks)
+    assert len(user_pool["collections"]) == 3
 
     with db_connection.session() as session:
         actual_results = session.scalars(select(PoolMember).where(

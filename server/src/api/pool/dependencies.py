@@ -5,14 +5,14 @@ from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import delete, and_, select
+from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon
 from api.common.models import UserModel
-from api.pool.models import PoolContent, PoolFullContents, PoolCollection, PoolTrack, PoolUserContents
-from database.entities import PoolMember, User, PlaybackSession, Pool
+from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
+from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser
 
 _logger = getLogger("main.api.pool.dependencies")
 
@@ -54,7 +54,7 @@ class PoolSpotifyClientRaw:
             "playlist": self._fetch_playlist
         }
 
-    def get_pool_content(self, user: User, *pool_contents: PoolContent) -> PoolFullContents:
+    def get_pool_content(self, user: User, *pool_contents: PoolContent) -> PoolUserContents:
         pool_tracks: list[PoolTrack] = []
         pool_collections: list[PoolCollection] = []
         for pool_content in pool_contents:
@@ -66,8 +66,7 @@ class PoolSpotifyClientRaw:
                 pool_collections.append(content)
         user_model = UserModel(display_name=user.spotify_username, icon_url=user.spotify_avatar_url,
                                spotify_id=user.spotify_id)
-        user_pool_contents = PoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
-        return PoolFullContents(users=[user_pool_contents])
+        return PoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
 
     def _fetch_content(self, token: str, content_uri: str) -> PoolTrack | PoolCollection:
         _, content_type, content_id = content_uri.split(":")
@@ -209,14 +208,6 @@ def _crete_user_playback(session: Session, user: User, playing_track: PoolMember
     ))
 
 
-def _get_pool_user(pool):
-    if len(pool.users) != 1:
-        _logger.error(f"Tried to create a pool with {len(pool.users)} users!")
-        raise ValueError(f"Pool can be only created with exactly one user!")
-    user = pool.users[0].user
-    return user
-
-
 def _create_transient_pool(user: UserModel, session: Session):
     pool = Pool(name=None, owner_user_id=user.spotify_id)
     session.add(pool)
@@ -224,21 +215,25 @@ def _create_transient_pool(user: UserModel, session: Session):
     return pool
 
 
+def _get_pool_for_user(user: User, session: Session) -> Pool:
+    return session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
         self._database_connection = database_connection
 
-    def create_pool(self, pool: PoolFullContents):
-        user = _get_pool_user(pool)
+    def create_pool(self, pool: PoolUserContents):
         with self._database_connection.session() as session:
-            _purge_existing_transient_pool(user, session)
-            transient_pool = _create_transient_pool(user, session)
-            _create_pool_member_entities(pool.users[0], transient_pool, session)
+            _purge_existing_transient_pool(pool.user, session)
+            transient_pool = _create_transient_pool(pool.user, session)
+            _create_pool_member_entities(pool, transient_pool, session)
 
-    def add_to_pool(self, pool: PoolFullContents, user: User) -> list[PoolMember]:
+    def add_to_pool(self, contents: PoolUserContents, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
-            _create_pool_member_entities(pool, user, session)
+            pool = _get_pool_for_user(user, session)
+            _create_pool_member_entities(contents, pool, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
@@ -279,6 +274,15 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             playback = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == playback.user_id))
             playback.is_active = False
+
+    def get_pool_users(self, user: User) -> list[User]:
+        with self._database_connection.session() as session:
+            pool = session.scalar(select(Pool).where(or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.has(
+                PoolJoinedUser.user_id == user.spotify_id))))
+            users = session.scalars(select(User).where(
+                or_(User.spotify_id == pool.owner_user_id,
+                    User.joined_pool.has(PoolJoinedUser.pool_id == pool.id)))).all()
+        return users
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
