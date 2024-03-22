@@ -16,6 +16,8 @@ from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoine
 
 _logger = getLogger("main.api.pool.dependencies")
 
+FullPoolData = (list[PoolMember], list[User], str)
+
 
 def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
     # Weird bug at least in my test set where this fails pydantic validation if we return the list comprehension.
@@ -157,8 +159,9 @@ def _purge_existing_transient_pool(user, session):
 
 def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
     _logger.debug(f"Getting current pool for user {user.spotify_username}")
+    pool = _get_pool_for_user(user, session)
     return list(session.scalars(
-        select(PoolMember).where(and_(PoolMember.user_id == user.spotify_id, PoolMember.parent_id == None))
+        select(PoolMember).where(and_(PoolMember.pool_id == pool.id, PoolMember.parent_id == None))
         .options(joinedload(PoolMember.children))).unique().all())
 
 
@@ -209,7 +212,8 @@ def _create_transient_pool(user: UserModel, session: Session):
 
 
 def _get_pool_for_user(user: User, session: Session) -> Pool:
-    return session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
+    return session.scalar(select(Pool).where(
+        or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id))))
 
 
 class PoolDatabaseConnectionRaw:
@@ -280,12 +284,19 @@ class PoolDatabaseConnectionRaw:
                     User.joined_pool.has(PoolJoinedUser.pool_id == pool.id)))).unique().all()
         return users
 
-    def share_pool(self, user: User) -> (list[PoolMember], list[User], str):
+    def share_pool(self, user: User) -> FullPoolData:
         share_code = create_random_string(8).upper()
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
             pool.share_data = PoolShareData(code=share_code)
-            return *self.get_pool(user), share_code
+        return *self.get_pool(user), share_code
+
+    def join_pool(self, user: User, code: str) -> FullPoolData:
+        with self._database_connection.session() as session:
+            pool = session.scalar(select(Pool).where(
+                and_(Pool.owner_user_id != user.spotify_id, Pool.share_data.has(PoolShareData.code == code))))
+            pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
+        return *self.get_pool(user), code
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

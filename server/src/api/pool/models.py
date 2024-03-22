@@ -34,3 +34,7 @@ class PoolUserContents(BaseModel):
 class PoolFullContents(BaseModel):
     users: list[PoolUserContents]
     share_code: str | None = None
+
+
+class PoolJoiningData(BaseModel):
+    code: str

@@ -60,6 +60,13 @@ async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackSer
 
 
 @router.post("/share")
-async def share_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
-    _logger.debug(f"POST /pool/share called with token {user}")
-    return create_pool_return_model(*database_connection.share_pool(user))
+async def share_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection) -> PoolFullContents:
+    _logger.debug(f"POST /pool/share called with token {user.session.user_token}")
+    return create_pool_return_model(*pool_database_connection.share_pool(user))
+
+
+@router.post("/join/{code}")
+async def join_pool(code: str, user: validated_user,
+                    pool_database_connection: PoolDatabaseConnection) -> PoolFullContents:
+    _logger.debug(f"POST /pool/join called with code {code} and token {user.session.user_token}")
+    return create_pool_return_model(*pool_database_connection.join_pool(user, code))
