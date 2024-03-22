@@ -4,7 +4,7 @@ import random
 from logging import getLogger
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -217,6 +217,13 @@ def _get_pool_for_user(user: User, session: Session) -> Pool:
         or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id))))
 
 
+def _validate_pool_join(pool, user):
+    if pool.owner_user_id == user.spotify_id:
+        raise HTTPException(status_code=400, detail="Attempted to join own pool!")
+    if user.spotify_id in (pool_user.user_id for pool_user in pool.joined_users):
+        raise HTTPException(status_code=400, detail="Already a member of that pool!")
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
@@ -243,11 +250,12 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
-    def get_pool(self, user: User) -> (list[PoolMember], list[User]):
+    def get_pool(self, user: User) -> FullPoolData:
         with self._database_connection.session() as session:
             whole_pool = _get_user_pool(user, session)
             pool_users = self.get_pool_users(user)
-        return whole_pool, pool_users
+            pool = _get_pool_for_user(user, session)
+        return whole_pool, pool_users, pool.share_data.code if pool.share_data is not None else None
 
     def get_playable_tracks(self, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
@@ -289,15 +297,17 @@ class PoolDatabaseConnectionRaw:
         share_code = create_random_string(8).upper()
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
+            if pool.share_data is not None:
+                raise HTTPException(status_code=400, detail="Pool already shared!")
             pool.share_data = PoolShareData(code=share_code)
-        return *self.get_pool(user), share_code
+        return self.get_pool(user)
 
     def join_pool(self, user: User, code: str) -> FullPoolData:
         with self._database_connection.session() as session:
-            pool = session.scalar(select(Pool).where(
-                and_(Pool.owner_user_id != user.spotify_id, Pool.share_data.has(PoolShareData.code == code))))
+            pool = session.scalar(select(Pool).where(Pool.share_data.has(PoolShareData.code == code)))
+            _validate_pool_join(pool, user)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
-        return *self.get_pool(user), code
+        return self.get_pool(user)
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

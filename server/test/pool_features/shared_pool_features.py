@@ -132,3 +132,50 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_cl
     assert joined_played_original
     assert joined_played_joined
     assert original_played_joined
+
+
+def should_not_get_pool_share_code_from_get_pool_before_initial_share(existing_playback, test_client,
+                                                                      valid_token_header, validate_response):
+    response = test_client.get("/pool", headers=valid_token_header)
+
+    result = validate_response(response)
+    assert result["share_code"] is None
+
+
+def should_get_pool_share_code_from_get_pool_after_initial_share(shared_pool_code, test_client, valid_token_header,
+                                                                 another_logged_in_user_header, validate_response):
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+
+    for header in (valid_token_header, another_logged_in_user_header):
+        response = test_client.get("/pool", headers=header)
+        result = validate_response(response)
+        assert result["share_code"] == shared_pool_code
+
+
+def should_return_error_response_when_attempting_to_join_own_pool(shared_pool_code, test_client, valid_token_header,
+                                                                  validate_response):
+    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=valid_token_header)
+
+    result = validate_response(response, 400)
+    assert result["detail"] == "Attempted to join own pool!"
+
+
+def should_return_error_response_when_attempting_to_join_already_joined_pool(shared_pool_code, test_client,
+                                                                             another_logged_in_user_header,
+                                                                             validate_response):
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+
+    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+
+    result = validate_response(response, 400)
+    assert result["detail"] == "Already a member of that pool!"
+
+
+def should_return_error_response_when_attempting_to_share_own_pool_with_existing_share_code(shared_pool_code,
+                                                                                            test_client,
+                                                                                            valid_token_header,
+                                                                                            validate_response):
+    response = test_client.post(f"/pool/share", headers=valid_token_header)
+
+    result = validate_response(response, 400)
+    assert result["detail"] == "Pool already shared!"
