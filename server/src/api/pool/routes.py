@@ -40,7 +40,8 @@ async def add_content(to_add: PoolContent, user: validated_user, spotify_client:
     _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
     added_content = spotify_client.get_pool_content(user, to_add)
     whole_pool = database_connection.add_to_pool(added_content, user)
-    return create_pool_return_model(whole_pool)
+    pool_users = database_connection.get_pool_users(user)
+    return create_pool_return_model(whole_pool, pool_users)
 
 
 @router.delete("/content/{spotify_uri}")

@@ -9,7 +9,7 @@ from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
-from api.common.helpers import get_sharpest_icon
+from api.common.helpers import get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser
@@ -64,8 +64,7 @@ class PoolSpotifyClientRaw:
                 pool_tracks.append(content)
             else:
                 pool_collections.append(content)
-        user_model = UserModel(display_name=user.spotify_username, icon_url=user.spotify_avatar_url,
-                               spotify_id=user.spotify_id)
+        user_model = map_user_entity_to_model(user)
         return PoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
 
     def _fetch_content(self, token: str, content_uri: str) -> PoolTrack | PoolCollection:
@@ -233,6 +232,8 @@ class PoolDatabaseConnectionRaw:
     def add_to_pool(self, contents: PoolUserContents, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
             pool = _get_pool_for_user(user, session)
+            if pool is None:
+                pool = _create_transient_pool(map_user_entity_to_model(user), session)
             _create_pool_member_entities(contents, pool, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
@@ -277,11 +278,11 @@ class PoolDatabaseConnectionRaw:
 
     def get_pool_users(self, user: User) -> list[User]:
         with self._database_connection.session() as session:
-            pool = session.scalar(select(Pool).where(or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.has(
+            pool = session.scalar(select(Pool).where(or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(
                 PoolJoinedUser.user_id == user.spotify_id))))
             users = session.scalars(select(User).where(
                 or_(User.spotify_id == pool.owner_user_id,
-                    User.joined_pool.has(PoolJoinedUser.pool_id == pool.id)))).all()
+                    User.joined_pool.has(PoolJoinedUser.pool_id == pool.id)))).unique().all()
         return users
 
 
