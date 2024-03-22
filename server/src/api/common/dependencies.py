@@ -102,17 +102,14 @@ class TokenHolderRaw:
     def __init__(self, user_database_connection: UserDatabaseConnection):
         self._user_database_connection = user_database_connection
 
-    def validate_token(self, token: str) -> User:
+    def get_user_from_token(self, token: str) -> User:
         user = self._user_database_connection.get_from_token(token)
         if user is None:
             _logger.error(f"Token {token} not found.")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
         return user
 
-    def get_from_token(self, token: str) -> User:
-        return self._user_database_connection.get_from_token(token)
-
-    def get_from_user_id(self, user_id: str) -> User:
+    def get_user_from_user_id(self, user_id: str) -> User:
         return self._user_database_connection.get_from_id(user_id)
 
     def log_out(self, token: str):
@@ -129,8 +126,8 @@ TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
 def validated_user_raw(token: Annotated[str, Header()], token_holder: TokenHolder) -> User:
-    _logger.debug(f"Validating token {token}")
-    user = token_holder.validate_token(token)
+    _logger.debug(f"Getting user for token {token}")
+    user = token_holder.get_user_from_token(token)
     return user
 
 

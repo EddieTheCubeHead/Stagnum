@@ -340,7 +340,7 @@ class PoolPlaybackServiceRaw:
         if not self._token_holder.is_user_logged_in(playback.user_id):
             self._database_connection.set_playback_as_inactive(playback)
             return
-        user = self._token_holder.get_from_user_id(playback.user_id)
+        user = self._token_holder.get_user_from_user_id(playback.user_id)
         self._queue_next_song(user)
 
     def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
