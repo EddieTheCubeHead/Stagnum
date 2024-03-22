@@ -37,13 +37,15 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
 
-    def update_logged_in_user(self, user: User, state: str, token_result: ParsedTokenResponse):
+    def update_logged_in_user(self, user: User, token_result: ParsedTokenResponse, state: str = None):
         _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
-            session.merge(user)
             user.session = UserSession(user_token=token_result.token, refresh_token=token_result.refresh_token,
                                        expires_at=datetime.datetime.now() + datetime.timedelta(
                                            seconds=token_result.expires_in))
+            session.merge(user)
+            if state is None:
+                return
             state = session.scalar(select(LoginState).where(LoginState.state_string == state))
             session.delete(state)
 
@@ -131,8 +133,7 @@ class AuthServiceRaw:
         self._validate_state(state)
         token_result = self._fetch_token(client_redirect_uri, code)
         me_result = self._fetch_current_user(token_result.token)
-        self._database_connection.update_logged_in_user(me_result, state, token_result)
-        self._token_holder.log_in(token_result, me_result)
+        self._database_connection.update_logged_in_user(me_result, token_result, state)
         return LoginSuccess(access_token=token_result.token)
 
     def _validate_state(self, state):

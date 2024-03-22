@@ -80,13 +80,6 @@ class UserDatabaseConnectionRaw:
     def __init__(self, database_connection: DatabaseConnection):
         self._database_connection = database_connection
 
-    def log_in(self, token: ParsedTokenResponse, user: User):
-        with self._database_connection.session() as session:
-            user.session = UserSession(user_token=token.token, refresh_token=token.refresh_token,
-                                       expires_at=datetime.datetime.now() + datetime.timedelta(
-                                           seconds=token.expires_in))
-            session.merge(user)
-
     def get_from_token(self, token: str) -> User | None:
         with self._database_connection.session() as session:
             return session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
@@ -108,9 +101,6 @@ class TokenHolderRaw:
 
     def __init__(self, user_database_connection: UserDatabaseConnection):
         self._user_database_connection = user_database_connection
-
-    def log_in(self, token: ParsedTokenResponse, user: User):
-        self._user_database_connection.log_in(token, user)
 
     def validate_token(self, token: str) -> User:
         user = self._user_database_connection.get_from_token(token)

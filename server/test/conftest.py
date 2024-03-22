@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from starlette.testclient import TestClient
 
 from api.application import create_app
+from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection
 from api.common.models import ParsedTokenResponse
 from database.database_connection import ConnectionManager
@@ -73,8 +74,9 @@ def logged_in_user(logged_in_user_id) -> User:
 
 
 @pytest.fixture
-def valid_token_header(mock_token_holder, logged_in_user, valid_token_data):
-    mock_token_holder.log_in(valid_token_data, logged_in_user)
+def valid_token_header(db_connection, logged_in_user, valid_token_data):
+    auth_database_connection = AuthDatabaseConnection(db_connection)
+    auth_database_connection.update_logged_in_user(logged_in_user, valid_token_data)
     return {"token": valid_token_data.token}
 
 

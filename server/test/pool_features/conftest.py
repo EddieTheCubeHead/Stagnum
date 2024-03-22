@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
+from api.auth.dependencies import AuthDatabaseConnection
 from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
@@ -153,11 +154,12 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
 
 
 @pytest.fixture
-def another_logged_in_user_header(faker, mock_token_holder):
+def another_logged_in_user_header(faker, db_connection):
+    auth_database_connection = AuthDatabaseConnection(db_connection)
     user_id = faker.uuid4()
     user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
-    mock_token_holder.log_in(token_data, user)
+    auth_database_connection.update_logged_in_user(user, token_data)
     return {"token": token_data.token}
 
 
