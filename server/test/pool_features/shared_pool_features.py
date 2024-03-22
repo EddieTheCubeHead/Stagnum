@@ -84,3 +84,51 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code, test_client, ano
     for user_content in result["users"]:
         if user_content["user"]["spotify_id"] != logged_in_user_id:
             assert len(user_content["collections"][0]["tracks"]) == 35
+
+
+@pytest.mark.slow
+def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_client, another_logged_in_user_header,
+                                                       validate_response, valid_token_header, existing_pool,
+                                                       logged_in_user_id, create_mock_playlist_fetch_result,
+                                                       requests_client, build_success_response, get_query_parameter):
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    playlist = create_mock_playlist_fetch_result(15)
+    requests_client.get = Mock(return_value=build_success_response(playlist))
+    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
+    test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
+
+    original_user_played_uris = set()
+    for _ in range(99):
+        test_client.post("/pool/playback/skip", headers=valid_token_header)
+        actual_queue_call = requests_client.post.call_args_list[-2]
+        original_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
+
+    joined_user_played_uris = set()
+    for _ in range(99):
+        test_client.post("/pool/playback/skip", headers=another_logged_in_user_header)
+        actual_queue_call = requests_client.post.call_args_list[-2]
+        joined_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
+
+    original_user_track_uris = [track.content_uri for track in existing_pool]
+    joined_user_track_uris = [track["track"]["uri"] for track in playlist["tracks"]["items"]]
+
+    original_played_original = False
+    joined_played_original = False
+    joined_played_joined = False
+    original_played_joined = False
+    for track_uri in original_user_track_uris:
+        if track_uri in original_user_played_uris:
+            original_played_original = True
+        if track_uri in joined_user_played_uris:
+            original_played_joined = True
+
+    for track_uri in joined_user_track_uris:
+        if track_uri in original_user_played_uris:
+            joined_played_joined = True
+        if track_uri in joined_user_played_uris:
+            joined_played_original = True
+
+    assert original_played_original
+    assert joined_played_original
+    assert joined_played_joined
+    assert original_played_joined

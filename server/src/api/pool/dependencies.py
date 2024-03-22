@@ -167,8 +167,9 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
 
 def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
     _logger.debug(f"Getting playable tracks for user {user.spotify_username}")
+    pool = _get_pool_for_user(user, session)
     return list(session.scalars(select(PoolMember).where(
-        and_(PoolMember.user_id == user.spotify_id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
+        and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
 
 
 def _delete_pool_member(content_uri: str, user: User, session: Session):
