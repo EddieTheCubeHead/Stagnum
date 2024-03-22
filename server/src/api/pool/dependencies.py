@@ -125,8 +125,8 @@ class PoolSpotifyClientRaw:
         header = _auth_header(token)
         self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
 
-    def skip_current_song(self, token: str):
-        header = _auth_header(token)
+    def skip_current_song(self, user: User):
+        header = _auth_header(user.session.user_token)
         self._spotify_client.post("me/player/next", headers=header)
 
 
@@ -244,10 +244,11 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
-    def get_pool(self, user: User) -> list[PoolMember]:
+    def get_pool(self, user: User) -> (list[PoolMember], list[User]):
         with self._database_connection.session() as session:
             whole_pool = _get_user_pool(user, session)
-        return whole_pool
+            pool_users = self.get_pool_users(user)
+        return whole_pool, pool_users
 
     def get_playable_tracks(self, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
@@ -323,10 +324,9 @@ class PoolPlaybackServiceRaw:
         self._database_connection.save_playback_status(user, next_song, override_timestamp)
         return next_song
 
-    def skip_song(self, token: str) -> PoolTrack:
-        user = self._token_holder.get_from_token(token)
+    def skip_song(self, user: User) -> PoolTrack:
         next_song = self._queue_next_song(user, True)
-        self._spotify_client.skip_current_song(token)
+        self._spotify_client.skip_current_song(user)
         return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
 

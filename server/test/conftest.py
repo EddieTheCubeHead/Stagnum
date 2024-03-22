@@ -62,15 +62,19 @@ def mock_token_holder(application, db_connection):
 
 
 @pytest.fixture
-def valid_token_data():
+def valid_token_data() -> ParsedTokenResponse:
     return ParsedTokenResponse(token="my test token", refresh_token="my refresh token", expires_in=999999)
 
 
 @pytest.fixture
-def valid_token_header(mock_token_holder, logged_in_user_id, valid_token_data):
-    user = User(spotify_id=logged_in_user_id, spotify_username=logged_in_user_id,
+def logged_in_user(logged_in_user_id) -> User:
+    return User(spotify_id=logged_in_user_id, spotify_username=logged_in_user_id,
                 spotify_avatar_url=f"user.icon.example")
-    mock_token_holder.log_in(valid_token_data, user)
+
+
+@pytest.fixture
+def valid_token_header(mock_token_holder, logged_in_user, valid_token_data):
+    mock_token_holder.log_in(valid_token_data, logged_in_user)
     return {"token": valid_token_data.token}
 
 

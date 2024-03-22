@@ -27,11 +27,10 @@ async def create_pool(base_collection: PoolCreationData, user: validated_user,
 
 
 @router.get("/")
-async def get_pool(token: validated_user, database_connection: PoolDatabaseConnection,
-                   token_holder: TokenHolder) -> PoolFullContents:
-    _logger.debug(f"GET /pool called with token {token}")
-    pool = database_connection.get_pool(token_holder.get_from_token(token))
-    return create_pool_return_model(pool)
+async def get_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
+    _logger.debug(f"GET /pool called with token {user}")
+    pool, users = database_connection.get_pool(user)
+    return create_pool_return_model(pool, users)
 
 
 @router.post("/content")
@@ -55,9 +54,9 @@ async def delete_content(spotify_uri: str, user: validated_user, database_connec
 
 
 @router.post("/playback/skip")
-async def skip_song(token: validated_user, pool_playback_service: PoolPlaybackService) -> PoolTrack:
-    _logger.debug(f"POST /pool/playback/skip called with token {token}")
-    return pool_playback_service.skip_song(token)
+async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackService) -> PoolTrack:
+    _logger.debug(f"POST /pool/playback/skip called with token {user.session.user_token}")
+    return pool_playback_service.skip_song(user)
 
 
 @router.post("/share")

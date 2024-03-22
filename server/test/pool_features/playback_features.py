@@ -204,9 +204,10 @@ def should_inactivate_sessions_for_logged_out_users(db_connection, playback_serv
 
 def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, existing_playback,
                                                      valid_token_header, mock_token_holder: TokenHolder,
-                                                     logged_in_user_id, fixed_track_length_ms, monkeypatch,
+                                                     logged_in_user, fixed_track_length_ms, monkeypatch,
                                                      create_mock_track_search_result, build_success_response,
-                                                     requests_client, create_pool_creation_data_json, test_client):
+                                                     requests_client, create_pool_creation_data_json, test_client,
+                                                     valid_token_data):
     mock_token_holder.log_out(valid_token_header["token"])
 
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
@@ -220,7 +221,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
     queue_next_songs(playback_service)
-    mock_token_holder.log_in(valid_token_header["token"], Mock(spotify_id=logged_in_user_id))
+    mock_token_holder.log_in(valid_token_data, logged_in_user)
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]
@@ -232,7 +233,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
-            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
+            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user.spotify_id))
 
     assert playback_state.is_active
 

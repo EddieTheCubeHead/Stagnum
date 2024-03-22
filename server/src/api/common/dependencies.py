@@ -97,7 +97,7 @@ class UserDatabaseConnectionRaw:
 
     def log_out(self, token: str):
         with self._database_connection.session() as session:
-            user = session.scalar(select(User).where(User.session.user_token == token))
+            user = session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
             session.delete(user.session)
 
 
@@ -132,7 +132,7 @@ class TokenHolderRaw:
         return self._user_database_connection.get_from_token(token) is not None
 
     def is_user_logged_in(self, user_id: str):
-        return self._user_database_connection.get_from_id(user_id) is not None
+        return self._user_database_connection.get_from_id(user_id).session is not None
 
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
