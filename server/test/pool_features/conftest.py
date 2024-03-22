@@ -4,8 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
 from api.pool.models import PoolCreationData, PoolContent
+from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
 
@@ -127,3 +129,23 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
         return playlist_data, *further_fetches
 
     return wrapper
+
+
+@pytest.fixture
+def fixed_track_length_ms(minutes: int = 3, seconds: int = 30):
+    return (minutes * 60 + seconds) * 1000
+
+
+@pytest.fixture
+def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
+                      build_success_response, requests_client, create_pool_creation_data_json,
+                      test_client: TestClient, valid_token_header, fixed_track_length_ms):
+    tracks = [create_mock_track_search_result() for _ in range(15)]
+    for track in tracks:
+        track["duration_ms"] = fixed_track_length_ms
+    responses = [build_success_response(track) for track in tracks]
+    requests_client.get = Mock(side_effect=responses)
+    track_uris = [track["uri"] for track in tracks]
+    data_json = create_pool_creation_data_json(*track_uris)
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    return tracks

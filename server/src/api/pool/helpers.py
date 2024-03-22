@@ -15,7 +15,8 @@ def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
             for track in collection.children]
 
 
-def create_pool_return_model(pool: list[PoolMember], users: list[User]) -> PoolFullContents:
+def create_pool_return_model(pool: list[PoolMember], users: list[User],
+                             share_code: str | None = None) -> PoolFullContents:
     _logger.debug(f"Creating pool return model from {len(pool)} members.")
     users_map = {user.spotify_id: PoolUserContents(tracks=[],
                                                    collections=[],
@@ -31,4 +32,4 @@ def create_pool_return_model(pool: list[PoolMember], users: list[User]) -> PoolF
                 PoolCollection(name=pool_member.name, spotify_icon_uri=pool_member.image_url,
                                tracks=_create_collection_tracks(pool_member),
                                spotify_collection_uri=pool_member.content_uri))
-    return PoolFullContents(users=list(users_map.values()))
+    return PoolFullContents(users=list(users_map.values()), share_code=share_code)

@@ -2,8 +2,6 @@ import base64
 import datetime
 import json
 import os
-import random
-import string
 from logging import getLogger
 from typing import Annotated
 
@@ -13,6 +11,7 @@ from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
 from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
+from api.common.helpers import create_random_string
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
 
@@ -109,11 +108,6 @@ _required_scopes = [
 ]
 
 
-def _create_random_string(length: int) -> str:
-    chars = string.ascii_letters + string.digits
-    return "".join(random.choice(chars) for _ in range(length))
-
-
 class AuthServiceRaw:
 
     def __init__(self, spotify_client: AuthSpotifyClient, database_connection: AuthDatabaseConnection,
@@ -125,7 +119,7 @@ class AuthServiceRaw:
     def build_redirect(self, client_redirect_uri: str) -> LoginRedirect:
         base_url = "https://accounts.spotify.com/authorize?"
         scopes_string = " ".join(_required_scopes)
-        state = _create_random_string(16)
+        state = create_random_string(16)
         self._database_connection.save_state(state)
         client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
         if client_id is None:

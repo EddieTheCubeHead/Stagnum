@@ -9,10 +9,10 @@ from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
-from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header
+from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
-from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser
+from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData
 
 _logger = getLogger("main.api.pool.dependencies")
 
@@ -279,6 +279,13 @@ class PoolDatabaseConnectionRaw:
                 or_(User.spotify_id == pool.owner_user_id,
                     User.joined_pool.has(PoolJoinedUser.pool_id == pool.id)))).unique().all()
         return users
+
+    def share_pool(self, user: User) -> (list[PoolMember], list[User], str):
+        share_code = create_random_string(8).upper()
+        with self._database_connection.session() as session:
+            pool = session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
+            pool.share_data = PoolShareData(code=share_code)
+            return *self.get_pool(user), share_code
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

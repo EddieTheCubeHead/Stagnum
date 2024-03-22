@@ -33,7 +33,4 @@ class PoolUserContents(BaseModel):
 
 class PoolFullContents(BaseModel):
     users: list[PoolUserContents]
-
-
-class SharedPool(BaseModel):
-    code: str
+    share_code: str | None = None

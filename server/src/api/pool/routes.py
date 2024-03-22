@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from api.common.dependencies import validated_user, TokenHolder
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService
 from api.pool.helpers import create_pool_return_model
-from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack, SharedPool
+from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack
 
 _logger = getLogger("main.api.pool.routes")
 
@@ -60,6 +60,6 @@ async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackSer
 
 
 @router.post("/share")
-async def share_pool(token: validated_user) -> SharedPool:
-    _logger.debug(f"POST /pool/share called with token {token}")
-    pass
+async def share_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
+    _logger.debug(f"POST /pool/share called with token {user}")
+    return create_pool_return_model(*database_connection.share_pool(user))

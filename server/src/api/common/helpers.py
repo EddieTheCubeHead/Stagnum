@@ -1,3 +1,5 @@
+import random
+import string
 from logging import getLogger
 
 from api.common.models import UserModel
@@ -27,3 +29,8 @@ def build_auth_header(user: User) -> dict:
     return {
         "Authorization": user.session.user_token
     }
+
+
+def create_random_string(length: int) -> str:
+    chars = string.ascii_letters + string.digits
+    return "".join(random.choice(chars) for _ in range(length))

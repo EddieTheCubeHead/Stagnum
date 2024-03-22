@@ -60,12 +60,15 @@ class Pool(EntityBase):
     owner_user_id: Mapped[int] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
     joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
+    share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
 
 
-class PoolJoinCode(EntityBase):
+class PoolShareData(EntityBase):
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"),
                                          primary_key=True)
     code: Mapped[str] = mapped_column(String(8), nullable=False)
+
+    pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="share_data")
 
 
 class PoolJoinedUser(EntityBase):
