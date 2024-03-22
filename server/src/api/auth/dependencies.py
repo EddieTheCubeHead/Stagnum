@@ -1,9 +1,9 @@
 import base64
+import datetime
 import json
 import os
 import random
 import string
-from datetime import datetime
 from logging import getLogger
 from typing import Annotated
 
@@ -13,7 +13,8 @@ from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
 from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
-from database.entities import LoginState, User
+from api.common.models import ParsedTokenResponse
+from database.entities import LoginState, User, UserSession
 
 _logger = getLogger("main.api.auth.dependencies")
 
@@ -28,7 +29,7 @@ class AuthDatabaseConnectionRaw:
             new_state = LoginState(state_string=state_string)
             session.add(new_state)
 
-    def delete_expired_states(self, delete_before: datetime):
+    def delete_expired_states(self, delete_before: datetime.datetime):
         _logger.debug(f"Deleting state strings created before {delete_before}")
         with self._database_connection.session() as session:
             session.execute(delete(LoginState).where(LoginState.insert_time_stamp < delete_before))
@@ -37,17 +38,13 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
 
-    def update_logged_in_user(self, user: User, state: str):
+    def update_logged_in_user(self, user: User, state: str, token_result: ParsedTokenResponse):
         _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
-            existing_user = session.scalar(select(User).where(User.spotify_id == user.spotify_id))
-            if existing_user is not None:
-                if existing_user.spotify_username != user.spotify_username:
-                    existing_user.spotify_username = user.spotify_username
-                if existing_user.spotify_avatar_url != user.spotify_avatar_url:
-                    existing_user.spotify_avatar_url = user.spotify_avatar_url
-            else:
-                session.add(user)
+            session.merge(user)
+            user.session = UserSession(user_token=token_result.token, refresh_token=token_result.refresh_token,
+                                       expires_at=datetime.datetime.now() + datetime.timedelta(
+                                           seconds=token_result.expires_in))
             state = session.scalar(select(LoginState).where(LoginState.state_string == state))
             session.delete(state)
 
@@ -70,7 +67,7 @@ class AuthSpotifyClientRaw:
     def __init__(self, spotify_client: SpotifyClient):
         self._spotify_client = spotify_client
 
-    def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str):
+    def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str) -> SpotifyTokenResponse:
         form = {
             "code": code,
             "redirect_uri": redirect_uri,
@@ -138,24 +135,25 @@ class AuthServiceRaw:
 
     def get_token(self, state: str, code: str, client_redirect_uri: str) -> LoginSuccess:
         self._validate_state(state)
-        token = self._fetch_token(client_redirect_uri, code)
-        me_result = self._fetch_current_user(token)
-        self._database_connection.update_logged_in_user(me_result, state)
-        self._token_holder.add_token(token, me_result)
-        return LoginSuccess(access_token=token)
+        token_result = self._fetch_token(client_redirect_uri, code)
+        me_result = self._fetch_current_user(token_result.token)
+        self._database_connection.update_logged_in_user(me_result, state, token_result)
+        self._token_holder.log_in(token_result, me_result)
+        return LoginSuccess(access_token=token_result.token)
 
     def _validate_state(self, state):
         if not self._database_connection.is_valid_state(state):
             _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
             raise HTTPException(status_code=403, detail="Login state is invalid or expired")
 
-    def _fetch_token(self, client_redirect_uri, code):
+    def _fetch_token(self, client_redirect_uri, code) -> ParsedTokenResponse:
         client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
         client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
         _logger.debug(f"Fetching oauth auth token from spotify")
         token_result = self._spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
         token = f"{token_result.token_type} {token_result.access_token}"
-        return token
+        return ParsedTokenResponse(token=token, refresh_token=token_result.refresh_token,
+                                   expires_in=token_result.expires_in)
 
     def _fetch_current_user(self, token) -> User:
         _logger.debug(f"Fetching user data from spotify")

@@ -9,6 +9,7 @@ from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
 
+@pytest.mark.wip
 def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
                                                                              valid_token_header,
                                                                              validate_response,
@@ -21,7 +22,7 @@ def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(tes
     requests_client.get = Mock(return_value=build_success_response(my_track))
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
     pool_response = validate_response(response)
-    assert pool_response["tracks"][0]["name"] == my_track["name"]
+    assert pool_response["users"][0]["tracks"][0]["name"] == my_track["name"]
 
 
 def should_save_pool_in_database_with_user_id_when_created(test_client: TestClient, db_connection: ConnectionManager,

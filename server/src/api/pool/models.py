@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from api.common.models import UserModel
+
 
 class PoolContent(BaseModel):
     spotify_uri: str
@@ -23,6 +25,15 @@ class PoolCollection(BaseModel):
     tracks: list[PoolTrack]
 
 
-class Pool(BaseModel):
+class PoolUserContents(BaseModel):
     tracks: list[PoolTrack]
     collections: list[PoolCollection]
+    user: UserModel
+
+
+class PoolFullContents(BaseModel):
+    users: list[PoolUserContents]
+
+
+class SharedPool(BaseModel):
+    code: str

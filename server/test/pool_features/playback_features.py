@@ -220,7 +220,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
     queue_next_songs(playback_service)
-    mock_token_holder.add_token(valid_token_header["token"], Mock(spotify_id=logged_in_user_id))
+    mock_token_holder.log_in(valid_token_header["token"], Mock(spotify_id=logged_in_user_id))
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]

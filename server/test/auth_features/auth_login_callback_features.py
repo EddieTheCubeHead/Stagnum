@@ -9,7 +9,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from api.common.dependencies import validated_token_raw
+from api.common.dependencies import validated_user_raw
 from database.entities import LoginState, User
 
 
@@ -89,7 +89,7 @@ def requests_client_with_auth_mock(requests_client, default_token_return, defaul
 def auth_test(test_client, mock_token_holder):
 
     def auth_test_wrapper(token):
-        return validated_token_raw(token, mock_token_holder)
+        return validated_user_raw(token, mock_token_holder)
 
     return auth_test_wrapper
 
@@ -204,7 +204,7 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
     response = base_auth_callback_call()
     json_data = validate_response(response)
     actual_token = auth_test(json_data["access_token"])
-    assert actual_token == json_data["access_token"]
+    assert actual_token.session.user_token == json_data["access_token"]
 
 
 @pytest.mark.parametrize("code", [401, 403, 404, 500])

@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from api.pool.models import Pool, PoolTrack, PoolCollection
+from api.pool.models import PoolFullContents, PoolTrack, PoolCollection
 from database.entities import PoolMember
 
 
@@ -15,7 +15,7 @@ def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
             for track in collection.children]
 
 
-def create_pool_return_model(pool: list[PoolMember]) -> Pool:
+def create_pool_return_model(pool: list[PoolMember]) -> PoolFullContents:
     _logger.debug(f"Creating pool return model from {len(pool)} members.")
     tracks = []
     collections = []
@@ -27,4 +27,4 @@ def create_pool_return_model(pool: list[PoolMember]) -> Pool:
             collections.append(PoolCollection(name=pool_member.name, spotify_icon_uri=pool_member.image_url,
                                               tracks=_create_collection_tracks(pool_member),
                                               spotify_collection_uri=pool_member.content_uri))
-    return Pool(tracks=tracks, collections=collections)
+    return PoolFullContents(tracks=tracks, collections=collections)
