@@ -2,7 +2,7 @@ from logging import getLogger
 
 from fastapi import APIRouter, WebSocket
 
-from api.common.dependencies import validated_user, TokenHolder
+from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater
 from api.pool.helpers import create_pool_return_model
 from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack
@@ -40,11 +40,7 @@ async def add_content(to_add: PoolContent, user: validated_user, spotify_client:
     _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
     added_content = spotify_client.get_pool_content(user, to_add)
     whole_pool = database_connection.add_to_pool(added_content, user)
-    pool_users = database_connection.get_pool_users(user)
-    pool = database_connection.get_pool(user)
-    code = pool.share_data.code if pool.share_data is not None else None
-    data_model = create_pool_return_model(whole_pool, pool_users, code)
-    await pool_websocket_updater.pool_updated(data_model, pool.id)
+    data_model = await _create_model_and_update_listeners(database_connection, pool_websocket_updater, user, whole_pool)
     return data_model
 
 
@@ -54,6 +50,11 @@ async def delete_content(spotify_uri: str, user: validated_user, database_connec
     _logger.debug(
         f"DELETE /pool/content/{{spotify_uri}} called with uri {spotify_uri} and token {user.session.user_token}")
     whole_pool = database_connection.delete_from_pool(spotify_uri, user)
+    data_model = await _create_model_and_update_listeners(database_connection, pool_websocket_updater, user, whole_pool)
+    return data_model
+
+
+async def _create_model_and_update_listeners(database_connection, pool_websocket_updater, user, whole_pool):
     pool_users = database_connection.get_pool_users(user)
     pool = database_connection.get_pool(user)
     code = pool.share_data.code if pool.share_data is not None else None
