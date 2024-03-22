@@ -18,39 +18,39 @@ router = APIRouter(
 
 
 @router.get("/")
-async def search(query: str, token: validated_user, spotify_client: SearchSpotifyClient) -> GeneralSearchResult:
-    _logger.debug(f"GET /search called with query '{query}' and token '{token}'.")
+async def search(query: str, user: validated_user, spotify_client: SearchSpotifyClient) -> GeneralSearchResult:
+    _logger.debug(f"GET /search called with query '{query}' and token '{user}'.")
     all_playable_types = [e.value for e in SpotifyPlayableType]
-    return spotify_client.get_general_search(query, token, all_playable_types)
+    return spotify_client.get_general_search(query, user, all_playable_types)
 
 
 @router.get("/tracks")
-async def search_tracks(token: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+async def search_tracks(user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
                         limit: int = 20) -> TrackSearchResult:
     _logger.debug(f"GET /search/tracks called with query '{query}', "
-                  f"offset {offset}, limit {limit} and token '{token}'.")
-    return spotify_client.get_track_search(query, token, offset, limit)
+                  f"offset {offset}, limit {limit} and token '{user}'.")
+    return spotify_client.get_track_search(query, user, offset, limit)
 
 
 @router.get("/albums")
-async def search_albums(token: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+async def search_albums(user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
                         limit: int = 20) -> AlbumSearchResult:
     _logger.debug(f"GET /search/albums called with query '{query}', "
-                  f"offset {offset}, limit {limit} and token '{token}'.")
-    return spotify_client.get_album_search(query, token, offset, limit)
+                  f"offset {offset}, limit {limit} and token '{user}'.")
+    return spotify_client.get_album_search(query, user, offset, limit)
 
 
 @router.get("/artists")
-async def search_artists(token: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+async def search_artists(user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
                          limit: int = 20) -> ArtistSearchResult:
     _logger.debug(f"GET /search/artists called with query '{query}', "
-                  f"offset {offset}, limit {limit} and token '{token}'.")
-    return spotify_client.get_artist_search(query, token, offset, limit)
+                  f"offset {offset}, limit {limit} and token '{user}'.")
+    return spotify_client.get_artist_search(query, user, offset, limit)
 
 
 @router.get("/playlists")
-async def search_playlists(token: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
+async def search_playlists(user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0,
                            limit: int = 20) -> PlaylistSearchResult:
     _logger.debug(f"GET /search/playlists called with query '{query}', "
-                  f"offset {offset}, limit {limit} and token '{token}'.")
-    return spotify_client.get_playlist_search(query, token, offset, limit)
+                  f"offset {offset}, limit {limit} and token '{user}'.")
+    return spotify_client.get_playlist_search(query, user, offset, limit)

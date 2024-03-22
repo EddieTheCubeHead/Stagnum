@@ -21,3 +21,9 @@ def get_sharpest_icon(icons: list[dict]) -> str:
 def map_user_entity_to_model(user_entity: User) -> UserModel:
     return UserModel(display_name=user_entity.spotify_username, icon_url=user_entity.spotify_avatar_url,
                      spotify_id=user_entity.spotify_id)
+
+
+def build_auth_header(user: User) -> dict:
+    return {
+        "Authorization": user.session.user_token
+    }

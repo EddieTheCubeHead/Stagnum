@@ -9,18 +9,12 @@ from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
-from api.common.helpers import get_sharpest_icon, map_user_entity_to_model
+from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header
 from api.common.models import UserModel
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser
 
 _logger = getLogger("main.api.pool.dependencies")
-
-
-def _auth_header(token: str) -> dict:
-    return {
-        "Authorization": token
-    }
 
 
 def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
@@ -59,7 +53,7 @@ class PoolSpotifyClientRaw:
         pool_collections: list[PoolCollection] = []
         for pool_content in pool_contents:
             _logger.debug(f"Fetching spotify content with uri {pool_content.spotify_uri}")
-            content = self._fetch_content(user.session.user_token, pool_content.spotify_uri)
+            content = self._fetch_content(user, pool_content.spotify_uri)
             if type(content) is PoolTrack:
                 pool_tracks.append(content)
             else:
@@ -67,26 +61,26 @@ class PoolSpotifyClientRaw:
         user_model = map_user_entity_to_model(user)
         return PoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
 
-    def _fetch_content(self, token: str, content_uri: str) -> PoolTrack | PoolCollection:
+    def _fetch_content(self, user: User, content_uri: str) -> PoolTrack | PoolCollection:
         _, content_type, content_id = content_uri.split(":")
-        return self._fetch_methods[content_type](token, content_id)
+        return self._fetch_methods[content_type](user, content_id)
 
-    def _fetch_track(self, token: str, track_id: str) -> PoolTrack:
-        raw_track_data = self._spotify_client.get(f"tracks/{track_id}", headers=_auth_header(token))
+    def _fetch_track(self, user: User, track_id: str) -> PoolTrack:
+        raw_track_data = self._spotify_client.get(f"tracks/{track_id}", headers=build_auth_header(user))
         track_data = json.loads(raw_track_data.content.decode("utf-8"))
         return PoolTrack(name=track_data["name"], spotify_icon_uri=get_sharpest_icon(track_data["album"]["images"]),
                          spotify_track_uri=track_data["uri"], duration_ms=track_data["duration_ms"])
 
-    def _fetch_album(self, token: str, album_id: str) -> PoolCollection:
-        raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=_auth_header(token))
+    def _fetch_album(self, user: User, album_id: str) -> PoolCollection:
+        raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=build_auth_header(user))
         album_data = json.loads(raw_album_data.content.decode("utf-8"))
         sharpest_icon_url = get_sharpest_icon(album_data["images"])
         tracks = _build_tracks_with_image(album_data["tracks"]["items"], sharpest_icon_url)
         return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks,
                               spotify_collection_uri=album_data["uri"])
 
-    def _fetch_artist(self, token: str, artist_id: str) -> PoolCollection:
-        token_header = _auth_header(token)
+    def _fetch_artist(self, user: User, artist_id: str) -> PoolCollection:
+        token_header = build_auth_header(user)
         raw_artist_data = self._spotify_client.get(f"artists/{artist_id}", headers=token_header)
         artist_data = json.loads(raw_artist_data.content.decode("utf-8"))
         raw_artist_track_data = self._spotify_client.get(f"artists/{artist_id}/top-tracks", headers=token_header)
@@ -95,38 +89,38 @@ class PoolSpotifyClientRaw:
         return PoolCollection(name=artist_data["name"], spotify_icon_uri=get_sharpest_icon(artist_data["images"]),
                               tracks=tracks, spotify_collection_uri=artist_data["uri"])
 
-    def _fetch_playlist(self, token: str, playlist_id: str) -> PoolCollection:
-        playlist_data = self._fully_fetch_playlist(playlist_id, token)
+    def _fetch_playlist(self, user: User, playlist_id: str) -> PoolCollection:
+        playlist_data = self._fully_fetch_playlist(playlist_id, user)
         tracks = _build_tracks_without_image([track["track"] for track in playlist_data["tracks"]["items"]])
         return PoolCollection(name=playlist_data["name"], spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
-    def _fully_fetch_playlist(self, playlist_id, token):
-        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=_auth_header(token))
+    def _fully_fetch_playlist(self, playlist_id: str, user: User):
+        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=build_auth_header(user))
         playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
         if playlist_data["tracks"]["next"] is not None:
-            self._fetch_large_playlist_tracks(playlist_data, token)
+            self._fetch_large_playlist_tracks(playlist_data, user)
         return playlist_data
 
-    def _fetch_large_playlist_tracks(self, playlist_data, token: str):
+    def _fetch_large_playlist_tracks(self, playlist_data, user: User):
         track_walker = playlist_data["tracks"]
         while track_walker["next"] is not None:
             raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"],
-                                                           headers=_auth_header(token))
+                                                           headers=build_auth_header(user))
             track_walker = json.loads(raw_next_track_data.content.decode("utf-8"))
             playlist_data["tracks"]["items"].extend(track_walker["items"])
 
-    def start_playback(self, token: str, track_uri: str):
-        header = _auth_header(token)
+    def start_playback(self, user: User, track_uri: str):
+        header = build_auth_header(user)
         header["Content-Type"] = "application/json"
         self._spotify_client.put("me/player/play", json={"uris": [track_uri], "position_ms": 0}, headers=header)
 
-    def set_next_song(self, token: str, track_uri: str):
-        header = _auth_header(token)
+    def set_next_song(self, user: User, track_uri: str):
+        header = build_auth_header(user)
         self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
 
     def skip_current_song(self, user: User):
-        header = _auth_header(user.session.user_token)
+        header = build_auth_header(user)
         self._spotify_client.post("me/player/next", headers=header)
 
 
@@ -301,7 +295,7 @@ class PoolPlaybackServiceRaw:
     def start_playback(self, user: User):
         all_tracks = self._database_connection.get_playable_tracks(user)
         next_track = random.choice(all_tracks)
-        self._spotify_client.start_playback(user.session.user_token, next_track.content_uri)
+        self._spotify_client.start_playback(user, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
 
     def update_user_playbacks(self):
@@ -320,7 +314,7 @@ class PoolPlaybackServiceRaw:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         next_song: PoolMember = random.choice(playable_tracks)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
-        self._spotify_client.set_next_song(user.session.user_token, next_song.content_uri)
+        self._spotify_client.set_next_song(user, next_song.content_uri)
         self._database_connection.save_playback_status(user, next_song, override_timestamp)
         return next_song
 
