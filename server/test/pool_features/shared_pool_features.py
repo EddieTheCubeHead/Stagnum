@@ -2,26 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolContent
-from database.entities import User
 
-
-@pytest.fixture
-def another_logged_in_user_header(faker, mock_token_holder):
-    user_id = faker.uuid4()
-    user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
-    token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
-    mock_token_holder.log_in(token_data, user)
-    return {"token": token_data.token}
-
-
-@pytest.fixture
-def shared_pool_code(existing_playback, test_client, valid_token_header, validate_response) -> str:
-    response = test_client.post("/pool/share", headers=valid_token_header)
-
-    result = validate_response(response)
-    return result["share_code"]
 
 
 def should_return_pool_code_from_share_route(existing_playback, test_client, validate_response, valid_token_header):

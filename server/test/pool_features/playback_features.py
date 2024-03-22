@@ -80,6 +80,7 @@ def should_start_pool_playback_from_playlist_fetch_data_correctly(create_mock_pl
     assert call_uri in [track["track"]["uri"] for track in playlist["tracks"]["items"]]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("repeat", range(15))
 def should_not_start_pool_playback_from_collection_uri_when_posting_collection(create_mock_track_search_result,
                                                                                create_mock_playlist_fetch_result,

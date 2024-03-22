@@ -6,9 +6,10 @@ import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
+from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
-from database.entities import PoolMember
+from database.entities import PoolMember, User
 
 
 @pytest.fixture
@@ -149,3 +150,20 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
     data_json = create_pool_creation_data_json(*track_uris)
     test_client.post("/pool", json=data_json, headers=valid_token_header)
     return tracks
+
+
+@pytest.fixture
+def another_logged_in_user_header(faker, mock_token_holder):
+    user_id = faker.uuid4()
+    user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
+    token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
+    mock_token_holder.log_in(token_data, user)
+    return {"token": token_data.token}
+
+
+@pytest.fixture
+def shared_pool_code(existing_playback, test_client, valid_token_header, validate_response) -> str:
+    response = test_client.post("/pool/share", headers=valid_token_header)
+
+    result = validate_response(response)
+    return result["share_code"]

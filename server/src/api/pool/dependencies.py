@@ -4,14 +4,14 @@ import random
 from logging import getLogger
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import delete, and_, select, or_
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
-from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
+from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData
 
 _logger = getLogger("main.api.pool.dependencies")
@@ -250,12 +250,16 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
-    def get_pool(self, user: User) -> FullPoolData:
+    def get_pool_data(self, user: User) -> FullPoolData:
         with self._database_connection.session() as session:
             whole_pool = _get_user_pool(user, session)
             pool_users = self.get_pool_users(user)
             pool = _get_pool_for_user(user, session)
         return whole_pool, pool_users, pool.share_data.code if pool.share_data is not None else None
+
+    def get_pool(self, user: User) -> Pool:
+        with self._database_connection.session() as session:
+            return _get_pool_for_user(user, session)
 
     def get_playable_tracks(self, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
@@ -300,14 +304,14 @@ class PoolDatabaseConnectionRaw:
             if pool.share_data is not None:
                 raise HTTPException(status_code=400, detail="Pool already shared!")
             pool.share_data = PoolShareData(code=share_code)
-        return self.get_pool(user)
+        return self.get_pool_data(user)
 
     def join_pool(self, user: User, code: str) -> FullPoolData:
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.share_data.has(PoolShareData.code == code)))
             _validate_pool_join(pool, user)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
-        return self.get_pool(user)
+        return self.get_pool_data(user)
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
@@ -355,3 +359,20 @@ class PoolPlaybackServiceRaw:
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
+
+
+class PoolWebsocketUpdaterRaw:
+
+    _pool_sockets: dict[int, list[WebSocket]] = {}
+
+    def add_socket(self, websocket: WebSocket, pool: Pool):
+        if pool.id not in self._pool_sockets:
+            self._pool_sockets[pool.id] = []
+        self._pool_sockets[pool.id].append(websocket)
+
+    async def pool_updated(self, pool_contents: PoolFullContents, pool_id: int):
+        for websocket in self._pool_sockets.get(pool_id, ()):
+            await websocket.send_json(pool_contents.model_dump())
+
+
+PoolWebsocketUpdater = Annotated[PoolWebsocketUpdaterRaw, Depends()]

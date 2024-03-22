@@ -233,6 +233,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
         assert len(actual_results) == len(tracks) + 3
 
 
+@pytest.mark.slow
 def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_client: TestClient, valid_token_header,
                                                                            db_connection, requests_client,
                                                                            create_mock_playlist_fetch_result,
