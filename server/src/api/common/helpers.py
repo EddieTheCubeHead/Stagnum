@@ -3,8 +3,10 @@ from logging import getLogger
 _logger = getLogger("main.api.common.helpers")
 
 
-def get_sharpest_icon(icons: list[dict]) -> str:
+def get_sharpest_icon(icons: list[dict]) -> str | None:
     _logger.debug(f"Finding sharpest icon from {icons}")
+    if len(icons) == 0:
+        return None
     max_size = icons[0]["height"] if icons[0]["height"] is not None else 0
     biggest_icon = icons[0]["url"]
     for icon in icons:
