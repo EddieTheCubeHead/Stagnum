@@ -15,8 +15,7 @@ services:
       NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
       NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
     env_file:
-      - path: ./.env
-        required: true
+      - .env
   backend:
     build:
       context: ./server/
@@ -36,8 +35,7 @@ services:
       - spotify_client_id
       - spotify_client_secret
     env_file:
-      - path: ./.env
-        required: true
+      - .env
   database:
     image: postgres:latest
     restart: always
@@ -58,8 +56,7 @@ services:
     networks:
       - internal
     env_file:
-      - path: ./.env
-        required: true
+      - .env
     
 
 secrets:
