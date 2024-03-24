@@ -24,11 +24,11 @@ def create_pool_creation_data_json():
 
 
 @pytest.fixture
-def existing_pool(create_mock_track_search_result, build_success_response, requests_client,
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
                   create_pool_creation_data_json, test_client, validate_response, valid_token_header,
-                  db_connection, logged_in_user_id) \
-        -> list[PoolMember]:
-    tracks = [create_mock_track_search_result() for _ in range(random.randint(10, 20))]
+                  db_connection, logged_in_user_id) -> list[PoolMember]:
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     responses = [build_success_response(track) for track in tracks]
     requests_client.get = Mock(side_effect=responses)
     data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
@@ -141,8 +141,9 @@ def fixed_track_length_ms(minutes: int = 3, seconds: int = 30):
 @pytest.fixture
 def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
                       build_success_response, requests_client, create_pool_creation_data_json,
-                      test_client: TestClient, valid_token_header, fixed_track_length_ms):
-    tracks = [create_mock_track_search_result() for _ in range(15)]
+                      test_client: TestClient, valid_token_header, fixed_track_length_ms, request):
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     for track in tracks:
         track["duration_ms"] = fixed_track_length_ms
     responses = [build_success_response(track) for track in tracks]
