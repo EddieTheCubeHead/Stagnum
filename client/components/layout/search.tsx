@@ -29,13 +29,15 @@ export default function Search({ token, handleAdd }: Props) {
     const backend_uri = 'http://localhost:8080'
 
     const handleSearchRequest = () => {
-
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
                 headers: { token },
             })
             .then(function (response) {
+                if (!expanded) {
+                    setExpanded(true)
+                }
                 setTrackList(response.data.tracks.results)
                 setAlbumList(response.data.albums.results)
                 setArtistList(response.data.artists.results)
@@ -54,7 +56,7 @@ export default function Search({ token, handleAdd }: Props) {
                 clearTimeout(searchTimeout);
             }
 
-            // Set a timeout to execute the search after 2 seconds
+            // Set a timeout to execute the search after 1 second(s)
             const timeout = setTimeout(() => {
                 handleSearchRequest();
             }, 1000);

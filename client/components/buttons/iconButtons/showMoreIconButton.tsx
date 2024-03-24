@@ -35,8 +35,7 @@ export default function ShowMoreIconButton({
                     spotify_uri: item.uri,
                 },
             ],
-        };
-        handleAdding(item)
+        }
 
         const backend_uri = 'http://localhost:8080'
 
