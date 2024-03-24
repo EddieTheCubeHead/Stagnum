@@ -1,16 +1,14 @@
-import { faker } from '@faker-js/faker';
-
+import { faker } from '@faker-js/faker'
 
 export const generateMockUserData = (count: number) => {
-  return Array.from({ length: count }, () => ({
-    id: faker.string.uuid(),
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    sex: faker.person.sexType(),
-    // Add more fields as needed
-  }));
-};
-
+    return Array.from({ length: count }, () => ({
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        sex: faker.person.sexType(),
+        // Add more fields as needed
+    }))
+}
 
 /**
  * @fileOverview MockData.js - Mock Data Generation using faker.js

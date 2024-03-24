@@ -1,45 +1,45 @@
 {
-  "root": true,
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "extends": [
-    "next/core-web-vitals",
-    "eslint:recommended",
-    "prettier",
-    "plugin:testing-library/react",
-    "plugin:jest-dom/recommended",
-    "plugin:react/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
-  ],
-  "rules": {
-    "indent": ["error", 4], // Enforces consistent indentation using two spaces per indent level.
-    // "semi": ["error", "always"], // Requires semicolons at the end of statements.
-    "quotes": ["error", "single"], // Enforces the use of single quotes for string literals.
-    "no-var": "error", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
-    "no-unused-vars": "error", // Flags unused variables, helping to identify potential code issues.
-    "prefer-arrow-callback": "error", // Encourages the use of arrow function expressions over traditional function expressions for callbacks.
-    "arrow-parens": ["error", "always"], // Requires parentheses around parameters in arrow function expressions.
-    "eqeqeq": "error", // Requires the use of strict equality (=== and !==) instead of loose equality (== and !=).
-    "block-scoped-var": "error", // Warns against the use of var in block-scoped variables.
-    "no-empty-function": "error", // Flags empty function declarations and expressions.
-    "no-extra-boolean-cast": "error", // Disallows unnecessary double negation (!!) in boolean contexts.
-    "no-console": "error", // Disallows the use of console statements, encouraging the use of proper logging mechanisms in production code.
-    "@typescript-eslint/explicit-module-boundary-types": "off", // Disable explicit module boundary types for Next.js API routes
-    "react/prop-types": "off", // Disable prop-types validation for TypeScript projects
-    "react/react-in-jsx-scope": "off", // Not required in Next.js
-    "react/display-name": "off", // Allow missing display names for functional components
-    "@typescript-eslint/explicit-function-return-type": [
-      "error",
-      {
-        "allowExpressions": true
-      }
-    ], // Enforce explicit return types for functions except for expressions
-    "@typescript-eslint/no-explicit-any": "off" // Allowing explicit any for cases like JSON parsing where TypeScript inference is limited
-  },
-  "parser":"@typescript-eslint/parser",
-  "plugins": ["testing-library", "jest-dom", "react", "prettier"]
+    "root": true,
+    "env": {
+        "browser": true,
+        "node": true,
+        "es6": true
+    },
+    "extends": [
+        "next/core-web-vitals",
+        "eslint:recommended",
+        "prettier",
+        "plugin:testing-library/react",
+        "plugin:jest-dom/recommended",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "rules": {
+        "indent": ["error", 4], // Enforces consistent indentation using two spaces per indent level.
+        // "semi": ["error", "always"], // Requires semicolons at the end of statements.
+        "quotes": ["error", "single"], // Enforces the use of single quotes for string literals.
+        "no-var": "error", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
+        "no-unused-vars": "error", // Flags unused variables, helping to identify potential code issues.
+        "prefer-arrow-callback": "error", // Encourages the use of arrow function expressions over traditional function expressions for callbacks.
+        "arrow-parens": ["error", "always"], // Requires parentheses around parameters in arrow function expressions.
+        "eqeqeq": "error", // Requires the use of strict equality (=== and !==) instead of loose equality (== and !=).
+        "block-scoped-var": "error", // Warns against the use of var in block-scoped variables.
+        "no-empty-function": "error", // Flags empty function declarations and expressions.
+        "no-extra-boolean-cast": "error", // Disallows unnecessary double negation (!!) in boolean contexts.
+        "no-console": "error", // Disallows the use of console statements, encouraging the use of proper logging mechanisms in production code.
+        "@typescript-eslint/explicit-module-boundary-types": "off", // Disable explicit module boundary types for Next.js API routes
+        "react/prop-types": "off", // Disable prop-types validation for TypeScript projects
+        "react/react-in-jsx-scope": "off", // Not required in Next.js
+        "react/display-name": "off", // Allow missing display names for functional components
+        "@typescript-eslint/explicit-function-return-type": [
+            "error",
+            {
+                "allowExpressions": true
+            }
+        ], // Enforce explicit return types for functions except for expressions
+        "@typescript-eslint/no-explicit-any": "off" // Allowing explicit any for cases like JSON parsing where TypeScript inference is limited
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["testing-library", "jest-dom", "react", "prettier"]
 }

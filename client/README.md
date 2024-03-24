@@ -1,11 +1,11 @@
 # Stagnum client
 
-- [Development setup](#development-setup)
-  - [Installing Node.js](#installing-node.js)
-  - [Installing dependencies](#installing-dependencies)
-  - [Running the client locally](#running-the-client-locally)
-- [Running tests](#running-tests)
-- [Running with docker](#running-with-docker)
+-   [Development setup](#development-setup)
+    -   [Installing Node.js](#installing-node.js)
+    -   [Installing dependencies](#installing-dependencies)
+    -   [Running the client locally](#running-the-client-locally)
+-   [Running tests](#running-tests)
+-   [Running with docker](#running-with-docker)
 
 ## Development setup
 
