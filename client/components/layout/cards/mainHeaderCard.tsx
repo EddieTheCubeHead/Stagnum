@@ -13,7 +13,7 @@ export default function MainHeaderCard() {
             alignItems: 'center',
             height: '10vh',
             borderRadius: 3,
-            boxShadow: 2
+            boxShadow: 2,
         }}>
             <Image
                 src={require("@/public/stagnum_antler_bold_coloured_plain.svg")}

@@ -1,5 +1,5 @@
 import Track from "@/types/trackTypes";
-import { Box, Collapse, Stack } from "@mui/material";
+import { AppBar, Box, Collapse, Stack } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import SearchInput from "../inputfields.tsx/searchInput"
@@ -72,7 +72,7 @@ export default function Search({ token, handleAdd }: Props) {
     }, [query])
 
     // ------------------- For local development
-    /*const track: Track[] = [
+    const track: Track[] = [
         {
             "name": "Austin",
             "link": "https://api.spotify.com/v1/tracks/4NJqhmkGN042BrvHoMKUrJ",
@@ -340,43 +340,47 @@ export default function Search({ token, handleAdd }: Props) {
         setArtistList(artist)
         setPlaylistList(playlist)
     }, [])
-    // ------------------- For local development*/
+    // ------------------- For local development
 
     return (
         <Box sx={{
-            bgcolor: 'secondary.dark',
             flex: 3,
             padding: 1,
-            borderRadius: 3,
-            boxShadow: 2,
             display: 'flex',
+            flexDirection: 'column',
         }}>
-            <Stack sx={{
-                width: 1
+            <Box sx={{
+                display: 'flex',
+                width: 1,
+                bgcolor: 'secondary.dark',
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                borderBottomLeftRadius: expanded ? 0 : 12,
+                borderBottomRightRadius: expanded ? 0 : 12,
+                boxShadow: 2,
+            }}>
+                <CollapseIconButton expanded={expanded} setExpanded={setExpanded} />
+                <SearchInput setQuery={setQuery} />
+            </Box>
+            <Collapse in={expanded} sx={{
+                width: 1,
+                overflow: 'auto',
+                bgcolor: 'secondary.dark',
+                borderBottomLeftRadius: 12,
+                borderBottomRightRadius: 12,
             }}>
                 <Box sx={{
                     display: 'flex',
-                    width: 1,
                 }}>
-                    <CollapseIconButton expanded={expanded} setExpanded={setExpanded} />
-                    <SearchInput setQuery={setQuery} />
+                    <ExpandedSearchContent
+                        trackList={trackList}
+                        albumList={albumList}
+                        playlistList={playlistList}
+                        artistList={artistList}
+                        handleAdd={handleAdd}
+                        token={token} />
                 </Box>
-                <Box sx={{
-                    display: 'flex',
-                }}>
-                    <Collapse in={expanded} sx={{
-                        width: 1
-                    }}>
-                        <ExpandedSearchContent
-                            trackList={trackList}
-                            albumList={albumList}
-                            playlistList={playlistList}
-                            artistList={artistList}
-                            handleAdd={handleAdd}
-                            token={token} />
-                    </Collapse>
-                </Box>
-            </Stack>
+            </Collapse>
         </Box>
     );
 }

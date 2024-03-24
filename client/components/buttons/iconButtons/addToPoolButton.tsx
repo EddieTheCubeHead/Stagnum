@@ -20,6 +20,7 @@ export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) 
         const requestData = {
             spotify_uri: newAdd.uri,
         };
+        handleAdding(newAdd)
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {

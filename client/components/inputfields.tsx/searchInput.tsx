@@ -9,7 +9,7 @@ export default function SearchInput(props: { setQuery: Dispatch<SetStateAction<s
                 margin: 1,
                 borderRadius: 3,
                 boxShadow: 2,
-                width: 1
+                width: 1,
             }}
             id='standard-search'
             label='Search field'

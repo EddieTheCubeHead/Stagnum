@@ -36,6 +36,8 @@ export default function ShowMoreIconButton({
                 },
             ],
         };
+        handleAdding(item)
+
         const backend_uri = 'http://localhost:8080'
 
         axios

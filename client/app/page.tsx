@@ -14,6 +14,7 @@ import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
+import '@/components/layout/css/customScrollBar.css';
 
 export default function HomePage() {
   return (
@@ -72,12 +73,15 @@ function HomeContent() {
       <CssBaseline />
       <Box sx={{
         margin: 1.5,
-        display: 'flex'
+        display: 'flex',
+        height: 'calc(100vh - 80px)',
       }}>
         <Box
           sx={{
             flex: 1,
             padding: 1,
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <MainHeaderCard />
