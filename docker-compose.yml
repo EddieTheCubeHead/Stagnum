@@ -35,6 +35,9 @@ services:
     secrets:
       - spotify_client_id
       - spotify_client_secret
+    env_file:
+      - path: ./.env
+        required: true
   database:
     image: postgres:latest
     restart: always
@@ -57,6 +60,7 @@ services:
     env_file:
       - path: ./.env
         required: true
+
 
 secrets:
   spotify_client_id:
