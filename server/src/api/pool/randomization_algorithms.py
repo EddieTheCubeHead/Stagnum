@@ -67,16 +67,15 @@ class PoolRandomizer:
     def _calculate_playback_weight(self, skips_since_last_play: int) -> float:
         if skips_since_last_play == 0:
             return 1
-        concrete_floor = self._pool_length * (100 / self._randomization_parameters.pseudo_random_floor)
-        concrete_ceiling = self._pool_length * (100 / self._randomization_parameters.pseudo_random_ceiling)
+        concrete_floor = self._pool_length * (self._randomization_parameters.pseudo_random_floor / 100)
+        concrete_ceiling = self._pool_length * (self._randomization_parameters.pseudo_random_ceiling / 100)
         if skips_since_last_play <= concrete_floor:
             return 0
-        elif skips_since_last_play > concrete_ceiling:
+        elif skips_since_last_play >= concrete_ceiling:
             return 1
         slope = 1 / (concrete_ceiling - concrete_floor)
         offset = self._pool_length - concrete_floor
         return slope * (skips_since_last_play - offset)
-
 
 
 def select_next_song(pool_members: list[PoolMember], users: list[User]) -> PoolMember:

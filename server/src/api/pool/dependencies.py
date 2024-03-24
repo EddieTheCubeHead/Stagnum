@@ -244,6 +244,9 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
              PoolMemberRandomizationParameters.skips_since_last_play > 0))
                     .values(skips_since_last_play=(PoolMemberRandomizationParameters.skips_since_last_play + 1)))
 
+    playing_track.randomization_parameters.skips_since_last_play = 1
+    session.merge(playing_track)
+
 
 class PoolDatabaseConnectionRaw:
 
@@ -296,7 +299,7 @@ class PoolDatabaseConnectionRaw:
             else:
                 _crete_user_playback(session, user, playing_track)
 
-            # _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
+            _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
 
     def get_playbacks_to_update(self) -> list[PlaybackSession]:
         cutoff_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=2)
