@@ -11,6 +11,8 @@ export default function PlaylistCard(props: {
     playlist: Playlist,
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
+    disabled: boolean
+    enableAddButton: () => void
 }) {
     const { playlist, handleAdd } = props;
 
@@ -38,8 +40,8 @@ export default function PlaylistCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton newAdd={playlist} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton token={props.token} item={playlist} handleAdding={handleAdding} />
+                    <AddToPoolButton newAdd={playlist} handleAdding={handleAdding} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={playlist} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>

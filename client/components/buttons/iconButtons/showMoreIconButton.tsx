@@ -11,12 +11,14 @@ interface Props {
     token: string
     item: Track | Album | Playlist | Artist
     handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    enableAddButton: () => void
 }
 
 export default function ShowMoreIconButton({
     token,
     item,
-    handleAdding
+    handleAdding,
+    enableAddButton
 }: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -45,6 +47,7 @@ export default function ShowMoreIconButton({
             })
             .then(function (response) {
                 handleAdding(item)
+                enableAddButton()
             })
             .catch((error) => {
                 console.log("Request failed", error);

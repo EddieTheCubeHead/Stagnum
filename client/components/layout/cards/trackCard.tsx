@@ -11,6 +11,8 @@ export default function TrackCard(props: {
     track: Track,
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
+    disabled: boolean
+    enableAddButton: () => void
 }) {
     const { track, handleAdd } = props;
 
@@ -39,8 +41,8 @@ export default function TrackCard(props: {
                     <Header3 text={truncatedName} sx={{ margin: 1 }} />
                 </Box>
                 <Box>
-                    <AddToPoolButton handleAdding={handleAdding} newAdd={track} token={props.token} />
-                    <ShowMoreIconButton token={props.token} item={track} handleAdding={handleAdding} />
+                    <AddToPoolButton handleAdding={handleAdding} newAdd={track} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={track} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>

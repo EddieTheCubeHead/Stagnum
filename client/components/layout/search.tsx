@@ -14,7 +14,7 @@ interface Props {
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void;
 }
 
-export default function Search({ token, handleAdd }: Props) {
+export default function Search({ token, handleAdd, }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -22,6 +22,7 @@ export default function Search({ token, handleAdd }: Props) {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [expanded, setExpanded] = useState(false)
+    const [disabled, setDisabled] = useState(true)
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
         null
     )
@@ -48,6 +49,11 @@ export default function Search({ token, handleAdd }: Props) {
             });
     };
 
+    const enableAddbutton = () => {
+        setDisabled(false)
+    }
+
+    // useEffect to only execute search request after one second has passed from the last input
     useEffect(() => {
         if (!mounted.current) {
             mounted.current = true;
@@ -56,15 +62,12 @@ export default function Search({ token, handleAdd }: Props) {
                 clearTimeout(searchTimeout);
             }
 
-            // Set a timeout to execute the search after 1 second(s)
             const timeout = setTimeout(() => {
                 handleSearchRequest();
             }, 1000);
 
-            // Save the timeout ID for cleanup
             setSearchTimeout(timeout);
 
-            // Cleanup function to clear the timeout when component unmounts or when query changes
             return () => {
                 if (searchTimeout) {
                     clearTimeout(searchTimeout);
@@ -380,7 +383,10 @@ export default function Search({ token, handleAdd }: Props) {
                         playlistList={playlistList}
                         artistList={artistList}
                         handleAdd={handleAdd}
-                        token={token} />
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddbutton}
+                    />
                 </Box>
             </Collapse>
         </Box>

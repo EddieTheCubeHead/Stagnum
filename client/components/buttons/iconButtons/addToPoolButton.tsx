@@ -10,9 +10,10 @@ interface Props {
     newAdd: Track | Album | Playlist | Artist,
     handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
+    disabled: boolean
 }
 
-export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) {
+export default function AddToPoolButton({ newAdd, handleAdding, token, disabled }: Props) {
 
     const backend_uri = 'http://localhost:8080'
 
@@ -45,6 +46,7 @@ export default function AddToPoolButton({ newAdd, handleAdding, token }: Props) 
                     color: 'black',
                     margin: 1
                 }}
+                disabled={disabled}
             >
                 <AddIcon />
             </IconButton>

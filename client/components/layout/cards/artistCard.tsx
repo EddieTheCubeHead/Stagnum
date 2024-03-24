@@ -11,6 +11,8 @@ export default function ArtistCard(props: {
     artist: Artist,
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
+    disabled: boolean
+    enableAddButton: () => void
 }) {
     const { artist, handleAdd } = props;
 
@@ -38,8 +40,8 @@ export default function ArtistCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton newAdd={artist} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton token={props.token} item={artist} handleAdding={handleAdding} />
+                    <AddToPoolButton newAdd={artist} handleAdding={handleAdding} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={artist} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>

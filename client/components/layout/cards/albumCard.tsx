@@ -11,6 +11,8 @@ export default function AlbumCard(props: {
     album: Album,
     handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
+    disabled: boolean
+    enableAddButton: () => void
 }) {
     const { album, handleAdd } = props;
 
@@ -38,8 +40,8 @@ export default function AlbumCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton newAdd={album} handleAdding={handleAdding} token={props.token} />
-                    <ShowMoreIconButton token={props.token} item={album} handleAdding={handleAdding} />
+                    <AddToPoolButton newAdd={album} handleAdding={handleAdding} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={album} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>
