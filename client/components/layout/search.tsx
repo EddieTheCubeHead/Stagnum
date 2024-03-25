@@ -27,7 +27,7 @@ export default function Search({ token, handleAdd, }: Props) {
         null
     )
 
-    const backend_uri = 'http://localhost:8080'
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = () => {
         axios
