@@ -1,18 +1,19 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import { Box, CssBaseline, Typography } from "@mui/material";
+import SideMenu from "@/components/layout/sideMenu";
+import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams, redirect } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
-import MainHeaderCard from "@/components/layout/cards/mainHeaderCard";
+import MainHeaderCard from "@/components/layout/mainHeaderCard";
+import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
-import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
 import '@/components/layout/css/customScrollBar.css';
 
@@ -25,10 +26,11 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [selectedCollections, setSellectedCollections] = useState<Array<Album>>(
     []
   );
-  const [token, setToken] = useState("")
+  const [token, setToken] = useState("");
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
@@ -41,14 +43,14 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      //redirect('/login')
+      redirect('/login')
     }
   }, []);
 
   const handleTokenRequest = (code: string, state: string) => {
     console.log("Sending play request");
 
-    axios.get(`${backend_uri}/auth/login/callback`,
+    axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
       { params: { state, code, client_redirect_uri } })
       .then(function (response) {
         setToken(response.data.access_token);
@@ -58,15 +60,15 @@ function HomeContent() {
       });
   };
 
-  const handleAdd = (newAdd: Album | Track | Artist | Playlist) => {
-    setPool((curPool) => [...curPool, newAdd])
-  }
+  const handleAdd = (newAdd: Album) => {
+    setSellectedCollections((curCollections) => [...curCollections, newAdd]);
+  };
 
-  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
-    setPool((curPool) =>
-      curPool.filter((pool) => pool !== itemToDelete)
-    )
-  }
+  const handleDelete = (itemToDelete: Album) => {
+    setSellectedCollections((curCollections) =>
+      curCollections.filter((collection) => collection !== itemToDelete)
+    );
+  };
 
   return (
     <ThemeProvider theme={theme}>

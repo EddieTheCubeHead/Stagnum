@@ -1,11 +1,11 @@
 import { Box, Card } from "@mui/material";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
+import theme from "@/utils/theme";
 import Artist from "@/types/artistTypes";
 import Track from "@/types/trackTypes";
-import Playlist from "@/types/playlistTypes";
-import { Header3 } from "@/components/textComponents";
-import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 import Album from "@/types/albumTypes";
-import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
+import Playlist from "@/types/playlistTypes";
 
 export default function ArtistCard(props: {
     artist: Artist,
@@ -16,11 +16,9 @@ export default function ArtistCard(props: {
 }) {
     const { artist, handleAdd } = props;
 
-    const handleAdding = () => {
-        handleAdd(artist);
-    };
-
-    const truncatedName = artist.name.length > 25 ? artist.name.slice(0, 25) + "..." : artist.name;
+    const handelAdding = () => {
+        props.handleAdd(props.artist)
+    }
 
     return (
         <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
@@ -45,5 +43,5 @@ export default function ArtistCard(props: {
                 </Box>
             </Box>
         </Card>
-    );
+    )
 }

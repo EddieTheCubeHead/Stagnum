@@ -7,9 +7,12 @@ import pytest
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 
-from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw
-from database.database_connection import ConnectionManager
 from api.application import create_app
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection
+from api.common.models import ParsedTokenResponse
+from database.database_connection import ConnectionManager
+from database.entities import User
 
 
 @pytest.fixture
@@ -52,17 +55,29 @@ def validate_response():
 
 
 @pytest.fixture
-def mock_token_holder(application):
-    token_holder = TokenHolder()
+def mock_token_holder(application, db_connection):
+    user_database_connection = UserDatabaseConnection(db_connection)
+    token_holder = TokenHolder(user_database_connection)
     application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
 
 @pytest.fixture
-def valid_token_header(mock_token_holder, logged_in_user_id):
-    token = "my test token"
-    mock_token_holder.add_token(token, Mock(spotify_id=logged_in_user_id))
-    return {"token": token}
+def valid_token_data() -> ParsedTokenResponse:
+    return ParsedTokenResponse(token="my test token", refresh_token="my refresh token", expires_in=999999)
+
+
+@pytest.fixture
+def logged_in_user(logged_in_user_id) -> User:
+    return User(spotify_id=logged_in_user_id, spotify_username=logged_in_user_id,
+                spotify_avatar_url=f"user.icon.example")
+
+
+@pytest.fixture
+def valid_token_header(db_connection, logged_in_user, valid_token_data):
+    auth_database_connection = AuthDatabaseConnection(db_connection)
+    auth_database_connection.update_logged_in_user(logged_in_user, valid_token_data)
+    return {"token": valid_token_data.token}
 
 
 @pytest.fixture
@@ -113,12 +128,12 @@ def create_mock_artist_search_result(faker):
             "type": "artist",
             "uri": f"spotify:artist:{artist_id}"
         }
+
     return wrapper
 
 
 @pytest.fixture
 def create_mock_album_search_result(faker):
-
     def wrapper(artist: dict, tracks: list[dict] | None = None):
         album_name = faker.text(max_nb_chars=25)[:-1]
         album_id = faker.uuid4()
@@ -170,6 +185,7 @@ def create_mock_album_search_result(faker):
                 "items": tracks
             }
         return album_data
+
     return wrapper
 
 
@@ -283,4 +299,5 @@ def get_query_parameter():
         match = re.match(fr".*[&?]{parameter_name}=([^{restricted_characters}]+)(?:$|&.*)", query_string)
         assert match, f"Could not find query parameter {parameter_name} in query '{query_string}'"
         return match.group(1)
+
     return wrapper

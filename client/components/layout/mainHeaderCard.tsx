@@ -1,6 +1,6 @@
 import theme from '@/utils/theme'
 import { Box, Grid } from '@mui/material'
-import { Header1, Header2 } from '../../textComponents'
+import { Header2 } from '../textComponents'
 import Image from 'next/image'
 
 
@@ -8,6 +8,7 @@ export default function MainHeaderCard() {
 
     return (
         <Box sx={{
+            bgcolor: theme.palette.secondary.dark,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -16,12 +17,11 @@ export default function MainHeaderCard() {
             boxShadow: 2,
         }}>
             <Image
-                src={require("@/public/stagnum_antler_bold_coloured_plain.svg")}
-                height={50}
+                src={require("@/public/Stagnum_Logo.png")}
+                height={45}
                 alt={"Home background"}
-                style={{ objectFit: "contain", margin: 5 }}
+                style={{ objectFit: "contain", margin: 10 }}
             />
-            <Header1 text={'Stagnum'} sx={{ color: 'white' }} />
         </Box>
     )
 }

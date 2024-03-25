@@ -1,11 +1,10 @@
-import { Box, Card, IconButton } from "@mui/material";
+import { Box, Card } from "@mui/material";
+import { Header3 } from "../../textComponents";
+import DefaultButton from "../../buttons/defaulButton";
 import Track from "@/types/trackTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import { Header3 } from "@/components/textComponents";
-import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 import Album from "@/types/albumTypes";
-import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
+import Playlist from "@/types/playlistTypes";
+import Artist from "@/types/artistTypes";
 
 export default function TrackCard(props: {
     track: Track,
@@ -46,5 +45,5 @@ export default function TrackCard(props: {
                 </Box>
             </Box>
         </Card>
-    );
+    )
 }

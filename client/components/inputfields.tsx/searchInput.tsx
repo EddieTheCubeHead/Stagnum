@@ -1,11 +1,12 @@
-import { TextField } from "@mui/material"
-import { Dispatch, SetStateAction } from "react"
+import theme from "@/utils/theme";
+import { TextField } from "@mui/material";
+import { Dispatch, SetStateAction } from "react";
 
 export default function SearchInput(props: { setQuery: Dispatch<SetStateAction<string>> }) {
     return (
         <TextField
             sx={{
-                bgcolor: 'secondary.main',
+                bgcolor: theme.palette.secondary.main,
                 margin: 1,
                 borderRadius: 1,
                 boxShadow: 2,
