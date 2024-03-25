@@ -19,18 +19,12 @@ resource "aws_ecr_repository" "ecr-front-repo"{
     force_delete = true
 }
 
-data "external" "front_build_dir"{
-  program = ["bash", "${path.module}/../client/"]
-}
 
 resource "aws_ecr_repository" "ecr-back-repo"{
     name = "${var.app_name}-back-repo"
     force_delete = true
 }
 
-data "external" "back_build_dir"{
-  program = ["bash", "${path.module}/../server/"]
-}
 
 # Creating an ECS cluster
 resource "aws_ecs_cluster" "aws-cluster" {
