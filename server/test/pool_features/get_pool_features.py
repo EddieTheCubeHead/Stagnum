@@ -7,7 +7,7 @@ def should_get_all_existing_tracks(existing_pool, test_client, valid_token_heade
     response = test_client.get("/pool", headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["tracks"]) == len(existing_pool)
+    assert len(pool_response["users"][0]["tracks"]) == len(existing_pool)
 
 
 def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_token_header, validate_response,
@@ -29,5 +29,6 @@ def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_tok
     response = test_client.get("/pool", headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["tracks"]) == len(existing_pool)
-    assert len(pool_response["collections"]) == 3
+    user_pool = pool_response["users"][0]
+    assert len(user_pool["tracks"]) == len(existing_pool)
+    assert len(user_pool["collections"]) == 3

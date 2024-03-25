@@ -1,3 +1,4 @@
+import datetime
 import functools
 from logging import getLogger
 from typing import Annotated
@@ -5,10 +6,11 @@ from typing import Annotated
 import requests
 from fastapi import Depends, HTTPException, Header
 from requests import Response
+from sqlalchemy import select, and_
 
+from api.common.models import ParsedTokenResponse
 from database.database_connection import ConnectionManager
-from database.entities import User
-
+from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
 
@@ -70,48 +72,63 @@ class SpotifyClientRaw:
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
 
-
 DatabaseConnection = Annotated[ConnectionManager, Depends()]
+
+
+class UserDatabaseConnectionRaw:
+
+    def __init__(self, database_connection: DatabaseConnection):
+        self._database_connection = database_connection
+
+    def get_from_token(self, token: str) -> User | None:
+        with self._database_connection.session() as session:
+            return session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
+
+    def get_from_id(self, user_id: str) -> User | None:
+        with self._database_connection.session() as session:
+            return session.scalar(select(User).where(User.spotify_id == user_id))
+
+    def log_out(self, token: str):
+        with self._database_connection.session() as session:
+            user = session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
+            session.delete(user.session)
+
+
+UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 
 
 class TokenHolderRaw:
 
-    _tokens: dict[str, User] = {}
-    _user_tokens: dict[str, str] = {}
+    def __init__(self, user_database_connection: UserDatabaseConnection):
+        self._user_database_connection = user_database_connection
 
-    def add_token(self, token: str, user: User):
-        self._tokens[token] = user
-        self._user_tokens[user.spotify_id] = token
-
-    def validate_token(self, token: str):
-        if not self.is_token_logged_in(token):
-            _logger.error(f"Token {token} not found in {self._tokens}")
+    def get_user_from_token(self, token: str) -> User:
+        user = self._user_database_connection.get_from_token(token)
+        if user is None:
+            _logger.error(f"Token {token} not found.")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
+        return user
 
-    def get_from_token(self, token: str) -> User:
-        return self._tokens[token]
-
-    def get_from_user_id(self, user_id: str) -> str:
-        return self._user_tokens[user_id]
+    def get_user_from_user_id(self, user_id: str) -> User:
+        return self._user_database_connection.get_from_id(user_id)
 
     def log_out(self, token: str):
-        user_id = self._tokens.pop(token).spotify_id
-        self._user_tokens.pop(user_id)
+        self._user_database_connection.log_out(token)
 
     def is_token_logged_in(self, token: str):
-        return token in self._tokens
+        return self._user_database_connection.get_from_token(token) is not None
 
     def is_user_logged_in(self, user_id: str):
-        return user_id in self._user_tokens
+        return self._user_database_connection.get_from_id(user_id).session is not None
 
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
-def validated_token_raw(token: Annotated[str, Header()], token_holder: TokenHolder):
-    _logger.debug(f"Validating token {token}")
-    token_holder.validate_token(token)
-    return token
+def validated_user_raw(token: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+    _logger.debug(f"Getting user for token {token}")
+    user = token_holder.get_user_from_token(token)
+    return user
 
 
-validated_token = Annotated[str, Depends(validated_token_raw)]
+validated_user = Annotated[User, Depends(validated_user_raw)]

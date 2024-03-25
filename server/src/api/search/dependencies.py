@@ -5,10 +5,11 @@ from typing import Annotated
 from fastapi import Depends
 
 from api.common.dependencies import SpotifyClient
-from api.common.helpers import get_sharpest_icon
+from api.common.helpers import get_sharpest_icon, build_auth_header
 from api.common.models import NamedResource
 from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult, \
     SpotifyPlayableType, ArtistSearchResult, AlbumSearchResult, TrackSearchResult, PlaylistSearchResult
+from database.entities import User
 
 _logger = getLogger("main.api.search.dependencies")
 
@@ -105,19 +106,13 @@ def _build_paginated_playlist_search(result_data):
     )
 
 
-def _auth_header(token: str) -> dict:
-    return {
-        "Authorization": token
-    }
-
-
 class SearchSpotifyClientRaw:
     def __init__(self, spotify_client: SpotifyClient):
         self._spotify_client = spotify_client
 
-    def get_general_search(self, query: str, token: str, types: list[str]) \
+    def get_general_search(self, query: str, user: User, types: list[str]) \
             -> GeneralSearchResult:
-        result = self._get_search(query, token, types)
+        result = self._get_search(query, user, types)
         artist_result: ArtistSearchResult = _build_paginated_artist_search(result["artists"])
         album_result: AlbumSearchResult = _build_paginated_album_search(result["albums"])
         tracks_result: TrackSearchResult = _build_paginated_track_search(result["tracks"])
@@ -126,33 +121,33 @@ class SearchSpotifyClientRaw:
         return GeneralSearchResult(tracks=tracks_result, artists=artist_result, albums=album_result,
                                    playlists=playlists_result)
 
-    def _get_search(self, query: str, token: str, types: list[str], offset: int = 0, limit: int = 20) -> dict:
+    def _get_search(self, query: str, user: User, types: list[str], offset: int = 0, limit: int = 20) -> dict:
         search_types = ",".join(types)
-        headers = _auth_header(token)
+        headers = build_auth_header(user)
         query_string = f"search?q={query}&type={search_types}&offset={offset}&limit={limit}"
         _logger.debug(f"Searching spotify with query '{query_string}'")
         raw_result = self._spotify_client.get(query_string, headers=headers)
         _logger.debug(f"Received result {raw_result}")
         return json.loads(raw_result.content.decode("utf8"))
 
-    def get_track_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
+    def get_track_search(self, query: str, user: User, offset: int = 0, limit: int = 20) \
             -> PaginatedSearchResult[Track]:
-        result = self._get_search(query, token, [SpotifyPlayableType.Track.value], offset, limit)
+        result = self._get_search(query, user, [SpotifyPlayableType.Track.value], offset, limit)
         return _build_paginated_track_search(result["tracks"])
 
-    def get_album_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
+    def get_album_search(self, query: str, user: User, offset: int = 0, limit: int = 20) \
             -> PaginatedSearchResult[Album]:
-        result = self._get_search(query, token, [SpotifyPlayableType.Album.value], offset, limit)
+        result = self._get_search(query, user, [SpotifyPlayableType.Album.value], offset, limit)
         return _build_paginated_album_search(result["albums"])
 
-    def get_artist_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
+    def get_artist_search(self, query: str, user: User, offset: int = 0, limit: int = 20) \
             -> PaginatedSearchResult[Artist]:
-        result = self._get_search(query, token, [SpotifyPlayableType.Artist.value], offset, limit)
+        result = self._get_search(query, user, [SpotifyPlayableType.Artist.value], offset, limit)
         return _build_paginated_artist_search(result["artists"])
 
-    def get_playlist_search(self, query: str, token: str, offset: int = 0, limit: int = 20) \
+    def get_playlist_search(self, query: str, user: User, offset: int = 0, limit: int = 20) \
             -> PaginatedSearchResult[Playlist]:
-        result = self._get_search(query, token, [SpotifyPlayableType.Playlist.value], offset, limit)
+        result = self._get_search(query, user, [SpotifyPlayableType.Playlist.value], offset, limit)
         return _build_paginated_playlist_search(result["playlists"])
 
 

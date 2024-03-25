@@ -10,7 +10,7 @@ def should_delete_track_and_return_remaining_pool_if_given_track_id(existing_poo
     response = test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["tracks"]) == len(existing_pool) - 1
+    assert len(pool_response["users"][0]["tracks"]) == len(existing_pool) - 1
 
 
 def should_not_have_track_in_database_after_deletion(existing_pool: list[PoolMember], valid_token_header, test_client,
@@ -34,7 +34,8 @@ def should_be_able_to_delete_separate_child_from_collection(create_mock_track_se
 
     response = test_client.delete(f"/pool/content/{expected_tracks[5]["uri"]}", headers=valid_token_header)
     pool_response = validate_response(response)
-    assert len(pool_response["collections"][0]["tracks"]) == len(expected_tracks) - 1
+    user_pool = pool_response["users"][0]
+    assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks) - 1
     with db_connection.session() as session:
         all_tracks = session.scalars(select(PoolMember).where(
             and_(PoolMember.parent_id != None, PoolMember.user_id == logged_in_user_id))).unique().all()
@@ -55,7 +56,8 @@ def should_delete_all_children_on_parent_deletion(create_mock_track_search_resul
     response = test_client.delete(f"/pool/content/{playlist["uri"]}", headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["collections"]) == 0
+    user_pool = pool_response["users"][0]
+    assert len(user_pool["collections"]) == 0
     with db_connection.session() as session:
         all_tracks = session.scalars(select(PoolMember).where(
             and_(PoolMember.parent_id != None, PoolMember.user_id == logged_in_user_id))).unique().all()
