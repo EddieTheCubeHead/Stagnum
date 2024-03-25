@@ -3,7 +3,7 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import axios from "axios";
 
 function SkipButton(props: { disabled?: boolean; token: string }) {
-  const backend_uri = 'http://localhost:8080'
+  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
   const skip = () => {
     const headers = {

@@ -11,8 +11,8 @@ export default function Login() {
 
   const handleLoginRequest = () => {
     console.log("Sending login request");
-    const client_redirect_uri = 'http://localhost:80'
-    const backend_uri = 'http://localhost:8080'
+    const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     console.log(process.env.NEXT_PUBLIC_BACKEND_URI)
 
     axios

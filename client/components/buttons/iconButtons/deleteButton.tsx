@@ -18,7 +18,7 @@ export default function DeleteButton({
     handleDelete
 }: Props) {
 
-    const backend_uri = 'http://localhost:8080'
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleClick = () => {
         axios
