@@ -6,27 +6,43 @@ import Album from "@/types/albumTypes";
 import Playlist from "@/types/playlistTypes";
 import Artist from "@/types/artistTypes";
 
-export default function TrackCard(props: { track: Track, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
-    const handelAdding = () => {
-        props.handleAdd(props.track)
-    }
+export default function TrackCard(props: {
+    track: Track,
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+    token: string
+    disabled: boolean
+    enableAddButton: () => void
+}) {
+    const { track, handleAdd } = props;
+
+    const handleAdding = () => {
+        handleAdd(track);
+    };
+
+    const truncatedName = track.name.length > 25 ? track.name.slice(0, 25) + "..." : track.name;
+
+
     return (
-        <Card
-            sx={{
-                backgroundColor: "secondary.main",
-                maxHeight: 300,
-                maxWidth: 300,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-            }}>
-            <Header3 text={props.track.name} />
-            <Box sx={{
-                marginLeft: 'auto',
-                marginRight: 1,
-                marginBottom: 1
-            }}>
-                <DefaultButton text={"Add to pool"} action={handelAdding} />
+        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {track.album.icon_link && (
+                        <Box
+                            sx={{
+                                width: 50,
+                                height: 50,
+                                backgroundImage: `url(${track.album.icon_link})`,
+                                backgroundSize: 'cover',
+                                margin: 1,
+                            }}
+                        />
+                    )}
+                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
+                </Box>
+                <Box>
+                    <AddToPoolButton handleAdding={handleAdding} newAdd={track} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={track} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
+                </Box>
             </Box>
         </Card>
     )

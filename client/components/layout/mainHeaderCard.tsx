@@ -14,7 +14,7 @@ export default function MainHeaderCard() {
             alignItems: 'center',
             height: '10vh',
             borderRadius: 3,
-            boxShadow: 2
+            boxShadow: 2,
         }}>
             <Image
                 src={require("@/public/Stagnum_Logo.png")}
