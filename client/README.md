@@ -22,6 +22,29 @@ You can install dependencies by running this command in the client root folder
 npm install
 ```
 
+### Setting up the environments
+
+The frontend uses the following environment variables.
+
+- `NEXT_PUBLIC_FRONTEND_URI`: the clients uri. This is used for the spotify authentication callback.
+- `NEXT_PUBLIC_BACKEND_URI`: the backends uri. This is used to communicate to the backend.
+
+#### How to set environment variables
+
+Setting an environment variable should be straightforward, here's how to do it with bash and powershell:
+
+```bash
+# bash
+export NEXT_PUBLIC_FRONTEND_URI="http://localhost:80"
+```
+
+```powershell
+// Powershell
+$Env:NEXT_PUBLIC_FRONTEND_URI="http://localhost:80"
+```
+
+
+
 ### Running the client locally
 
 Once you have Node.js and the dependencies installed you can run the client application locally by running this command in the client root folder
