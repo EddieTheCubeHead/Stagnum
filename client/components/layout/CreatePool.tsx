@@ -16,27 +16,27 @@ export default function CreatePool({
     selectedCollections,
     handleDelete,
 }: Props) {
-  const createPool = () => {
-    const requestData = {
-      spotify_uris: [
-        {
-          spotify_uri: selectedCollections[0].uri,
-        },
-      ],
-    };
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const createPool = () => {
+        const requestData = {
+            spotify_uris: [
+                {
+                    spotify_uri: selectedCollections[0].uri,
+                },
+            ],
+        }
+        const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    axios
-      .post(`${backend_uri}/pool`, requestData, {
-        headers: { token },
-      })
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log("Request failed", error);
-      });
-  };
+        axios
+            .post(`${backend_uri}/pool`, requestData, {
+                headers: { token },
+            })
+            .then((response) => {
+                console.log(response)
+            })
+            .catch((error) => {
+                console.log('Request failed', error)
+            })
+    }
 
     return (
         <Grid

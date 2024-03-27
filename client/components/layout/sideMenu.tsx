@@ -22,31 +22,31 @@ export default function SideMenup(props: {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
 
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+        null,
+    )
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (searchQuery: string) => {
         console.log('Searching song with:', searchQuery)
 
-    axios
-      .get(`${backend_uri}/search`, {
-        params: { query },
-        headers: { token },
-      })
-      .then(function (response) {
-        console.log(response);
-        setTrackList(response.data.tracks.results);
-        setAlbumList(response.data.albums.results);
-        setArtistList(response.data.artists.results);
-        setPlaylistList(response.data.playlists.results);
-        console.log(trackList);
-      })
-      .catch((error) => {
-        console.log("Request failed", error);
-      });
-  };
+        axios
+            .get(`${backend_uri}/search`, {
+                params: { query },
+                headers: { token },
+            })
+            .then((response) => {
+                console.log(response)
+                setTrackList(response.data.tracks.results)
+                setAlbumList(response.data.albums.results)
+                setArtistList(response.data.artists.results)
+                setPlaylistList(response.data.playlists.results)
+                console.log(trackList)
+            })
+            .catch((error) => {
+                console.log('Request failed', error)
+            })
+    }
 
     useEffect(() => {
         if (!mounted.current) {

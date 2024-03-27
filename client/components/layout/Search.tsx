@@ -34,38 +34,38 @@ export default function Search({ token, handleAdd }: Props) {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
 
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+        null,
+    )
 
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (searchQuery: string) => {
         console.log('Searching song with:', searchQuery)
 
-    axios
-      .get(`${backend_uri}/search`, {
-        params: { query },
-        headers: { token },
-      })
-      .then(function (response) {
-        console.log(response);
-        setTrackList(response.data.tracks.results);
-        setAlbumList(response.data.albums.results);
-        setArtistList(response.data.artists.results);
-        setPlaylistList(response.data.playlists.results);
-        console.log(trackList);
-      })
-      .catch((error) => {
-        console.log("Request failed", error);
-      });
-  };
-  const playlist: Playlist = {
-    name: "90s Ambient Techno Mix",
-    uri: "spotify:playlist:37i9dQZF1EIfMxLinpTxdB",
-    icon_link:
-      "https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large",
-  };
+        axios
+            .get(`${backend_uri}/search`, {
+                params: { query },
+                headers: { token },
+            })
+            .then((response) => {
+                console.log(response)
+                setTrackList(response.data.tracks.results)
+                setAlbumList(response.data.albums.results)
+                setArtistList(response.data.artists.results)
+                setPlaylistList(response.data.playlists.results)
+                console.log(trackList)
+            })
+            .catch((error) => {
+                console.log('Request failed', error)
+            })
+    }
+    const playlist: Playlist = {
+        name: '90s Ambient Techno Mix',
+        uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
+        icon_link:
+            'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
+    }
 
     const handelAdding = () => {
         handleAdd(playlist)

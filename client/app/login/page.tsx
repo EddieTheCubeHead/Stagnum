@@ -9,23 +9,23 @@ import DefaultButton from '@/components/buttons/defaulButton'
 export default function Login() {
     const router = useRouter()
 
-  const handleLoginRequest = () => {
-    console.log("Sending login request");
-    const frontend_uri = process.env.NEXT_PUBLIC_FRONTEND_URI;
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
+    const handleLoginRequest = () => {
+        console.log('Sending login request')
+        const frontend_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+        const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    axios
-      .get(`${backend_uri}/auth/login`, {
-        params: { frontend_uri },
-      })
-      .then(function (response) {
-        console.log(response.data.redirect_uri);
-        router.push(response.data.redirect_uri);
-      })
-      .catch(() => {
-        console.log("Request failed");
-      });
-  };
+        axios
+            .get(`${backend_uri}/auth/login`, {
+                params: { frontend_uri },
+            })
+            .then((response) => {
+                console.log(response.data.redirect_uri)
+                router.push(response.data.redirect_uri)
+            })
+            .catch(() => {
+                console.log('Request failed')
+            })
+    }
 
     return (
         <Box
