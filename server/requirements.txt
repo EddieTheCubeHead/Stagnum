@@ -6,3 +6,4 @@ alembic==1.13.1
 psycopg2==2.9.9
 requests==2.31.0
 APScheduler==3.10.4
+websockets==12.0

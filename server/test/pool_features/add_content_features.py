@@ -16,7 +16,7 @@ def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
     pool_response = validate_response(response)
-    assert len(pool_response["tracks"]) == 1
+    assert len(pool_response["users"][0]["tracks"]) == 1
 
 
 def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mock_track_search_result, requests_client,
@@ -66,7 +66,8 @@ def should_correctly_construct_pool_after_collection_addition(requests_client,
             and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))).unique().all()
     assert len(actual_pool_content) == len(existing_pool) + 1
     pool_response = validate_response(response)
-    assert len(pool_response["collections"][0]["tracks"]) == len(playlist["tracks"]["items"])
+    user_pool = pool_response["users"][0]
+    assert len(user_pool["collections"][0]["tracks"]) == len(playlist["tracks"]["items"])
 
 
 def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_track_search_result, requests_client,
@@ -83,5 +84,6 @@ def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
     pool_response = validate_response(response)
-    for track in pool_response["collections"][0]["tracks"]:
+    user_pool = pool_response["users"][0]
+    for track in user_pool["collections"][0]["tracks"]:
         assert track["spotify_icon_uri"] == album["images"][0]["url"]
