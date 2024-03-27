@@ -1,13 +1,16 @@
-import { Box, Card } from "@mui/material";
-import { Header3 } from "../../textComponents";
-import DefaultButton from "../../buttons/defaulButton";
-import theme from "@/utils/theme";
-import Artist from "@/types/artistTypes";
-import Track from "@/types/trackTypes";
-import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
+import { Box, Card } from '@mui/material'
+import { Header3 } from '../../textComponents'
+import DefaultButton from '../../buttons/defaulButton'
+import theme from '@/utils/theme'
+import Artist from '@/types/artistTypes'
+import Track from '@/types/trackTypes'
+import Album from '@/types/albumTypes'
+import Playlist from '@/types/playlistTypes'
 
-export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
+export default function ArtistCard(props: {
+    artist: Artist
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+}) {
     const imageUrl = props.artist.icon_link
 
     const handelAdding = () => {
@@ -26,14 +29,17 @@ export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: 
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-            }}>
+            }}
+        >
             <Header3 text={props.artist.name} />
-            <Box sx={{
-                marginLeft: 'auto',
-                marginRight: 1,
-                marginBottom: 1
-            }}>
-                <DefaultButton text={"Add to pool"} action={handelAdding} />
+            <Box
+                sx={{
+                    marginLeft: 'auto',
+                    marginRight: 1,
+                    marginBottom: 1,
+                }}
+            >
+                <DefaultButton text={'Add to pool'} action={handelAdding} />
             </Box>
         </Card>
     )
