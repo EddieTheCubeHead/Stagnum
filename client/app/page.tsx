@@ -1,7 +1,6 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import SideMenu from "@/components/layout/sideMenu";
 import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams, redirect } from "next/navigation";
@@ -9,11 +8,11 @@ import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
+import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
 import '@/components/layout/css/customScrollBar.css';
 
@@ -26,8 +25,11 @@ export default function HomePage() {
 }
 
 function HomeContent() {
+  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
+    []
+  );
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album>>(
+  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
     []
   );
   const [token, setToken] = useState("");
@@ -43,7 +45,7 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      redirect('/login')
+      //redirect('/login')
     }
   }, []);
 
@@ -60,11 +62,11 @@ function HomeContent() {
       });
   };
 
-  const handleAdd = (newAdd: Album) => {
+  const handleAdding = (newAdd: Album | Track | Artist | Playlist) => {
     setSellectedCollections((curCollections) => [...curCollections, newAdd]);
   };
 
-  const handleDelete = (itemToDelete: Album) => {
+  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
     setSellectedCollections((curCollections) =>
       curCollections.filter((collection) => collection !== itemToDelete)
     );
@@ -89,7 +91,7 @@ function HomeContent() {
           <MainHeaderCard />
           <ManagePool pool={pool} token={token} handleDelete={handleDelete} />
         </Box>
-        <Search token={token} handleAdd={handleAdd} />
+        <Search token={token} handleAdding={handleAdding} />
       </Box>
       <Footer token={token} />
     </ThemeProvider>

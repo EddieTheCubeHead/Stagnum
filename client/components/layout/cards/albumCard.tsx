@@ -2,38 +2,40 @@ import { Box, Card } from "@mui/material";
 import { Header3 } from "../../textComponents";
 import DefaultButton from "../../buttons/defaulButton";
 import Album from "@/types/albumTypes";
+import Track from "@/types/trackTypes";
+import Playlist from "@/types/playlistTypes";
+import Artist from "@/types/artistTypes";
+import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
+import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 
 export default function AlbumCard(props: {
   album: Album,
-  handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+  handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
   token: string
   disabled: boolean
   enableAddButton: () => void
 }) {
-  const addAlbum = () => {
-    props.handleAdd(props.album);
-  };
 
   return (
     <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {album.icon_link && (
+          {props.album.icon_link && (
             <Box
               sx={{
                 width: 50,
                 height: 50,
-                backgroundImage: `url(${album.icon_link})`,
+                backgroundImage: `url(${props.album.icon_link})`,
                 backgroundSize: 'cover',
                 margin: 1,
               }}
             />
           )}
-          <Header3 text={truncatedName} />
+          <Header3 text={props.album.name} />
         </Box>
         <Box>
-          <AddToPoolButton newAdd={album} handleAdding={handleAdding} token={props.token} disabled={props.disabled} />
-          <ShowMoreIconButton token={props.token} item={album} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
+          <AddToPoolButton newAdd={props.album} handleAdding={props.handleAdding} token={props.token} disabled={props.disabled} />
+          <ShowMoreIconButton token={props.token} item={props.album} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
         </Box>
       </Box>
     </Card>

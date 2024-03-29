@@ -6,32 +6,29 @@ import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
+import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
+import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 
 export default function PlaylistCard(props: {
     playlist: Playlist,
-    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void
+    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
 }) {
-    const { playlist, handleAdd } = props;
 
-    const handleAdding = () => {
-        handleAdd(playlist);
-    };
-
-    const truncatedName = playlist.name.length > 25 ? playlist.name.slice(0, 25) + "..." : playlist.name;
+    const truncatedName = props.playlist.name.length > 25 ? props.playlist.name.slice(0, 25) + "..." : props.playlist.name;
 
     return (
         <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {playlist.icon_link && (
+                    {props.playlist.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${playlist.icon_link})`,
+                                backgroundImage: `url(${props.playlist.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
@@ -40,11 +37,10 @@ export default function PlaylistCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton newAdd={playlist} handleAdding={handleAdding} token={props.token} disabled={props.disabled} />
-                    <ShowMoreIconButton token={props.token} item={playlist} handleAdding={handleAdding} enableAddButton={props.enableAddButton} />
+                    <AddToPoolButton newAdd={props.playlist} handleAdding={props.handleAdding} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={props.playlist} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>
-        </Box >
     )
 }

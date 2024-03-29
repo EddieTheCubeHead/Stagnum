@@ -6,15 +6,16 @@ import SearchInput from "../inputfields.tsx/searchInput"
 import Playlist from '@/types/playlistTypes'
 import Album from "@/types/albumTypes"
 import Artist from "@/types/artistTypes"
-import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
+//import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 import ExpandedSearchContent from "./expandedSearchContent";
+import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 
 interface Props {
     token: string;
-    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void;
+    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void;
 }
 
-export default function Search({ token, handleAdd, }: Props) {
+export default function Search({ token, handleAdding, }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -51,6 +52,10 @@ export default function Search({ token, handleAdd, }: Props) {
 
     const enableAddbutton = () => {
         setDisabled(false)
+    }
+
+    const handleExpandClick = () => {
+        setExpanded(!expanded)
     }
 
     // useEffect to only execute search request after one second has passed from the last input
@@ -94,7 +99,7 @@ export default function Search({ token, handleAdd, }: Props) {
                 borderBottomRightRadius: expanded ? 0 : 12,
                 boxShadow: 2,
             }}>
-                <CollapseIconButton expanded={expanded} setExpanded={setExpanded} />
+                <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
                 <SearchInput setQuery={setQuery} />
             </Box>
             <Collapse in={expanded} sx={{
@@ -112,7 +117,7 @@ export default function Search({ token, handleAdd, }: Props) {
                         albumList={albumList}
                         playlistList={playlistList}
                         artistList={artistList}
-                        handleAdd={handleAdd}
+                        handleAdding={handleAdding}
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddbutton}
