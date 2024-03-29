@@ -4,6 +4,10 @@ terraform {
         source = "opentofu/aws"
         version = "~> 5.0"
       }
+      docker = {
+        source = "kreuzwerker/docker"
+        version = "~> 3.0"
+      }
     }
 }
 
@@ -14,15 +18,50 @@ provider "aws" {
 }
 
 # Creating an ECR Repository
-resource "aws_ecr_repository" "ecr-front-repo"{
-    name = "${var.app_name}-front-repo"
-    force_delete = true
+resource "aws_ecr_repository" "ecr-repo"{
+  name = "${var.app_name}-repo"
+  force_delete = true
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 }
 
+# Create docker
+provider "docker" {
+  registry_auth{
+    address = data.aws_ecr_authorization_token.token.proxy_endpoint
+    username = data.aws_ecr_authorization_token.token.user_name
+    password = data.aws_ecr_authorization_token.token.password
+  }
+}
 
-resource "aws_ecr_repository" "ecr-back-repo"{
-    name = "${var.app_name}-back-repo"
-    force_delete = true
+# Build docker images
+resource "docker_image" "front-image" {
+  name = "${data.aws_ecr_authorization_token.token.proxy_endpoint}/${aws_ecr_repository.ecr-repo.name}:latest"
+  build {
+    context = "./client"
+  } 
+  platform = "linux/arm64"
+}
+
+resource "docker_image" "back-image" {
+  name = "${data.aws_ecr_authorization_token.token.proxy_endpoint}/${aws_ecr_repository.ecr-repo.name}:latest"
+  build {
+    context = "./server"
+  } 
+  platform = "linux/arm64"
+}
+
+# Push docker images
+resource "docker_registry_image" "front-media-handler"{
+  name = docker_image.front-image
+  keep_remotely = true
+}
+
+resource "docker_registry_image" "back-media-handler" {
+  name = docker_image.back-image
+  keep_remotely = true
 }
 
 
