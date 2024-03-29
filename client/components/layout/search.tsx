@@ -1,201 +1,124 @@
-import theme from "@/utils/theme";
 import Track from "@/types/trackTypes";
-import {
-  Box,
-  Button,
-  Grid,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { AppBar, Box, Collapse, Stack } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import TrackCard from "./cards/trackCard";
-import SearchInput from "../inputfields.tsx/searchInput";
-import { Header2, Header3 } from "../textComponents";
-import Playlist from "@/types/playlistTypes";
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import AlbumCard from "./albumCard";
-import PlaylistCard from "./cards/playlistCard";
-import ArtistCard from "./cards/artistCard";
+import SearchInput from "../inputfields.tsx/searchInput"
+import Playlist from '@/types/playlistTypes'
+import Album from "@/types/albumTypes"
+import Artist from "@/types/artistTypes"
+import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
+import ExpandedSearchContent from "./expandedSearchContent";
 
 interface Props {
-  token: string;
-  handleAdd: (newAdd: Track | Album | Playlist | Artist) => void;
+    token: string;
+    handleAdd: (newAdd: Track | Album | Playlist | Artist) => void;
 }
 
-export default function Search({ token, handleAdd }: Props) {
-  const mounted = useRef(false);
-  const [query, setQuery] = useState("");
-  const [trackList, setTrackList] = useState<Track[]>([]);
-  const [artistList, setArtistList] = useState<Artist[]>([]);
-  const [playlistList, setPlaylistList] = useState<Playlist[]>([]);
-  const [albumList, setAlbumList] = useState<Album[]>([]);
+export default function Search({ token, handleAdd, }: Props) {
+    const mounted = useRef(false)
+    const [query, setQuery] = useState("")
+    const [trackList, setTrackList] = useState<Track[]>([])
+    const [artistList, setArtistList] = useState<Artist[]>([])
+    const [playlistList, setPlaylistList] = useState<Playlist[]>([])
+    const [albumList, setAlbumList] = useState<Album[]>([])
+    const [expanded, setExpanded] = useState(false)
+    const [disabled, setDisabled] = useState(true)
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+        null
+    )
 
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const handleSearchRequest = () => {
+        axios
+            .get(`${backend_uri}/search`, {
+                params: { query },
+                headers: { token },
+            })
+            .then(function (response) {
+                if (!expanded) {
+                    setExpanded(true)
+                }
+                setTrackList(response.data.tracks.results)
+                setAlbumList(response.data.albums.results)
+                setArtistList(response.data.artists.results)
+                setPlaylistList(response.data.playlists.results)
+            })
+            .catch((error) => {
+                console.log("Request failed", error);
+            });
+    };
 
-  const handleSearchRequest = (searchQuery: string) => {
-    console.log("Searching song with:", searchQuery);
-
-    axios
-      .get(`${backend_uri}/search`, {
-        params: { query },
-        headers: { token },
-      })
-      .then(function (response) {
-        console.log(response);
-        setTrackList(response.data.tracks.results);
-        setAlbumList(response.data.albums.results);
-        setArtistList(response.data.artists.results);
-        setPlaylistList(response.data.playlists.results);
-        console.log(trackList);
-      })
-      .catch((error) => {
-        console.log("Request failed", error);
-      });
-  };
-  const playlist: Playlist = {
-    name: "90s Ambient Techno Mix",
-    uri: "spotify:playlist:37i9dQZF1EIfMxLinpTxdB",
-    icon_link:
-      "https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large",
-  };
-
-  const handelAdding = () => {
-    handleAdd(playlist);
-  };
-
-  useEffect(() => {
-    if (!mounted.current) {
-      console.log(mounted.current);
-      mounted.current = true;
-    } else {
-      console.log(mounted.current);
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-
-      // Set a timeout to execute the search after 2 seconds
-      const timeout = setTimeout(() => {
-        handleSearchRequest(query);
-      }, 2000);
-
-      // Save the timeout ID for cleanup
-      setSearchTimeout(timeout);
-
-      // Cleanup function to clear the timeout when component unmounts or when query changes
-      return () => {
-        if (searchTimeout) {
-          clearTimeout(searchTimeout);
-        }
-      };
+    const enableAddbutton = () => {
+        setDisabled(false)
     }
-  }, [query]);
 
-  return (
-    <Box
-      sx={{
-        bgcolor: theme.palette.secondary.dark,
-        width: "auto",
-        height: "auto",
-        borderRadius: 3,
-        boxShadow: 2,
-      }}
-    >
-      <SearchInput setQuery={setQuery} />
-      <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-        {/*{trackList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Tracks'} />
+    // useEffect to only execute search request after one second has passed from the last input
+    useEffect(() => {
+        if (!mounted.current) {
+            mounted.current = true;
+        } else {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
 
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {trackList.slice(0, 5).map((track, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <TrackCard track={track} handleAdd={handleAdd}/>
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    }*/}
-        {albumList && (
-          <Grid item xs={10}>
-            <Box sx={{ height: "auto" }}>
-              <Header2 text={"Album"} />
-              <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                {albumList.slice(0, 5).map((album, key) => (
-                  <Grid item xs={2} key={key}>
-                    <Box
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        paddingTop: "100%",
-                      }}
-                    >
-                      <AlbumCard album={album} handleAdd={handleAdd} />
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+            const timeout = setTimeout(() => {
+                handleSearchRequest();
+            }, 1000);
+
+            setSearchTimeout(timeout);
+
+            // Cleanup function to clear the timeout when component unmounts or when query changes
+            return () => {
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+            };
+        }
+    }, [query]);
+
+    return (
+        <Box sx={{
+            flex: 3,
+            padding: 1,
+            display: 'flex',
+            flexDirection: 'column',
+        }}>
+            <Box sx={{
+                display: 'flex',
+                width: 1,
+                bgcolor: 'secondary.dark',
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                borderBottomLeftRadius: expanded ? 0 : 12,
+                borderBottomRightRadius: expanded ? 0 : 12,
+                boxShadow: 2,
+            }}>
+                <CollapseIconButton expanded={expanded} setExpanded={setExpanded} />
+                <SearchInput setQuery={setQuery} />
             </Box>
-          </Grid>
-        )}
-        {/*{playlistList &&
-                        <Grid item xs={10}>
-                            <Box sx={{ height: 'auto' }}>
-                                <Header2 text={'Playlists'} />
-                                <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                                    {playlistList.slice(0, 5).map((playlist, key) => (
-                                        <Grid item xs={2} key={key}>
-                                            <Box style={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                paddingTop: '100%',
-                                            }}>
-                                                <PlaylistCard playlist={playlist} handleAdd={handleAdd} />
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
-                        </Grid>
-                    }*/}
-        {artistList && (
-          <Grid item xs={10}>
-            <Box sx={{ height: "auto" }}>
-              <Header2 text={"Artists"} />
-              <Grid container spacing={1} columns={10} sx={{ padding: 1 }}>
-                {artistList.slice(0, 5).map((artist, key) => (
-                  <Grid item xs={2} key={key}>
-                    <Box
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        paddingTop: "100%",
-                      }}
-                    >
-                      <ArtistCard artist={artist} handleAdd={handleAdd} />
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          </Grid>
-        )}
-      </Grid>
-    </Box>
-  );
+            <Collapse in={expanded} sx={{
+                width: 1,
+                overflow: 'auto',
+                bgcolor: 'secondary.dark',
+                borderBottomLeftRadius: 12,
+                borderBottomRightRadius: 12,
+            }}>
+                <Box sx={{
+                    display: 'flex',
+                }}>
+                    <ExpandedSearchContent
+                        trackList={trackList}
+                        albumList={albumList}
+                        playlistList={playlistList}
+                        artistList={artistList}
+                        handleAdd={handleAdd}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddbutton}
+                    />
+                </Box>
+            </Collapse>
+        </Box>
+    );
 }
