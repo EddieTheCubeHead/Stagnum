@@ -12,7 +12,7 @@ import Album from "@/types/albumTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
-import Search from "@/components/layout/Search";
+import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
 import '@/components/layout/css/customScrollBar.css';
 
