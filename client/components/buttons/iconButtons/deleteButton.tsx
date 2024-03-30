@@ -7,9 +7,9 @@ import Playlist from "@/types/playlistTypes";
 import Track from "@/types/trackTypes";
 
 interface Props {
-    poolItem: Track | Album | Playlist | Artist
+    poolItem: PoolCollection | PoolTrack
     token: string
-    handleDelete: (itemToDelete: Album | Track | Artist | Playlist) => void
+    handleDelete: (itemToDelete: PoolCollection | PoolTrack) => void
 }
 
 export default function DeleteButton({
@@ -22,7 +22,7 @@ export default function DeleteButton({
 
     const handleClick = () => {
         axios
-            .delete(`${backend_uri}/pool/content/${poolItem.uri}`, {
+            .delete(`${backend_uri}/pool/content/${poolItem.spotify_icon_uri}`, {
                 headers: { token },
             })
             .then(function () {

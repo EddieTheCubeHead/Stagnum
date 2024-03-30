@@ -8,9 +8,9 @@ import PoolCard from "./cards/poolCard";
 import { useEffect } from "react";
 
 export default function ManagePool(props: {
-    pool: Array<Album | Track | Artist | Playlist>
+    pool: Pool | undefined
     token: string
-    handleDelete: (itemToDelete: Album | Track | Artist | Playlist) => void
+    handleDelete: (itemToDelete: PoolCollection | PoolTrack) => void
 }) {
 
     return (
@@ -25,9 +25,13 @@ export default function ManagePool(props: {
                 width: 1,
                 margin: 1,
             }}>
-                {props.pool.map((poolItem, key) => (
+                {props.pool?.users?.[0]?.tracks?.map((poolItem: any, key) => (
                     <PoolCard poolItem={poolItem} key={key} token={props.token} handleDelete={props.handleDelete} />
                 ))}
+                {props.pool?.users?.[0]?.collections?.map((poolItem: any, key) => (
+                    <PoolCard poolItem={poolItem} key={key} token={props.token} handleDelete={props.handleDelete} />
+                ))}
+
             </Stack>
         </Box>
     )

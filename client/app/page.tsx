@@ -25,9 +25,7 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
-    []
-  );
+  const [pool, setPool] = useState<Pool | undefined>();
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
     []
@@ -66,10 +64,8 @@ function HomeContent() {
     setSellectedCollections((curCollections) => [...curCollections, newAdd]);
   };
 
-  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
-    setSellectedCollections((curCollections) =>
-      curCollections.filter((collection) => collection !== itemToDelete)
-    );
+  const handleDelete = (itemToDelete: PoolCollection | PoolTrack) => {
+    console.log("Implement delete")
   };
 
   return (
