@@ -18,13 +18,13 @@ class SpotifyPlayable(NamedResource):
 
 
 class Artist(SpotifyPlayable):
-    icon_link: str
+    icon_link: str | None
 
 
 class Album(SpotifyPlayable):
     artists: list[NamedResource]
     year: int
-    icon_link: str
+    icon_link: str | None
 
 
 class Track(SpotifyPlayable):
@@ -34,7 +34,7 @@ class Track(SpotifyPlayable):
 
 
 class Playlist(SpotifyPlayable):
-    icon_link: str
+    icon_link: str | None
 
 
 PlayableType = TypeVar("PlayableType", bound=SpotifyPlayable)
