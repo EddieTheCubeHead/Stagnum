@@ -22,7 +22,7 @@ export default function DeleteButton({
 
     const handleClick = () => {
         axios
-            .get(`${backend_uri}/pool/content/${poolItem.uri}`, {
+            .delete(`${backend_uri}/pool/content/${poolItem.uri}`, {
                 headers: { token },
             })
             .then(function () {
