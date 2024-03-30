@@ -1,6 +1,7 @@
 import json
 import random
 import re
+from typing import Callable
 from unittest.mock import Mock
 
 import pytest
@@ -63,8 +64,17 @@ def mock_token_holder(application, db_connection):
 
 
 @pytest.fixture
-def valid_token_data() -> ParsedTokenResponse:
-    return ParsedTokenResponse(token="my test token", refresh_token="my refresh token", expires_in=999999)
+def create_token(faker) -> Callable[[], ParsedTokenResponse]:
+    def wrapper() -> ParsedTokenResponse:
+        token = faker.uuid4()
+        return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=999999)
+    
+    return wrapper
+
+
+@pytest.fixture
+def primary_user_token(create_token) -> ParsedTokenResponse:
+    return create_token()
 
 
 @pytest.fixture
@@ -74,10 +84,30 @@ def logged_in_user(logged_in_user_id) -> User:
 
 
 @pytest.fixture
-def valid_token_header(db_connection, logged_in_user, valid_token_data):
-    auth_database_connection = AuthDatabaseConnection(db_connection)
-    auth_database_connection.update_logged_in_user(logged_in_user, valid_token_data)
-    return {"token": valid_token_data.token}
+def auth_database_connection(db_connection) -> AuthDatabaseConnection:
+    return AuthDatabaseConnection(db_connection)
+
+
+@pytest.fixture
+def log_user_in(auth_database_connection) -> Callable[[User, ParsedTokenResponse], None]:
+    def wrapper(user: User, token: ParsedTokenResponse):
+        auth_database_connection.update_logged_in_user(user, token)
+
+    return wrapper
+
+
+@pytest.fixture
+def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[str, str]]:
+    def wrapper(token_response: ParsedTokenResponse) -> dict[str, str]:
+        return {"token": token_response.token}
+
+    return wrapper
+
+
+@pytest.fixture
+def valid_token_header(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
+    log_user_in(logged_in_user, primary_user_token)
+    return create_header_from_token_response(primary_user_token)
 
 
 @pytest.fixture

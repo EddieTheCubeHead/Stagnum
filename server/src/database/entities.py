@@ -23,6 +23,8 @@ class User(EntityBase):
     session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user")
     joined_pool: Mapped["PoolJoinedUser"] = relationship(lazy="joined", back_populates="user")
 
+    own_transient_pool: Mapped["Pool"] = relationship(back_populates="owner_user")
+
 
 class UserSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
@@ -73,6 +75,8 @@ class Pool(EntityBase):
     joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
     share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
 
+    owner_user: Mapped["User"] = relationship(back_populates="own_transient_pool")
+
 
 class PoolShareData(EntityBase):
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"),
@@ -85,7 +89,7 @@ class PoolShareData(EntityBase):
 class PoolJoinedUser(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
-    playback_time_ms: Mapped[int] = mapped_column(Integer())
+    playback_time_ms: Mapped[int] = mapped_column(Integer(), default=0)
 
     pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="joined_users")
     user: Mapped["User"] = relationship(lazy="joined", back_populates="joined_pool")
@@ -97,3 +101,5 @@ class PlaybackSession(EntityBase):
                                                   nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
+
+    current_track: Mapped["PoolMember"] = relationship()

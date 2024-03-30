@@ -161,6 +161,8 @@ def _purge_existing_transient_pool(user, session):
     session.execute(delete(PoolMemberRandomizationParameters).where(
         PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id)))
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
+    session.execute(delete(PoolJoinedUser).where(
+        PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id))))
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id)))
 
 
@@ -223,6 +225,7 @@ def _create_transient_pool(user: UserModel, session: Session):
     pool = Pool(name=None, owner_user_id=user.spotify_id)
     session.add(pool)
     session.commit()  # force id to the pool
+    pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
     return pool
 
 
@@ -273,6 +276,12 @@ class PoolDatabaseConnectionRaw:
             _delete_pool_member(content_uri, user, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
+
+    def get_users_pools_main_user(self, user: User) -> User:
+        with self._database_connection.session() as session:
+            return session.scalar(select(User).where(User.own_transient_pool.has(
+                or_(Pool.owner_user_id == user.spotify_id,
+                    Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id)))))
 
     def get_pool_data(self, user: User) -> FullPoolData:
         with self._database_connection.session() as session:
@@ -339,6 +348,17 @@ class PoolDatabaseConnectionRaw:
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
+    def save_playtime(self, user: User):
+        with self._database_connection.session() as session:
+            existing_playback: PlaybackSession = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+            played_user: PoolJoinedUser = session.scalar(
+                select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id))
+            delta: datetime.timedelta = max(existing_playback.next_song_change_timestamp - datetime.datetime.now(),
+                                            datetime.timedelta(milliseconds=0))
+            playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
+            played_user.playback_time_ms += playtime
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -373,10 +393,12 @@ class PoolPlaybackServiceRaw:
     def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         users = self._database_connection.get_pool_users(user)
+        pool_owner = self._database_connection.get_users_pools_main_user(user)
+        self._database_connection.save_playtime(pool_owner)
         next_song = self._next_song_provider.select_next_song(playable_tracks, users)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user, next_song.content_uri)
-        self._database_connection.save_playback_status(user, next_song, override_timestamp)
+        self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
         return next_song
 
     def skip_song(self, user: User) -> PoolTrack:
