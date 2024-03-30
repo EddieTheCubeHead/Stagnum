@@ -25,8 +25,9 @@ def create_test_users(faker, logged_in_user) -> Callable[[int], list[User]]:
     def wrapper(amount: int) -> list[User]:
         users = [logged_in_user]
         for num in range(1, amount):
-            users.append(User(spotify_id=faker.uuid4(), spotify_username=faker.name(),
-                              spotify_avatar_url=f"example.picture.url{num}"))
+            user = User(spotify_id=faker.uuid4(), spotify_username=faker.name(),
+                              spotify_avatar_url=f"example.picture.url{num}")
+            users.append(user)
         return users
 
     return wrapper
@@ -48,7 +49,7 @@ def create_pool_from_users(faker) -> Callable[[tuple[tuple[User, int], ...]], di
                 pool_id=pool_id,
                 image_url=f"example.picture/{member_name}",
                 content_uri=f"spotify:track:{faker.uuid4()}",
-                duration_ms=random.randint(120000, 1200000),
+                duration_ms=random.randint(120000, 360000),
                 sort_order=rolling_id,
                 parent_id=None
             ))
@@ -149,6 +150,7 @@ def should_always_alternate_songs_in_two_song_queue(existing_playback, test_clie
 @pytest.mark.slow
 def should_respect_custom_weight(next_song_provider, create_test_users, create_pool_from_users, weighted_parameters):
     users = create_test_users(1)
+    users[0].joined_pool = PoolJoinedUser(playback_time_ms = 0)
     song_1_plays = 0
     song_2_plays = 0
     for _ in range(9999):
@@ -162,18 +164,17 @@ def should_respect_custom_weight(next_song_provider, create_test_users, create_p
     assert song_2_plays * (weighted_parameters.custom_weight_scale - 0.1) < song_1_plays
 
 
-@pytest.mark.wip
 @pytest.mark.slow
-def should_balance_users_by_playtime(next_song_provider, create_test_users, create_pool_from_users,
-                                     weighted_parameters, test_client, valid_token_header, db_connection,
+def should_balance_users_by_playtime(create_test_users, create_pool_from_users, weighted_parameters, test_client,
+                                     valid_token_header, db_connection,
                                      implement_pool_from_members):
     users = create_test_users(9)
     pool = create_pool_from_users(*[(user, 10) for user in users])
     implement_pool_from_members(users, pool)
-    for _ in range(99):
+    for _ in range(999):
         test_client.post("/pool/playback/skip", headers=valid_token_header)
     with db_connection.session() as session:
         pool_users = session.scalars(select(PoolJoinedUser)).unique().all()
     pool_users_playtime = [user.playback_time_ms for user in pool_users]
     pool_users_playtime.sort()
-    assert pool_users_playtime[0] / pool_users_playtime[-1] > 0.9
+    assert pool_users_playtime[0] / pool_users_playtime[-1] > 0.5

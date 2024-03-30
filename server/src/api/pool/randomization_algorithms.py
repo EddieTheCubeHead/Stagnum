@@ -27,13 +27,19 @@ class RandomizationParameters:
     pseudo_random_ceiling: int
 
 
+def _get_members_weight(members: list[PoolMember]) -> int:
+    return 1 if members else 0
+
+
 class PoolRandomizer:
 
     def __init__(self, pool_members: list[PoolMember], users: list[User],
                  randomization_parameters: RandomizationParameters):
         self._custom_weight_scale = randomization_parameters.custom_weight_scale
+        self._users: dict[str, User] = {user.spotify_id: user for user in users}
         self._user_pools: dict[str, [PoolMember]] = {user.spotify_id: [] for user in users}
         self._pool_length = len(pool_members)
+        self._pool_length_ms = sum((pool_member.duration_ms for pool_member in pool_members))
         self._concrete_floor = self._pool_length * (randomization_parameters.pseudo_random_floor / 100)
         self._concrete_ceiling = self._pool_length * (randomization_parameters.pseudo_random_ceiling / 100)
         self._slope = 1 / (self._concrete_ceiling - self._concrete_floor)
@@ -42,9 +48,9 @@ class PoolRandomizer:
         for pool_member in pool_members:
             self._user_pools[pool_member.user_id].append(pool_member)
 
-
     def get_next_song(self) -> PoolMember:
-        user_id: str = random.choice([user_id for user_id, members in self._user_pools.items() if members])
+        user_id = self._get_next_playing_user_id()
+        # user_id = random.choice([user_id for user_id, members in self._user_pools.items() if members])
 
         user_pool_members: [PoolMemberRandomizationData] = []
         total_member_weight: float = 0
@@ -64,6 +70,25 @@ class PoolRandomizer:
             walker += user_pool_member.weight
             if walker >= track_location:
                 return user_pool_member.pool_member
+
+    def _get_next_playing_user_id(self) -> str:
+        eligible_user_weights: [(str, float)] = []
+        total_eligible_user_weights = 0
+        for user_id, members in self._user_pools.items():
+            if not _get_members_weight(members):
+                continue
+            user_weight = self._pool_length_ms / (self._users[user_id].joined_pool.playback_time_ms + 1)
+            eligible_user_weights.append((user_id, user_weight))
+            total_eligible_user_weights += user_weight
+
+        user_location = total_eligible_user_weights * random.random()
+
+        walker = 0
+        for user_id, user_weight in eligible_user_weights:
+            walker += user_weight
+            if walker >= user_location:
+                return user_id
+
 
     def _calculate_pool_member_weight(self, pool_member: PoolMember) -> PoolMemberRandomizationData:
         member_weight = pow(self._custom_weight_scale, pool_member.randomization_parameters.weight)
@@ -88,7 +113,8 @@ class NextSongProviderRaw:
         custom_weight_scale = int(os.getenv("CUSTOM_WEIGHT_SCALE", "5"))
         pseudo_random_floor = int(os.getenv("PSEUDO_RANDOM_FLOOR", "60"))
         pseudo_random_ceiling = int(os.getenv("PSEUDO_RANDOM_CEILING", "90"))
-        randomization_parameters = RandomizationParameters(custom_weight_scale, pseudo_random_floor, pseudo_random_ceiling)
+        randomization_parameters = RandomizationParameters(custom_weight_scale, pseudo_random_floor,
+                                                           pseudo_random_ceiling)
         randomizer = PoolRandomizer(pool_members, users, randomization_parameters)
         return randomizer.get_next_song()
 
