@@ -231,7 +231,7 @@ def create_mock_track_search_result(faker, create_mock_artist_search_result, cre
             "artists": [artist],
             "available_markets": ["FI"],
             "disc_number": 0,
-            "duration_ms": random.randint(60_000, 600_000),
+            "duration_ms": random.randint(120_000, 360_000),
             "explicit": random.choice((True, False)),
             "external_ids": {
                 "isrc": f"isrc:{track_id}",
