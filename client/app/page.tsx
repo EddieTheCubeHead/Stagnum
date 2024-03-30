@@ -45,7 +45,7 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      redirect('/login')
+      //redirect('/login')
     }
   }, []);
 
@@ -86,6 +86,7 @@ function HomeContent() {
             padding: 1,
             display: 'flex',
             flexDirection: 'column',
+            minWidth: 370
           }}
         >
           <MainHeaderCard />
