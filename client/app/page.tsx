@@ -30,7 +30,7 @@ function HomeContent() {
   const code = queryParams.get("code");
   const state = queryParams.get("state");
   const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI_ROOT
+  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
   useEffect(() => {
     if (code && state) {
@@ -45,7 +45,7 @@ function HomeContent() {
   const handleTokenRequest = (code: string, state: string) => {
     console.log("Sending play request");
 
-    axios.get(`${backend_uri}/auth/login/callback`,
+    axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
       { params: { state, code, client_redirect_uri } })
       .then(function (response) {
         setToken(response.data.access_token);
