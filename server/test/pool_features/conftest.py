@@ -10,7 +10,7 @@ from starlette.testclient import TestClient
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
-from api.pool.randomization_algorithms import NextSongProvider
+from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 
@@ -185,3 +185,12 @@ def shared_pool_code(existing_playback, share_pool_and_get_code) -> str:
 @pytest.fixture
 def next_song_provider():
     return NextSongProvider()
+
+
+@pytest.fixture
+def weighted_parameters(monkeypatch) -> RandomizationParameters:
+    parameters = RandomizationParameters(5, 60, 90)
+    monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
+    monkeypatch.setenv("PSEUDO_RANDOM_FLOOR", str(parameters.pseudo_random_floor))
+    monkeypatch.setenv("PSEUDO_RANDOM_CEILING", str(parameters.pseudo_random_ceiling))
+    return parameters

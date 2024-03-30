@@ -72,7 +72,8 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code, test_client, ano
 def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_client, another_logged_in_user_header,
                                                        validate_response, valid_token_header, existing_pool,
                                                        logged_in_user_id, create_mock_playlist_fetch_result,
-                                                       requests_client, build_success_response, get_query_parameter):
+                                                       requests_client, build_success_response, get_query_parameter,
+                                                       weighted_parameters):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(15)
     requests_client.get = Mock(return_value=build_success_response(playlist))
@@ -80,13 +81,13 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_cl
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
 
     original_user_played_uris = set()
-    for _ in range(9):
+    for _ in range(99):
         test_client.post("/pool/playback/skip", headers=valid_token_header)
         actual_queue_call = requests_client.post.call_args_list[-2]
         original_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
 
     joined_user_played_uris = set()
-    for _ in range(9):
+    for _ in range(99):
         test_client.post("/pool/playback/skip", headers=another_logged_in_user_header)
         actual_queue_call = requests_client.post.call_args_list[-2]
         joined_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))

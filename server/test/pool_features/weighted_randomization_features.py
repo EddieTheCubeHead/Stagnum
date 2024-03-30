@@ -5,14 +5,13 @@ from unittest.mock import Mock
 import pytest
 from sqlalchemy import select
 
-from api.pool.dependencies import PoolSpotifyClient
 from api.pool.models import PoolContent, PoolCreationData
 from api.pool.randomization_algorithms import RandomizationParameters
 from database.entities import User, PoolMember, PoolMemberRandomizationParameters, PoolJoinedUser
 
 
 @pytest.fixture(params=[RandomizationParameters(5, 60, 90), RandomizationParameters(10, 50, 75)])
-def weighted_parameters(request, monkeypatch) -> RandomizationParameters:
+def variable_weighted_parameters(request, monkeypatch) -> RandomizationParameters:
     parameters: RandomizationParameters = request.param
     monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
     monkeypatch.setenv("PSEUDO_RANDOM_FLOOR", str(parameters.pseudo_random_floor))
@@ -26,7 +25,7 @@ def create_test_users(faker, logged_in_user) -> Callable[[int], list[User]]:
         users = [logged_in_user]
         for num in range(1, amount):
             user = User(spotify_id=faker.uuid4(), spotify_username=faker.name(),
-                              spotify_avatar_url=f"example.picture.url{num}")
+                        spotify_avatar_url=f"example.picture.url{num}")
             users.append(user)
         return users
 
@@ -148,9 +147,10 @@ def should_always_alternate_songs_in_two_song_queue(existing_playback, test_clie
 
 
 @pytest.mark.slow
-def should_respect_custom_weight(next_song_provider, create_test_users, create_pool_from_users, weighted_parameters):
+def should_respect_custom_weight(next_song_provider, create_test_users, create_pool_from_users,
+                                 variable_weighted_parameters):
     users = create_test_users(1)
-    users[0].joined_pool = PoolJoinedUser(playback_time_ms = 0)
+    users[0].joined_pool = PoolJoinedUser(playback_time_ms=0)
     song_1_plays = 0
     song_2_plays = 0
     for _ in range(9999):
@@ -161,7 +161,7 @@ def should_respect_custom_weight(next_song_provider, create_test_users, create_p
             song_1_plays += 1
         else:
             song_2_plays += 1
-    assert song_2_plays * (weighted_parameters.custom_weight_scale - 0.1) < song_1_plays
+    assert song_2_plays * (variable_weighted_parameters.custom_weight_scale - 0.1) < song_1_plays
 
 
 @pytest.mark.slow
