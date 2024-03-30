@@ -1,8 +1,8 @@
-"""Extract pool member randomization parameters into a separate table
+"""Data changes required for pool randomization
 
-Revision ID: 40995fba9cba
+Revision ID: d82e52785ee3
 Revises: 70e02357c5ff
-Create Date: 2024-03-23 10:25:13.179105
+Create Date: 2024-03-30 11:47:27.025637
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '40995fba9cba'
+revision: str = 'd82e52785ee3'
 down_revision: Union[str, None] = '70e02357c5ff'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,9 +28,11 @@ def upgrade() -> None:
                                             ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('pool_member_id')
                     )
+    op.add_column('PoolJoinedUser', sa.Column('playback_time_ms', sa.Integer(), nullable=False))
     op.drop_column('PoolMember', 'weight')
 
 
 def downgrade() -> None:
     op.add_column('PoolMember', sa.Column('weight', sa.INTEGER(), autoincrement=False, nullable=False))
+    op.drop_column('PoolJoinedUser', 'playback_time_ms')
     op.drop_table('PoolMemberRandomizationParameters')

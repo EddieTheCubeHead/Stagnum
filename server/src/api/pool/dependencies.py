@@ -12,7 +12,7 @@ from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHold
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
-from api.pool.randomization_algorithms import select_next_song
+from api.pool.randomization_algorithms import NextSongProvider
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData, \
     PoolMemberRandomizationParameters
 
@@ -346,10 +346,11 @@ PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 class PoolPlaybackServiceRaw:
 
     def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
-                 token_holder: TokenHolder):
+                 token_holder: TokenHolder, next_song_provider: NextSongProvider):
         self._database_connection = database_connection
         self._spotify_client = spotify_client
         self._token_holder = token_holder
+        self._next_song_provider = next_song_provider
 
     def start_playback(self, user: User):
         all_tracks = self._database_connection.get_playable_tracks(user)
@@ -372,7 +373,7 @@ class PoolPlaybackServiceRaw:
     def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         users = self._database_connection.get_pool_users(user)
-        next_song = select_next_song(playable_tracks, users)
+        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user, next_song.content_uri)
         self._database_connection.save_playback_status(user, next_song, override_timestamp)

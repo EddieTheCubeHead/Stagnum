@@ -1,10 +1,8 @@
 import datetime
-import random
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
-from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolder
@@ -25,8 +23,8 @@ def pool_spotify_client(requests_client: RequestsClient):
 
 
 @pytest.fixture
-def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder):
-    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder)
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider):
+    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider)
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,

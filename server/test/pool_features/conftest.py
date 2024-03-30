@@ -9,6 +9,7 @@ from starlette.testclient import TestClient
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
+from api.pool.randomization_algorithms import NextSongProvider
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 
@@ -170,3 +171,8 @@ def shared_pool_code(existing_playback, test_client, valid_token_header, validat
 
     result = validate_response(response)
     return result["share_code"]
+
+
+@pytest.fixture
+def next_song_provider():
+    return NextSongProvider()

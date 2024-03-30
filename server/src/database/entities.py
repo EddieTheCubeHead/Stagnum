@@ -85,6 +85,7 @@ class PoolShareData(EntityBase):
 class PoolJoinedUser(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    playback_time_ms: Mapped[int] = mapped_column(Integer())
 
     pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="joined_users")
     user: Mapped["User"] = relationship(lazy="joined", back_populates="joined_pool")
