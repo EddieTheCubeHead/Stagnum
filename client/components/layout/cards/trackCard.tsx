@@ -18,9 +18,8 @@ export default function TrackCard(props: {
 
     const truncatedName = props.track.name.length > 25 ? props.track.name.slice(0, 25) + "..." : props.track.name;
 
-
     return (
-        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {props.track.album.link && (
@@ -28,7 +27,7 @@ export default function TrackCard(props: {
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.track.album.link})`,
+                                backgroundImage: `url(${props.track.album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
