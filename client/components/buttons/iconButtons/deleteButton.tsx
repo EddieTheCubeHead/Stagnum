@@ -21,17 +21,34 @@ export default function DeleteButton({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleClick = () => {
-        axios
-            .delete(`${backend_uri}/pool/content/${poolItem.spotify_icon_uri}`, {
-                headers: { token },
-            })
-            .then(function () {
-                handleDelete(poolItem)
-            })
-            .catch((error) => {
-                console.log("Request failed", error);
-            });
+        if ((poolItem as PoolCollection).spotify_collection_uri) {
+            console.log('collection')
+            axios
+                .delete(`${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`, {
+                    headers: { token },
+                })
+                .then(function () {
+                    handleDelete(poolItem)
+                })
+                .catch((error) => {
+                    console.log("Request failed", error);
+                });
+        } else {
+            console.log('track')
+            axios
+                .delete(`${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`, {
+                    headers: { token },
+                })
+                .then(function () {
+                    handleDelete(poolItem)
+                })
+                .catch((error) => {
+                    console.log("Request failed", error);
+                });
+        }
     };
+
+
 
     return (
         <Tooltip title='Delete from pool'>

@@ -48,8 +48,6 @@ function HomeContent() {
   }, []);
 
   const handleTokenRequest = (code: string, state: string) => {
-    console.log("Sending play request");
-
     axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
       { params: { state, code, client_redirect_uri } })
       .then(function (response) {
