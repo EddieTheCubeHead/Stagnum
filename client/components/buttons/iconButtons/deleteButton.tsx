@@ -22,7 +22,6 @@ export default function DeleteButton({
 
     const handleClick = () => {
         if ((poolItem as PoolCollection).spotify_collection_uri) {
-            console.log('collection')
             axios
                 .delete(`${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`, {
                     headers: { token },
@@ -34,7 +33,6 @@ export default function DeleteButton({
                     console.log("Request failed", error);
                 });
         } else {
-            console.log('track')
             axios
                 .delete(`${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`, {
                     headers: { token },
