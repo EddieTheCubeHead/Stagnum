@@ -8,13 +8,12 @@ export default function MainHeaderCard() {
 
     return (
         <Box sx={{
-            bgcolor: theme.palette.secondary.dark,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             height: '10vh',
             borderRadius: 3,
-            boxShadow: 2
+            boxShadow: 2,
         }}>
             <Image
                 src={require("@/public/Stagnum_Logo.png")}

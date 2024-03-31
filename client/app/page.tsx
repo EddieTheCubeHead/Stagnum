@@ -1,7 +1,6 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import SideMenu from "@/components/layout/sideMenu";
 import { Box, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams, redirect } from "next/navigation";
@@ -9,8 +8,13 @@ import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
 import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import CreatePool from "@/components/layout/CreatePool";
 import Album from "@/types/albumTypes";
+import Artist from "@/types/artistTypes";
+import Playlist from "@/types/playlistTypes";
+import Track from "@/types/trackTypes";
+import Search from "@/components/layout/search";
+import ManagePool from "@/components/layout/managePool";
+import '@/components/layout/css/customScrollBar.css';
 
 export default function HomePage() {
   return (
@@ -21,8 +25,11 @@ export default function HomePage() {
 }
 
 function HomeContent() {
+  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
+    []
+  );
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album>>(
+  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
     []
   );
   const [token, setToken] = useState("");
@@ -55,11 +62,11 @@ function HomeContent() {
       });
   };
 
-  const handleAdd = (newAdd: Album) => {
+  const handleAdding = (newAdd: Album | Track | Artist | Playlist) => {
     setSellectedCollections((curCollections) => [...curCollections, newAdd]);
   };
 
-  const handleDelete = (itemToDelete: Album) => {
+  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
     setSellectedCollections((curCollections) =>
       curCollections.filter((collection) => collection !== itemToDelete)
     );
@@ -68,31 +75,23 @@ function HomeContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          margin: 1,
-        }}
-      >
-        <Grid container gap={1}>
-          <Grid item xs={4}>
-            <Stack spacing={1}>
-              <MainHeaderCard />
-              <SideMenu
-                setShowSearchBar={setShowSearchBar}
-                showSearchBar={showSearchBar}
-                token={token}
-                handleAdd={handleAdd}
-              />
-            </Stack>
-          </Grid>
-          <Grid item xs={7.9}>
-            <CreatePool
-              token={token}
-              selectedCollections={selectedCollections}
-              handleDelete={handleDelete}
-            />
-          </Grid>
-        </Grid>
+      <Box sx={{
+        margin: 1.5,
+        display: 'flex',
+        height: 'calc(100vh - 80px)',
+      }}>
+        <Box
+          sx={{
+            flex: 1,
+            padding: 1,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <MainHeaderCard />
+          <ManagePool pool={pool} token={token} handleDelete={handleDelete} />
+        </Box>
+        <Search token={token} handleAdding={handleAdding} />
       </Box>
       <Footer token={token} />
     </ThemeProvider>
