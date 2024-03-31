@@ -11,7 +11,7 @@ import { Box, Card } from "@mui/material";
 export default function PoolCard(props: {
     poolItem: PoolCollection | PoolTrack
     token: string
-    handleDelete: (itemToDelete: PoolCollection | PoolTrack) => void
+    updatePool: (pool: Pool) => void
 }) {
 
     const truncatedName = props.poolItem.name.length > 25 ? props.poolItem.name.slice(0, 25) + "..." : props.poolItem.name;
@@ -34,7 +34,7 @@ export default function PoolCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <DeleteButton poolItem={props.poolItem} token={props.token} handleDelete={props.handleDelete} />
+                    <DeleteButton poolItem={props.poolItem} token={props.token} updatePool={props.updatePool} />
                 </Box>
             </Box>
         </Card>

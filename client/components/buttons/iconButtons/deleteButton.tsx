@@ -9,13 +9,13 @@ import Track from "@/types/trackTypes";
 interface Props {
     poolItem: PoolCollection | PoolTrack
     token: string
-    handleDelete: (itemToDelete: PoolCollection | PoolTrack) => void
+    updatePool: (pool: Pool) => void
 }
 
 export default function DeleteButton({
     poolItem,
     token,
-    handleDelete
+    updatePool
 }: Props) {
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
@@ -27,8 +27,8 @@ export default function DeleteButton({
                 .delete(`${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`, {
                     headers: { token },
                 })
-                .then(function () {
-                    handleDelete(poolItem)
+                .then(function (response) {
+                    updatePool(response.data)
                 })
                 .catch((error) => {
                     console.log("Request failed", error);
@@ -39,8 +39,8 @@ export default function DeleteButton({
                 .delete(`${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`, {
                     headers: { token },
                 })
-                .then(function () {
-                    handleDelete(poolItem)
+                .then(function (response) {
+                    updatePool(response.data)
                 })
                 .catch((error) => {
                     console.log("Request failed", error);

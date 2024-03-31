@@ -10,14 +10,14 @@ import Track from "@/types/trackTypes";
 interface Props {
     token: string
     item: Track | Album | Playlist | Artist
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    updatePool: (pool: Pool) => void
     enableAddButton: () => void
 }
 
 export default function ShowMoreIconButton({
     token,
     item,
-    handleAdding,
+    updatePool,
     enableAddButton
 }: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -46,7 +46,7 @@ export default function ShowMoreIconButton({
                 headers: { token },
             })
             .then(function (response) {
-                handleAdding(item)
+                updatePool(response.data)
                 enableAddButton()
             })
             .catch((error) => {
