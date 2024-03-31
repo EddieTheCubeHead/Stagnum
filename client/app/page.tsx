@@ -47,7 +47,7 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      //redirect('/login')
+      redirect('/login')
     }
   }, []);
 
