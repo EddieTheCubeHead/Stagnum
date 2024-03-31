@@ -18,7 +18,7 @@ export default function ArtistCard(props: {
 }) {
 
     return (
-        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {props.artist.icon_link && (

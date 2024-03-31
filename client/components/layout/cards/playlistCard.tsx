@@ -20,7 +20,7 @@ export default function PlaylistCard(props: {
     const truncatedName = props.playlist.name.length > 25 ? props.playlist.name.slice(0, 25) + "..." : props.playlist.name;
 
     return (
-        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {props.playlist.icon_link && (
