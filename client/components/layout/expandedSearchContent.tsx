@@ -17,7 +17,7 @@ export default function ExpandedSearchContent(props: {
     enableAddButton: () => void
 }) {
     return (
-        <Stack sx={{ margin: 1, width: 1 }}>
+        <Stack sx={{ padding: 1, width: 1 }}>
             <Header2 text={"Tracks"} sx={{ color: 'white' }} />
             <Box sx={{
                 margin: 1,
