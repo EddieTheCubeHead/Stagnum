@@ -5,14 +5,16 @@ from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, WebSocket
-from sqlalchemy import delete, and_, select, or_
+from sqlalchemy import delete, and_, select, or_, update
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
-from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData
+from api.pool.randomization_algorithms import NextSongProvider
+from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData, \
+    PoolMemberRandomizationParameters
 
 _logger = getLogger("main.api.pool.dependencies")
 
@@ -133,9 +135,11 @@ def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, se
     _logger.debug("Creating pool member database entities")
     current_sort_order = 0
     for track in pool_contents.tracks:
-        session.add(PoolMember(user_id=pool_contents.user.spotify_id, content_uri=track.spotify_track_uri,
-                               image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order,
-                               duration_ms=track.duration_ms, pool_id=pool.id))
+        pool_member = PoolMember(user_id=pool_contents.user.spotify_id, content_uri=track.spotify_track_uri,
+                                 image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order,
+                                 duration_ms=track.duration_ms, pool_id=pool.id)
+        pool_member.randomization_parameters = PoolMemberRandomizationParameters()
+        session.add(pool_member)
         current_sort_order += 1
     for collection in pool_contents.collections:
         parent = PoolMember(user_id=pool_contents.user.spotify_id, image_url=collection.spotify_icon_uri,
@@ -144,16 +148,21 @@ def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, se
         session.add(parent)
         current_sort_order += 1
         for track in collection.tracks:
-            parent.children.append(
-                PoolMember(user_id=pool_contents.user.spotify_id, content_uri=track.spotify_track_uri,
-                           image_url=track.spotify_icon_uri, name=track.name, parent_id=parent.id,
-                           sort_order=current_sort_order, duration_ms=track.duration_ms, pool_id=pool.id))
+            pool_member = PoolMember(user_id=pool_contents.user.spotify_id, content_uri=track.spotify_track_uri,
+                                     image_url=track.spotify_icon_uri, name=track.name, sort_order=current_sort_order,
+                                     duration_ms=track.duration_ms, pool_id=pool.id, parent_id=parent.id)
+            pool_member.randomization_parameters = PoolMemberRandomizationParameters()
+            parent.children.append(pool_member)
             current_sort_order += 1
 
 
 def _purge_existing_transient_pool(user, session):
     _logger.info(f"Purging existing pool for user {user.display_name}")
+    session.execute(delete(PoolMemberRandomizationParameters).where(
+        PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id)))
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
+    session.execute(delete(PoolJoinedUser).where(
+        PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id))))
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id)))
 
 
@@ -175,10 +184,17 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
 def _delete_pool_member(content_uri: str, user: User, session: Session):
     _logger.debug(f"Deleting pool member with uri {content_uri} and all children "
                   f"from user {user.spotify_username}'s pool")
+
     possible_parent = session.scalar(
         select(PoolMember).where(and_(PoolMember.content_uri == content_uri, PoolMember.user_id == user.spotify_id)))
+
+    session.execute(delete(PoolMemberRandomizationParameters).where(PoolMemberRandomizationParameters.pool_member.has(
+        and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id))))
     session.execute(delete(PoolMember).where(
         and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)))
+
+    if possible_parent.randomization_parameters is not None:
+        session.delete(possible_parent.randomization_parameters)
     session.delete(possible_parent)
 
 
@@ -209,6 +225,7 @@ def _create_transient_pool(user: UserModel, session: Session):
     pool = Pool(name=None, owner_user_id=user.spotify_id)
     session.add(pool)
     session.commit()  # force id to the pool
+    pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
     return pool
 
 
@@ -222,6 +239,16 @@ def _validate_pool_join(pool, user):
         raise HTTPException(status_code=400, detail="Attempted to join own pool!")
     if user.spotify_id in (pool_user.user_id for pool_user in pool.joined_users):
         raise HTTPException(status_code=400, detail="Already a member of that pool!")
+
+
+def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: PoolMember):
+    session.execute(update(PoolMemberRandomizationParameters).where(
+        and_(PoolMemberRandomizationParameters.pool_member.has(PoolMember.pool_id == pool.id),
+             PoolMemberRandomizationParameters.skips_since_last_play > 0))
+                    .values(skips_since_last_play=(PoolMemberRandomizationParameters.skips_since_last_play + 1)))
+
+    playing_track.randomization_parameters.skips_since_last_play = 1
+    session.merge(playing_track)
 
 
 class PoolDatabaseConnectionRaw:
@@ -250,6 +277,12 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
+    def get_users_pools_main_user(self, user: User) -> User:
+        with self._database_connection.session() as session:
+            return session.scalar(select(User).where(User.own_transient_pool.has(
+                or_(Pool.owner_user_id == user.spotify_id,
+                    Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id)))))
+
     def get_pool_data(self, user: User) -> FullPoolData:
         with self._database_connection.session() as session:
             whole_pool = _get_user_pool(user, session)
@@ -274,6 +307,8 @@ class PoolDatabaseConnectionRaw:
                 _update_user_playback(existing_playback, playing_track, override_timestamp)
             else:
                 _crete_user_playback(session, user, playing_track)
+
+            _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
 
     def get_playbacks_to_update(self) -> list[PlaybackSession]:
         cutoff_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=2)
@@ -313,6 +348,17 @@ class PoolDatabaseConnectionRaw:
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
+    def save_playtime(self, user: User):
+        with self._database_connection.session() as session:
+            existing_playback: PlaybackSession = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+            played_user: PoolJoinedUser = session.scalar(
+                select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id))
+            delta: datetime.timedelta = max(existing_playback.next_song_change_timestamp - datetime.datetime.now(),
+                                            datetime.timedelta(milliseconds=0))
+            playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
+            played_user.playback_time_ms += playtime
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -320,10 +366,11 @@ PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 class PoolPlaybackServiceRaw:
 
     def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
-                 token_holder: TokenHolder):
+                 token_holder: TokenHolder, next_song_provider: NextSongProvider):
         self._database_connection = database_connection
         self._spotify_client = spotify_client
         self._token_holder = token_holder
+        self._next_song_provider = next_song_provider
 
     def start_playback(self, user: User):
         all_tracks = self._database_connection.get_playable_tracks(user)
@@ -345,10 +392,13 @@ class PoolPlaybackServiceRaw:
 
     def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
-        next_song: PoolMember = random.choice(playable_tracks)
+        users = self._database_connection.get_pool_users(user)
+        pool_owner = self._database_connection.get_users_pools_main_user(user)
+        self._database_connection.save_playtime(pool_owner)
+        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user, next_song.content_uri)
-        self._database_connection.save_playback_status(user, next_song, override_timestamp)
+        self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
         return next_song
 
     def skip_song(self, user: User) -> PoolTrack:
@@ -362,7 +412,6 @@ PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
 
 
 class PoolWebsocketUpdaterRaw:
-
     _pool_sockets: dict[int, list[WebSocket]] = {}
 
     def add_socket(self, websocket: WebSocket, pool: Pool):
