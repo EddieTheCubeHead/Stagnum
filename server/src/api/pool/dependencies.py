@@ -352,12 +352,11 @@ class PoolDatabaseConnectionRaw:
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
-<<<<<<< HEAD
     def get_current_track(self, user: User) -> PoolMember:
         with self._database_connection.session() as session:
             pool = _get_pool_for_user(user, session)
             track = _get_current_track(pool, session)
-=======
+
     def save_playtime(self, user: User):
         with self._database_connection.session() as session:
             existing_playback: PlaybackSession = session.scalar(
@@ -368,7 +367,6 @@ class PoolDatabaseConnectionRaw:
                                             datetime.timedelta(milliseconds=0))
             playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
             played_user.playback_time_ms += playtime
->>>>>>> 66-implement-basic-control-over-pool-playback-randomization
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
