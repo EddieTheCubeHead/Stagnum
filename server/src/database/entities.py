@@ -20,7 +20,7 @@ class User(EntityBase):
     spotify_username: Mapped[str] = mapped_column(String(64))
     spotify_avatar_url: Mapped[str] = mapped_column(String(256), nullable=True)
 
-    session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user")
+    session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user", cascade="all, delete-orphan")
     joined_pool: Mapped["PoolJoinedUser"] = relationship(lazy="joined", back_populates="user")
 
     own_transient_pool: Mapped["Pool"] = relationship(back_populates="owner_user")
