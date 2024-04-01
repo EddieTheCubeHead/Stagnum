@@ -1,11 +1,11 @@
-import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import React, { useState } from 'react';
-import axios from "axios";
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
+import { IconButton, Menu, MenuItem, Tooltip } from '@mui/material'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import React, { useState } from 'react'
+import axios from 'axios'
+import Album from '@/types/albumTypes'
+import Artist from '@/types/artistTypes'
+import Playlist from '@/types/playlistTypes'
+import Track from '@/types/trackTypes'
 
 interface Props {
     token: string
@@ -18,17 +18,17 @@ export default function ShowMoreIconButton({
     token,
     item,
     updatePool,
-    enableAddButton
+    enableAddButton,
 }: Props) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
+        setAnchorEl(event.currentTarget)
+    }
 
     const handleClose = () => {
-        setAnchorEl(null);
-    };
+        setAnchorEl(null)
+    }
 
     const createPool = () => {
         const requestData = {
@@ -50,22 +50,22 @@ export default function ShowMoreIconButton({
                 enableAddButton()
             })
             .catch((error) => {
-                console.log("Request failed", error);
-            });
-    };
+                console.log('Request failed', error)
+            })
+    }
 
     return (
         <>
-            <Tooltip title='Show more'>
+            <Tooltip title="Show more">
                 <IconButton
                     aria-label=""
                     onClick={handleClick}
                     sx={{
-                        "&:hover": {
+                        '&:hover': {
                             color: 'white',
                         },
                         color: 'black',
-                        margin: 1
+                        margin: 1,
                     }}
                 >
                     <MoreHorizIcon />
@@ -75,8 +75,7 @@ export default function ShowMoreIconButton({
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
-                sx={{
-                }}
+                sx={{}}
             >
                 <MenuItem onClick={createPool}>Create pool</MenuItem>
             </Menu>
