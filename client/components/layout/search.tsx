@@ -1,5 +1,5 @@
 import Track from "@/types/trackTypes";
-import { Box, Collapse } from "@mui/material";
+import { Box, Collapse, Grid } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import SearchInput from "../inputfields.tsx/searchInput"
@@ -9,6 +9,8 @@ import Artist from "@/types/artistTypes"
 //import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 import ExpandedSearchContent from "./expandedSearchContent";
 import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
+import DefaultButton from "../buttons/defaulButton";
+import PoolInput from "../inputfields.tsx/poolInput";
 
 interface Props {
     token: string
@@ -21,6 +23,7 @@ interface Props {
 export default function Search({ token, updatePool, expanded, toggleExpanded, setSearchResults }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
+    const [idQuery, setIdQuery] = useState("")
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
         null
     )
@@ -43,6 +46,19 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
                 console.log("Request failed", error);
             });
     };
+
+    const handleJoinRequest = () => {
+        axios
+            .post(`${backend_uri}/pool/join/${idQuery}`,{}, {
+                headers: { token },
+            })
+            .then(function (response) {
+                updatePool
+            })
+            .catch((error) => {
+                console.log("Request failed", error);
+            });
+    }
 
     const handleExpandClick = () => {
         toggleExpanded()
@@ -83,8 +99,20 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
             borderBottomRightRadius: expanded ? 0 : 12,
             boxShadow: 2,
         }}>
-            <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
-            <SearchInput setQuery={setQuery} />
+            <Grid container marginX={1}>
+                <Grid item xs={1} display={"flex"} justifyContent={"center"} alignItems={"center"}>
+                    <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
+                </Grid>
+                <Grid item xs={7}>
+                    <SearchInput setQuery={setQuery} />
+                </Grid>
+                <Grid item xs={3}>
+                    <PoolInput setQuery={setIdQuery}/>
+                </Grid>
+                <Grid item xs={1} display={"flex"} justifyContent={"center"} alignItems={"center"}>
+                    <DefaultButton text="Join" action={handleJoinRequest}/>
+                </Grid>
+            </Grid>
         </Box>
     );
 }
