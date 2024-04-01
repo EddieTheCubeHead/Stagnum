@@ -1,5 +1,5 @@
 import Track from "@/types/trackTypes";
-import { AppBar, Box, Collapse, Stack } from "@mui/material";
+import { Box, Collapse } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import SearchInput from "../inputfields.tsx/searchInput"
@@ -13,17 +13,14 @@ import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 interface Props {
     token: string
     updatePool: (pool: Pool) => void
+    expanded: boolean
+    toggleExpanded: () => void
+    setSearchResults: (data: any) => void
 }
 
-export default function Search({ token, updatePool, }: Props) {
+export default function Search({ token, updatePool, expanded, toggleExpanded, setSearchResults }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
-    const [trackList, setTrackList] = useState<Track[]>([])
-    const [artistList, setArtistList] = useState<Artist[]>([])
-    const [playlistList, setPlaylistList] = useState<Playlist[]>([])
-    const [albumList, setAlbumList] = useState<Album[]>([])
-    const [expanded, setExpanded] = useState(false)
-    const [disabled, setDisabled] = useState(true)
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
         null
     )
@@ -38,24 +35,17 @@ export default function Search({ token, updatePool, }: Props) {
             })
             .then(function (response) {
                 if (!expanded) {
-                    setExpanded(true)
+                    toggleExpanded()
                 }
-                setTrackList(response.data.tracks.results)
-                setAlbumList(response.data.albums.results)
-                setArtistList(response.data.artists.results)
-                setPlaylistList(response.data.playlists.results)
+                setSearchResults(response.data)
             })
             .catch((error) => {
                 console.log("Request failed", error);
             });
     };
 
-    const enableAddbutton = () => {
-        setDisabled(false)
-    }
-
     const handleExpandClick = () => {
-        setExpanded(!expanded)
+        toggleExpanded()
     }
 
     // useEffect to only execute search request after one second has passed from the last input
@@ -84,46 +74,17 @@ export default function Search({ token, updatePool, }: Props) {
 
     return (
         <Box sx={{
-            flex: 3,
-            padding: 1,
             display: 'flex',
-            flexDirection: 'column',
+            width: 1,
+            bgcolor: 'secondary.dark',
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            borderBottomLeftRadius: expanded ? 0 : 12,
+            borderBottomRightRadius: expanded ? 0 : 12,
+            boxShadow: 2,
         }}>
-            <Box sx={{
-                display: 'flex',
-                width: 1,
-                bgcolor: 'secondary.dark',
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-                borderBottomLeftRadius: expanded ? 0 : 12,
-                borderBottomRightRadius: expanded ? 0 : 12,
-                boxShadow: 2,
-            }}>
-                <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
-                <SearchInput setQuery={setQuery} />
-            </Box>
-            <Collapse in={expanded} sx={{
-                width: 1,
-                overflow: 'auto',
-                bgcolor: 'secondary.dark',
-                borderBottomLeftRadius: 12,
-                borderBottomRightRadius: 12,
-            }}>
-                <Box sx={{
-                    display: 'flex',
-                }}>
-                    <ExpandedSearchContent
-                        trackList={trackList}
-                        albumList={albumList}
-                        playlistList={playlistList}
-                        artistList={artistList}
-                        updatePool={updatePool}
-                        token={token}
-                        disabled={disabled}
-                        enableAddButton={enableAddbutton}
-                    />
-                </Box>
-            </Collapse>
+            <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
+            <SearchInput setQuery={setQuery} />
         </Box>
     );
 }
