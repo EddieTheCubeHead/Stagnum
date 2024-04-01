@@ -1,24 +1,14 @@
 import theme from '@/utils/theme'
 import Track from '@/types/trackTypes'
-import {
-    Box,
-    Button,
-    Grid,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-} from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import TrackCard from './cards/trackCard'
 import SearchInput from '../inputfields.tsx/searchInput'
-import { Header2, Header3 } from '../textComponents'
+import { Header2 } from '../textComponents'
 import Playlist from '@/types/playlistTypes'
 import Album from '@/types/albumTypes'
 import Artist from '@/types/artistTypes'
 import AlbumCard from './albumCard'
-import PlaylistCard from './cards/playlistCard'
 import ArtistCard from './cards/artistCard'
 
 interface Props {

@@ -11,11 +11,11 @@ import {
 } from '@mui/material'
 import axios from 'axios'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+
+import React, { useState } from 'react'
 
 const Pool = () => {
-    const [token, setToken] = useState('')
+    const [setToken] = useState('')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleTokenRequest = (code: string, state: string) => {

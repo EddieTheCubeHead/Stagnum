@@ -46,7 +46,7 @@ function HomeContent() {
         console.log('Sending play request')
 
         axios
-            .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
+            .get(`${backend_uri}/auth/login/callback`, {
                 params: { state, code, client_redirect_uri },
             })
             .then((response) => {
