@@ -6,6 +6,7 @@ from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater
 from api.pool.helpers import create_pool_return_model
 from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack
+from database.entities import User, PoolMember
 
 _logger = getLogger("main.api.pool.routes")
 
@@ -54,11 +55,14 @@ async def delete_content(spotify_uri: str, user: validated_user, database_connec
     return data_model
 
 
-async def _create_model_and_update_listeners(database_connection, pool_websocket_updater, user, whole_pool):
+async def _create_model_and_update_listeners(database_connection: PoolDatabaseConnection,
+                                             pool_websocket_updater: PoolWebsocketUpdater, user: User,
+                                             whole_pool: list[PoolMember]):
     pool_users = database_connection.get_pool_users(user)
     pool = database_connection.get_pool(user)
     code = pool.share_data.code if pool.share_data is not None else None
-    data_model = create_pool_return_model(whole_pool, pool_users, code)
+    current_track = database_connection.get_current_track(user)
+    data_model = create_pool_return_model(whole_pool, pool_users, current_track, code)
     await pool_websocket_updater.pool_updated(data_model, pool.id)
     return data_model
 

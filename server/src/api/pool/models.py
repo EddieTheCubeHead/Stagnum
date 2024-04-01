@@ -34,3 +34,4 @@ class PoolUserContents(BaseModel):
 class PoolFullContents(BaseModel):
     users: list[PoolUserContents]
     share_code: str | None = None
+    currently_playing: PoolTrack

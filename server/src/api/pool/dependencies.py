@@ -224,6 +224,10 @@ def _validate_pool_join(pool, user):
         raise HTTPException(status_code=400, detail="Already a member of that pool!")
 
 
+def _get_current_track(pool: Pool, session: Session) -> PoolMember:
+    return session.scalar(select(PoolMember).where())
+
+
 class PoolDatabaseConnectionRaw:
 
     def __init__(self, database_connection: DatabaseConnection):
@@ -312,6 +316,11 @@ class PoolDatabaseConnectionRaw:
             _validate_pool_join(pool, user)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
+
+    def get_current_track(self, user: User) -> PoolMember:
+        with self._database_connection.session() as session:
+            pool = _get_pool_for_user(user, session)
+            track = _get_current_track(pool, session)
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

@@ -7,7 +7,9 @@ from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import RequestsClient, SpotifyClientRaw
 from api.common.models import ParsedTokenResponse
+from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw
 from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
@@ -169,3 +171,18 @@ def shared_pool_code(existing_playback, test_client, valid_token_header, validat
 
     result = validate_response(response)
     return result["share_code"]
+
+
+@pytest.fixture
+def pool_db_connection(db_connection: ConnectionManager):
+    return PoolDatabaseConnectionRaw(db_connection)
+
+
+@pytest.fixture
+def pool_spotify_client(requests_client: RequestsClient):
+    return PoolSpotifyClientRaw(SpotifyClientRaw(requests_client))
+
+
+@pytest.fixture
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder):
+    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder)
