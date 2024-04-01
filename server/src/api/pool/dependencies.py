@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
+from api.pool.helpers import map_pool_member_entity_to_model
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
 from api.pool.randomization_algorithms import NextSongProvider
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData, \
@@ -18,7 +19,7 @@ from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoine
 
 _logger = getLogger("main.api.pool.dependencies")
 
-FullPoolData = (list[PoolMember], list[User], str)
+FullPoolData = (list[PoolMember], list[User], PoolTrack | None, str | None)
 
 
 def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
@@ -259,8 +260,16 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
     session.merge(playing_track)
 
 
-def _get_current_track(pool: Pool, session: Session) -> PoolMember:
-    return session.scalar(select(PoolMember).where())
+def _get_current_track(pool: Pool, session: Session) -> PoolTrack | None:
+    playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == pool.owner_user_id))
+    if playback_session is None:
+        return None
+    return PoolTrack(
+        name=playback_session.current_track_name,
+        spotify_icon_uri=playback_session.current_track_image_url,
+        spotify_track_uri=playback_session.current_track_uri,
+        duration_ms=playback_session.current_track_duration_ms
+    )
 
 
 class PoolDatabaseConnectionRaw:
@@ -300,7 +309,8 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
             pool_users = self.get_pool_users(user)
             pool = _get_pool_for_user(user, session)
-        return whole_pool, pool_users, pool.share_data.code if pool.share_data is not None else None
+            current_track = _get_current_track(pool, session)
+        return whole_pool, pool_users, current_track, pool.share_data.code if pool.share_data is not None else None
 
     def get_pool(self, user: User) -> Pool:
         with self._database_connection.session() as session:
@@ -360,10 +370,11 @@ class PoolDatabaseConnectionRaw:
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
-    def get_current_track(self, user: User) -> PoolMember:
+    def get_current_track(self, user: User) -> PoolTrack | None:
         with self._database_connection.session() as session:
             pool = _get_pool_for_user(user, session)
             track = _get_current_track(pool, session)
+        return track
 
     def save_playtime(self, user: User):
         with self._database_connection.session() as session:
@@ -389,11 +400,12 @@ class PoolPlaybackServiceRaw:
         self._token_holder = token_holder
         self._next_song_provider = next_song_provider
 
-    def start_playback(self, user: User):
+    def start_playback(self, user: User) -> PoolTrack:
         all_tracks = self._database_connection.get_playable_tracks(user)
         next_track = random.choice(all_tracks)
         self._spotify_client.start_playback(user, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
+        return map_pool_member_entity_to_model(next_track)
 
     def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()

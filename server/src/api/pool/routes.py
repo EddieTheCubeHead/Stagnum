@@ -23,15 +23,14 @@ async def create_pool(base_collection: PoolCreationData, user: validated_user,
     _logger.debug(f"POST /pool called with collection {base_collection} and token {user.session.user_token}")
     pool_user_content = spotify_client.get_pool_content(user, *base_collection.spotify_uris)
     database_connection.create_pool(pool_user_content)
-    pool_playback_service.start_playback(user)
-    return PoolFullContents(users=[pool_user_content])
+    current_track = pool_playback_service.start_playback(user)
+    return PoolFullContents(users=[pool_user_content], currently_playing=current_track)
 
 
 @router.get("/")
 async def get_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
     _logger.debug(f"GET /pool called with token {user}")
-    pool, users, code = database_connection.get_pool_data(user)
-    return create_pool_return_model(pool, users, code)
+    return create_pool_return_model(*database_connection.get_pool_data(user))
 
 
 @router.post("/content")
