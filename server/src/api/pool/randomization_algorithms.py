@@ -32,16 +32,26 @@ def _get_members_weight(members: list[PoolMember]) -> int:
     return 1 if members else 0
 
 
+# Logic heavy part so here come the comments
 class PoolRandomizer:
 
     def __init__(self, pool_members: list[PoolMember], users: list[User],
                  randomization_parameters: RandomizationParameters):
+
+        # Custom weight and user playback time based weight both operate on an exponential scale. These two base numbers
+        # control the aggressiveness of that exponential scale (base^modifier, modifier [-1,1])
         self._custom_weight_scale = randomization_parameters.custom_weight_scale
         self._user_weight_scale = randomization_parameters.user_weight_scale
+
         self._users: dict[str, User] = {user.spotify_id: user for user in users}
         self._user_pools: dict[str, [PoolMember]] = {user.spotify_id: [] for user in users}
         self._pool_length = len(pool_members)
         self._pool_length_ms = sum((pool_member.duration_ms for pool_member in pool_members))
+
+        # Pseudo random weighting operates on a floor/ceiling principle, where both are integer percentage values of
+        # pool length. Floor is the amount of tracks that need to be played before the track can appear again, while
+        # ceiling is when the track weight modifier for being played is 1 again. The transition is linear and is
+        # described by the slope and offset calculated here (y = x * slope - offset)
         self._concrete_floor = self._pool_length * (randomization_parameters.pseudo_random_floor / 100)
         self._concrete_ceiling = self._pool_length * (randomization_parameters.pseudo_random_ceiling / 100)
         self._slope = 1 / (self._concrete_ceiling - self._concrete_floor)
@@ -75,11 +85,12 @@ class PoolRandomizer:
     def _get_next_playing_user_id(self) -> str:
         eligible_user_play_times: [(str, int)] = []
         total_play_time = 0
+
         for user_id, members in self._user_pools.items():
             if not _get_members_weight(members):
                 continue
             user_play_time = self._users[user_id].joined_pool.playback_time_ms
-            eligible_user_play_times.append((user_id,  user_play_time))
+            eligible_user_play_times.append((user_id, user_play_time))
             total_play_time += user_play_time
 
         total_user_weight = 0
@@ -88,7 +99,6 @@ class PoolRandomizer:
             user_weight = self._calculate_user_weight(total_play_time, user_play_time)
             total_user_weight += user_weight
             eligible_user_weights.append((user_id, user_weight))
-
 
         user_location = total_user_weight * random.random()
 
@@ -99,11 +109,23 @@ class PoolRandomizer:
                 return user_id
 
     def _calculate_user_weight(self, total_play_time: int, user_play_time: int) -> float:
+        # Always give full weight for users with no play time
         if total_play_time == 0:
             return 1
-        user_weight_power_reversed_not_shifted = user_play_time / total_play_time  # [0, 1]
-        user_weight_power_reversed_shifted = user_weight_power_reversed_not_shifted - 0.5  # [-0.5, 0.5]
-        user_weight_power_shifted = user_weight_power_reversed_shifted * -2  # [-1, 1]
+
+        # Here we get weight for user playback time. user_play_time / total_play_time will be a fraction in [0, 1]
+        user_weight_power_reversed_not_shifted = user_play_time / total_play_time
+
+        # Shifting the fraction 0.5 to the left on the real number line gives us a nice normal distribution centered on
+        # 0. The value is now in [-0.5, 5]
+        user_weight_power_reversed_shifted = user_weight_power_reversed_not_shifted - 0.5
+
+        # Scaling and reversing the value lets us use it as an exponent modifier for the base we get from environment
+        # configs. Reversing is important as we want the users with smaller share of playtime, to get bigger weight.
+        # the resulting value is in [-1, 1]
+        user_weight_power_shifted = user_weight_power_reversed_shifted * -2
+
+        # Finally we raise the base weight scale to the power of the user weight modifier
         user_weight = pow(self._user_weight_scale, user_weight_power_shifted)
         return user_weight
 
@@ -113,13 +135,17 @@ class PoolRandomizer:
         return PoolMemberRandomizationData(pool_member, member_weight * playback_weight)
 
     def _calculate_playback_weight(self, skips_since_last_play: int) -> float:
+        # Skips since last play is set as 0 for songs with no plays
         if skips_since_last_play == 0:
             return 1
 
+        # if skips since last play doesn't fall in the linearly increasing part of the pool percentage, we can just
+        # set it to minimum/maximum accordingly
         if skips_since_last_play <= self._concrete_floor:
             return 0
         elif skips_since_last_play >= self._concrete_ceiling:
             return 1
+
         return self._slope * (skips_since_last_play - self._offset)
 
 
