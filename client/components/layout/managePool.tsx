@@ -1,16 +1,12 @@
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
-import { Box, Container, Stack, Typography } from "@mui/material";
-import TrackCard from "./cards/trackCard";
+
+import { Box, Stack } from "@mui/material";
 import PoolCard from "./cards/poolCard";
-import { useEffect } from "react";
 
 export default function ManagePool(props: {
     pool: Pool
     token: string
     updatePool: (pool: Pool) => void
+    expanded: boolean
 }) {
 
     return (
@@ -21,6 +17,7 @@ export default function ManagePool(props: {
             borderRadius: '12px',
             boxShadow: 2,
         }}>
+
             <Stack spacing={2} sx={{
                 width: 1,
                 margin: 1,

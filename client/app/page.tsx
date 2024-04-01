@@ -16,6 +16,7 @@ import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
 import '@/components/layout/css/customScrollBar.css';
 import { Collections } from "@mui/icons-material";
+import { Header3 } from "@/components/textComponents";
 
 export default function HomePage() {
   return (
@@ -30,16 +31,12 @@ function HomeContent() {
     users: [],
     share_code: null
   });
-  const [showSearchBar, setShowSearchBar] = useState(false);
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
-    []
-  );
   const [token, setToken] = useState("");
+  const [expanded, setExpanded] = useState(false)
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
   const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
   useEffect(() => {
     if (code && state) {
@@ -47,7 +44,7 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      redirect('/login')
+      //redirect('/login')
     }
   }, []);
 
@@ -67,29 +64,56 @@ function HomeContent() {
     setPool(pool);
   };
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
+  const expandedGrid = (
+    <Grid container spacing={1} alignItems='stretch'
+      sx={{
+        padding: 1,
+        maxHeight: 'calc(100vh - 80px)'
+      }}>
+      <Grid item xs={3} sx={{ height: '10%' }}>
+        <MainHeaderCard />
+      </Grid>
+      <Grid item xs={9} sx={{ height: '10%' }}>
+        <Search token={token} updatePool={updatePool} expanded={expanded} toggleExpanded={toggleExpanded} />
+      </Grid>
+      <Grid item xs={12} sx={{ height: '90%', overflow: 'auto' }}>
+        <ManagePool pool={pool} token={token} updatePool={updatePool} expanded={expanded} />
+      </Grid>
+    </Grid>
+  )
+
+  const collapsedGrid = (
+    <Grid container spacing={1} direction='column' alignItems='stretch'
+      sx={{
+        padding: 1,
+        maxHeight: 'calc(100vh - 80px)'
+      }}>
+      <Grid item xs={1.2} sx={{ height: '10%', width: '25%' }}>
+        <MainHeaderCard />
+      </Grid>
+      <Grid item xs={10.8} sx={{ height: '10%', width: '25%', overflow: 'auto' }}>
+        <ManagePool pool={pool} token={token} updatePool={updatePool} expanded={expanded} />
+      </Grid>
+      <Grid item xs={12} sx={{ height: '90%', width: '75%', overflow: 'auto' }}>
+        <Search token={token} updatePool={updatePool} expanded={expanded} toggleExpanded={toggleExpanded} />
+      </Grid>
+    </Grid>
+  )
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{
-        margin: 1.5,
-        display: 'flex',
-        height: 'calc(100vh - 80px)',
-      }}>
-        <Box
-          sx={{
-            flex: 1,
-            padding: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 370
-          }}
-        >
-          <MainHeaderCard />
-          <ManagePool pool={pool} token={token} updatePool={updatePool} />
-        </Box>
-        <Search token={token} updatePool={updatePool} />
-      </Box>
+      {expanded ? (
+        expandedGrid
+      ) : (
+        collapsedGrid
+      )
+      }
       <Footer token={token} />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
