@@ -3,6 +3,10 @@ import { Box, Stack } from "@mui/material";
 import PoolCard from "./cards/poolCollectionCard";
 import PoolTrackCard from "./cards/poolCollectionCard";
 import PoolCollectionCard from "./cards/poolCollectionCard";
+import { useState } from "react";
+import axios from "axios";
+import DefaultButton from "../buttons/defaulButton";
+import { Header1 } from "../textComponents";
 
 export default function ManagePool(props: {
     pool: Pool
@@ -10,6 +14,22 @@ export default function ManagePool(props: {
     updatePool: (pool: Pool) => void
     expanded: boolean
 }) {
+
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const token = props.token;
+    const [ res, setRes] = useState("")
+    const handleShare = () => {
+        axios
+        .post(`${backend_uri}/pool/share`,{}, {
+            headers: { token },
+        })
+        .then(function (response) {
+            console.log(response)
+        })
+        .catch((error) => {
+            console.log("Request failed", error);
+        });
+    }
 
     return (
         <Box sx={{
@@ -24,6 +44,8 @@ export default function ManagePool(props: {
                 width: 1,
                 margin: 1,
             }}>
+                <DefaultButton text="share" action={handleShare}/>
+                <Header1 text={res}/>
                 {props.pool?.users?.[0]?.tracks?.map((poolItem: any, key: number) => (
                     <PoolTrackCard poolItem={poolItem} key={key} token={props.token} updatePool={props.updatePool} />
                 ))}
