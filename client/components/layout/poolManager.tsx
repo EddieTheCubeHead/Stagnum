@@ -29,14 +29,17 @@ export default function ManagePool(props: {
                 ))}
                 {props.pool?.users?.[0]?.collections?.map((poolItem: any, key: number) => (
                     <Stack spacing={2} key={key}>
-                        <PoolCard poolItem={poolItem} token={props.token} updatePool={props.updatePool} />
+                        <PoolCollectionCard poolItem={poolItem} token={props.token} updatePool={props.updatePool} />
                         {poolItem.tracks.map((poolCollectionItem: any, innerKey: number) => (
-                            <PoolCollectionCard poolItem={poolCollectionItem} token={props.token} updatePool={props.updatePool} key={innerKey} />
+                            /* aling this box to the right*/
+                            <Box sx={{ display: 'flex', justifyContent: 'right' }} key={innerKey} >
+                                <Box sx={{ width: '95%' }}>
+                                    <PoolTrackCard poolItem={poolCollectionItem} token={props.token} updatePool={props.updatePool} />
+                                </Box>
+                            </Box>
                         ))}
                     </Stack>
                 ))}
-
-
             </Stack>
         </Box>
     )

@@ -34,7 +34,7 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
                 headers: { token },
             })
             .then(function (response) {
-                if (expanded) {
+                if (!expanded) {
                     toggleExpanded()
                 }
                 setSearchResults(response.data)
