@@ -8,7 +8,10 @@ from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import RequestsClient, SpotifyClientRaw
 from api.common.models import ParsedTokenResponse
+from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
+    PlaybackWebsocketUpdaterRaw
 from api.pool.models import PoolCreationData, PoolContent
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
@@ -121,11 +124,11 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
                         f"?offset={batch_walker}&limit={batch}&locale=en",
                 "limit": batch,
                 "next": None if track_amount < batch_walker + batch
-                            else f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
-                                 f"?offset={batch_walker + batch}&limit={batch}&locale=en",
+                else f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
+                     f"?offset={batch_walker + batch}&limit={batch}&locale=en",
                 "offset": batch_walker,
                 "previous": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
-                                 f"?offset={batch_walker - batch}&limit={batch}&locale=en",
+                            f"?offset={batch_walker - batch}&limit={batch}&locale=en",
                 "total": track_amount,
                 "items": playlist_tracks[batch_walker:batch_walker + batch]
             })
@@ -170,11 +173,31 @@ def another_logged_in_user_header(faker, db_connection):
 def share_pool_and_get_code(test_client, valid_token_header, validate_response) -> Callable[[], str]:
     def wrapper() -> str:
         response = test_client.post("/pool/share", headers=valid_token_header)
-
         result = validate_response(response)
         return result["share_code"]
 
     return wrapper
+
+
+@pytest.fixture
+def pool_db_connection(db_connection: ConnectionManager):
+    return PoolDatabaseConnectionRaw(db_connection)
+
+
+@pytest.fixture
+def pool_spotify_client(requests_client: RequestsClient):
+    return PoolSpotifyClientRaw(SpotifyClientRaw(requests_client))
+
+
+@pytest.fixture
+def playback_updater():
+    return PlaybackWebsocketUpdaterRaw()
+
+
+@pytest.fixture
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider, playback_updater):
+    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider,
+                                  playback_updater)
 
 
 @pytest.fixture
