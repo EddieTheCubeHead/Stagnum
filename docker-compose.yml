@@ -3,7 +3,7 @@ version: "3.8"
 services:
   frontend:
     build:
-      context:  ./client/
+      context: ./client/
       dockerfile: Dockerfile
     restart: always
     ports:
@@ -26,7 +26,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    networks: 
+    networks:
       - outgoing
       - internal
     environment:
@@ -44,7 +44,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d data"]
+      test: [ "CMD-SHELL", "pg_isready -d data" ]
       interval: 10s
       timeout: 30s
       retries: 5
@@ -57,7 +57,6 @@ services:
       - internal
     env_file:
       - .env
-    
 
 secrets:
   spotify_client_id:
@@ -67,6 +66,7 @@ secrets:
 
 volumes:
   data:
+
 
 networks:
   outgoing:
