@@ -10,7 +10,7 @@ from api.pool.randomization_algorithms import RandomizationParameters
 from database.entities import User, PoolMember, PoolMemberRandomizationParameters, PoolJoinedUser
 
 
-@pytest.fixture(params=[RandomizationParameters(5, 60, 90), RandomizationParameters(10, 50, 75)])
+@pytest.fixture(params=[RandomizationParameters(5, 5, 60, 90), RandomizationParameters(10, 3, 50, 75)])
 def variable_weighted_parameters(request, monkeypatch) -> RandomizationParameters:
     parameters: RandomizationParameters = request.param
     monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
@@ -166,10 +166,9 @@ def should_respect_custom_weight(next_song_provider, create_test_users, create_p
 
 @pytest.mark.slow
 def should_balance_users_by_playtime(create_test_users, create_pool_from_users, weighted_parameters, test_client,
-                                     valid_token_header, db_connection,
-                                     implement_pool_from_members):
-    users = create_test_users(9)
-    pool = create_pool_from_users(*[(user, 10) for user in users])
+                                     valid_token_header, db_connection, implement_pool_from_members):
+    users = create_test_users(4)
+    pool = create_pool_from_users(*[(user, 50) for user in users])
     implement_pool_from_members(users, pool)
     for _ in range(999):
         test_client.post("/pool/playback/skip", headers=valid_token_header)

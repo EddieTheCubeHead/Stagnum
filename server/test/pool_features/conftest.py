@@ -158,11 +158,11 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
 
 @pytest.fixture
 def another_logged_in_user_header(faker, db_connection):
-    auth_database_connection = AuthDatabaseConnection(db_connection)
+    authorization_database_connection = AuthDatabaseConnection(db_connection)
     user_id = faker.uuid4()
     user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
-    auth_database_connection.update_logged_in_user(user, token_data)
+    authorization_database_connection.update_logged_in_user(user, token_data)
     return {"token": token_data.token}
 
 
@@ -189,8 +189,9 @@ def next_song_provider():
 
 @pytest.fixture
 def weighted_parameters(monkeypatch) -> RandomizationParameters:
-    parameters = RandomizationParameters(5, 60, 90)
+    parameters = RandomizationParameters(5, 20, 60, 90)
     monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
+    monkeypatch.setenv("USER_WEIGHT_SCALE", str(parameters.custom_weight_scale))
     monkeypatch.setenv("PSEUDO_RANDOM_FLOOR", str(parameters.pseudo_random_floor))
     monkeypatch.setenv("PSEUDO_RANDOM_CEILING", str(parameters.pseudo_random_ceiling))
     return parameters
