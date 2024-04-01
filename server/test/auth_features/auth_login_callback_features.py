@@ -262,7 +262,6 @@ def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_re
     validate_response(response)
 
 
-@pytest.mark.wip
 def should_allow_another_log_in_after_first_one(correct_env_variables, validate_response, base_auth_callback_call,
                                                 requests_client_with_auth_mock, default_token_return,
                                                 create_valid_state_string):
