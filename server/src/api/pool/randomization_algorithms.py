@@ -52,7 +52,6 @@ class PoolRandomizer:
 
     def get_next_song(self) -> PoolMember:
         user_id = self._get_next_playing_user_id()
-        # user_id = random.choice([user_id for user_id, members in self._user_pools.items() if members])
 
         user_pool_members: [PoolMemberRandomizationData] = []
         total_member_weight: float = 0
