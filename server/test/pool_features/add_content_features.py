@@ -1,13 +1,11 @@
 from unittest.mock import Mock
 
-import pytest
 from sqlalchemy import select, and_
 
 from api.pool.models import PoolContent
 from database.entities import PoolMember
 
 
-@pytest.mark.wip
 def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_track_search_result, requests_client,
                                                                     build_success_response, test_client,
                                                                     valid_token_header, validate_response):

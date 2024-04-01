@@ -3,7 +3,8 @@ from logging import getLogger
 from fastapi import APIRouter, WebSocket
 
 from api.common.dependencies import validated_user
-from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater
+from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater, \
+    PlaybackWebsocketUpdater
 from api.pool.helpers import create_pool_return_model
 from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack
 from database.entities import User, PoolMember
@@ -69,7 +70,7 @@ async def _create_model_and_update_listeners(database_connection: PoolDatabaseCo
 @router.post("/playback/skip")
 async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackService) -> PoolTrack:
     _logger.debug(f"POST /pool/playback/skip called with token {user.session.user_token}")
-    return pool_playback_service.skip_song(user)
+    return await pool_playback_service.skip_song(user)
 
 
 @router.post("/share")
@@ -89,9 +90,18 @@ async def join_pool(code: str, user: validated_user, pool_websocket_updater: Poo
 
 
 @router.websocket("/register_listener")
-async def register_for_updates(websocket: WebSocket, user: validated_user,
-                               pool_database_connection: PoolDatabaseConnection,
-                               pool_websocket_updater: PoolWebsocketUpdater):
+async def register_for_pool_updates(websocket: WebSocket, user: validated_user,
+                                    pool_database_connection: PoolDatabaseConnection,
+                                    pool_websocket_updater: PoolWebsocketUpdater):
     await websocket.accept()
     pool = pool_database_connection.get_pool(user)
     pool_websocket_updater.add_socket(websocket, pool)
+
+
+@router.websocket("/playback/register_listener")
+async def register_for_playback_updates(websocket: WebSocket, user: validated_user,
+                                        pool_database_connection: PoolDatabaseConnection,
+                                        playback_websocket_updater: PlaybackWebsocketUpdater):
+    await websocket.accept()
+    playback_pool = pool_database_connection.get_pool(user)
+    playback_websocket_updater.add_socket(websocket, playback_pool)

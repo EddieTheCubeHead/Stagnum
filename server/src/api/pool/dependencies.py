@@ -325,7 +325,7 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
                 select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
-            if existing_playback is not None:
+            if existing_playback is not None and existing_playback.current_track is not None:
                 _update_user_playback(existing_playback, playing_track, override_timestamp)
             else:
                 _crete_user_playback(session, user, playing_track)
@@ -391,55 +391,6 @@ class PoolDatabaseConnectionRaw:
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
 
-class PoolPlaybackServiceRaw:
-
-    def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
-                 token_holder: TokenHolder, next_song_provider: NextSongProvider):
-        self._database_connection = database_connection
-        self._spotify_client = spotify_client
-        self._token_holder = token_holder
-        self._next_song_provider = next_song_provider
-
-    def start_playback(self, user: User) -> PoolTrack:
-        all_tracks = self._database_connection.get_playable_tracks(user)
-        next_track = random.choice(all_tracks)
-        self._spotify_client.start_playback(user, next_track.content_uri)
-        self._database_connection.save_playback_status(user, next_track)
-        return map_pool_member_entity_to_model(next_track)
-
-    def update_user_playbacks(self):
-        active_playbacks = self._database_connection.get_playbacks_to_update()
-        for playback in active_playbacks:
-            self._update_playback(playback)
-
-    def _update_playback(self, playback: PlaybackSession):
-        if not self._token_holder.is_user_logged_in(playback.user_id):
-            self._database_connection.set_playback_as_inactive(playback)
-            return
-        user = self._token_holder.get_user_from_user_id(playback.user_id)
-        self._queue_next_song(user)
-
-    def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
-        playable_tracks = self._database_connection.get_playable_tracks(user)
-        users = self._database_connection.get_pool_users(user)
-        pool_owner = self._database_connection.get_users_pools_main_user(user)
-        self._database_connection.save_playtime(pool_owner)
-        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
-        _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
-        self._spotify_client.set_next_song(user, next_song.content_uri)
-        self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
-        return next_song
-
-    def skip_song(self, user: User) -> PoolTrack:
-        next_song = self._queue_next_song(user, True)
-        self._spotify_client.skip_current_song(user)
-        return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
-                         spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
-
-
-PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
-
-
 class PoolWebsocketUpdaterRaw:
     _pool_sockets: dict[int, list[WebSocket]] = {}
 
@@ -454,3 +405,72 @@ class PoolWebsocketUpdaterRaw:
 
 
 PoolWebsocketUpdater = Annotated[PoolWebsocketUpdaterRaw, Depends()]
+
+
+class PlaybackWebsocketUpdaterRaw:
+    _playback_sockets: dict[int, list[WebSocket]] = {}
+
+    def add_socket(self, websocket: WebSocket, pool: Pool):
+        if pool.id not in self._playback_sockets:
+            self._playback_sockets[pool.id] = []
+        self._playback_sockets[pool.id].append(websocket)
+
+    async def playback_updated(self, new_track: PoolTrack, pool_id: int):
+        for websocket in self._playback_sockets.get(pool_id, ()):
+            await websocket.send_json(new_track.model_dump())
+
+
+PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
+
+
+class PoolPlaybackServiceRaw:
+
+    def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
+                 token_holder: TokenHolder, next_song_provider: NextSongProvider,
+                 playback_updater: PlaybackWebsocketUpdater):
+        self._database_connection = database_connection
+        self._spotify_client = spotify_client
+        self._token_holder = token_holder
+        self._next_song_provider = next_song_provider
+        self._playback_updater = playback_updater
+
+    def start_playback(self, user: User) -> PoolTrack:
+        all_tracks = self._database_connection.get_playable_tracks(user)
+        next_track = random.choice(all_tracks)
+        self._spotify_client.start_playback(user, next_track.content_uri)
+        self._database_connection.save_playback_status(user, next_track)
+        return map_pool_member_entity_to_model(next_track)
+
+    async def update_user_playbacks(self):
+        active_playbacks = self._database_connection.get_playbacks_to_update()
+        for playback in active_playbacks:
+            await self._update_playback(playback)
+
+    async def _update_playback(self, playback: PlaybackSession):
+        if not self._token_holder.is_user_logged_in(playback.user_id):
+            self._database_connection.set_playback_as_inactive(playback)
+            return
+        user = self._token_holder.get_user_from_user_id(playback.user_id)
+        await self._queue_next_song(user)
+
+    async def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
+        playable_tracks = self._database_connection.get_playable_tracks(user)
+        users = self._database_connection.get_pool_users(user)
+        pool_owner = self._database_connection.get_users_pools_main_user(user)
+        self._database_connection.save_playtime(pool_owner)
+        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
+        _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
+        self._spotify_client.set_next_song(user, next_song.content_uri)
+        pool = self._database_connection.get_pool(pool_owner)
+        await self._playback_updater.playback_updated(map_pool_member_entity_to_model(next_song), pool.id)
+        self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
+        return next_song
+
+    async def skip_song(self, user: User) -> PoolTrack:
+        next_song = await self._queue_next_song(user, True)
+        self._spotify_client.skip_current_song(user)
+        return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
+                         spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
+
+
+PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
