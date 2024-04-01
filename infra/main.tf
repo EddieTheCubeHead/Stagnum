@@ -1,22 +1,3 @@
-terraform {
-    required_providers {
-      aws = {
-        source = "opentofu/aws"
-        version = "~> 5.0"
-      }
-      docker = {
-        source = "kreuzwerker/docker"
-        version = "~> 3.0"
-      }
-    }
-}
-
-provider "aws" {
-    region = var.aws_region
-    access_key = var.aws_access_key
-    secret_key = var.aws_secret_key
-}
-
 # Creating an ECR Repository
 resource "aws_ecr_repository" "ecr-repo"{
   name = "${var.app_name}-repo"
@@ -26,44 +7,6 @@ resource "aws_ecr_repository" "ecr-repo"{
     scan_on_push = true
   }
 }
-
-# Create docker
-provider "docker" {
-  registry_auth{
-    address = data.aws_ecr_authorization_token.token.proxy_endpoint
-    username = data.aws_ecr_authorization_token.token.user_name
-    password = data.aws_ecr_authorization_token.token.password
-  }
-}
-
-# Build docker images
-resource "docker_image" "front-image" {
-  name = "${data.aws_ecr_authorization_token.token.proxy_endpoint}/${aws_ecr_repository.ecr-repo.name}:latest"
-  build {
-    context = "./client"
-  } 
-  platform = "linux/arm64"
-}
-
-resource "docker_image" "back-image" {
-  name = "${data.aws_ecr_authorization_token.token.proxy_endpoint}/${aws_ecr_repository.ecr-repo.name}:latest"
-  build {
-    context = "./server"
-  } 
-  platform = "linux/arm64"
-}
-
-# Push docker images
-resource "docker_registry_image" "front-media-handler"{
-  name = docker_image.front-image
-  keep_remotely = true
-}
-
-resource "docker_registry_image" "back-media-handler" {
-  name = docker_image.back-image
-  keep_remotely = true
-}
-
 
 # Creating an ECS cluster
 resource "aws_ecs_cluster" "aws-cluster" {
@@ -94,84 +37,30 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# Creating the task definition
-resource "aws_ecs_task_definition" "aws-task" {
-  family                   = "${var.app_name}-task" 
-  container_definitions    = <<DEFINITION
-  [
-    {
-      "name": "${var.app_name}-front-container",
-      "image": "${aws_ecr_repository.ecr-front-repo.repository_url}",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 3000,
-          "hostPort": 3000
-        }
-      ],
-      "environment": [
-        { "name": "NEXT_PUBLIC_FRONTEND_URI", "value": ${var.NEXT_PUBLIC_FRONTEND_URI}},
-        { "name": "NEXT_PUBLIC_BACKEND_URI", "value": ${var.NEXT_PUBLIC_BACKEND_URI}}
-      ],
-      "memory": 512,
-      "cpu": 256
-    },
-    {
-      "name": "${var.app_name}-back-container",
-      "image": "${aws_ecr_repository.ecr-back-repo.repository_url}",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 8080,
-          "hostPort": 8080
-        }
-      ],
-      "environment": [
-        { "name":"DATABASE_CONNECTION_URL", "value": postgresql://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@database:${var.DATABASE_PORT}/${var.POSTGRES_DB}}
-      ],
-      "memory": 512,
-      "cpu": 256
-    },
-    {
-      "name": "${var.app_name}-data-container",
-      "image": "public.ecr.aws/docker/library/postgres:latest",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 5432,
-          "hostPort": 5432
-        }
-      ],
-      "environment":[
-        { "name":"POSTGRES_USER", "value": ${var.POSTGRES_USER}},
-        { "name":"POSTGRES_PASSWORD","value": ${var.POSTGRES_PASSWORD}},
-        { "name":"POSTGRES_DB","value": ${var.POSTGRES_DB}}
-      ],
-      "memory": 512,
-      "cpu": 256
-    }
-  ]
-  DEFINITION
-  requires_compatibilities = ["FARGATE"] # Stating that we are using ECS Fargate
-  network_mode             = "awsvpc"    # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512 * 4     # Specifying the memory our task requires
-  cpu                      = 256 * 4     # Specifying the CPU our task requires
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
-}
 
 # Providing a reference to our default VPC
-resource "aws_default_vpc" "default_vpc"{
-
+resource "aws_vpc" "default"{
 }
 
-# Providing a reference to our default subnets
-resource "aws_default_subnet" "default_subnet_a" {
-  availability_zone = var.aws_subnet_a
+resource "aws_subnet" "public" {
+  vpc_id = aws_vpc.default.id
+  map_public_ip_on_launc = true
 }
 
-# Providing a reference to our default subnets
-resource "aws_default_subnet" "default_subnet_b" {
-  availability_zone = var.aws_subnet_b
+resource "aws_subnet" "private" {
+  vpc_id = aws_vpc.default.id
+}
+
+resource "aws_internet_gateway" "gateway" {
+  vpc_id = aws_vpc.default.id
+  
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id = aws_vpc.default.main_route_table_id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.gateway.id
+  
 }
 
 # Creating a load balancer
@@ -225,28 +114,8 @@ resource "aws_lb_listener" "aws-listener" {
   }
 }
 
-# Creating the service
-resource "aws_ecs_service" "aws-service" {
-  name            = "${var.app_name}-service"                        
-  cluster         = aws_ecs_cluster.aws-cluster.id       # Referencing our created Cluster
-  task_definition = aws_ecs_task_definition.aws-task.arn # Referencing the task our service will spin up
-  launch_type     = "FARGATE"
-  desired_count   = 1 # Setting the number of containers we want deployed to 3
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.aws-target_group.arn # Referencing our target group
-    container_name   = "${var.app_name}-front-container"
-    container_port   = 3000 # Specifying the container port
-  }
-
-  network_configuration {
-    subnets = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = true                                                # Providing our containers with public IPs
-    security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
-  }
-}
-
-# Creating a security group for the service
+# Creating a security group for the services
 resource "aws_security_group" "aws-service_security_group" {
   ingress {
     from_port = 0
@@ -264,7 +133,46 @@ resource "aws_security_group" "aws-service_security_group" {
   }
 }
 
-output "lb_dns" {
-  value       = aws_alb.aws-lb.dns_name
-  description = "AWS load balancer DNS Name"
+module "data" {
+  source = "./modules/database"
+  app_name = var.app_name
+  aws_security_group_id = aws_security_group.aws-service_security_group.id
+  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
+  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
+  aws_ecs_cluster_id = aws_ecs_cluster.aws_ecs_cluster.id
+  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
+  target_group_arn = aws_security_group.aws-service_security_group.id
+  postgres_user = var.postgres_user
+  postgres_pass = var.postgres_pass
+  postgres_db = var.postgres_db
+  postgres_port = "5432"
+}
+
+module "back" {
+  source = "./modules/server"
+  app_name = var.app_name
+  aws_security_group_id = aws_security_group.aws-service_security_group.id
+  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
+  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
+  aws_ecs_cluster_id = aws_ecs_cluster.aws-cluster.id
+  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
+  target_group_arn = aws_security_group.aws-service_security_group.id
+  aws_ecr_repository_url = aws_ecr_repository.ecr-repo.repository_url
+  database_connection_string = module.data.database_connection_string
+  spotify_client_id = var.spotify_client_id
+  spotify_client_secret = var.spotify_client_secret
+}
+
+module "front" {
+  source = "./modules/client"
+  app_name = var.app_name
+  aws_security_group_id = aws_security_group.aws-service_security_group.id
+  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
+  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
+  aws_ecs_cluster_id = aws_ecs_cluster.aws-cluster.id
+  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
+  target_group_arn = aws_security_group.aws-service_security_group.id
+  aws_ecr_repository_url = aws_ecr_repository.ecr-repo.repository_url
+  frontend_connection_string = module.front.connection_string
+  backend_connection_string = module.back.connection_string
 }
