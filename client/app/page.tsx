@@ -102,7 +102,7 @@ function HomeContent() {
             padding: 1,
             height: expanded ? '100%' : '10vh',
           }}>
-            <Search token={token} updatePool={updatePool} expanded={expanded} toggleExpanded={toggleExpanded} setSearchResults={setSearchResults} />
+            <Search token={token} updatePool={updatePool} expanded={expanded} toggleExpanded={toggleExpanded} setSearchResults={setSearchResults} enableAddButton={enableAddButton}/>
           </Box>
         </Grid>
 
