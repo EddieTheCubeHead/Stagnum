@@ -8,12 +8,12 @@ import axios from "axios";
 
 interface Props {
     newAdd: Track | Album | Playlist | Artist,
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
 }
 
-export default function AddToPoolButton({ newAdd, handleAdding, token, disabled }: Props) {
+export default function AddToPoolButton({ newAdd, updatePool, token, disabled }: Props) {
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -26,8 +26,8 @@ export default function AddToPoolButton({ newAdd, handleAdding, token, disabled 
             .post(`${backend_uri}/pool/content`, requestData, {
                 headers: { token },
             })
-            .then(function () {
-                handleAdding(newAdd)
+            .then(function (response) {
+                updatePool(response.data)
             })
             .catch((error) => {
                 console.log("Request failed", error);

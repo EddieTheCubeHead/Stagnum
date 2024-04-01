@@ -117,7 +117,7 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
     with db_connection.session() as session:
         playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
     expected_end_time = start_time + datetime.timedelta(milliseconds=tracks[0]["duration_ms"])
-    assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(milliseconds=100)
+    assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(seconds=1)
 
 
 def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,

@@ -10,7 +10,7 @@ import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconBut
 
 export default function AlbumCard(props: {
   album: Album,
-  handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+  updatePool: (pool: Pool) => void
   token: string
   disabled: boolean
   enableAddButton: () => void
@@ -34,8 +34,8 @@ export default function AlbumCard(props: {
           <Header3 text={props.album.name} />
         </Box>
         <Box>
-          <AddToPoolButton newAdd={props.album} handleAdding={props.handleAdding} token={props.token} disabled={props.disabled} />
-          <ShowMoreIconButton token={props.token} item={props.album} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
+          <AddToPoolButton newAdd={props.album} updatePool={props.updatePool} token={props.token} disabled={props.disabled} />
+          <ShowMoreIconButton token={props.token} item={props.album} updatePool={props.updatePool} enableAddButton={props.enableAddButton} />
         </Box>
       </Box>
     </Card>
