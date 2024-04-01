@@ -11,22 +11,22 @@ import theme from '../utils/theme'
 import MainHeaderCard from '@/components/layout/mainHeaderCard'
 import CreatePool from '@/components/layout/CreatePool'
 import Album from '@/types/albumTypes'
-import Footer from "@/components/layout/footer";
-import { Box, CssBaseline, Grid, Stack } from "@mui/material";
-import axios from "axios";
-import { useSearchParams, redirect } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-import { ThemeProvider } from "@emotion/react";
-import theme from "../utils/theme";
-import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
-import Search from "@/components/layout/search";
-import ManagePool from "@/components/layout/managePool";
-import '@/components/layout/css/customScrollBar.css';
-import { Collections } from "@mui/icons-material";
+import Footer from '@/components/layout/footer'
+import { Box, CssBaseline, Grid, Stack } from '@mui/material'
+import axios from 'axios'
+import { useSearchParams, redirect } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { ThemeProvider } from '@emotion/react'
+import theme from '../utils/theme'
+import MainHeaderCard from '@/components/layout/mainHeaderCard'
+import Album from '@/types/albumTypes'
+import Artist from '@/types/artistTypes'
+import Playlist from '@/types/playlistTypes'
+import Track from '@/types/trackTypes'
+import Search from '@/components/layout/search'
+import ManagePool from '@/components/layout/managePool'
+import '@/components/layout/css/customScrollBar.css'
+import { Collections } from '@mui/icons-material'
 
 export default function HomePage() {
     return (

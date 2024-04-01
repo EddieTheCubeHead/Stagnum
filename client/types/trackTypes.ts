@@ -4,27 +4,27 @@ interface Artist {
 }
 
 export default interface Track {
-    name: string,
-    link: string,
-    uri: string,
+    name: string
+    link: string
+    uri: string
     artists: [
         {
-            name: string,
+            name: string
             link: string
-        }
-    ],
+        },
+    ]
     album: {
-        name: string,
-        link: string,
-        uri: string,
+        name: string
+        link: string
+        uri: string
         artists: [
             {
-                name: string,
+                name: string
                 link: string
-            }
-        ],
-        year: 0,
+            },
+        ]
+        year: 0
         icon_link: string
-    },
+    }
     duration_ms: 0
 }
