@@ -11,7 +11,7 @@ import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconBut
 
 export default function PlaylistCard(props: {
     playlist: Playlist,
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
@@ -20,7 +20,7 @@ export default function PlaylistCard(props: {
     const truncatedName = props.playlist.name.length > 25 ? props.playlist.name.slice(0, 25) + "..." : props.playlist.name;
 
     return (
-        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {props.playlist.icon_link && (
@@ -37,8 +37,8 @@ export default function PlaylistCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <AddToPoolButton newAdd={props.playlist} handleAdding={props.handleAdding} token={props.token} disabled={props.disabled} />
-                    <ShowMoreIconButton token={props.token} item={props.playlist} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
+                    <AddToPoolButton newAdd={props.playlist} updatePool={props.updatePool} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={props.playlist} updatePool={props.updatePool} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>

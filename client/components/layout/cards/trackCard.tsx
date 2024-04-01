@@ -10,7 +10,7 @@ import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
 
 export default function TrackCard(props: {
     track: Track,
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+    updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
@@ -18,9 +18,8 @@ export default function TrackCard(props: {
 
     const truncatedName = props.track.name.length > 25 ? props.track.name.slice(0, 25) + "..." : props.track.name;
 
-
     return (
-        <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {props.track.album.link && (
@@ -28,7 +27,7 @@ export default function TrackCard(props: {
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.track.album.link})`,
+                                backgroundImage: `url(${props.track.album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
@@ -37,8 +36,8 @@ export default function TrackCard(props: {
                     <Header3 text={truncatedName} sx={{ margin: 1 }} />
                 </Box>
                 <Box>
-                    <AddToPoolButton handleAdding={props.handleAdding} newAdd={props.track} token={props.token} disabled={props.disabled} />
-                    <ShowMoreIconButton token={props.token} item={props.track} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
+                    <AddToPoolButton updatePool={props.updatePool} newAdd={props.track} token={props.token} disabled={props.disabled} />
+                    <ShowMoreIconButton token={props.token} item={props.track} updatePool={props.updatePool} enableAddButton={props.enableAddButton} />
                 </Box>
             </Box>
         </Card>

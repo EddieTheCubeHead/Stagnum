@@ -10,14 +10,14 @@ import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconBut
 
 export default function AlbumCard(props: {
   album: Album,
-  handleAdding: (newAdd: Track | Album | Playlist | Artist) => void
+  updatePool: (pool: Pool) => void
   token: string
   disabled: boolean
   enableAddButton: () => void
 }) {
 
   return (
-    <Card sx={{ bgcolor: 'secondary.light', width: 1 }}>
+    <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {props.album.icon_link && (
@@ -34,8 +34,8 @@ export default function AlbumCard(props: {
           <Header3 text={props.album.name} />
         </Box>
         <Box>
-          <AddToPoolButton newAdd={props.album} handleAdding={props.handleAdding} token={props.token} disabled={props.disabled} />
-          <ShowMoreIconButton token={props.token} item={props.album} handleAdding={props.handleAdding} enableAddButton={props.enableAddButton} />
+          <AddToPoolButton newAdd={props.album} updatePool={props.updatePool} token={props.token} disabled={props.disabled} />
+          <ShowMoreIconButton token={props.token} item={props.album} updatePool={props.updatePool} enableAddButton={props.enableAddButton} />
         </Box>
       </Box>
     </Card>

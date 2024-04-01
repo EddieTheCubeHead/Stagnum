@@ -15,6 +15,7 @@ import Track from "@/types/trackTypes";
 import Search from "@/components/layout/search";
 import ManagePool from "@/components/layout/managePool";
 import '@/components/layout/css/customScrollBar.css';
+import { Collections } from "@mui/icons-material";
 
 export default function HomePage() {
   return (
@@ -25,9 +26,10 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const [pool, setPool] = useState<Array<Album | Track | Artist | Playlist>>(
-    []
-  );
+  const [pool, setPool] = useState<Pool>({
+    users: [],
+    share_code: null
+  });
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
     []
@@ -45,13 +47,11 @@ function HomeContent() {
     }
     // Delete when we have an actual routeguard
     else {
-      //redirect('/login')
+      redirect('/login')
     }
   }, []);
 
   const handleTokenRequest = (code: string, state: string) => {
-    console.log("Sending play request");
-
     axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
       { params: { state, code, client_redirect_uri } })
       .then(function (response) {
@@ -62,14 +62,9 @@ function HomeContent() {
       });
   };
 
-  const handleAdding = (newAdd: Album | Track | Artist | Playlist) => {
-    setSellectedCollections((curCollections) => [...curCollections, newAdd]);
-  };
-
-  const handleDelete = (itemToDelete: Album | Track | Artist | Playlist) => {
-    setSellectedCollections((curCollections) =>
-      curCollections.filter((collection) => collection !== itemToDelete)
-    );
+  // Function to add a new collection to a user
+  const updatePool = (pool: Pool) => {
+    setPool(pool);
   };
 
   return (
@@ -86,12 +81,13 @@ function HomeContent() {
             padding: 1,
             display: 'flex',
             flexDirection: 'column',
+            minWidth: 370
           }}
         >
           <MainHeaderCard />
-          <ManagePool pool={pool} token={token} handleDelete={handleDelete} />
+          <ManagePool pool={pool} token={token} updatePool={updatePool} />
         </Box>
-        <Search token={token} handleAdding={handleAdding} />
+        <Search token={token} updatePool={updatePool} />
       </Box>
       <Footer token={token} />
     </ThemeProvider>
