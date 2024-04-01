@@ -30,7 +30,6 @@ export default function ManagePool(props: {
         });
     }
 
-    console.log(props.pool)
     return (
         <Box sx={{
             bgcolor: 'secondary.dark',
@@ -71,10 +70,16 @@ export default function ManagePool(props: {
                 </Grid>
             </Grid> 
                 }
-                {props.pool?.users?.[0]?.tracks?.map((poolItem: any, key: number) => (
+                {props.pool?.users?.map((user) => (
+                    <>
+                {user.tracks?.map((poolItem: any, key: number) => (
                     <PoolTrackCard poolItem={poolItem} key={key} token={props.token} updatePool={props.updatePool} />
                 ))}
-                {props.pool?.users?.[0]?.collections?.map((poolItem: any, key: number) => (
+                </>
+                ))}
+                {props.pool?.users?.map((user) => (
+                    <>
+                {user.collections?.map((poolItem: any, key: number) => (
                     <Stack spacing={2} key={key}>
                         <PoolCollectionCard poolItem={poolItem} token={props.token} updatePool={props.updatePool} />
                         {poolItem.tracks.map((poolCollectionItem: any, innerKey: number) => (
@@ -86,6 +91,8 @@ export default function ManagePool(props: {
                             </Box>
                         ))}
                     </Stack>
+                ))}
+                </>
                 ))}
             </Stack>
         </Box>

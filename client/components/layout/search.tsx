@@ -18,9 +18,10 @@ interface Props {
     expanded: boolean
     toggleExpanded: () => void
     setSearchResults: (data: any) => void
+    enableAddButton: () => void
 }
 
-export default function Search({ token, updatePool, expanded, toggleExpanded, setSearchResults }: Props) {
+export default function Search({ token, updatePool, expanded, toggleExpanded, setSearchResults, enableAddButton }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
     const [idQuery, setIdQuery] = useState("")
@@ -53,7 +54,8 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
                 headers: { token },
             })
             .then(function (response) {
-                updatePool
+                updatePool(response.data)
+                enableAddButton()
             })
             .catch((error) => {
                 console.log("Request failed", error);
