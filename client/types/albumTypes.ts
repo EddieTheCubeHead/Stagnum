@@ -10,6 +10,6 @@ export default interface Album {
             link: string
         }
     ],
-    year: 0,
+    year: number,
     icon_link: string
 }

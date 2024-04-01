@@ -1,15 +1,9 @@
-import AddToPoolButton from "@/components/buttons/iconButtons/addToPoolButton";
 import DeleteButton from "@/components/buttons/iconButtons/deleteButton";
-import ShowMoreIconButton from "@/components/buttons/iconButtons/showMoreIconButton";
 import { Header3 } from "@/components/textComponents";
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
 import { Box, Card } from "@mui/material";
 
-export default function PoolCard(props: {
-    poolItem: PoolCollection | PoolTrack
+export default function PoolTrackCard(props: {
+    poolItem: PoolTrack
     token: string
     updatePool: (pool: Pool) => void
 }) {
@@ -17,7 +11,7 @@ export default function PoolCard(props: {
     const truncatedName = props.poolItem.name.length > 25 ? props.poolItem.name.slice(0, 25) + "..." : props.poolItem.name;
 
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 1, minHeight: 66 }}>
+        <Card sx={{ bgcolor: 'secondary.main', width: 0.6, minHeight: 66 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
