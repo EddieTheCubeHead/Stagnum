@@ -11,11 +11,11 @@ import ExpandedSearchContent from "./expandedSearchContent";
 import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
 
 interface Props {
-    token: string;
-    handleAdding: (newAdd: Track | Album | Playlist | Artist) => void;
+    token: string
+    updatePool: (pool: Pool) => void
 }
 
-export default function Search({ token, handleAdding, }: Props) {
+export default function Search({ token, updatePool, }: Props) {
     const mounted = useRef(false)
     const [query, setQuery] = useState("")
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -117,7 +117,7 @@ export default function Search({ token, handleAdding, }: Props) {
                         albumList={albumList}
                         playlistList={playlistList}
                         artistList={artistList}
-                        handleAdding={handleAdding}
+                        updatePool={updatePool}
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddbutton}
