@@ -33,7 +33,7 @@ export default function Login() {
       container
       spacing={2}
       bgcolor={"black"}
-      sx={{ minHeight: "100vh", margin: 0 }}
+      sx={{ minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}
       justifyContent={"center"}
       alignItems={"center"}
     >
@@ -67,8 +67,9 @@ export default function Login() {
           />
         </Stack>
         <Stack
-          width={{ xs: 280, sm: 400, lg: 500 }}
-          height={{ xs: 50, sm: 70, lg: 100 }}
+          // width={{ xs: 280, sm: 400, lg: 500 }}
+          // height={{ xs: 50, sm: 70, lg: 100 }}
+          flex={1}
           display={"flex"}
           position={"relative"}
         >
