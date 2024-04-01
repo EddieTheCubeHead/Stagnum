@@ -53,7 +53,7 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
                 headers: { token },
             })
             .then(function (response) {
-                updatePool
+                updatePool(response.data)
             })
             .catch((error) => {
                 console.log("Request failed", error);
