@@ -30,7 +30,6 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./client
-        file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -57,7 +56,6 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./server
-        file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
