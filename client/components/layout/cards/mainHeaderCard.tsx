@@ -11,13 +11,12 @@ export default function MainHeaderCard() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            height: '10vh',
             borderRadius: 3,
             boxShadow: 2,
         }}>
             <Image
                 src={require("@/public/Stagnum_Logo.png")}
-                height={45}
+                height={"60"}
                 alt={"Home background"}
                 style={{ objectFit: "contain", margin: 10 }}
             />
