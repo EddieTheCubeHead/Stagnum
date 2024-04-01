@@ -1,6 +1,6 @@
 import theme from '@/utils/theme'
 import { Box, Grid } from '@mui/material'
-import { Header2 } from '../textComponents'
+import { Header2 } from '../../textComponents'
 import Image from 'next/image'
 
 
