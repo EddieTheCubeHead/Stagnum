@@ -13,7 +13,7 @@ export default function PoolInput(props: { setQuery: Dispatch<SetStateAction<str
 
             }}
             id='standard-search'
-            label='Pool id'
+            label='Pool ID'
             onChange={(e) => props.setQuery(e.target.value)}
         />
     )
