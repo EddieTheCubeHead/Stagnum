@@ -1,21 +1,21 @@
 "use client";
 
 import Footer from "@/components/layout/footer";
-import { Box, CssBaseline, Grid, Stack } from "@mui/material";
+import { Box, Collapse, CssBaseline, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSearchParams, redirect } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
 import theme from "../utils/theme";
-import MainHeaderCard from "@/components/layout/mainHeaderCard";
-import Album from "@/types/albumTypes";
+import MainHeaderCard from "@/components/layout/cards/mainHeaderCard";
+import Search from "@/components/layout/search";
+import PoolManager from "@/components/layout/poolManager";
+import '@/components/layout/css/customScrollBar.css';
+import ExpandedSearchContent from "@/components/layout/expandedSearchContent";
+import Track from "@/types/trackTypes";
 import Artist from "@/types/artistTypes";
 import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
-import Search from "@/components/layout/search";
-import ManagePool from "@/components/layout/managePool";
-import '@/components/layout/css/customScrollBar.css';
-import { Collections } from "@mui/icons-material";
+import Album from "@/types/albumTypes";
 
 export default function HomePage() {
   return (
@@ -30,16 +30,17 @@ function HomeContent() {
     users: [],
     share_code: null
   });
-  const [showSearchBar, setShowSearchBar] = useState(false);
-  const [selectedCollections, setSellectedCollections] = useState<Array<Album | Track | Artist | Playlist>>(
-    []
-  );
   const [token, setToken] = useState("");
+  const [expanded, setExpanded] = useState(false)
+  const [trackList, setTrackList] = useState<Track[]>([])
+  const [artistList, setArtistList] = useState<Artist[]>([])
+  const [playlistList, setPlaylistList] = useState<Playlist[]>([])
+  const [albumList, setAlbumList] = useState<Album[]>([])
+  const [disabled, setDisabled] = useState(true)
   const queryParams = useSearchParams();
   const code = queryParams.get("code");
   const state = queryParams.get("state");
   const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
-  const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
   useEffect(() => {
     if (code && state) {
@@ -67,29 +68,73 @@ function HomeContent() {
     setPool(pool);
   };
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
+  const enableAddButton = () => {
+    setDisabled(false)
+  }
+
+  const setSearchResults = (data: any) => {
+    setTrackList(data.tracks.results)
+    setAlbumList(data.albums.results)
+    setArtistList(data.artists.results)
+    setPlaylistList(data.playlists.results)
+  }
+
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{
-        margin: 1.5,
-        display: 'flex',
-        height: 'calc(100vh - 80px)',
-      }}>
-        <Box
-          sx={{
-            flex: 1,
-            padding: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 370
-          }}
-        >
+      <Grid container
+        sx={{
+          padding: 1,
+          maxHeight: 'calc(100vh - 80px)'
+        }}
+      >
+        <Grid item xs={3}>
           <MainHeaderCard />
-          <ManagePool pool={pool} token={token} updatePool={updatePool} />
-        </Box>
-        <Search token={token} updatePool={updatePool} />
-      </Box>
+        </Grid>
+
+        <Grid item xs={9}>
+          <Box sx={{
+            padding: 1,
+            height: expanded ? '100%' : '10vh',
+          }}>
+            <Search token={token} updatePool={updatePool} expanded={expanded} toggleExpanded={toggleExpanded} setSearchResults={setSearchResults} />
+          </Box>
+        </Grid>
+
+        <Grid item xs={expanded ? 3 : 12} sx={{ height: 'calc(90vh - 80px)', overflow: 'auto' }}>
+          <PoolManager pool={pool} token={token} updatePool={updatePool} expanded={expanded} />
+        </Grid>
+
+        {expanded &&
+          <Grid item xs={9} sx={{ height: 'calc(90vh - 80px)', overflow: 'auto', paddingLeft: 1, }}>
+            <Box sx={{
+              display: 'flex',
+              width: 1,
+              bgcolor: 'secondary.dark',
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+            }}>
+              <ExpandedSearchContent
+                trackList={trackList}
+                albumList={albumList}
+                playlistList={playlistList}
+                artistList={artistList}
+                updatePool={updatePool}
+                token={token}
+                disabled={disabled}
+                enableAddButton={enableAddButton}
+              />
+            </Box>
+          </Grid>
+        }
+
+      </Grid>
       <Footer token={token} />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
