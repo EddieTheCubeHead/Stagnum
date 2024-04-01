@@ -201,6 +201,10 @@ def _delete_pool_member(content_uri: str, user: User, session: Session):
 def _update_user_playback(existing_playback: PlaybackSession, playing_track: PoolMember,
                           override_timestamp: bool = False):
     existing_playback.current_track_id = playing_track.id
+    existing_playback.current_track_name = playing_track.name
+    existing_playback.current_track_uri = playing_track.content_uri
+    existing_playback.current_track_image_url = playing_track.image_url
+    existing_playback.current_track_duration = playing_track.duration_ms
     if not override_timestamp:
         delta = max(existing_playback.next_song_change_timestamp - datetime.datetime.now(),
                     datetime.timedelta(milliseconds=0))
@@ -217,7 +221,11 @@ def _crete_user_playback(session: Session, user: User, playing_track: PoolMember
     session.add(PlaybackSession(
         current_track_id=playing_track.id,
         next_song_change_timestamp=end_time,
-        user_id=user.spotify_id
+        user_id=user.spotify_id,
+        current_track_uri=playing_track.content_uri,
+        current_track_name=playing_track.name,
+        current_track_image_url=playing_track.image_url,
+        current_track_duration_ms=playing_track.duration_ms
     ))
 
 

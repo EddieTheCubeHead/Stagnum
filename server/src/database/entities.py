@@ -102,4 +102,10 @@ class PlaybackSession(EntityBase):
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
 
+    # We cache these here, as deleting the active pool member and using a relationship to get its data causes issues
+    current_track_uri: Mapped[str] = mapped_column(String(128), nullable=True)
+    current_track_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    current_track_image_url: Mapped[str] = mapped_column(String(256), nullable=True)
+    current_track_duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
+
     current_track: Mapped["PoolMember"] = relationship()
