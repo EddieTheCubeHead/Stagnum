@@ -19,8 +19,9 @@
         "indent": ["warn", 4], // Enforces consistent indentation using two spaces per indent level.
         // "semi": ["warn", "always"], // Requires semicolons at the end of statements.
         "quotes": ["warn", "single"], // Enforces the use of single quotes for string literals.
-        "no-var": "off", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
-        "no-unused-vars": "off", // Flags unused variables, helping to identify potential code issues.
+        "no-var": "warn", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
+        "no-unused-vars": "warn", // Flags unused variables, helping to identify potential code issues.
+        "@typescript-eslint/no-unused-vars": "warn",
         "prefer-arrow-callback": "warn", // Encourages the use of arrow function expressions over traditional function expressions for callbacks.
         "arrow-parens": ["warn", "always"], // Requires parentheses around parameters in arrow function expressions.
         "eqeqeq": "warn", // Requires the use of strict equality (=== and !==) instead of loose equality (== and !=).
