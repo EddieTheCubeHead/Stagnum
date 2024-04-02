@@ -1,39 +1,58 @@
-import { Box, Card } from "@mui/material";
-import { Header3 } from "../../textComponents";
-import DefaultButton from "../../buttons/defaulButton";
-import theme from "@/utils/theme";
-import Artist from "@/types/artistTypes";
-import Track from "@/types/trackTypes";
-import Album from "@/types/albumTypes";
-import Playlist from "@/types/playlistTypes";
+import { Box, Card } from '@mui/material'
+import { Header3 } from '../../textComponents'
+import DefaultButton from '../../buttons/defaulButton'
+import theme from '@/utils/theme'
+import Artist from '@/types/artistTypes'
+import Track from '@/types/trackTypes'
+import Album from '@/types/albumTypes'
+import Playlist from '@/types/playlistTypes'
+import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
+import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 
-export default function ArtistCard(props: { artist: Artist, handleAdd: (newAdd: Track | Album | Playlist | Artist) => void  }) {
-    const imageUrl = props.artist.icon_link
-
-    const handelAdding = () => {
-        props.handleAdd(props.artist)
-    }
-
+export default function ArtistCard(props: {
+    artist: Artist
+    updatePool: (pool: Pool) => void
+    token: string
+    disabled: boolean
+    enableAddButton: () => void
+}) {
     return (
-        <Card
-            sx={{
-                backgroundImage: `url(${imageUrl})`,
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-            }}>
-            <Header3 text={props.artist.name} />
-            <Box sx={{
-                marginLeft: 'auto',
-                marginRight: 1,
-                marginBottom: 1
-            }}>
-                <DefaultButton text={"Add to pool"} action={handelAdding} />
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {props.artist.icon_link && (
+                        <Box
+                            sx={{
+                                width: 50,
+                                height: 50,
+                                backgroundImage: `url(${props.artist.icon_link})`,
+                                backgroundSize: 'cover',
+                                margin: 1,
+                            }}
+                        />
+                    )}
+                    <Header3 text={props.artist.name} />
+                </Box>
+                <Box>
+                    <AddToPoolButton
+                        newAdd={props.artist}
+                        updatePool={props.updatePool}
+                        token={props.token}
+                        disabled={props.disabled}
+                    />
+                    <ShowMoreIconButton
+                        token={props.token}
+                        item={props.artist}
+                        updatePool={props.updatePool}
+                        enableAddButton={props.enableAddButton}
+                    />
+                </Box>
             </Box>
         </Card>
     )

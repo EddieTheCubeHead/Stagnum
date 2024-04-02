@@ -1,12 +1,18 @@
 import datetime
 import random
+from typing import Callable
 from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
-from database.entities import PoolMember
+from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember, User
 
 
 @pytest.fixture
@@ -20,11 +26,11 @@ def create_pool_creation_data_json():
 
 
 @pytest.fixture
-def existing_pool(create_mock_track_search_result, build_success_response, requests_client,
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
                   create_pool_creation_data_json, test_client, validate_response, valid_token_header,
-                  db_connection, logged_in_user_id) \
-        -> list[PoolMember]:
-    tracks = [create_mock_track_search_result() for _ in range(random.randint(10, 20))]
+                  db_connection, logged_in_user_id) -> list[PoolMember]:
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     responses = [build_success_response(track) for track in tracks]
     requests_client.get = Mock(side_effect=responses)
     data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
@@ -127,3 +133,65 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
         return playlist_data, *further_fetches
 
     return wrapper
+
+
+@pytest.fixture
+def fixed_track_length_ms(minutes: int = 3, seconds: int = 30):
+    return (minutes * 60 + seconds) * 1000
+
+
+@pytest.fixture
+def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
+                      build_success_response, requests_client, create_pool_creation_data_json,
+                      test_client: TestClient, valid_token_header, fixed_track_length_ms, request):
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
+    for track in tracks:
+        track["duration_ms"] = fixed_track_length_ms
+    responses = [build_success_response(track) for track in tracks]
+    requests_client.get = Mock(side_effect=responses)
+    track_uris = [track["uri"] for track in tracks]
+    data_json = create_pool_creation_data_json(*track_uris)
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    return tracks
+
+
+@pytest.fixture
+def another_logged_in_user_header(faker, db_connection):
+    authorization_database_connection = AuthDatabaseConnection(db_connection)
+    user_id = faker.uuid4()
+    user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
+    token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
+    authorization_database_connection.update_logged_in_user(user, token_data)
+    return {"token": token_data.token}
+
+
+@pytest.fixture
+def share_pool_and_get_code(test_client, valid_token_header, validate_response) -> Callable[[], str]:
+    def wrapper() -> str:
+        response = test_client.post("/pool/share", headers=valid_token_header)
+
+        result = validate_response(response)
+        return result["share_code"]
+
+    return wrapper
+
+
+@pytest.fixture
+def shared_pool_code(existing_playback, share_pool_and_get_code) -> str:
+    return share_pool_and_get_code()
+
+
+@pytest.fixture
+def next_song_provider():
+    return NextSongProvider()
+
+
+@pytest.fixture
+def weighted_parameters(monkeypatch) -> RandomizationParameters:
+    parameters = RandomizationParameters(5, 20, 60, 90)
+    monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
+    monkeypatch.setenv("USER_WEIGHT_SCALE", str(parameters.custom_weight_scale))
+    monkeypatch.setenv("PSEUDO_RANDOM_FLOOR", str(parameters.pseudo_random_floor))
+    monkeypatch.setenv("PSEUDO_RANDOM_CEILING", str(parameters.pseudo_random_ceiling))
+    return parameters

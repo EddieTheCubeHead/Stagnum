@@ -1,13 +1,9 @@
 version: "3.8"
 
-env_file:
-  - path: ./.env
-    required: true
-
 services:
   frontend:
     build:
-      context:  ./client/
+      context: ./client/
       dockerfile: Dockerfile
     restart: always
     ports:
@@ -15,6 +11,11 @@ services:
     networks:
       - outgoing
       - internal
+    environment:
+      NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
+      NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
+    env_file:
+      - .env
   backend:
     build:
       context: ./server/
@@ -25,7 +26,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    networks: 
+    networks:
       - outgoing
       - internal
     environment:
@@ -33,6 +34,8 @@ services:
     secrets:
       - spotify_client_id
       - spotify_client_secret
+    env_file:
+      - .env
   database:
     image: postgres:latest
     restart: always
@@ -41,7 +44,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d data"]
+      test: [ "CMD-SHELL", "pg_isready -d data" ]
       interval: 10s
       timeout: 30s
       retries: 5
@@ -52,6 +55,8 @@ services:
       - data:/var/lib/postgresql/data
     networks:
       - internal
+    env_file:
+      - .env
 
 secrets:
   spotify_client_id:
@@ -61,6 +66,7 @@ secrets:
 
 volumes:
   data:
+
 
 networks:
   outgoing:
