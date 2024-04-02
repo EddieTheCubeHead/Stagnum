@@ -2,7 +2,7 @@ from logging import getLogger
 
 from fastapi import APIRouter, WebSocket
 
-from api.common.dependencies import validated_user
+from api.common.dependencies import validated_user, validated_user_from_query_parameters
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater, \
     PlaybackWebsocketUpdater
 from api.pool.helpers import create_pool_return_model
@@ -90,7 +90,7 @@ async def join_pool(code: str, user: validated_user, pool_websocket_updater: Poo
 
 
 @router.websocket("/register_listener")
-async def register_for_pool_updates(websocket: WebSocket, user: validated_user,
+async def register_for_pool_updates(websocket: WebSocket, user: validated_user_from_query_parameters,
                                     pool_database_connection: PoolDatabaseConnection,
                                     pool_websocket_updater: PoolWebsocketUpdater):
     await websocket.accept()
@@ -99,7 +99,7 @@ async def register_for_pool_updates(websocket: WebSocket, user: validated_user,
 
 
 @router.websocket("/playback/register_listener")
-async def register_for_playback_updates(websocket: WebSocket, user: validated_user,
+async def register_for_playback_updates(websocket: WebSocket, user: validated_user_from_query_parameters,
                                         pool_database_connection: PoolDatabaseConnection,
                                         playback_websocket_updater: PlaybackWebsocketUpdater):
     await websocket.accept()

@@ -9,7 +9,7 @@ from api.pool import queue_next_songs
 async def should_send_update_when_scheduled_queue_job_updates_playback(test_client, existing_playback,
                                                                        fixed_track_length_ms,
                                                                        monkeypatch, playback_service,
-                                                                       valid_token_header):
+                                                                       valid_token):
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
     soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
@@ -20,7 +20,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    with test_client.websocket_connect("/pool/playback/register_listener", headers=valid_token_header) as websocket:
+    with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()
         assert data["name"] in [track["name"] for track in existing_playback]
@@ -30,10 +30,10 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
 
 
 def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
-                                                     valid_token_header, shared_pool_code, validate_response):
-    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    with test_client.websocket_connect("/pool/playback/register_listener",
-                                       headers=another_logged_in_user_header) as websocket:
+                                                     valid_token, shared_pool_code, validate_response,
+                                                     valid_token_header):
+    test_client.post(f"/pool/join/{shared_pool_code}?token={valid_token}")
+    with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
         response = test_client.post("/pool/playback/skip", headers=valid_token_header)
         result = validate_response(response)
         data = websocket.receive_json()

@@ -160,13 +160,19 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
 
 
 @pytest.fixture
-def another_logged_in_user_header(faker, db_connection):
+def another_logged_in_user_header(another_logged_in_user_token):
+    return {"token": another_logged_in_user_token}
+
+
+@pytest.fixture
+def another_logged_in_user_token(faker, db_connection):
     authorization_database_connection = AuthDatabaseConnection(db_connection)
     user_id = faker.uuid4()
     user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
     authorization_database_connection.update_logged_in_user(user, token_data)
-    return {"token": token_data.token}
+    return token_data.token
+
 
 
 @pytest.fixture
