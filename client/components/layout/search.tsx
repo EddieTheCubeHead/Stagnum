@@ -51,12 +51,9 @@ export default function Search({
 
     const handleJoinRequest = () => {
         axios
-            .post(
-                `${backend_uri}/pool/join/${idQuery}`,
-                {
-                    headers: { token },
-                },
-            )
+            .post(`${backend_uri}/pool/join/${idQuery}`, {
+                headers: { token },
+            })
             .then((response) => {
                 updatePool(response.data)
                 enableAddButton()

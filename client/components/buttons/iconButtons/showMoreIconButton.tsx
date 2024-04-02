@@ -49,7 +49,7 @@ export default function ShowMoreIconButton({
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch((error) => {
+            .catch(() => {
                 // TODO Error alert
             })
     }

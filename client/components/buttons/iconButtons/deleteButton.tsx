@@ -20,10 +20,10 @@ export default function DeleteButton({ poolItem, token, updatePool }: Props) {
                         headers: { token },
                     },
                 )
-                .then(function (response) {
+                .then((response) => {
                     updatePool(response.data)
                 })
-                .catch((error) => {
+                .catch(() => {
                     // TODO Error alert
                 })
         } else {
@@ -34,7 +34,7 @@ export default function DeleteButton({ poolItem, token, updatePool }: Props) {
                         headers: { token },
                     },
                 )
-                .then(function (response) {
+                .then((response) => {
                     updatePool(response.data)
                 })
                 .catch((error) => {

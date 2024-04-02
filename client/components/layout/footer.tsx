@@ -39,7 +39,7 @@ const Footer = (props: { token: string }) => {
                     <img
                         src={playlist.icon_link}
                         style={{ width: 50, height: 50, padding: 0, margin: 0 }}
-                        alt='Track image'
+                        alt="Track image"
                     />
                     <Text
                         text={playlist.name}

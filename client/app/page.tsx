@@ -45,8 +45,7 @@ function HomeContent() {
     useEffect(() => {
         if (code && state) {
             handleTokenRequest(code, state)
-        }
-        else {
+        } else {
             redirect('/login')
         }
     }, [])
