@@ -1,16 +1,16 @@
-import Track from "@/types/trackTypes";
-import { Box, Collapse, Grid } from "@mui/material";
-import axios from "axios";
-import { useEffect, useRef, useState } from "react";
-import SearchInput from "../inputfields.tsx/searchInput"
+import Track from '@/types/trackTypes'
+import { Box, Collapse, Grid } from '@mui/material'
+import axios from 'axios'
+import { useEffect, useRef, useState } from 'react'
+import SearchInput from '../inputfields.tsx/searchInput'
 import Playlist from '@/types/playlistTypes'
-import Album from "@/types/albumTypes"
-import Artist from "@/types/artistTypes"
+import Album from '@/types/albumTypes'
+import Artist from '@/types/artistTypes'
 //import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
-import ExpandedSearchContent from "./expandedSearchContent";
-import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
-import DefaultButton from "../buttons/defaulButton";
-import PoolInput from "../inputfields.tsx/poolInput";
+import ExpandedSearchContent from './expandedSearchContent'
+import CollapseIconButton from '../buttons/iconButtons/collapseIconButton'
+import DefaultButton from '../buttons/defaulButton'
+import PoolInput from '../inputfields.tsx/poolInput'
 
 interface Props {
     token: string
@@ -21,12 +21,19 @@ interface Props {
     enableAddButton: () => void
 }
 
-export default function Search({ token, updatePool, expanded, toggleExpanded, setSearchResults, enableAddButton }: Props) {
+export default function Search({
+    token,
+    updatePool,
+    expanded,
+    toggleExpanded,
+    setSearchResults,
+    enableAddButton,
+}: Props) {
     const mounted = useRef(false)
-    const [query, setQuery] = useState("")
-    const [idQuery, setIdQuery] = useState("")
+    const [query, setQuery] = useState('')
+    const [idQuery, setIdQuery] = useState('')
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-        null
+        null,
     )
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
@@ -44,22 +51,26 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                console.log("Request failed", error);
-            });
-    };
+                console.log('Request failed', error)
+            })
+    }
 
     const handleJoinRequest = () => {
         axios
-            .post(`${backend_uri}/pool/join/${idQuery}`,{}, {
-                headers: { token },
-            })
+            .post(
+                `${backend_uri}/pool/join/${idQuery}`,
+                {},
+                {
+                    headers: { token },
+                },
+            )
             .then(function (response) {
                 updatePool(response.data)
                 enableAddButton()
             })
             .catch((error) => {
-                console.log("Request failed", error);
-            });
+                console.log('Request failed', error)
+            })
     }
 
     const handleExpandClick = () => {
@@ -69,52 +80,69 @@ export default function Search({ token, updatePool, expanded, toggleExpanded, se
     // useEffect to only execute search request after one second has passed from the last input
     useEffect(() => {
         if (!mounted.current) {
-            mounted.current = true;
+            mounted.current = true
         } else {
             if (searchTimeout) {
-                clearTimeout(searchTimeout);
+                clearTimeout(searchTimeout)
             }
 
             const timeout = setTimeout(() => {
-                handleSearchRequest();
-            }, 1000);
+                handleSearchRequest()
+            }, 1000)
 
-            setSearchTimeout(timeout);
+            setSearchTimeout(timeout)
 
             // Cleanup function to clear the timeout when component unmounts or when query changes
             return () => {
                 if (searchTimeout) {
-                    clearTimeout(searchTimeout);
+                    clearTimeout(searchTimeout)
                 }
-            };
+            }
         }
-    }, [query]);
+    }, [query])
 
     return (
-        <Box sx={{
-            display: 'flex',
-            width: 1,
-            bgcolor: 'secondary.dark',
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            borderBottomLeftRadius: expanded ? 0 : 12,
-            borderBottomRightRadius: expanded ? 0 : 12,
-            boxShadow: 2,
-        }}>
+        <Box
+            sx={{
+                display: 'flex',
+                width: 1,
+                bgcolor: 'secondary.dark',
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                borderBottomLeftRadius: expanded ? 0 : 12,
+                borderBottomRightRadius: expanded ? 0 : 12,
+                boxShadow: 2,
+            }}
+        >
             <Grid container marginX={1}>
-                <Grid item xs={1} display={"flex"} justifyContent={"center"} alignItems={"center"}>
-                    <CollapseIconButton expanded={expanded} handleExpandClick={handleExpandClick} />
+                <Grid
+                    item
+                    xs={1}
+                    display={'flex'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                >
+                    <CollapseIconButton
+                        expanded={expanded}
+                        handleExpandClick={handleExpandClick}
+                    />
                 </Grid>
                 <Grid item xs={7}>
                     <SearchInput setQuery={setQuery} />
                 </Grid>
                 <Grid item xs={3}>
-                    <PoolInput setQuery={setIdQuery}/>
+                    <PoolInput setQuery={setIdQuery} />
                 </Grid>
-                <Grid item xs={1} display={"flex"} justifyContent={"center"} alignItems={"center"}>
-                    <DefaultButton text="Join" action={handleJoinRequest}/>
+                <Grid
+                    item
+                    xs={1}
+                    display={'flex'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                >
+                    <DefaultButton text="Join" action={handleJoinRequest} />
                 </Grid>
             </Grid>
         </Box>
-    );
+    )
 }

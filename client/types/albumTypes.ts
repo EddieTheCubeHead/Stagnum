@@ -1,15 +1,15 @@
 import Artist from './artistTypes'
 
 export default interface Album {
-    name: string,
-    link: string,
-    uri: string,
+    name: string
+    link: string
+    uri: string
     artists: [
         {
-            name: string,
+            name: string
             link: string
-        }
-    ],
-    year: number,
+        },
+    ]
+    year: number
     icon_link: string
 }
