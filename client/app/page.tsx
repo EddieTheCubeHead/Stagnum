@@ -1,7 +1,7 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { Box, Collapse, CssBaseline, Grid, Stack } from '@mui/material'
+import { Box, CssBaseline, Grid } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -46,7 +46,6 @@ function HomeContent() {
         if (code && state) {
             handleTokenRequest(code, state)
         }
-        // Delete when we have an actual routeguard
         else {
             redirect('/login')
         }
@@ -65,7 +64,6 @@ function HomeContent() {
             })
     }
 
-    // Function to add a new collection to a user
     const updatePool = (pool: Pool) => {
         setPool(pool)
     }
