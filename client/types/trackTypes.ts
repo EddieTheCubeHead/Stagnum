@@ -21,10 +21,10 @@ export default interface Track {
             {
                 name: string
                 link: string
-            },
-        ]
-        year: 0
+            }
+        ],
+        year: number,
         icon_link: string
-    }
-    duration_ms: 0
+    },
+    duration_ms: number
 }

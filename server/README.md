@@ -84,11 +84,24 @@ on setting environment variables:
 
 There are further optional environment variables you can use to customize the behaviour of the server.
 
-- `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation, default
+- `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation. Default
 `sqlite:///:memory:`
-- `HOST`: control the host ip of the server, default `127.0.0.1`
-- `PORT`: control the port of the server, default `8000`
-- `RELOAD`: control whether the server should auto-reload on updates, default `True`
+- `HOST`: control the host ip of the server. Default `127.0.0.1`
+- `PORT`: control the port of the server. Default `8000`
+- `RELOAD`: control whether the server should auto-reload on updates. Default `True`
+
+Finally, we have environmental variables for customizing randomization in pool playback. Setting these is optional,
+the server will use default values if these are not set
+
+- `CUSTOM_WEIGHT_SCALE`: control the effect of custom weight on song randomization. Formula is `W^C`, where `W` is the
+value given here, and `C` is the custom weight given by user (`[-1, 1]`). Default `5`
+- `USER_WEIGHT_SCALE`: control the effect of playback time weight on song randomization. Formula is `W^Ft`, where `W`
+is the value given here, and `Ft` is the inverse of user's playtime share of the whole playtime, normalized to 0 and
+doubled (`[-1, 1]`). Default `20`
+- `PSEUDO_RANDOM_FLOOR`: control the "floor" at which point songs played before can be selected again. Given as an
+integer percentage value of the whole pool length. Default `60`
+- `PSEUDO_RANDOM_CEILING`: control the "ceiling" at which point songs' weight modifier from being played before is none
+(`1`). The modifier changes linearly between `0` at the floor point and `1` in the ceiling point. Default `90`
 
 You can validate the server is working by going to `localhost:8000` in your browser. The
 server should respond with the following message:

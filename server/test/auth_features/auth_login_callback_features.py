@@ -3,6 +3,7 @@ import json
 import random
 import string
 from enum import Enum
+from typing import Callable
 from unittest.mock import Mock
 
 import pytest
@@ -23,17 +24,29 @@ def correct_env_variables(monkeypatch):
 
 
 @pytest.fixture
-def base_auth_callback_call(correct_env_variables, test_client, valid_state_string):
-    return lambda: test_client.get(f"/auth/login/callback?state={valid_state_string}"
-                                   f"&code=12345abcde&client_redirect_uri=test_url")
+def base_auth_callback_call(correct_env_variables, test_client, primary_valid_state_string):
+    def wrapper(state: str = None):
+        state_string = state if state is not None else primary_valid_state_string
+        return test_client.get(
+            f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url")
+
+    return wrapper
 
 
 @pytest.fixture
-def valid_state_string(db_connection):
-    state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
-    with db_connection.session() as session:
-        session.add(LoginState(state_string=state_string))
-    return state_string
+def create_valid_state_string(db_connection) -> Callable[[], str]:
+    def wrapper():
+        state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
+        with db_connection.session() as session:
+            session.add(LoginState(state_string=state_string))
+        return state_string
+
+    return wrapper
+
+
+@pytest.fixture
+def primary_valid_state_string(create_valid_state_string):
+    return create_valid_state_string()
 
 
 @pytest.fixture
@@ -87,7 +100,6 @@ def requests_client_with_auth_mock(requests_client, default_token_return, defaul
 
 @pytest.fixture
 def auth_test(test_client, mock_token_holder):
-
     def auth_test_wrapper(token):
         return validated_user_raw(token, mock_token_holder)
 
@@ -104,10 +116,10 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct
 
 def should_delete_state_from_database_on_successful_login(correct_env_variables, base_auth_callback_call,
                                                           requests_client_with_auth_mock, db_connection,
-                                                          valid_state_string):
+                                                          primary_valid_state_string):
     base_auth_callback_call()
     with db_connection.session() as session:
-        state = session.scalar(select(LoginState).where(LoginState.state_string == valid_state_string))
+        state = session.scalar(select(LoginState).where(LoginState.state_string == primary_valid_state_string))
     assert state is None
 
 
@@ -139,20 +151,22 @@ def should_always_have_content_type_as_x_www_from_in_spotify_api_request(correct
     assert call.kwargs["headers"]["Content-Type"] == "application/x-www-form-urlencoded"
 
 
-def should_include_code_from_query_in_spotify_api_request(correct_env_variables, test_client, valid_state_string,
+def should_include_code_from_query_in_spotify_api_request(correct_env_variables, test_client,
+                                                          primary_valid_state_string,
                                                           requests_client_with_auth_mock, requests_client):
     expected_code = "my_auth_code"
-    test_client.get(f"/auth/login/callback?state={valid_state_string}"
+    test_client.get(f"/auth/login/callback?state={primary_valid_state_string}"
                     f"&code={expected_code}&client_redirect_uri=test_url")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["code"] == expected_code
 
 
 def should_include_redirect_url_from_query_in_spotify_api_request(correct_env_variables, test_client,
-                                                                  valid_state_string, requests_client_with_auth_mock,
+                                                                  primary_valid_state_string,
+                                                                  requests_client_with_auth_mock,
                                                                   requests_client):
     expected_url = "my_redirect_url"
-    test_client.get(f"/auth/login/callback?state={valid_state_string}"
+    test_client.get(f"/auth/login/callback?state={primary_valid_state_string}"
                     f"&code=12345abcde&client_redirect_uri={expected_url}")
     call = requests_client.post.call_args
     assert call.kwargs["data"]["redirect_uri"] == expected_url
@@ -245,4 +259,14 @@ def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_re
     requests_client.get = Mock(return_value=response)
 
     response = base_auth_callback_call()
+    validate_response(response)
+
+
+def should_allow_another_log_in_after_first_one(correct_env_variables, validate_response, base_auth_callback_call,
+                                                requests_client_with_auth_mock, default_token_return,
+                                                create_valid_state_string):
+    base_auth_callback_call()
+    new_state = create_valid_state_string()
+    response = base_auth_callback_call(new_state)
+
     validate_response(response)

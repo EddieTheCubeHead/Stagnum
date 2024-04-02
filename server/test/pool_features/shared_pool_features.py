@@ -1,3 +1,4 @@
+import time
 from unittest.mock import Mock
 
 import pytest
@@ -69,10 +70,12 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code, test_client, ano
 
 
 @pytest.mark.slow
+@pytest.mark.parametrize("existing_pool", [15], indirect=True)
 def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_client, another_logged_in_user_header,
                                                        validate_response, valid_token_header, existing_pool,
                                                        logged_in_user_id, create_mock_playlist_fetch_result,
-                                                       requests_client, build_success_response, get_query_parameter):
+                                                       requests_client, build_success_response, get_query_parameter,
+                                                       weighted_parameters):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(15)
     requests_client.get = Mock(return_value=build_success_response(playlist))

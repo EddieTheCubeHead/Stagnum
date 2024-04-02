@@ -8,7 +8,7 @@ import Playlist from '@/types/playlistTypes'
 import Track from '@/types/trackTypes'
 import { Box, Card } from '@mui/material'
 
-export default function PoolCard(props: {
+export default function PoolCollectionCard(props: {
     poolItem: PoolCollection | PoolTrack
     token: string
     updatePool: (pool: Pool) => void
