@@ -12,7 +12,7 @@ export default function SearchInput(props: {
                 margin: 1,
                 borderRadius: 1,
                 boxShadow: 2,
-                width: "80%",
+                width: '80%',
             }}
             id="standard-search"
             label="Search field"

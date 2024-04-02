@@ -21,16 +21,18 @@ export default function ExpandedSearchContent(props: {
 }) {
     return (
         <Stack sx={{ padding: 1, width: 1 }}>
-            <Header2 text={"Tracks"} sx={{ color: 'white' }} />
-            <Box sx={{
-                margin: 1,
-                marginLeft: 2,
-                display: 'flex',
-                '& > *': {
-                    marginRight: 4,
-                    width: '20%'
-                }
-            }}>
+            <Header2 text={'Tracks'} sx={{ color: 'white' }} />
+            <Box
+                sx={{
+                    margin: 1,
+                    marginLeft: 2,
+                    display: 'flex',
+                    '& > *': {
+                        marginRight: 4,
+                        width: '20%',
+                    },
+                }}
+            >
                 {props.trackList.slice(0, 2).map((track, key) => (
                     <TrackCard
                         key={key}

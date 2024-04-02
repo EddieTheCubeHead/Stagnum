@@ -8,7 +8,11 @@ export default function CollapseiconButton(props: {
 }) {
     return (
         <IconButton onClick={props.handleExpandClick}>
-            {props.expanded ? <ExpandLessIcon color="primary" fontSize="large"/> : <ExpandMoreIcon color="primary" fontSize="large"/>}
+            {props.expanded ? (
+                <ExpandLessIcon color="primary" fontSize="large" />
+            ) : (
+                <ExpandMoreIcon color="primary" fontSize="large" />
+            )}
         </IconButton>
     )
 }

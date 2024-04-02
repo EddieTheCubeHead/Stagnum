@@ -1,8 +1,10 @@
-import theme from "@/utils/theme";
-import { TextField } from "@mui/material";
-import { Dispatch, SetStateAction } from "react";
+import theme from '@/utils/theme'
+import { TextField } from '@mui/material'
+import { Dispatch, SetStateAction } from 'react'
 
-export default function PoolInput(props: { setQuery: Dispatch<SetStateAction<string>> }) {
+export default function PoolInput(props: {
+    setQuery: Dispatch<SetStateAction<string>>
+}) {
     return (
         <TextField
             sx={{
@@ -10,10 +12,9 @@ export default function PoolInput(props: { setQuery: Dispatch<SetStateAction<str
                 margin: 1,
                 borderRadius: 1,
                 boxShadow: 2,
-
             }}
-            id='standard-search'
-            label='Pool ID'
+            id="standard-search"
+            label="Pool ID"
             onChange={(e) => props.setQuery(e.target.value)}
         />
     )

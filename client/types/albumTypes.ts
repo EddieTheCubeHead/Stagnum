@@ -8,8 +8,8 @@ export default interface Album {
         {
             name: string
             link: string
-        }
-    ],
-    year: number,
+        },
+    ]
+    year: number
     icon_link: string
 }
