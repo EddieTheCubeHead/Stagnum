@@ -1,13 +1,7 @@
-import Track from '@/types/trackTypes'
-import { Box, Collapse, Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import SearchInput from '../inputfields.tsx/searchInput'
-import Playlist from '@/types/playlistTypes'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-//import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
-import ExpandedSearchContent from './expandedSearchContent'
 import CollapseIconButton from '../buttons/iconButtons/collapseIconButton'
 import DefaultButton from '../buttons/defaulButton'
 import PoolInput from '../inputfields.tsx/poolInput'
@@ -44,13 +38,13 @@ export default function Search({
                 params: { query },
                 headers: { token },
             })
-            .then(function (response) {
+            .then((response) => {
                 if (!expanded) {
                     toggleExpanded()
                 }
                 setSearchResults(response.data)
             })
-            .catch((error) => {
+            .catch(() => {
                 // TODO Error alert
             })
     }
@@ -59,16 +53,15 @@ export default function Search({
         axios
             .post(
                 `${backend_uri}/pool/join/${idQuery}`,
-                {},
                 {
                     headers: { token },
                 },
             )
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch((error) => {
+            .catch(() => {
                 // TODO Error alert
             })
     }

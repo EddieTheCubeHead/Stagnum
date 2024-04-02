@@ -1,10 +1,6 @@
 import { Tooltip, IconButton } from '@mui/material'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import axios from 'axios'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
 
 interface Props {
     poolItem: PoolCollection | PoolTrack

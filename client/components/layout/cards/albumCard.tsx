@@ -1,10 +1,6 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import DefaultButton from '../../buttons/defaulButton'
 import Album from '@/types/albumTypes'
-import Track from '@/types/trackTypes'
-import Playlist from '@/types/playlistTypes'
-import Artist from '@/types/artistTypes'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 

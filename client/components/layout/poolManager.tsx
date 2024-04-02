@@ -1,8 +1,6 @@
 import { Box, Stack, Grid, Avatar, AvatarGroup } from '@mui/material'
-import PoolCard from './cards/poolCollectionCard'
 import PoolTrackCard from './cards/poolCollectionCard'
 import PoolCollectionCard from './cards/poolCollectionCard'
-import { useState } from 'react'
 import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
@@ -24,10 +22,10 @@ export default function ManagePool(props: {
                     headers: { token },
                 },
             )
-            .then(function (response) {
+            .then((response) => {
                 props.updatePool(response.data)
             })
-            .catch((error) => {
+            .catch(() => {
                 // TODO Error alert
             })
     }
@@ -64,7 +62,7 @@ export default function ManagePool(props: {
                             }
                             color={'secondary.light'}
                         />
-                        {props.pool.share_code == null ? (
+                        {props.pool.share_code === null ? (
                             <DefaultButton text="share" action={handleShare} />
                         ) : (
                             <Header2
@@ -91,7 +89,7 @@ export default function ManagePool(props: {
                             />
                         </Grid>
                         <Grid item xs={1}>
-                            {props.pool.share_code == null ? (
+                            {props.pool.share_code === null ? (
                                 <DefaultButton
                                     text="share"
                                     action={handleShare}

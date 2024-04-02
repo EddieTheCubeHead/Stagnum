@@ -1,11 +1,5 @@
-import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import DeleteButton from '@/components/buttons/iconButtons/deleteButton'
-import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import { Header3 } from '@/components/textComponents'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
 import { Box, Card } from '@mui/material'
 
 export default function PoolCollectionCard(props: {

@@ -5,8 +5,6 @@ import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
 import Playlist from '@/types/playlistTypes'
 
-//TODO: This footer needs to be fixed. It is not responsive and it overlaps with page components.
-
 const Footer = (props: { token: string }) => {
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
@@ -41,6 +39,7 @@ const Footer = (props: { token: string }) => {
                     <img
                         src={playlist.icon_link}
                         style={{ width: 50, height: 50, padding: 0, margin: 0 }}
+                        alt='Track image'
                     />
                     <Text
                         text={playlist.name}
