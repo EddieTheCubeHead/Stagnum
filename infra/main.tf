@@ -1,13 +1,3 @@
-# Creating an ECR Repository
-resource "aws_ecr_repository" "ecr-repo"{
-  name = "${var.app_name}-repo"
-  force_delete = true
-  image_tag_mutability = "MUTABLE"
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-}
-
 # Creating an ECS cluster
 resource "aws_ecs_cluster" "aws-cluster" {
   name = "${var.app_name}-cluster"
@@ -37,30 +27,94 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+locals {
+  frontend_url = "localhost:3000"
+  backend_url = "localhost:8080"
+  database_url = "localhost:5432"
+}
+
+# Creating the task definition
+resource "aws_ecs_task_definition" "aws-task" {
+  family                   = "${var.app_name}-task" 
+  container_definitions    = <<DEFINITION
+  [
+    {
+      "name": "${var.app_name}-front-container",
+      "image": "docker.io/eddiethecubehead/stagnum_client:master",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000
+        }
+      ],
+      "environment": [
+        { "name": "NEXT_PUBLIC_FRONTEND_URI", "value": "${local.frontend_url}" },
+        { "name": "NEXT_PUBLIC_BACKEND_URI", "value": "${local.backend_url}" }
+      ],
+      "memory": 2048,
+      "cpu": 256
+    },
+    {
+      "name": "${var.app_name}-back-container",
+      "image": "docker.io/eddiethecubehead/stagnum_server:master",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080
+        }
+      ],
+      "environment": [
+        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}/${var.postgres_db}"},
+        { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
+        { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
+        { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
+        { "name":"PSEUDO_RANDOM_CEILING", "value": "${var.pseudo_random_ceiling}"}
+      ],
+      "memory": 2048,
+      "cpu": 256
+    },
+    {
+      "name": "${var.app_name}-data-container",
+      "image": "public.ecr.aws/docker/library/postgres:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 5432,
+          "hostPort": 5432
+        }
+      ],
+      "environment":[
+        { "name":"POSTGRES_USER", "value": "${var.postgres_user}"},
+        { "name":"POSTGRES_PASSWORD","value": "${var.postgres_pass}"},
+        { "name":"POSTGRES_DB","value": "${var.postgres_db}"}
+      ],
+      "memory": 2048,
+      "cpu": 256
+    }
+  ]
+  DEFINITION
+  requires_compatibilities = ["FARGATE"] # Stating that we are using ECS Fargate
+  network_mode             = "awsvpc"    # Using awsvpc as our network mode as this is required for Fargate
+  memory                   = 2048 * 4     # Specifying the memory our task requires
+  cpu                      = 256 * 4     # Specifying the CPU our task requires
+  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
+}
 
 # Providing a reference to our default VPC
-resource "aws_vpc" "default"{
+resource "aws_default_vpc" "default_vpc"{
+
 }
 
-resource "aws_subnet" "public" {
-  vpc_id = aws_vpc.default.id
-  map_public_ip_on_launc = true
+# Providing a reference to our default subnets
+resource "aws_default_subnet" "default_subnet_a" {
+  availability_zone = "${var.aws_region}a"
 }
 
-resource "aws_subnet" "private" {
-  vpc_id = aws_vpc.default.id
-}
-
-resource "aws_internet_gateway" "gateway" {
-  vpc_id = aws_vpc.default.id
-  
-}
-
-resource "aws_route" "internet_access" {
-  route_table_id = aws_vpc.default.main_route_table_id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.gateway.id
-  
+# Providing a reference to our default subnets
+resource "aws_default_subnet" "default_subnet_b" {
+  availability_zone = "${var.aws_region}b"
 }
 
 # Creating a load balancer
@@ -114,8 +168,28 @@ resource "aws_lb_listener" "aws-listener" {
   }
 }
 
+# Creating the service
+resource "aws_ecs_service" "aws-service" {
+  name            = "${var.app_name}-service"                        
+  cluster         = aws_ecs_cluster.aws-cluster.id       # Referencing our created Cluster
+  task_definition = aws_ecs_task_definition.aws-task.arn # Referencing the task our service will spin up
+  launch_type     = "FARGATE"
+  desired_count   = 1 # Setting the number of containers we want deployed to 3
 
-# Creating a security group for the services
+  load_balancer {
+    target_group_arn = aws_lb_target_group.aws-target_group.arn # Referencing our target group
+    container_name   = "${var.app_name}-front-container"
+    container_port   = 3000 # Specifying the container port
+  }
+
+  network_configuration {
+    subnets = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
+    assign_public_ip = true                                                # Providing our containers with public IPs
+    security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
+  }
+}
+
+# Creating a security group for the service
 resource "aws_security_group" "aws-service_security_group" {
   ingress {
     from_port = 0
@@ -131,48 +205,4 @@ resource "aws_security_group" "aws-service_security_group" {
     protocol    = "-1"          # Allowing any outgoing protocol 
     cidr_blocks = ["0.0.0.0/0"] # Allowing traffic out to all IP addresses
   }
-}
-
-module "data" {
-  source = "./modules/database"
-  app_name = var.app_name
-  aws_security_group_id = aws_security_group.aws-service_security_group.id
-  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
-  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
-  aws_ecs_cluster_id = aws_ecs_cluster.aws_ecs_cluster.id
-  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
-  target_group_arn = aws_security_group.aws-service_security_group.id
-  postgres_user = var.postgres_user
-  postgres_pass = var.postgres_pass
-  postgres_db = var.postgres_db
-  postgres_port = "5432"
-}
-
-module "back" {
-  source = "./modules/server"
-  app_name = var.app_name
-  aws_security_group_id = aws_security_group.aws-service_security_group.id
-  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
-  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
-  aws_ecs_cluster_id = aws_ecs_cluster.aws-cluster.id
-  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
-  target_group_arn = aws_security_group.aws-service_security_group.id
-  aws_ecr_repository_url = aws_ecr_repository.ecr-repo.repository_url
-  database_connection_string = module.data.database_connection_string
-  spotify_client_id = var.spotify_client_id
-  spotify_client_secret = var.spotify_client_secret
-}
-
-module "front" {
-  source = "./modules/client"
-  app_name = var.app_name
-  aws_security_group_id = aws_security_group.aws-service_security_group.id
-  aws_subnet_a_id = aws_default_subnet.default_subnet_a.id
-  aws_subnet_b_id = aws_default_subnet.default_subnet_b.id
-  aws_ecs_cluster_id = aws_ecs_cluster.aws-cluster.id
-  execution_role_arn = aws_iam_role.ecsTaskExecutionRole.arn
-  target_group_arn = aws_security_group.aws-service_security_group.id
-  aws_ecr_repository_url = aws_ecr_repository.ecr-repo.repository_url
-  frontend_connection_string = module.front.connection_string
-  backend_connection_string = module.back.connection_string
 }

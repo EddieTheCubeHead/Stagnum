@@ -57,3 +57,19 @@ variable "postgres_db" {
   type = string
   
 }
+
+variable "custom_weigth_scale" {
+  default = 5
+}
+
+variable "user_weight_scale" {
+  default = 20
+}
+
+variable "pseudo_random_floor" {
+  default = 60
+}
+
+variable "pseudo_random_ceiling" {
+  default = 90
+}
