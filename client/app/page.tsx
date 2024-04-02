@@ -60,7 +60,7 @@ function HomeContent() {
                 setToken(response.data.access_token)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 

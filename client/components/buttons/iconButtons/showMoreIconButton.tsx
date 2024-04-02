@@ -50,7 +50,7 @@ export default function ShowMoreIconButton({
                 enableAddButton()
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 

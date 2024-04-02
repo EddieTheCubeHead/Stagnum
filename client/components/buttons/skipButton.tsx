@@ -20,7 +20,7 @@ function SkipButton(props: { disabled?: boolean; token: string }) {
                 console.log(response)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 

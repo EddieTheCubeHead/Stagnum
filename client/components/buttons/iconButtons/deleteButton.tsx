@@ -28,7 +28,7 @@ export default function DeleteButton({ poolItem, token, updatePool }: Props) {
                     updatePool(response.data)
                 })
                 .catch((error) => {
-                    console.log('Request failed', error)
+                    // TODO Error alert
                 })
         } else {
             axios
@@ -42,7 +42,7 @@ export default function DeleteButton({ poolItem, token, updatePool }: Props) {
                     updatePool(response.data)
                 })
                 .catch((error) => {
-                    console.log('Request failed', error)
+                    // TODO Error alert
                 })
         }
     }

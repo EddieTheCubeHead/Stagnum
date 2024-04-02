@@ -34,7 +34,7 @@ export default function AddToPoolButton({
                 updatePool(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 

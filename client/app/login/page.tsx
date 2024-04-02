@@ -10,7 +10,6 @@ export default function Login() {
     const router = useRouter()
 
     const handleLoginRequest = () => {
-        console.log('Sending login request')
         const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
         const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -18,12 +17,11 @@ export default function Login() {
             .get(`${backend_uri}/auth/login`, {
                 params: { client_redirect_uri },
             })
-            .then(function (response) {
-                console.log(response.data.redirect_uri)
+            .then((response) => {
                 router.push(response.data.redirect_uri)
             })
             .catch(() => {
-                console.log('Request failed')
+                // TODO Error alert
             })
     }
 

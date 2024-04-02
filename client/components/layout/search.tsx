@@ -51,7 +51,7 @@ export default function Search({
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 
@@ -69,7 +69,7 @@ export default function Search({
                 enableAddButton()
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 

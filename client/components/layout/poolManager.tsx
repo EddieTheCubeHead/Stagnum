@@ -28,7 +28,7 @@ export default function ManagePool(props: {
                 props.updatePool(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                // TODO Error alert
             })
     }
 
