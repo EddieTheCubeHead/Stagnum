@@ -1,18 +1,26 @@
-import DeleteButton from "@/components/buttons/iconButtons/deleteButton";
-import { Header3 } from "@/components/textComponents";
-import { Box, Card } from "@mui/material";
+import DeleteButton from '@/components/buttons/iconButtons/deleteButton'
+import { Header3 } from '@/components/textComponents'
+import { Box, Card } from '@mui/material'
 
 export default function PoolTrackCard(props: {
     poolItem: PoolTrack
     token: string
     updatePool: (pool: Pool) => void
 }) {
-
-    const truncatedName = props.poolItem.name.length > 25 ? props.poolItem.name.slice(0, 25) + "..." : props.poolItem.name;
+    const truncatedName =
+        props.poolItem.name.length > 25
+            ? props.poolItem.name.slice(0, 25) + '...'
+            : props.poolItem.name
 
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 0.6, minHeight: 66 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}
+            >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
                         sx={{
@@ -28,7 +36,11 @@ export default function PoolTrackCard(props: {
                     <Header3 text={truncatedName} />
                 </Box>
                 <Box>
-                    <DeleteButton poolItem={props.poolItem} token={props.token} updatePool={props.updatePool} />
+                    <DeleteButton
+                        poolItem={props.poolItem}
+                        token={props.token}
+                        updatePool={props.updatePool}
+                    />
                 </Box>
             </Box>
         </Card>
