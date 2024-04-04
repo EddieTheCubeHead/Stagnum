@@ -6,16 +6,13 @@ import axios from 'axios'
 import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
-import theme from '../utils/theme'
-import MainHeaderCard from '@/components/layout/cards/mainHeaderCard'
-import Search from '@/components/layout/search'
-import PoolManager from '@/components/layout/poolManager'
+import theme from '../components/theme'
+import MainHeader from '@/components/searchComponents/cards/mainHeader'
+import Search from '@/components/searchComponents/search'
+import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/components/layout/css/customScrollBar.css'
-import ExpandedSearchContent from '@/components/layout/expandedSearchContent'
-import Track from '@/types/trackTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Album from '@/types/albumTypes'
+import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
 export default function HomePage() {
     return (
@@ -93,7 +90,7 @@ function HomeContent() {
                 }}
             >
                 <Grid item xs={3}>
-                    <MainHeaderCard />
+                    <MainHeader />
                 </Grid>
 
                 <Grid item xs={9}>

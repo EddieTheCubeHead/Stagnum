@@ -1,10 +1,11 @@
 import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import SearchInput from '../inputfields.tsx/searchInput'
+import SearchInput from './searchInput'
 import CollapseIconButton from '../buttons/iconButtons/collapseIconButton'
 import DefaultButton from '../buttons/defaulButton'
-import PoolInput from '../inputfields.tsx/poolInput'
+import PoolInput from '../poolInput'
+import { Pool } from '../types'
 
 interface Props {
     token: string

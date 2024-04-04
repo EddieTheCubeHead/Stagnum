@@ -2,10 +2,7 @@ import { IconButton, Menu, MenuItem, Tooltip } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import React, { useState } from 'react'
 import axios from 'axios'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
 interface Props {
     token: string

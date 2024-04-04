@@ -1,6 +1,7 @@
 import { Tooltip, IconButton } from '@mui/material'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import axios from 'axios'
+import { Pool, PoolCollection, PoolTrack } from '@/components/types'
 
 interface Props {
     poolItem: PoolCollection | PoolTrack

@@ -1,8 +1,8 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import Album from '@/types/albumTypes'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
+import { Album, Pool } from '@/components/types'
 
 export default function AlbumCard(props: {
     album: Album

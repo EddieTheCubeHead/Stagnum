@@ -1,9 +1,9 @@
 import React from 'react'
 import { Link, Box, Grid } from '@mui/material'
-import theme from '@/utils/theme'
+import theme from '@/components/theme'
 import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
-import Playlist from '@/types/playlistTypes'
+import { Playlist } from '../types'
 
 const Footer = (props: { token: string }) => {
     const playlist: Playlist = {

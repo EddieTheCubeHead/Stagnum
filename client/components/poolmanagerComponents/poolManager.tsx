@@ -1,9 +1,10 @@
 import { Box, Stack, Grid, Avatar, AvatarGroup } from '@mui/material'
-import PoolTrackCard from './cards/poolCollectionCard'
-import PoolCollectionCard from './cards/poolCollectionCard'
+import PoolTrackCard from './poolCollectionCard'
+import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
+import { Pool, PoolUser } from '../types'
 
 export default function ManagePool(props: {
     pool: Pool

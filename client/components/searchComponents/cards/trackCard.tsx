@@ -1,8 +1,8 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import Track from '@/types/trackTypes'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
+import { Pool, Track } from '@/components/types'
 
 export default function TrackCard(props: {
     track: Track

@@ -1,4 +1,4 @@
-import theme from '@/utils/theme'
+import theme from '@/components/theme'
 import { Cancel, ExpandLess, ExpandMore, Square } from '@mui/icons-material'
 import {
     Collapse,
@@ -27,7 +27,7 @@ const PoolListItem = (props: { item: PoolItem }) => {
                         color: theme.palette.secondary.main,
                     },
                 }}
-                onClick={props.item.isExpandable ? handleClick : () => {}}
+                onClick={props.item.isExpandable ? handleClick : () => { }}
             >
                 <ListItemIcon>
                     <Square color="primary" />
