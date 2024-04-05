@@ -14,7 +14,7 @@ import '@/components/layout/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
-export default function HomePage() {
+const HomePage: React.FC = () => {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <HomeContent />
@@ -22,7 +22,7 @@ export default function HomePage() {
     )
 }
 
-function HomeContent() {
+const HomeContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
@@ -47,32 +47,32 @@ function HomeContent() {
         }
     }, [])
 
-    const handleTokenRequest = (code: string, state: string) => {
+    const handleTokenRequest = (code: string, state: string): void => {
         axios
             .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
                 params: { state, code, client_redirect_uri },
             })
-            .then(function (response) {
+            .then((response) => {
                 setToken(response.data.access_token)
             })
-            .catch((error) => {
+            .catch(() => {
                 // TODO Error alert
             })
     }
 
-    const updatePool = (pool: Pool) => {
+    const updatePool = (pool: Pool): void => {
         setPool(pool)
     }
 
-    const toggleExpanded = () => {
+    const toggleExpanded = (): void => {
         setExpanded(!expanded)
     }
 
-    const enableAddButton = () => {
+    const enableAddButton = (): void => {
         setDisabled(false)
     }
 
-    const setSearchResults = (data: any) => {
+    const setSearchResults = (data: any): void => {
         setTrackList(data.tracks.results)
         setAlbumList(data.albums.results)
         setArtistList(data.artists.results)
@@ -161,3 +161,5 @@ function HomeContent() {
         </ThemeProvider>
     )
 }
+
+export default HomePage
