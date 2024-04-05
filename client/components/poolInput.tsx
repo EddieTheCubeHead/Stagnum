@@ -2,9 +2,11 @@ import theme from '@/components/theme'
 import { TextField } from '@mui/material'
 import { Dispatch, SetStateAction } from 'react'
 
-export default function PoolInput(props: {
+interface PoolInputProps {
     setQuery: Dispatch<SetStateAction<string>>
-}) {
+}
+
+const PoolInput: React.FC<PoolInputProps> = ({ setQuery }) => {
     return (
         <TextField
             sx={{
@@ -15,7 +17,9 @@ export default function PoolInput(props: {
             }}
             id="standard-search"
             label="Pool ID"
-            onChange={(e) => props.setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
         />
     )
 }
+
+export default PoolInput
