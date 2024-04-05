@@ -7,7 +7,7 @@ import DefaultButton from '../buttons/defaulButton'
 import PoolInput from '../poolInput'
 import { Pool } from '../types'
 
-interface Props {
+interface SearchProps {
     token: string
     updatePool: (pool: Pool) => void
     expanded: boolean
@@ -16,14 +16,7 @@ interface Props {
     enableAddButton: () => void
 }
 
-export default function Search({
-    token,
-    updatePool,
-    expanded,
-    toggleExpanded,
-    setSearchResults,
-    enableAddButton,
-}: Props) {
+const Search: React.FC<SearchProps> = ({ token, updatePool, expanded, toggleExpanded, setSearchResults, enableAddButton }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [idQuery, setIdQuery] = useState('')
@@ -33,7 +26,7 @@ export default function Search({
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    const handleSearchRequest = () => {
+    const handleSearchRequest = (): void => {
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
@@ -50,7 +43,7 @@ export default function Search({
             })
     }
 
-    const handleJoinRequest = () => {
+    const handleJoinRequest = (): void => {
         axios
             .post(`${backend_uri}/pool/join/${idQuery}`, {
                 headers: { token },
@@ -64,7 +57,7 @@ export default function Search({
             })
     }
 
-    const handleExpandClick = () => {
+    const handleExpandClick = (): void => {
         toggleExpanded()
     }
 
@@ -137,3 +130,5 @@ export default function Search({
         </Box>
     )
 }
+
+export default Search

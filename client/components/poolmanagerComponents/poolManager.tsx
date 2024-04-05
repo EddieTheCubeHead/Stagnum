@@ -6,14 +6,20 @@ import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
 
-export default function ManagePool(props: {
+interface PoolManagerProps {
     pool: Pool
     token: string
     updatePool: (pool: Pool) => void
     expanded: boolean
-}) {
+}
+
+export const PoolManager: React.FC<PoolManagerProps> = ({
+    pool,
+    token,
+    updatePool,
+    expanded,
+}) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
-    const token = props.token
     const handleShare = () => {
         axios
             .post(
@@ -24,7 +30,7 @@ export default function ManagePool(props: {
                 },
             )
             .then((response) => {
-                props.updatePool(response.data)
+                updatePool(response.data)
             })
             .catch(() => {
                 // TODO Error alert
@@ -48,7 +54,7 @@ export default function ManagePool(props: {
                     margin: 1,
                 }}
             >
-                {props.expanded ? (
+                {expanded ? (
                     <Box
                         display={'flex'}
                         justifyContent={'center'}
@@ -57,17 +63,17 @@ export default function ManagePool(props: {
                     >
                         <Header2
                             text={
-                                props.pool.users.length > 0
-                                    ? `${props.pool.users[0].user.display_name}'s pool`
+                                pool.users.length > 0
+                                    ? `${pool.users[0].user.display_name}'s pool`
                                     : 'Create or join a pool'
                             }
                             color={'secondary.light'}
                         />
-                        {props.pool.share_code === null ? (
+                        {pool.share_code === null ? (
                             <DefaultButton text="share" action={handleShare} />
                         ) : (
                             <Header2
-                                text={props.pool.share_code}
+                                text={pool.share_code}
                                 color={'secondary.light'}
                             />
                         )}
@@ -82,22 +88,22 @@ export default function ManagePool(props: {
                         <Grid item xs={9}>
                             <Header2
                                 text={
-                                    props.pool.users.length > 0
-                                        ? `${props.pool.users[0].user.display_name}'s pool`
+                                    pool.users.length > 0
+                                        ? `${pool.users[0].user.display_name}'s pool`
                                         : 'Create or join a pool'
                                 }
                                 color={'secondary.light'}
                             />
                         </Grid>
                         <Grid item xs={1}>
-                            {props.pool.share_code === null ? (
+                            {pool.share_code === null ? (
                                 <DefaultButton
                                     text="share"
                                     action={handleShare}
                                 />
                             ) : (
                                 <Header2
-                                    text={props.pool.share_code}
+                                    text={pool.share_code}
                                     color={'secondary.light'}
                                 />
                             )}
@@ -109,9 +115,9 @@ export default function ManagePool(props: {
                             justifyContent={'center'}
                             alignItems={'center'}
                         >
-                            {props.pool.users.length > 3 ? (
-                                <AvatarGroup total={props.pool.users.length}>
-                                    {props.pool.users.map((user: PoolUser) => (
+                            {pool.users.length > 3 ? (
+                                <AvatarGroup total={pool.users.length}>
+                                    {pool.users.map((user: PoolUser) => (
                                         <Avatar
                                             key={user.user.display_name}
                                             alt={user.user.display_name}
@@ -121,7 +127,7 @@ export default function ManagePool(props: {
                                 </AvatarGroup>
                             ) : (
                                 <>
-                                    {props.pool.users.map((user: PoolUser) => (
+                                    {pool.users.map((user: PoolUser) => (
                                         <Avatar
                                             key={user.user.display_name}
                                             alt={user.user.display_name}
@@ -133,26 +139,26 @@ export default function ManagePool(props: {
                         </Grid>
                     </Grid>
                 )}
-                {props.pool?.users?.map((user) => (
+                {pool?.users?.map((user) => (
                     <>
                         {user.tracks?.map((poolItem: any, key: number) => (
                             <PoolTrackCard
                                 poolItem={poolItem}
                                 key={key}
-                                token={props.token}
-                                updatePool={props.updatePool}
+                                token={token}
+                                updatePool={updatePool}
                             />
                         ))}
                     </>
                 ))}
-                {props.pool?.users?.map((user) => (
+                {pool?.users?.map((user) => (
                     <>
                         {user.collections?.map((poolItem: any, key: number) => (
                             <Stack spacing={2} key={key}>
                                 <PoolCollectionCard
                                     poolItem={poolItem}
-                                    token={props.token}
-                                    updatePool={props.updatePool}
+                                    token={token}
+                                    updatePool={updatePool}
                                 />
                                 {poolItem.tracks.map(
                                     (
@@ -172,10 +178,8 @@ export default function ManagePool(props: {
                                                     poolItem={
                                                         poolCollectionItem
                                                     }
-                                                    token={props.token}
-                                                    updatePool={
-                                                        props.updatePool
-                                                    }
+                                                    token={token}
+                                                    updatePool={updatePool}
                                                 />
                                             </Box>
                                         </Box>

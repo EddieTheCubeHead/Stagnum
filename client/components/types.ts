@@ -24,7 +24,6 @@ export interface Track {
     duration_ms: number
 }
 
-
 export interface Playlist {
     name: string
     link: string
@@ -32,14 +31,12 @@ export interface Playlist {
     icon_link: string
 }
 
-
 export interface Artist {
     name: string
     link: string
     uri: string
     icon_link: string
 }
-
 
 export interface Album {
     name: string
@@ -54,7 +51,6 @@ export interface Album {
     year: number
     icon_link: string
 }
-
 
 export interface PoolTrack {
     name: string

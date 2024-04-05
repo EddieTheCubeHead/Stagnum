@@ -1,7 +1,7 @@
 import { Box } from '@mui/material'
 import Image from 'next/image'
 
-export default function MainHeader() {
+const MainHeader: React.FC = () => {
     return (
         <Box
             sx={{

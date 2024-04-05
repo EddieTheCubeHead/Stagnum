@@ -27,7 +27,7 @@ const PoolListItem = (props: { item: PoolItem }) => {
                         color: theme.palette.secondary.main,
                     },
                 }}
-                onClick={props.item.isExpandable ? handleClick : () => { }}
+                onClick={props.item.isExpandable ? handleClick : () => {}}
             >
                 <ListItemIcon>
                     <Square color="primary" />
