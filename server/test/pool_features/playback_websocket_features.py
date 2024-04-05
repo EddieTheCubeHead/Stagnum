@@ -23,10 +23,11 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
     with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()
-        assert data["name"] in [track["name"] for track in existing_playback]
-        assert data["spotify_icon_uri"] in [track["album"]["images"][0]["url"] for track in existing_playback]
-        assert data["spotify_track_uri"] in [track["uri"] for track in existing_playback]
-        assert data["duration_ms"] == fixed_track_length_ms
+        model_data = data["model"]
+        assert model_data["name"] in [track["name"] for track in existing_playback]
+        assert model_data["spotify_icon_uri"] in [track["album"]["images"][0]["url"] for track in existing_playback]
+        assert model_data["spotify_track_uri"] in [track["uri"] for track in existing_playback]
+        assert model_data["duration_ms"] == fixed_track_length_ms
 
 
 def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
@@ -37,4 +38,5 @@ def should_send_update_when_other_user_in_pool_skips(test_client, existing_playb
         response = test_client.post("/pool/playback/skip", headers=valid_token_header)
         result = validate_response(response)
         data = websocket.receive_json()
-        assert data == result
+        assert data["type"] == "model"
+        assert data["model"] == result

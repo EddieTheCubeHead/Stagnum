@@ -401,7 +401,11 @@ class PoolWebsocketUpdaterRaw:
 
     async def pool_updated(self, pool_contents: PoolFullContents, pool_id: int):
         for websocket in self._pool_sockets.get(pool_id, ()):
-            await websocket.send_json(pool_contents.model_dump())
+            websocket_event = {
+                "type": "model",
+                "model": pool_contents.model_dump()
+            }
+            await websocket.send_json(websocket_event)
 
 
 PoolWebsocketUpdater = Annotated[PoolWebsocketUpdaterRaw, Depends()]
@@ -417,7 +421,11 @@ class PlaybackWebsocketUpdaterRaw:
 
     async def playback_updated(self, new_track: PoolTrack, pool_id: int):
         for websocket in self._playback_sockets.get(pool_id, ()):
-            await websocket.send_json(new_track.model_dump())
+            websocket_event = {
+                "type": "model",
+                "model": new_track.model_dump()
+            }
+            await websocket.send_json(websocket_event)
 
 
 PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
