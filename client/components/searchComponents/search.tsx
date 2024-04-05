@@ -92,7 +92,7 @@ const Search: React.FC<SearchProps> = ({
                 }
             }
         }
-    }, [query, handleSearchRequest, searchTimeout])
+    }, [query])
 
     return (
         <Box
