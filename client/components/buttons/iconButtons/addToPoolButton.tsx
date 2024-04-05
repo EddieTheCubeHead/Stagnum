@@ -27,7 +27,7 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
             .post(`${backend_uri}/pool/content`, requestData, {
                 headers: { token },
             })
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
             })
             .catch(() => {
