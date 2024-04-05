@@ -1,6 +1,6 @@
 import { Grid, Typography } from '@mui/material'
 
-export default function About() {
+const AboutPage: React.FC = () => {
     return (
         <Grid
             container
@@ -26,3 +26,5 @@ export default function About() {
         </Grid>
     )
 }
+
+export default AboutPage
