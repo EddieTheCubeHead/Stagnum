@@ -111,7 +111,8 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct
     response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
                                f"&client_redirect_uri=test_url")
     exception = validate_response(response, 403)
-    assert exception["detail"] == "Login state is invalid or expired"
+    assert exception["detail"] == ("Login state is invalid or expired. "
+                                   "Please restart the login flow to ensure a fresh and valid state.")
 
 
 def should_delete_state_from_database_on_successful_login(correct_env_variables, base_auth_callback_call,
@@ -270,3 +271,33 @@ def should_allow_another_log_in_after_first_one(correct_env_variables, validate_
     response = base_auth_callback_call(new_state)
 
     validate_response(response)
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client ID in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_id_not_present(monkeypatch, validate_response, test_client, environment,
+                                                             primary_valid_state_string, error_message):
+    client_secret = "my_client_secret"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client secret in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_secret_not_present(monkeypatch, test_client, error_message, environment,
+                                                                 primary_valid_state_string, validate_response):
+    client_id = "my_client_id"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message
