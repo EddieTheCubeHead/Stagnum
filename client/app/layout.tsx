@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
+import type { Metadata } from 'next'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
+import React from 'react';
 
 export const metadata: Metadata = {
-  title: "Stagnum",
-  description: "A pool-based playback handler for Spotify",
-};
+    title: 'Stagnum',
+    description: 'A pool-based playback handler for Spotify',
+}
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode
 }>) {
   return (
     <html lang="en">

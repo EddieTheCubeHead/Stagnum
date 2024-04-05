@@ -1,10 +1,8 @@
 import datetime
-import random
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
-from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolder
@@ -25,8 +23,8 @@ def pool_spotify_client(requests_client: RequestsClient):
 
 
 @pytest.fixture
-def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder):
-    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder)
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider):
+    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider)
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -189,7 +187,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
                                                      logged_in_user, fixed_track_length_ms, monkeypatch,
                                                      create_mock_track_search_result, build_success_response,
                                                      requests_client, create_pool_creation_data_json, test_client,
-                                                     valid_token_data):
+                                                     primary_user_token):
     mock_token_holder.log_out(valid_token_header["token"])
 
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
@@ -203,7 +201,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
     queue_next_songs(playback_service)
-    AuthDatabaseConnection(db_connection).update_logged_in_user(logged_in_user, valid_token_data)
+    AuthDatabaseConnection(db_connection).update_logged_in_user(logged_in_user, primary_user_token)
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]

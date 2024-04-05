@@ -1,32 +1,33 @@
-"use client";
+'use client'
 
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Box, Grid, Link, Stack, Typography } from "@mui/material";
-import DefaultButton from "@/components/buttons/defaulButton";
+// import DefaultButton from "@/components/buttons/defaulButton";
 import Image from "next/image";
 import theme from "../utils/theme";
+import React from "react";
 
 export default function Login() {
-  const router = useRouter();
+    const router = useRouter()
 
-  const handleLoginRequest = () => {
-    console.log("Sending login request");
-    const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI;
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
+    const handleLoginRequest = () => {
+        console.log('Sending login request')
+        const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+        const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    axios
-      .get(`${backend_uri}/auth/login`, {
-        params: { client_redirect_uri },
-      })
-      .then(function (response) {
-        console.log(response.data.redirect_uri);
-        router.push(response.data.redirect_uri);
-      })
-      .catch(() => {
-        console.log("Request failed");
-      });
-  };
+        axios
+            .get(`${backend_uri}/auth/login`, {
+                params: { client_redirect_uri },
+            })
+            .then(function (response) {
+                console.log(response.data.redirect_uri)
+                router.push(response.data.redirect_uri)
+            })
+            .catch(() => {
+                console.log('Request failed')
+            })
+    }
 
   return (
     <Grid
@@ -100,8 +101,8 @@ export default function Login() {
             Login with your Spotify
           </Typography>
 
-          <DefaultButton action={handleLoginRequest} text="Login" />
-        </Stack>
+                    {/* <DefaultButton action={handleLoginRequest} text="Login" /> */}
+                </Stack>
 
         <Box display={"flex"} gap={2}>
           <Link href="/about" color={"#ffffff"}>
