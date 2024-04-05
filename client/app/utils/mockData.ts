@@ -1,6 +1,14 @@
 import { faker } from '@faker-js/faker'
 
-export const generateMockUserData = (count: number) => {
+interface UserData {
+    id: string;
+    name: string;
+    email: string;
+    sex: string;
+    // Add more fields as needed
+}
+
+export const generateMockUserData = (count: number): UserData[] => {
     return Array.from({ length: count }, () => ({
         id: faker.string.uuid(),
         name: faker.person.fullName(),
