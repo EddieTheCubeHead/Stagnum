@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
-import React from 'react'; // Import React
+import React from 'react' // Import React
 
 export const metadata: Metadata = {
     title: 'Stagnum',

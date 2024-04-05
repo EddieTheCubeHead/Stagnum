@@ -6,6 +6,7 @@ import { Pool, PoolCollection, PoolTrack } from '@/components/types'
 interface DeleteButtonProps {
     poolItem: PoolCollection | PoolTrack
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
 }
 

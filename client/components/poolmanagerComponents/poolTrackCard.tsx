@@ -6,6 +6,7 @@ import { Pool, PoolTrack } from '../types'
 interface PoolTrackCardProps {
     poolItem: PoolTrack
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
 }
 const PoolTrackCard: React.FC<PoolTrackCardProps> = ({

@@ -6,6 +6,7 @@ import { Pool, Track } from '@/components/types'
 
 interface TrackCardProps {
     track: Track
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean

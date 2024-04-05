@@ -5,6 +5,7 @@ import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
 interface AddToPoolButtonProps {
     newAdd: Track | Album | Playlist | Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean

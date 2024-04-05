@@ -10,7 +10,7 @@ import theme from '../components/theme'
 import MainHeader from '@/components/searchComponents/cards/mainHeader'
 import Search from '@/components/searchComponents/search'
 import PoolManager from '@/components/poolmanagerComponents/poolManager'
-import '@/components/layout/css/customScrollBar.css'
+import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
@@ -45,7 +45,7 @@ const HomeContent: React.FC = () => {
         } else {
             redirect('/login')
         }
-    }, [])
+    })
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios

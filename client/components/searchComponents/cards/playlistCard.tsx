@@ -6,6 +6,7 @@ import { Playlist, Pool } from '@/components/types'
 
 interface PlaylistCardProps {
     playlist: Playlist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean

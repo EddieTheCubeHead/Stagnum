@@ -6,6 +6,7 @@ import { Artist, Pool } from '@/components/types'
 
 interface ArtistCordProps {
     artist: Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean

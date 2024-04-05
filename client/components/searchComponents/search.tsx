@@ -9,9 +9,11 @@ import { Pool } from '../types'
 
 interface SearchProps {
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
     toggleExpanded: () => void
+    // eslint-disable-next-line no-unused-vars
     setSearchResults: (data: any) => void
     enableAddButton: () => void
 }
@@ -90,7 +92,7 @@ const Search: React.FC<SearchProps> = ({
                 }
             }
         }
-    }, [query])
+    }, [query, handleSearchRequest, searchTimeout])
 
     return (
         <Box

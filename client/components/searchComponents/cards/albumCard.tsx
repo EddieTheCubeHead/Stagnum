@@ -6,6 +6,7 @@ import { Album, Pool } from '@/components/types'
 
 interface AlbumCardProps {
     album: Album
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean

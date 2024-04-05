@@ -9,6 +9,7 @@ import { Pool, PoolUser } from '../types'
 interface PoolManagerProps {
     pool: Pool
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
 }

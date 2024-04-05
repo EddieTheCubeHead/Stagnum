@@ -7,6 +7,7 @@ import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 interface ShowMoreIconButtonProps {
     token: string
     item: Track | Album | Playlist | Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
 }

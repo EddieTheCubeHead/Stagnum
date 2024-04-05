@@ -11,6 +11,7 @@ interface ExpandedSearchContentProps {
     albumList: Album[]
     playlistList: Playlist[]
     artistList: Artist[]
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
