@@ -42,7 +42,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
             .post(`${backend_uri}/pool`, requestData, {
                 headers: { token },
             })
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
             })
