@@ -11,7 +11,7 @@ from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
 from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
-from api.common.helpers import create_random_string
+from api.common.helpers import create_random_string, raise_internal_server_error
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
 
@@ -125,7 +125,7 @@ class AuthServiceRaw:
         self._database_connection.save_state(state)
         client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
         if client_id is None:
-            raise HTTPException(status_code=500)
+            raise_internal_server_error("Could not find spotify client ID in environment variables")
         return LoginRedirect(redirect_uri=f"{base_url}scope={scopes_string}&state={state}&response_type=code"
                                           f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
 
