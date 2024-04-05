@@ -21,3 +21,5 @@ const MainHeader: React.FC = () => {
         </Box>
     )
 }
+
+export default MainHeader

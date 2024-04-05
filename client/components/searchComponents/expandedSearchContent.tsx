@@ -17,7 +17,16 @@ interface ExpandedSearchContentProps {
     enableAddButton: () => void
 }
 
-const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({ trackList, albumList, playlistList, artistList, updatePool, token, disabled, enableAddButton }) => {
+const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
+    trackList,
+    albumList,
+    playlistList,
+    artistList,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     return (
         <Stack sx={{ padding: 1, width: 1 }}>
             <Header2 text={'Tracks'} sx={{ color: 'white' }} />
@@ -197,3 +206,5 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({ trackList
         </Stack>
     )
 }
+
+export default ExpandedSearchContent

@@ -12,7 +12,13 @@ interface PlaylistCardProps {
     enableAddButton: () => void
 }
 
-const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, updatePool, token, disabled, enableAddButton }) => {
+const PlaylistCard: React.FC<PlaylistCardProps> = ({
+    playlist,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     const truncatedName =
         playlist.name.length > 25
             ? playlist.name.slice(0, 25) + '...'

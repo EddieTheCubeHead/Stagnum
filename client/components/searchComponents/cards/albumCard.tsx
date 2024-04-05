@@ -4,13 +4,21 @@ import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import { Album, Pool } from '@/components/types'
 
-export default function AlbumCard(props: {
+interface AlbumCardProps {
     album: Album
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
+}
+
+const AlbumCard: React.FC<AlbumCardProps> = ({
+    album,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box
@@ -21,34 +29,36 @@ export default function AlbumCard(props: {
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {props.album.icon_link && (
+                    {album.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.album.icon_link})`,
+                                backgroundImage: `url(${album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
                     )}
-                    <Header3 text={props.album.name} />
+                    <Header3 text={album.name} />
                 </Box>
                 <Box>
                     <AddToPoolButton
-                        newAdd={props.album}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
+                        newAdd={album}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
                     />
                     <ShowMoreIconButton
-                        token={props.token}
-                        item={props.album}
-                        updatePool={props.updatePool}
-                        enableAddButton={props.enableAddButton}
+                        token={token}
+                        item={album}
+                        updatePool={updatePool}
+                        enableAddButton={enableAddButton}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default AlbumCard

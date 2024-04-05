@@ -12,7 +12,13 @@ interface ArtistCordProps {
     enableAddButton: () => void
 }
 
-const ArtistCard: React.FC<ArtistCordProps> = ({ artist, updatePool, token, disabled, enableAddButton }) => {
+const ArtistCard: React.FC<ArtistCordProps> = ({
+    artist,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box

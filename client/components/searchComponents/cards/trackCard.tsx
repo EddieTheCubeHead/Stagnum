@@ -12,11 +12,15 @@ interface TrackCardProps {
     enableAddButton: () => void
 }
 
-const TrackCard: React.FC<TrackCardProps> = ({ track, updatePool, token, disabled, enableAddButton }) => {
+const TrackCard: React.FC<TrackCardProps> = ({
+    track,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     const truncatedName =
-        track.name.length > 25
-            ? track.name.slice(0, 25) + '...'
-            : track.name
+        track.name.length > 25 ? track.name.slice(0, 25) + '...' : track.name
 
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>

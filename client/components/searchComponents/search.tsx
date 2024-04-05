@@ -16,7 +16,14 @@ interface SearchProps {
     enableAddButton: () => void
 }
 
-const Search: React.FC<SearchProps> = ({ token, updatePool, expanded, toggleExpanded, setSearchResults, enableAddButton }) => {
+const Search: React.FC<SearchProps> = ({
+    token,
+    updatePool,
+    expanded,
+    toggleExpanded,
+    setSearchResults,
+    enableAddButton,
+}) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [idQuery, setIdQuery] = useState('')
