@@ -5,7 +5,11 @@ import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist } from '../types'
 
-const Footer = (props: { token: string }) => {
+interface FooterProps {
+    token: string
+}
+
+const Footer: React.FC<FooterProps> = ({ token }) => {
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
@@ -46,7 +50,7 @@ const Footer = (props: { token: string }) => {
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton token={props.token} />
+                    <SkipButton token={token} />
                 </Grid>
                 <Grid
                     item

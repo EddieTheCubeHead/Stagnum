@@ -13,14 +13,14 @@ interface PoolManagerProps {
     expanded: boolean
 }
 
-export const PoolManager: React.FC<PoolManagerProps> = ({
+const PoolManager: React.FC<PoolManagerProps> = ({
     pool,
     token,
     updatePool,
     expanded,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
-    const handleShare = () => {
+    const handleShare = (): void => {
         axios
             .post(
                 `${backend_uri}/pool/share`,
@@ -193,3 +193,5 @@ export const PoolManager: React.FC<PoolManagerProps> = ({
         </Box>
     )
 }
+
+export default PoolManager

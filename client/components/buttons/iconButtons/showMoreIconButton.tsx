@@ -4,30 +4,30 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
-interface Props {
+interface ShowMoreIconButtonProps {
     token: string
     item: Track | Album | Playlist | Artist
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
 }
 
-export default function ShowMoreIconButton({
+const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
     token,
     item,
     updatePool,
     enableAddButton,
-}: Props) {
+}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
         setAnchorEl(event.currentTarget)
     }
 
-    const handleClose = () => {
+    const handleClose = (): void => {
         setAnchorEl(null)
     }
 
-    const createPool = () => {
+    const createPool = (): void => {
         const requestData = {
             spotify_uris: [
                 {
@@ -79,3 +79,5 @@ export default function ShowMoreIconButton({
         </>
     )
 }
+
+export default ShowMoreIconButton
