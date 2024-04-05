@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from api.common.dependencies import validated_user_raw
+from conftest import ErrorData
 from database.entities import LoginState, User
 
 
@@ -222,16 +223,14 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
     assert actual_token.session.user_token == json_data["access_token"]
 
 
-@pytest.mark.parametrize("code", [401, 403, 404, 500])
 def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_variables, validate_response,
                                                                  base_auth_callback_call, requests_client,
-                                                                 requests_client_with_auth_mock, code):
-    requests_client.post.return_value.status_code = code
-    expected_error_message = "my error message"
-    requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+                                                                 requests_client_with_auth_mock,
+                                                                 spotify_error_message: ErrorData):
     response = base_auth_callback_call()
     json_data = validate_response(response, 502)
-    assert json_data["detail"] == f"Error code {code} received while calling Spotify API. Message: {expected_error_message}"
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
 
 
 @pytest.mark.parametrize("default_me_return", [SubscriptionType.Free, SubscriptionType.Open], indirect=True)

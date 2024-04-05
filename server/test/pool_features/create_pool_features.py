@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock, call
 
 import pytest
@@ -5,6 +6,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
+from conftest import ErrorData
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
@@ -48,6 +50,17 @@ def should_save_pool_in_database_with_user_id_when_created(test_client: TestClie
     with db_connection.session() as session:
         actual_pool_content = session.scalar(select(PoolMember).where(PoolMember.user_id == logged_in_user_id))
     assert actual_pool_content.duration_ms == my_track["duration_ms"]
+
+
+def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header, validate_response,
+                                             create_mock_track_search_result, create_pool_creation_data_json,
+                                             spotify_error_message: ErrorData):
+    my_track = create_mock_track_search_result()
+    data_json = create_pool_creation_data_json(my_track["uri"])
+    response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
 
 
 def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header,

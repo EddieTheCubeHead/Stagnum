@@ -3,6 +3,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from conftest import ErrorData
+
 
 @pytest.fixture
 def mock_spotify_general_search(requests_client, create_mock_album_search_result, create_mock_playlist_search_result,
@@ -113,16 +115,12 @@ def should_accept_any_date_starting_with_year(test_client, valid_token_header, m
     assert search_result["albums"]["results"][0]["year"] == 2021
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize("code", [401, 403, 404, 500])
 @pytest.mark.parametrize("resource", [None, "albums", "artists", "tracks", "playlists"])
-def should_propagate_errors_from_spotify_api(requests_client, code, test_client, valid_token_header, validate_response,
-                                             resource):
-    requests_client.post.return_value.status_code = code
+def should_propagate_errors_from_spotify_api(requests_client, test_client, valid_token_header, validate_response,
+                                             resource, spotify_error_message: ErrorData):
+    requests_client.post.return_value.status_code = spotify_error_message.code
     resource_part = f"{f"/{resource}"}" if resource is not None else ""
-    expected_error_message = "my error message"
-    requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
     response = test_client.get(f"/search{resource_part}?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
-    assert json_data["detail"] == (f"Error code {code} received while calling Spotify API. "
-                                   f"Message: {expected_error_message}")
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
