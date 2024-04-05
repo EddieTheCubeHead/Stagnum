@@ -23,7 +23,14 @@ def application() -> FastAPI:
 
 @pytest.fixture
 def requests_client():
-    return Mock()
+    mock_response = Mock()
+    mock_response.content = json.dumps({"default": "test_response"}).encode("utf-8")
+    mock_response.status_code = 200
+    mock_client = Mock()
+    mock_client.put = Mock(return_value=mock_response)
+    mock_client.post = Mock(return_value=mock_response)
+    mock_client.get = Mock(return_value=mock_response)
+    return mock_client
 
 
 @pytest.fixture

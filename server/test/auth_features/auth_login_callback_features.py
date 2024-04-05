@@ -230,8 +230,8 @@ def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_var
     expected_error_message = "my error message"
     requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
     response = base_auth_callback_call()
-    json_data = validate_response(response, code)
-    assert json_data["detail"] == expected_error_message
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == f"Error code {code} received while calling Spotify API. Message: {expected_error_message}"
 
 
 @pytest.mark.parametrize("default_me_return", [SubscriptionType.Free, SubscriptionType.Open], indirect=True)

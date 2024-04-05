@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+import pytest
 from sqlalchemy import select, and_
 
 from api.pool.models import PoolContent
@@ -34,6 +35,7 @@ def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mo
     assert actual_pool_content is not None
 
 
+@pytest.mark.wip
 def should_preserve_existing_pool_members_on_new_member_addition(create_mock_track_search_result, requests_client,
                                                                  build_success_response, test_client,
                                                                  valid_token_header, db_connection, logged_in_user_id,

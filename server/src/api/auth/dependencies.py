@@ -53,13 +53,6 @@ class AuthDatabaseConnectionRaw:
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]
 
 
-def _validate_data(raw_data: Response) -> dict:
-    parsed_data = json.loads(raw_data.content.decode("utf8"))
-    if raw_data.status_code != 200:
-        raise HTTPException(status_code=raw_data.status_code, detail=parsed_data["error"])
-    return parsed_data
-
-
 _ALLOWED_PRODUCT_TYPES = {"premium"}
 
 
@@ -82,21 +75,19 @@ class AuthSpotifyClientRaw:
 
         data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
                                          data=form)
-        parsed_data = _validate_data(data)
-        return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
-                                    expires_in=parsed_data["expires_in"], refresh_token=parsed_data["refresh_token"])
+        return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
+                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
 
     def get_me(self, token: str):
         headers = {
             "Authorization": token
         }
         data = self._spotify_client.get("me", headers=headers)
-        parsed_data = json.loads(data.content.decode("utf8"))
-        if parsed_data["product"] not in _ALLOWED_PRODUCT_TYPES:
+        if data["product"] not in _ALLOWED_PRODUCT_TYPES:
             raise HTTPException(status_code=401,
                                 detail="You need to have a Spotify Premium subscription to use Stagnum!")
-        user_avatar_url = parsed_data["images"][0]["url"] if len(parsed_data["images"]) > 0 else None
-        return User(spotify_id=parsed_data["id"], spotify_username=parsed_data["display_name"],
+        user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
+        return User(spotify_id=data["id"], spotify_username=data["display_name"],
                     spotify_avatar_url=user_avatar_url)
 
 
