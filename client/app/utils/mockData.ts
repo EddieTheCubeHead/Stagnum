@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
 
 interface UserData {
-    id: string;
-    name: string;
-    email: string;
-    sex: string;
+    id: string
+    name: string
+    email: string
+    sex: string
     // Add more fields as needed
 }
 
