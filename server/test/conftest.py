@@ -27,9 +27,11 @@ def requests_client():
 
 
 @pytest.fixture
-def db_connection(tmp_path, pytestconfig) -> ConnectionManager:
+def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
     echo = "-v" in pytestconfig.invocation_params.args
-    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", echo)
+    monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
+    monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
+    connection = ConnectionManager()
     return connection
 
 
