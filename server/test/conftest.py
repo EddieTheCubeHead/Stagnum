@@ -101,7 +101,7 @@ def log_user_in(auth_database_connection) -> Callable[[User, ParsedTokenResponse
 @pytest.fixture
 def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[str, str]]:
     def wrapper(token_response: ParsedTokenResponse) -> dict[str, str]:
-        return {"token": token_response.token}
+        return {"Authorization": token_response.token}
 
     return wrapper
 
