@@ -175,12 +175,21 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
         and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
 
 
-def _delete_pool_member(content_uri: str, user: User, session: Session):
-    _logger.debug(f"Deleting pool member with uri {content_uri} and all children "
-                  f"from user {user.spotify_username}'s pool")
+def _get_and_validate_member_to_delete(content_uri: str, user: User, session: Session) -> PoolMember:
+    matching_members = session.scalars(select(PoolMember).where(PoolMember.content_uri == content_uri)).unique().all()
+    if len(matching_members) == 0:
+        raise HTTPException(status_code=404, detail="Can't delete a pool member that does not exist.")
 
-    possible_parent = session.scalar(
-        select(PoolMember).where(and_(PoolMember.content_uri == content_uri, PoolMember.user_id == user.spotify_id)))
+    owned_members = [member for member in matching_members if member.user_id == user.spotify_id]
+    if len(owned_members) == 0:
+        raise HTTPException(status_code=400, detail="Can't delete a pool member added by another user.")
+
+    return owned_members[0]
+
+
+def _delete_pool_member(possible_parent: PoolMember, user: User, session: Session):
+    _logger.debug(f"Deleting pool member with uri {possible_parent.content_uri} and all children "
+                  f"from user {user.spotify_username}'s pool")
 
     session.execute(delete(PoolMemberRandomizationParameters).where(PoolMemberRandomizationParameters.pool_member.has(
         and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id))))
@@ -287,7 +296,8 @@ class PoolDatabaseConnectionRaw:
 
     def delete_from_pool(self, content_uri: str, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
-            _delete_pool_member(content_uri, user, session)
+            pool_member = _get_and_validate_member_to_delete(content_uri, user, session)
+            _delete_pool_member(pool_member, user, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 

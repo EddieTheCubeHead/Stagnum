@@ -48,8 +48,7 @@ async def add_content(to_add: PoolContent, user: validated_user, spotify_client:
 @router.delete("/content/{spotify_uri}")
 async def delete_content(spotify_uri: str, user: validated_user, database_connection: PoolDatabaseConnection,
                          pool_websocket_updater: PoolWebsocketUpdater) -> PoolFullContents:
-    _logger.debug(
-        f"DELETE /pool/content/{{spotify_uri}} called with uri {spotify_uri} and token {user.session.user_token}")
+    _logger.debug(f"DELETE /pool/content/{spotify_uri} called with token {user.session.user_token}")
     whole_pool = database_connection.delete_from_pool(spotify_uri, user)
     data_model = await _create_model_and_update_listeners(database_connection, pool_websocket_updater, user, whole_pool)
     return data_model
