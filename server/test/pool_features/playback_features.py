@@ -5,26 +5,9 @@ import pytest
 from sqlalchemy import select
 
 from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolder
-from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw
+from api.common.dependencies import TokenHolder
 from api.pool.tasks import queue_next_songs
-from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession
-
-
-@pytest.fixture
-def pool_db_connection(db_connection: ConnectionManager):
-    return PoolDatabaseConnectionRaw(db_connection)
-
-
-@pytest.fixture
-def pool_spotify_client(requests_client: RequestsClient):
-    return PoolSpotifyClientRaw(SpotifyClientRaw(requests_client))
-
-
-@pytest.fixture
-def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider):
-    return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider)
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -118,7 +101,8 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
     assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(seconds=1)
 
 
-def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
+@pytest.mark.asyncio
+async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
                                                                              fixed_track_length_ms, valid_token_header,
                                                                              playback_service, requests_client,
                                                                              get_query_parameter):
@@ -132,7 +116,7 @@ def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(exi
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    queue_next_songs(playback_service)
+    await queue_next_songs(playback_service)
     actual_call = requests_client.post.call_args
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_call.args[0], "uri")
@@ -158,7 +142,8 @@ def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(
     assert actual_call is None
 
 
-def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
+@pytest.mark.asyncio
+async def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
                                                     valid_token_header, mock_token_holder: TokenHolder,
                                                     logged_in_user_id, fixed_track_length_ms, monkeypatch):
     mock_token_holder.log_out(valid_token_header["token"])
@@ -173,7 +158,7 @@ def should_inactivate_sessions_for_logged_out_users(db_connection, playback_serv
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    queue_next_songs(playback_service)
+    await queue_next_songs(playback_service)
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
