@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from database.entities import EntityBase
 
-
 _logger = getLogger("main.database_connection")
 
 

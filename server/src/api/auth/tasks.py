@@ -1,14 +1,8 @@
-from contextlib import asynccontextmanager
 import datetime
 from logging import getLogger
 
-from apscheduler.jobstores.memory import MemoryJobStore
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
-
 from api.auth.dependencies import AuthDatabaseConnection
 from database.database_connection import ConnectionManager
-
 
 _logger = getLogger("main.api.auth.tasks")
 

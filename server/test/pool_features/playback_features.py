@@ -103,9 +103,10 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
 
 @pytest.mark.asyncio
 async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
-                                                                             fixed_track_length_ms, valid_token_header,
-                                                                             playback_service, requests_client,
-                                                                             get_query_parameter):
+                                                                                   fixed_track_length_ms,
+                                                                                   valid_token_header, requests_client,
+                                                                                   get_query_parameter,
+                                                                                   run_scheduling_job):
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
     soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
@@ -116,7 +117,7 @@ async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_aw
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    await queue_next_songs(playback_service)
+    await run_scheduling_job()
     actual_call = requests_client.post.call_args
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_call.args[0], "uri")
@@ -203,9 +204,9 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
     assert playback_state.is_active
 
 
-def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_header, test_client, requests_client,
+def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
                                                 get_query_parameter):
-    test_client.post("/pool/playback/skip", headers=valid_token_header)
+    skip_song(valid_token_header)
 
     actual_queue_call = requests_client.post.call_args_list[0]
     actual_skip_call = requests_client.post.call_args_list[1]
@@ -215,3 +216,14 @@ def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_h
     assert actual_queue_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
     assert actual_skip_call.args[0].startswith("https://api.spotify.com/v1/me/player/next")
     assert actual_skip_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+
+
+def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_token_header, test_client,
+                                                      requests_client, song_in_queue, validate_response):
+    response = test_client.post("/pool/playback/skip", headers=valid_token_header)
+
+    json_data = validate_response(response, 400)
+    assert json_data["detail"] == ("Songs detected in Spotify queue! Please ensure your queue is empty by skipping "
+                                   "in Spotify until the player repeats one song. Then reset Stagnum playback status "
+                                   "by skipping a song in Stagnum. We are sorry for the inconvenience, Spotify does "
+                                   "not offer tools for us to do this automatically.")

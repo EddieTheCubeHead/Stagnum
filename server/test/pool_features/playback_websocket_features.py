@@ -2,13 +2,11 @@ import datetime
 
 import pytest
 
-from api.pool import queue_next_songs
-
 
 @pytest.mark.asyncio
 async def should_send_update_when_scheduled_queue_job_updates_playback(test_client, existing_playback,
                                                                        fixed_track_length_ms,
-                                                                       monkeypatch, playback_service,
+                                                                       monkeypatch, run_scheduling_job,
                                                                        valid_token):
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
@@ -21,7 +19,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
     with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
-        await queue_next_songs(playback_service)
+        await run_scheduling_job()
         data = websocket.receive_json()
         model_data = data["model"]
         assert model_data["name"] in [track["name"] for track in existing_playback]
@@ -31,10 +29,10 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
 
 
 def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
-                                                     valid_token, shared_pool_code, validate_response):
+                                                     valid_token, shared_pool_code, validate_response, skip_song):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
-        response = test_client.post("/pool/playback/skip", headers=another_logged_in_user_header)
+        response = skip_song(another_logged_in_user_header)
         result = validate_response(response)
         data = websocket.receive_json()
         assert data["type"] == "model"
