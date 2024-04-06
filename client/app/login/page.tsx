@@ -7,6 +7,7 @@ import { Box, Grid, Link, Stack, Typography } from "@mui/material";
 import Image from "next/image";
 import theme from "../utils/theme";
 import React from "react";
+import DefaultButton from "@/components/buttons/defaulButton";
 
 export default function Login() {
     const router = useRouter()
@@ -100,9 +101,8 @@ export default function Login() {
           >
             Login with your Spotify
           </Typography>
-
-                    {/* <DefaultButton action={handleLoginRequest} text="Login" /> */}
-                </Stack>
+          <DefaultButton action={handleLoginRequest} text="Login" />
+          </Stack>
 
         <Box display={"flex"} gap={2}>
           <Link href="/about" color={"#ffffff"}>
