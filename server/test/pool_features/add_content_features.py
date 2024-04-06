@@ -20,6 +20,18 @@ def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_
     assert len(pool_response["users"][0]["tracks"]) == 1
 
 
+def should_propagate_errors_from_spotify_api(create_mock_track_search_result, test_client, valid_token_header,
+                                             validate_response, spotify_error_message):
+    track = create_mock_track_search_result()
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+
+    response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
+
+
 def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mock_track_search_result, requests_client,
                                                                        build_success_response, test_client,
                                                                        valid_token_header, db_connection,
@@ -35,7 +47,6 @@ def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mo
     assert actual_pool_content is not None
 
 
-@pytest.mark.wip
 def should_preserve_existing_pool_members_on_new_member_addition(create_mock_track_search_result, requests_client,
                                                                  build_success_response, test_client,
                                                                  valid_token_header, db_connection, logged_in_user_id,
