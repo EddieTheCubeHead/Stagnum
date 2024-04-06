@@ -28,7 +28,7 @@ export default function AddToPoolButton({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then(function (response) {
                 updatePool(response.data)

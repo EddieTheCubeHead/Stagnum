@@ -42,7 +42,7 @@ export default function Search({
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then(function (response) {
                 if (!expanded) {
@@ -61,7 +61,7 @@ export default function Search({
                 `${backend_uri}/pool/join/${idQuery}`,
                 {},
                 {
-                    headers: { token },
+                    headers: { Authorization: token },
                 },
             )
             .then(function (response) {
