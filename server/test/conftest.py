@@ -111,6 +111,12 @@ def valid_token_header(log_user_in, logged_in_user, primary_user_token, create_h
 
 
 @pytest.fixture
+def valid_token(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
+    log_user_in(logged_in_user, primary_user_token)
+    return primary_user_token.token
+
+
+@pytest.fixture
 def logged_in_user_id(faker):
     user_id = faker.uuid4()
     return user_id
