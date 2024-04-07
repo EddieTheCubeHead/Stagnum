@@ -4,7 +4,6 @@ from typing import Callable, Coroutine
 from unittest.mock import Mock
 
 import pytest
-from sqlalchemy import select
 from starlette.responses import Response
 from starlette.testclient import TestClient
 
@@ -17,33 +16,7 @@ from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRa
 from api.pool.models import PoolCreationData, PoolContent
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
-from database.entities import PoolMember, User
-
-
-@pytest.fixture
-def create_pool_creation_data_json():
-    def wrapper(*uris: str):
-        return PoolCreationData(
-            spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
-        ).model_dump()
-
-    return wrapper
-
-
-@pytest.fixture
-def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
-                  create_pool_creation_data_json, test_client, validate_response, valid_token_header,
-                  db_connection, logged_in_user_id) -> list[PoolMember]:
-    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
-    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
-    responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
-    data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
-
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
-    with db_connection.session() as session:
-        members = session.scalars(select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
-    return members
+from database.entities import User
 
 
 @pytest.fixture
