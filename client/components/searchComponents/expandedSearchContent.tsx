@@ -16,6 +16,8 @@ interface ExpandedSearchContentProps {
     token: string
     disabled: boolean
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
@@ -27,6 +29,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     token,
     disabled,
     enableAddButton,
+    setErrorAlert,
 }) => {
     return (
         <Stack sx={{ padding: 1, width: 1 }}>
@@ -50,6 +53,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -72,6 +76,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -94,6 +99,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -115,6 +121,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -137,6 +144,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -158,6 +166,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -180,6 +189,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -201,6 +211,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>

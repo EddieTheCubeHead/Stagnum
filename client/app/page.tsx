@@ -59,7 +59,9 @@ const HomeContent: React.FC = () => {
                 setToken(response.data.access_token)
             })
             .catch((error) => {
-                setErrorAlert(`Login callback failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Login callback failed with error: ${error.message}`,
+                )
             })
     }
 
@@ -118,7 +120,9 @@ const HomeContent: React.FC = () => {
                             expanded={expanded}
                             toggleExpanded={toggleExpanded}
                             setSearchResults={setSearchResults}
-                            enableAddButton={enableAddButton} setErrorAlert={setErrorAlert} />
+                            enableAddButton={enableAddButton}
+                            setErrorAlert={setErrorAlert}
+                        />
                     </Box>
                 </Grid>
 
@@ -164,6 +168,7 @@ const HomeContent: React.FC = () => {
                                 token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
+                                setErrorAlert={setErrorAlert}
                             />
                         </Box>
                     </Grid>
@@ -171,7 +176,10 @@ const HomeContent: React.FC = () => {
             </Grid>
             <Footer token={token} />
             {alert && (
-                <AlertComponent alertMessage={errorMessage} closeAlert={closeAlert} />
+                <AlertComponent
+                    alertMessage={errorMessage}
+                    closeAlert={closeAlert}
+                />
             )}
         </ThemeProvider>
     )

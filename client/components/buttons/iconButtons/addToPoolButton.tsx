@@ -18,7 +18,7 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
     updatePool,
     token,
     disabled,
-    setErrorAlert
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -35,7 +35,9 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                 updatePool(response.data)
             })
             .catch((error) => {
-                setErrorAlert(`Adding to pool failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Adding to pool failed with error: ${error.message}`,
+                )
             })
     }
 

@@ -1,4 +1,4 @@
-import { Alert, Box, Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import SearchInput from './searchInput'
@@ -27,7 +27,7 @@ const Search: React.FC<SearchProps> = ({
     toggleExpanded,
     setSearchResults,
     enableAddButton,
-    setErrorAlert
+    setErrorAlert,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -65,7 +65,9 @@ const Search: React.FC<SearchProps> = ({
                 enableAddButton()
             })
             .catch((error) => {
-                setErrorAlert(`Joining to pool failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Joining to pool failed with error: ${error.message}`,
+                )
             })
     }
 

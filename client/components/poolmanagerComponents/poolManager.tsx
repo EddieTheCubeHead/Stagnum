@@ -21,7 +21,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     token,
     updatePool,
     expanded,
-    setErrorAlert
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleShare = (): void => {
@@ -37,7 +37,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 updatePool(response.data)
             })
             .catch((error) => {
-                setErrorAlert(`Sharing pool failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Sharing pool failed with error: ${error.message}`,
+                )
             })
     }
 
@@ -151,6 +153,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                 key={key}
                                 token={token}
                                 updatePool={updatePool}
+                                setErrorAlert={setErrorAlert}
                             />
                         ))}
                     </>
@@ -163,6 +166,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     poolItem={poolItem}
                                     token={token}
                                     updatePool={updatePool}
+                                    setErrorAlert={setErrorAlert}
                                 />
                                 {poolItem.tracks.map(
                                     (
@@ -184,6 +188,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                                     }
                                                     token={token}
                                                     updatePool={updatePool}
+                                                    setErrorAlert={
+                                                        setErrorAlert
+                                                    }
                                                 />
                                             </Box>
                                         </Box>

@@ -19,7 +19,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
     item,
     updatePool,
     enableAddButton,
-    setErrorAlert
+    setErrorAlert,
 }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -51,7 +51,9 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
                 enableAddButton()
             })
             .catch((error) => {
-                setErrorAlert(`Creating pool failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Creating pool failed with error: ${error.message}`,
+                )
             })
     }
 

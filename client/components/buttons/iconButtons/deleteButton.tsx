@@ -16,7 +16,7 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
     poolItem,
     token,
     updatePool,
-    setErrorAlert
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -41,7 +41,9 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
                 updatePool(response.data)
             })
             .catch((error) => {
-                setErrorAlert(`Deleting from pool failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Deleting from pool failed with error: ${error.message}`,
+                )
             })
     }
 

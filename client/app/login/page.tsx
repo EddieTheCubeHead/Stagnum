@@ -123,7 +123,10 @@ const LoginPage: React.FC = () => {
                     </Link>
                 </Box>
                 {alert && (
-                    <AlertComponent alertMessage={`Login failed with error: ${errorMessage}`} closeAlert={closeAlert} />
+                    <AlertComponent
+                        alertMessage={`Login failed with error: ${errorMessage}`}
+                        closeAlert={closeAlert}
+                    />
                 )}
             </Box>
         </Box>
