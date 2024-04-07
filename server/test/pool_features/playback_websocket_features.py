@@ -20,7 +20,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()
         model_data = data["model"]
