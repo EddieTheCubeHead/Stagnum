@@ -227,3 +227,9 @@ def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_t
                                    "in Spotify until the player repeats one song. Then reset Stagnum playback status "
                                    "by skipping a song in Stagnum. We are sorry for the inconvenience, Spotify does "
                                    "not offer tools for us to do this automatically.")
+
+
+def should_return_token_in_headers_for_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
+                                                  assert_token_in_headers):
+    response = skip_song(valid_token_header)
+    assert_token_in_headers(response)

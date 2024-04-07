@@ -5,7 +5,8 @@ from typing import Annotated
 
 import requests
 from fastapi import Depends, HTTPException, Header
-from requests import Response
+from fastapi import Response as FastAPIResponse
+from requests import Response as RequestsResponse
 from sqlalchemy import select
 
 from database.database_connection import ConnectionManager
@@ -49,7 +50,7 @@ class RequestsClientRaw:
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
-def _validate_and_decode(response: Response) -> dict:
+def _validate_and_decode(response: RequestsResponse) -> dict:
     parsed_data = json.loads(response.content.decode("utf8"))
     if response.status_code >= 400:
         error_message = (f"Error code {response.status_code} received while calling Spotify API. "
@@ -110,18 +111,21 @@ UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 
 class TokenHolderRaw:
 
-    def __init__(self, user_database_connection: UserDatabaseConnection):
+    def __init__(self, user_database_connection: UserDatabaseConnection, response: FastAPIResponse):
         self._user_database_connection = user_database_connection
+        self._response = response
 
     def get_user_from_token(self, token: str) -> User:
         user = self._user_database_connection.get_from_token(token)
+        self._ensure_fresh_token(user)
         if user is None:
             _logger.error(f"Token {token} not found.")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
         return user
 
     def get_user_from_user_id(self, user_id: str) -> User:
-        return self._user_database_connection.get_from_id(user_id)
+        user = self._user_database_connection.get_from_id(user_id)
+        return user
 
     def log_out(self, token: str):
         self._user_database_connection.log_out(token)
@@ -132,6 +136,10 @@ class TokenHolderRaw:
     def is_user_logged_in(self, user_id: str):
         return self._user_database_connection.get_from_id(user_id).session is not None
 
+    def _ensure_fresh_token(self, user: User):
+        if self._response is not None:
+            self._response.headers["Authorization"] = user.session.user_token
+
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
@@ -140,12 +148,6 @@ TokenHolder = Annotated[TokenHolderRaw, Depends()]
 # noinspection PyPep8Naming
 def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:
     return _get_user_from_token(Authorization, token_holder)
-
-
-def _get_user_from_token(token, token_holder):
-    _logger.debug(f"Getting user for token {token}")
-    user = token_holder.get_user_from_token(token)
-    return user
 
 
 validated_user = Annotated[User, Depends(validated_user_raw)]
@@ -158,3 +160,9 @@ def validated_user_from_query_parameters_raw(Authorization: str, token_holder: T
 
 
 validated_user_from_query_parameters = Annotated[User, Depends(validated_user_from_query_parameters_raw)]
+
+
+def _get_user_from_token(token: str, token_holder: TokenHolder) -> User:
+    _logger.debug(f"Getting user for token {token}")
+    user = token_holder.get_user_from_token(token)
+    return user

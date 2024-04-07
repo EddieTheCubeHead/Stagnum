@@ -7,6 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
+from starlette.responses import Response
 from starlette.testclient import TestClient
 
 from api.application import create_app
@@ -68,7 +69,7 @@ def validate_response():
 @pytest.fixture
 def mock_token_holder(application, db_connection):
     user_database_connection = UserDatabaseConnection(db_connection)
-    token_holder = TokenHolder(user_database_connection)
+    token_holder = TokenHolder(user_database_connection, None)
     application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
@@ -367,3 +368,15 @@ def spotify_error_message(request, requests_client) -> ErrorData:
         mock_return.content = json.dumps({"error": expected_error_message}).encode("utf-8")
         mock_method.return_value = mock_return
     return ErrorData(expected_error_message, code)
+
+
+@pytest.fixture
+def assert_token_in_headers(validate_response) -> Callable[[Response], str]:
+    def wrapper(response: Response) -> str:
+        validate_response(response)
+        header_token = response.headers["Authorization"]
+        assert len(header_token) > 0
+        assert type(header_token) == str
+        return header_token
+
+    return wrapper

@@ -32,3 +32,8 @@ def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_tok
     user_pool = pool_response["users"][0]
     assert len(user_pool["tracks"]) == len(existing_pool)
     assert len(user_pool["collections"]) == 3
+
+
+def should_include_token_in_headers(existing_pool, test_client, valid_token_header, assert_token_in_headers):
+    response = test_client.get("/pool", headers=valid_token_header)
+    assert_token_in_headers(response)

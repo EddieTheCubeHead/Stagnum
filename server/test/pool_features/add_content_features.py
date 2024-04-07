@@ -99,3 +99,15 @@ def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_
     user_pool = pool_response["users"][0]
     for track in user_pool["collections"][0]["tracks"]:
         assert track["spotify_icon_uri"] == album["images"][0]["url"]
+
+
+def should_include_current_token_in_response_headers(create_mock_track_search_result, requests_client,
+                                                                    build_success_response, test_client,
+                                                                    valid_token_header, assert_token_in_headers):
+    track = create_mock_track_search_result()
+    requests_client.get = Mock(return_value=build_success_response(track))
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+
+    response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    assert_token_in_headers(response)

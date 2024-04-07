@@ -162,3 +162,15 @@ def should_return_error_response_when_attempting_to_share_own_pool_with_existing
 
     result = validate_response(response, 400)
     assert result["detail"] == "Pool already shared!"
+
+
+def should_return_token_in_headers_for_share_route(existing_playback, test_client, valid_token_header,
+                                                   assert_token_in_headers):
+    response = test_client.post("/pool/share", headers=valid_token_header)
+    assert_token_in_headers(response)
+
+
+def should_return_token_in_headers_for_join_route(shared_pool_code, test_client, another_logged_in_user_header,
+                                                  assert_token_in_headers):
+    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    assert_token_in_headers(response)

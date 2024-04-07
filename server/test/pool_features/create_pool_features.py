@@ -280,3 +280,13 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_
     assert actual_parent.name == playlist["name"]
     assert len(actual_parent.children) == playlist_length
     assert requests_client.get.call_args.kwargs["headers"] == valid_token_header
+
+
+def should_include_token_in_headers(test_client: TestClient, valid_token_header, requests_client,
+                                    create_mock_track_search_result,  build_success_response, assert_token_in_headers,
+                                    create_pool_creation_data_json):
+    my_track = create_mock_track_search_result()
+    data_json = create_pool_creation_data_json(my_track["uri"])
+    requests_client.get = Mock(return_value=build_success_response(my_track))
+    response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+    assert_token_in_headers(response)
