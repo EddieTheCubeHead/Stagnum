@@ -33,7 +33,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
 def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
                                                      valid_token, shared_pool_code, validate_response, skip_song):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         response = skip_song(another_logged_in_user_header)
         result = validate_response(response)
         data = websocket.receive_json()
@@ -58,7 +58,7 @@ async def should_send_queue_not_empty_error_through_websocket_on_scheduled_job(t
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    with test_client.websocket_connect(f"/pool/playback/register_listener?token={valid_token}") as websocket:
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()
         assert data["type"] == "error"
