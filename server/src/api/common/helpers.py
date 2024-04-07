@@ -1,6 +1,10 @@
+import os
 import random
 import string
 from logging import getLogger
+from typing import Never
+
+from fastapi import HTTPException
 
 from api.common.models import UserModel
 from database.entities import User
@@ -36,3 +40,10 @@ def build_auth_header(user: User) -> dict:
 def create_random_string(length: int) -> str:
     chars = string.ascii_letters + string.digits
     return "".join(random.choice(chars) for _ in range(length))
+
+
+def raise_internal_server_error(message: str) -> Never:
+    environment = os.getenv("ENVIRONMENT", default="production").lower()
+    if environment == "production":
+        message = "Internal server error"
+    raise HTTPException(status_code=500, detail=message)

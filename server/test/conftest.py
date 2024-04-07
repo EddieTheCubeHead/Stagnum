@@ -1,6 +1,7 @@
 import json
 import random
 import re
+from dataclasses import dataclass
 from typing import Callable
 from unittest.mock import Mock
 
@@ -23,7 +24,14 @@ def application() -> FastAPI:
 
 @pytest.fixture
 def requests_client():
-    return Mock()
+    mock_response = Mock()
+    mock_response.content = json.dumps({"default": "test_response"}).encode("utf-8")
+    mock_response.status_code = 200
+    mock_client = Mock()
+    mock_client.put = Mock(return_value=mock_response)
+    mock_client.post = Mock(return_value=mock_response)
+    mock_client.get = Mock(return_value=mock_response)
+    return mock_client
 
 
 @pytest.fixture
@@ -339,3 +347,23 @@ def get_query_parameter():
         return match.group(1)
 
     return wrapper
+
+
+
+@dataclass
+class ErrorData:
+    message: str
+    code: int
+
+
+@pytest.fixture(params=[401, 403, 404, 500])
+def spotify_error_message(request, requests_client) -> ErrorData:
+    code = request.param
+    requests_client.get.return_value.status_code = code
+    expected_error_message = "my error message"
+    for mock_method in (requests_client.get, requests_client.post, requests_client.put):
+        mock_return = Mock()
+        mock_return.status_code = code
+        mock_return.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+        mock_method.return_value = mock_return
+    return ErrorData(expected_error_message, code)
