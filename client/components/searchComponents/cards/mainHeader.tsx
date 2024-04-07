@@ -1,9 +1,7 @@
-import theme from '@/utils/theme'
-import { Box, Grid } from '@mui/material'
-import { Header2 } from '../../textComponents'
+import { Box } from '@mui/material'
 import Image from 'next/image'
 
-export default function MainHeaderCard() {
+const MainHeader: React.FC = () => {
     return (
         <Box
             sx={{
@@ -23,3 +21,5 @@ export default function MainHeaderCard() {
         </Box>
     )
 }
+
+export default MainHeader

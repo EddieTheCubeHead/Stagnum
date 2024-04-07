@@ -1,20 +1,26 @@
 import { Button, Typography } from '@mui/material'
 
-function DefaultButton(props: {
+interface DefaultButtonProps {
     text: string
     action: () => void
     disabled?: boolean
-}) {
+}
+
+const DefaultButton: React.FC<DefaultButtonProps> = ({
+    text,
+    action,
+    disabled,
+}) => {
     return (
         <Button
             variant="contained"
             color={'primary'}
             disableElevation
-            onClick={props.action}
-            disabled={props.disabled}
+            onClick={action}
+            disabled={disabled}
             sx={{ borderRadius: 4, width: 'fit-content' }}
         >
-            <Typography fontWeight={'bold'}>{props.text}</Typography>
+            <Typography fontWeight={'bold'}>{text}</Typography>
         </Button>
     )
 }

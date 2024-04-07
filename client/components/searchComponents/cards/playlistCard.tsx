@@ -1,20 +1,30 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import DefaultButton from '../../buttons/defaulButton'
-import Album from '@/types/albumTypes'
-import Track from '@/types/trackTypes'
-import Playlist from '@/types/playlistTypes'
-import Artist from '@/types/artistTypes'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
+import { Playlist, Pool } from '@/components/types'
 
-export default function AlbumCard(props: {
-    album: Album
+interface PlaylistCardProps {
+    playlist: Playlist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
+}
+
+const PlaylistCard: React.FC<PlaylistCardProps> = ({
+    playlist,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
+    const truncatedName =
+        playlist.name.length > 25
+            ? playlist.name.slice(0, 25) + '...'
+            : playlist.name
+
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box
@@ -25,34 +35,36 @@ export default function AlbumCard(props: {
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {props.album.icon_link && (
+                    {playlist.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.album.icon_link})`,
+                                backgroundImage: `url(${playlist.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
                     )}
-                    <Header3 text={props.album.name} />
+                    <Header3 text={truncatedName} />
                 </Box>
                 <Box>
                     <AddToPoolButton
-                        newAdd={props.album}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
+                        newAdd={playlist}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
                     />
                     <ShowMoreIconButton
-                        token={props.token}
-                        item={props.album}
-                        updatePool={props.updatePool}
-                        enableAddButton={props.enableAddButton}
+                        token={token}
+                        item={playlist}
+                        updatePool={updatePool}
+                        enableAddButton={enableAddButton}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default PlaylistCard

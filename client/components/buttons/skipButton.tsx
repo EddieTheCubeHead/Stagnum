@@ -2,11 +2,16 @@ import { IconButton } from '@mui/material'
 import SkipNextIcon from '@mui/icons-material/SkipNext'
 import axios from 'axios'
 
-function SkipButton(props: { disabled?: boolean; token: string }) {
+interface SkipButtonProps {
+    disabled?: boolean
+    token: string
+}
+
+const SkipButton: React.FC<SkipButtonProps> = ({ disabled, token }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
-    const skip = () => {
+    const skip = (): void => {
         const headers = {
-            Authorization: props.token,
+            Authorization: token,
         }
         axios
             .post(
@@ -16,18 +21,18 @@ function SkipButton(props: { disabled?: boolean; token: string }) {
                     headers: headers,
                 },
             )
-            .then((response) => {
-                console.log(response)
+            .then(() => {
+                //TODO something?
             })
-            .catch((error) => {
-                console.log('Request failed', error)
+            .catch(() => {
+                // TODO Error alert
             })
     }
 
     return (
-        <IconButton aria-label="skip" onClick={skip} disabled={props.disabled}>
+        <IconButton aria-label="skip" onClick={skip} disabled={disabled}>
             <SkipNextIcon
-                color={!props.disabled ? 'primary' : 'disabled'}
+                color={!disabled ? 'primary' : 'disabled'}
                 fontSize="large"
             />
         </IconButton>
