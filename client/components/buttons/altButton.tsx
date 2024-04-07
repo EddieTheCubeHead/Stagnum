@@ -1,17 +1,19 @@
 import { Button, Typography } from '@mui/material'
 
-function AltButton(props: {
+interface AltButtonProps {
     text: string
     action: () => void
     disabled?: boolean
-}) {
+}
+
+const AltButton: React.FC<AltButtonProps> = ({ text, action, disabled }) => {
     return (
         <Button
             variant="outlined"
             color={'primary'}
             disableElevation
-            onClick={props.action}
-            disabled={props.disabled}
+            onClick={action}
+            disabled={disabled}
             sx={{
                 borderRadius: 4,
                 width: 'fit-content',
@@ -19,7 +21,7 @@ function AltButton(props: {
                 backgroundColor: 'secondary.light',
             }}
         >
-            <Typography fontWeight={'bold'}>{props.text}</Typography>
+            <Typography fontWeight={'bold'}>{text}</Typography>
         </Button>
     )
 }

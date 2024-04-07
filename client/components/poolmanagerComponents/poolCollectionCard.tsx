@@ -1,22 +1,24 @@
-import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import DeleteButton from '@/components/buttons/iconButtons/deleteButton'
-import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import { Header3 } from '@/components/textComponents'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
 import { Box, Card } from '@mui/material'
+import { Pool, PoolCollection, PoolTrack } from '../types'
 
-export default function PoolCollectionCard(props: {
+interface PoolCollectionCardProps {
     poolItem: PoolCollection | PoolTrack
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-}) {
+}
+
+const PoolCollectionCard: React.FC<PoolCollectionCardProps> = ({
+    poolItem,
+    token,
+    updatePool,
+}) => {
     const truncatedName =
-        props.poolItem.name.length > 25
-            ? props.poolItem.name.slice(0, 25) + '...'
-            : props.poolItem.name
+        poolItem.name.length > 25
+            ? poolItem.name.slice(0, 25) + '...'
+            : poolItem.name
 
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1, minHeight: 66 }}>
@@ -32,7 +34,7 @@ export default function PoolCollectionCard(props: {
                         sx={{
                             width: 50,
                             height: 50,
-                            backgroundImage: `url(${props.poolItem.spotify_icon_uri})`,
+                            backgroundImage: `url(${poolItem.spotify_icon_uri})`,
                             bgcolor: 'black',
                             backgroundSize: 'cover',
                             margin: 1,
@@ -43,12 +45,14 @@ export default function PoolCollectionCard(props: {
                 </Box>
                 <Box>
                     <DeleteButton
-                        poolItem={props.poolItem}
-                        token={props.token}
-                        updatePool={props.updatePool}
+                        poolItem={poolItem}
+                        token={token}
+                        updatePool={updatePool}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default PoolCollectionCard
