@@ -1,10 +1,11 @@
 import { Alert, Box } from "@mui/material"
 
 interface AlertComponentProps {
+    alertMessage: string
     closeAlert: () => void
 }
 
-const AlertComponent: React.FC<AlertComponentProps> = ({ closeAlert }) => {
+const AlertComponent: React.FC<AlertComponentProps> = ({ alertMessage, closeAlert }) => {
     return (
         <Box
             position="fixed"
@@ -13,7 +14,7 @@ const AlertComponent: React.FC<AlertComponentProps> = ({ closeAlert }) => {
             zIndex={9999}
         >
             <Alert severity="error" variant='filled' onClose={() => closeAlert()}>
-                There was an error with the login request.
+                {alertMessage}
             </Alert>
         </Box>
     )
