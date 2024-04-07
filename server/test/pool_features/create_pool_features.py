@@ -11,6 +11,14 @@ from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
 
+@pytest.fixture(autouse=True)
+def mock_put_response(requests_client):
+    response = Mock()
+    response.status_code = 200
+    response.content = "".encode("utf-8")
+    requests_client.put = Mock(return_value=response)
+
+
 def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
                                                                              valid_token_header,
                                                                              validate_response,
