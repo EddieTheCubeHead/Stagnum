@@ -11,7 +11,7 @@ const SkipButton: React.FC<SkipButtonProps> = ({ disabled, token }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const skip = (): void => {
         const headers = {
-            token: token,
+            Authorization: token,
         }
         axios
             .post(

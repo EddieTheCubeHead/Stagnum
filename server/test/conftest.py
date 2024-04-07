@@ -27,9 +27,11 @@ def requests_client():
 
 
 @pytest.fixture
-def db_connection(tmp_path, pytestconfig) -> ConnectionManager:
+def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
     echo = "-v" in pytestconfig.invocation_params.args
-    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", echo)
+    monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
+    monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
+    connection = ConnectionManager()
     return connection
 
 
@@ -99,7 +101,7 @@ def log_user_in(auth_database_connection) -> Callable[[User, ParsedTokenResponse
 @pytest.fixture
 def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[str, str]]:
     def wrapper(token_response: ParsedTokenResponse) -> dict[str, str]:
-        return {"token": token_response.token}
+        return {"Authorization": token_response.token}
 
     return wrapper
 
@@ -108,6 +110,12 @@ def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[
 def valid_token_header(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
     log_user_in(logged_in_user, primary_user_token)
     return create_header_from_token_response(primary_user_token)
+
+
+@pytest.fixture
+def valid_token(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
+    log_user_in(logged_in_user, primary_user_token)
+    return primary_user_token.token
 
 
 @pytest.fixture

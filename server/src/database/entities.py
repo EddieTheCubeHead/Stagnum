@@ -69,8 +69,8 @@ class PoolMemberRandomizationParameters(EntityBase):
 
 class Pool(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
-    owner_user_id: Mapped[int] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
+    owner_user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
     joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
     share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
@@ -101,5 +101,11 @@ class PlaybackSession(EntityBase):
                                                   nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
+
+    # We cache these here, as deleting the active pool member and using a relationship to get its data causes issues
+    current_track_uri: Mapped[str] = mapped_column(String(128), nullable=True)
+    current_track_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    current_track_image_url: Mapped[str] = mapped_column(String(256), nullable=True)
+    current_track_duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
 
     current_track: Mapped["PoolMember"] = relationship()

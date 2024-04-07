@@ -86,6 +86,7 @@ There are further optional environment variables you can use to customize the be
 
 - `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation. Default
 `sqlite:///:memory:`
+- `VERBOSE_SQLALCHEMY`: control whether SQLAlchemy should output information into the console. Default `False`
 - `HOST`: control the host ip of the server. Default `127.0.0.1`
 - `PORT`: control the port of the server. Default `8000`
 - `RELOAD`: control whether the server should auto-reload on updates. Default `True`

@@ -41,7 +41,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then((response) => {
                 updatePool(response.data)

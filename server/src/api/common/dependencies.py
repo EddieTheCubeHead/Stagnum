@@ -125,10 +125,25 @@ class TokenHolderRaw:
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
-def validated_user_raw(token: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+# Authorization is read case-sensitively from headers and needs to be capitalized
+# noinspection PyPep8Naming
+def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+    return _get_user_from_token(Authorization, token_holder)
+
+
+def _get_user_from_token(token, token_holder):
     _logger.debug(f"Getting user for token {token}")
     user = token_holder.get_user_from_token(token)
     return user
 
 
 validated_user = Annotated[User, Depends(validated_user_raw)]
+
+
+# Authorization is read case-sensitively from headers and needs to be capitalized
+# noinspection PyPep8Naming
+def validated_user_from_query_parameters_raw(Authorization: str, token_holder: TokenHolder) -> User:
+    return _get_user_from_token(Authorization, token_holder)
+
+
+validated_user_from_query_parameters = Annotated[User, Depends(validated_user_from_query_parameters_raw)]

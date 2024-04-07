@@ -26,7 +26,7 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then((response) => {
                 updatePool(response.data)

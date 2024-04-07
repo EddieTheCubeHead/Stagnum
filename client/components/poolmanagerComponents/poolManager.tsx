@@ -27,7 +27,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { token },
+                    headers: { Authorization: token },
                 },
             )
             .then((response) => {
