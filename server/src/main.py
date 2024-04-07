@@ -2,6 +2,7 @@ import os
 from logging import getLogger
 
 from logging_config import setup_logging
+
 setup_logging()  # out of order because importing uvicorn fires off logger events
 
 import uvicorn

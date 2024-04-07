@@ -1,6 +1,7 @@
 from logging import getLogger
 
-from api.common.dependencies import SpotifyClient, RequestsClientRaw, TokenHolder, UserDatabaseConnection
+from api.common.dependencies import SpotifyClient, RequestsClientRaw, TokenHolder, UserDatabaseConnection, \
+    AuthSpotifyClient
 from api.pool.dependencies import PoolDatabaseConnection, PoolSpotifyClient, PoolPlaybackService, \
     PlaybackWebsocketUpdater
 from api.pool.randomization_algorithms import NextSongProvider
@@ -8,11 +9,14 @@ from database.database_connection import ConnectionManager
 
 _logger = getLogger("main.api.pool.tasks")
 
+_requests_client = RequestsClientRaw()
+_spotify_client = SpotifyClient(_requests_client)
 _connection_manager = ConnectionManager()
 _pool_db_connection = PoolDatabaseConnection(_connection_manager)
-_pool_spotify_client = PoolSpotifyClient(SpotifyClient(RequestsClientRaw()))
+_pool_spotify_client = PoolSpotifyClient(_spotify_client)
 _user_db_connection = UserDatabaseConnection(_connection_manager)
-_token_holder = TokenHolder(_user_db_connection)
+_auth_spotify_client = AuthSpotifyClient(_spotify_client)
+_token_holder = TokenHolder(_user_db_connection, _auth_spotify_client, None)
 _next_song_provider = NextSongProvider()
 _playback_updater = PlaybackWebsocketUpdater()
 _pool_playback_service = PoolPlaybackService(_pool_db_connection, _pool_spotify_client, _token_holder,

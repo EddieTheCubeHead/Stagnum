@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-import pytest
 from sqlalchemy import select, and_
 
 from database.entities import PoolMember
@@ -81,3 +80,9 @@ def should_return_error_if_member_is_not_users_own(test_client, shared_pool_code
 
     json_data = validate_response(response, 400)
     assert json_data["detail"] == "Can't delete a pool member added by another user."
+
+
+def should_include_token_in_headers(existing_pool: list[PoolMember], valid_token_header, test_client,
+                                    assert_token_in_headers):
+    response = test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)
+    assert_token_in_headers(response)

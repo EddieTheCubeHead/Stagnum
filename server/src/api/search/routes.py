@@ -7,7 +7,6 @@ from api.search.dependencies import SearchSpotifyClient
 from api.search.models import GeneralSearchResult, SpotifyPlayableType, TrackSearchResult, AlbumSearchResult, \
     ArtistSearchResult, PlaylistSearchResult
 
-
 _logger = getLogger("main.api.search.routes")
 
 

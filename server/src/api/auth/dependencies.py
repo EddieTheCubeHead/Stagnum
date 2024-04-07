@@ -1,17 +1,15 @@
 import base64
 import datetime
-import json
 import os
 from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
-from requests import Response
 from sqlalchemy import delete, select
 
-from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
-from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
-from api.common.helpers import create_random_string, raise_internal_server_error
+from api.auth.models import LoginRedirect, LoginSuccess
+from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder, AuthSpotifyClient
+from api.common.helpers import create_random_string, raise_internal_server_error, _get_client_id, _get_client_secret
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
 
@@ -40,9 +38,9 @@ class AuthDatabaseConnectionRaw:
     def update_logged_in_user(self, user: User, token_result: ParsedTokenResponse, state: str = None):
         _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
+            token_expiry = datetime.datetime.now() + datetime.timedelta(seconds=token_result.expires_in)
             user.session = UserSession(user_token=token_result.token, refresh_token=token_result.refresh_token,
-                                       expires_at=datetime.datetime.now() + datetime.timedelta(
-                                           seconds=token_result.expires_in))
+                                       expires_at=token_expiry)
             session.merge(user)
             if state is None:
                 return
@@ -53,66 +51,12 @@ class AuthDatabaseConnectionRaw:
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]
 
 
-_ALLOWED_PRODUCT_TYPES = {"premium"}
-
-
-class AuthSpotifyClientRaw:
-
-    def __init__(self, spotify_client: SpotifyClient):
-        self._spotify_client = spotify_client
-
-    def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str) -> SpotifyTokenResponse:
-        form = {
-            "code": code,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code"
-        }
-        token = base64.b64encode((client_id + ':' + client_secret).encode('ascii')).decode('ascii')
-        headers = {
-            "Authorization": "Basic " + token,
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-
-        data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
-                                         data=form)
-        return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
-                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
-
-    def get_me(self, token: str):
-        headers = {
-            "Authorization": token
-        }
-        data = self._spotify_client.get("me", headers=headers)
-        if data["product"] not in _ALLOWED_PRODUCT_TYPES:
-            raise HTTPException(status_code=401,
-                                detail="You need to have a Spotify Premium subscription to use Stagnum!")
-        user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
-        return User(spotify_id=data["id"], spotify_username=data["display_name"],
-                    spotify_avatar_url=user_avatar_url)
-
-
-AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
-
 _required_scopes = [
     "user-read-playback-state",
     "user-modify-playback-state",
     "user-read-private",
     "user-read-email"
 ]
-
-
-def _get_client_id():
-    client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
-    if client_id is None:
-        raise_internal_server_error("Could not find spotify client ID in environment variables")
-    return client_id
-
-
-def _get_client_secret():
-    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
-    if client_secret is None:
-        raise_internal_server_error("Could not find spotify client secret in environment variables")
-    return client_secret
 
 
 class AuthServiceRaw:

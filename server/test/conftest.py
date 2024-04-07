@@ -7,14 +7,18 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
+from sqlalchemy import select
+from starlette.responses import Response
 from starlette.testclient import TestClient
 
 from api.application import create_app
 from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection
+from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection, \
+    AuthSpotifyClient, SpotifyClient
 from api.common.models import ParsedTokenResponse
+from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
-from database.entities import User
+from database.entities import User, PoolMember
 
 
 @pytest.fixture
@@ -66,9 +70,19 @@ def validate_response():
 
 
 @pytest.fixture
-def mock_token_holder(application, db_connection):
+def spotify_client(requests_client):
+    return SpotifyClient(requests_client)
+
+
+@pytest.fixture
+def auth_spotify_client(spotify_client):
+    return AuthSpotifyClient(spotify_client)
+
+
+@pytest.fixture
+def mock_token_holder(application, db_connection, auth_spotify_client):
     user_database_connection = UserDatabaseConnection(db_connection)
-    token_holder = TokenHolder(user_database_connection)
+    token_holder = TokenHolder(user_database_connection, auth_spotify_client, None)
     application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
@@ -77,7 +91,7 @@ def mock_token_holder(application, db_connection):
 def create_token(faker) -> Callable[[], ParsedTokenResponse]:
     def wrapper() -> ParsedTokenResponse:
         token = faker.uuid4()
-        return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=999999)
+        return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=3600)
     
     return wrapper
 
@@ -367,3 +381,48 @@ def spotify_error_message(request, requests_client) -> ErrorData:
         mock_return.content = json.dumps({"error": expected_error_message}).encode("utf-8")
         mock_method.return_value = mock_return
     return ErrorData(expected_error_message, code)
+
+
+@pytest.fixture
+def assert_token_in_headers(validate_response) -> Callable[[Response], str]:
+    def wrapper(response: Response) -> str:
+        validate_response(response)
+        header_token = response.headers["Authorization"]
+        assert len(header_token) > 0
+        assert type(header_token) == str
+        return header_token
+
+    return wrapper
+
+
+@pytest.fixture
+def create_pool_creation_data_json():
+    def wrapper(*uris: str):
+        return PoolCreationData(
+            spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
+        ).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
+                  create_pool_creation_data_json, test_client, validate_response, valid_token_header,
+                  db_connection, logged_in_user_id) -> list[PoolMember]:
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
+    responses = [build_success_response(track) for track in tracks]
+    requests_client.get = Mock(side_effect=responses)
+    data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    with db_connection.session() as session:
+        members = session.scalars(select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
+    return members
+
+
+@pytest.fixture
+def requests_client_with_auth_mock(requests_client, default_token_return, default_me_return):
+    requests_client.post = Mock(return_value=default_token_return)
+    requests_client.get = Mock(return_value=default_me_return)
+    return default_token_return.content

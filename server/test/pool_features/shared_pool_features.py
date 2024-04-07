@@ -1,10 +1,8 @@
-import time
 from unittest.mock import Mock
 
 import pytest
 
 from api.pool.models import PoolContent
-
 
 
 def should_return_pool_code_from_share_route(existing_playback, test_client, validate_response, valid_token_header):
@@ -75,7 +73,7 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_cl
                                                        validate_response, valid_token_header, existing_pool,
                                                        logged_in_user_id, create_mock_playlist_fetch_result,
                                                        requests_client, build_success_response, get_query_parameter,
-                                                       weighted_parameters):
+                                                       weighted_parameters, skip_song):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(15)
     requests_client.get = Mock(return_value=build_success_response(playlist))
@@ -84,13 +82,13 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_cl
 
     original_user_played_uris = set()
     for _ in range(99):
-        test_client.post("/pool/playback/skip", headers=valid_token_header)
+        skip_song(valid_token_header)
         actual_queue_call = requests_client.post.call_args_list[-2]
         original_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
 
     joined_user_played_uris = set()
     for _ in range(99):
-        test_client.post("/pool/playback/skip", headers=another_logged_in_user_header)
+        skip_song(another_logged_in_user_header)
         actual_queue_call = requests_client.post.call_args_list[-2]
         joined_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
 
@@ -164,3 +162,15 @@ def should_return_error_response_when_attempting_to_share_own_pool_with_existing
 
     result = validate_response(response, 400)
     assert result["detail"] == "Pool already shared!"
+
+
+def should_return_token_in_headers_for_share_route(existing_playback, test_client, valid_token_header,
+                                                   assert_token_in_headers):
+    response = test_client.post("/pool/share", headers=valid_token_header)
+    assert_token_in_headers(response)
+
+
+def should_return_token_in_headers_for_join_route(shared_pool_code, test_client, another_logged_in_user_header,
+                                                  assert_token_in_headers):
+    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    assert_token_in_headers(response)
