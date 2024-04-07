@@ -71,14 +71,12 @@ class PoolSpotifyClientRaw:
         return self._fetch_methods[content_type](user, content_id)
 
     def _fetch_track(self, user: User, track_id: str) -> PoolTrack:
-        raw_track_data = self._spotify_client.get(f"tracks/{track_id}", headers=build_auth_header(user))
-        track_data = json.loads(raw_track_data.content.decode("utf-8"))
+        track_data = self._spotify_client.get(f"tracks/{track_id}", headers=build_auth_header(user))
         return PoolTrack(name=track_data["name"], spotify_icon_uri=get_sharpest_icon(track_data["album"]["images"]),
                          spotify_track_uri=track_data["uri"], duration_ms=track_data["duration_ms"])
 
     def _fetch_album(self, user: User, album_id: str) -> PoolCollection:
-        raw_album_data = self._spotify_client.get(f"albums/{album_id}", headers=build_auth_header(user))
-        album_data = json.loads(raw_album_data.content.decode("utf-8"))
+        album_data = self._spotify_client.get(f"albums/{album_id}", headers=build_auth_header(user))
         sharpest_icon_url = get_sharpest_icon(album_data["images"])
         tracks = _build_tracks_with_image(album_data["tracks"]["items"], sharpest_icon_url)
         return PoolCollection(name=album_data["name"], spotify_icon_uri=sharpest_icon_url, tracks=tracks,
@@ -86,10 +84,8 @@ class PoolSpotifyClientRaw:
 
     def _fetch_artist(self, user: User, artist_id: str) -> PoolCollection:
         token_header = build_auth_header(user)
-        raw_artist_data = self._spotify_client.get(f"artists/{artist_id}", headers=token_header)
-        artist_data = json.loads(raw_artist_data.content.decode("utf-8"))
-        raw_artist_track_data = self._spotify_client.get(f"artists/{artist_id}/top-tracks", headers=token_header)
-        artist_track_data = json.loads(raw_artist_track_data.content.decode("utf-8"))
+        artist_data = self._spotify_client.get(f"artists/{artist_id}", headers=token_header)
+        artist_track_data = self._spotify_client.get(f"artists/{artist_id}/top-tracks", headers=token_header)
         tracks = _build_tracks_without_image(artist_track_data["tracks"])
         return PoolCollection(name=artist_data["name"], spotify_icon_uri=get_sharpest_icon(artist_data["images"]),
                               tracks=tracks, spotify_collection_uri=artist_data["uri"])
@@ -101,8 +97,7 @@ class PoolSpotifyClientRaw:
                               tracks=tracks, spotify_collection_uri=playlist_data["uri"])
 
     def _fully_fetch_playlist(self, playlist_id: str, user: User):
-        raw_playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=build_auth_header(user))
-        playlist_data = json.loads(raw_playlist_data.content.decode("utf-8"))
+        playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=build_auth_header(user))
         if playlist_data["tracks"]["next"] is not None:
             self._fetch_large_playlist_tracks(playlist_data, user)
         return playlist_data
@@ -110,9 +105,7 @@ class PoolSpotifyClientRaw:
     def _fetch_large_playlist_tracks(self, playlist_data, user: User):
         track_walker = playlist_data["tracks"]
         while track_walker["next"] is not None:
-            raw_next_track_data = self._spotify_client.get(override_url=track_walker["next"],
-                                                           headers=build_auth_header(user))
-            track_walker = json.loads(raw_next_track_data.content.decode("utf-8"))
+            track_walker = self._spotify_client.get(override_url=track_walker["next"], headers=build_auth_header(user))
             playlist_data["tracks"]["items"].extend(track_walker["items"])
 
     def start_playback(self, user: User, track_uri: str):
@@ -182,12 +175,21 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
         and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%")))).unique().all())
 
 
-def _delete_pool_member(content_uri: str, user: User, session: Session):
-    _logger.debug(f"Deleting pool member with uri {content_uri} and all children "
-                  f"from user {user.spotify_username}'s pool")
+def _get_and_validate_member_to_delete(content_uri: str, user: User, session: Session) -> PoolMember:
+    matching_members = session.scalars(select(PoolMember).where(PoolMember.content_uri == content_uri)).unique().all()
+    if len(matching_members) == 0:
+        raise HTTPException(status_code=404, detail="Can't delete a pool member that does not exist.")
 
-    possible_parent = session.scalar(
-        select(PoolMember).where(and_(PoolMember.content_uri == content_uri, PoolMember.user_id == user.spotify_id)))
+    owned_members = [member for member in matching_members if member.user_id == user.spotify_id]
+    if len(owned_members) == 0:
+        raise HTTPException(status_code=400, detail="Can't delete a pool member added by another user.")
+
+    return owned_members[0]
+
+
+def _delete_pool_member(possible_parent: PoolMember, user: User, session: Session):
+    _logger.debug(f"Deleting pool member with uri {possible_parent.content_uri} and all children "
+                  f"from user {user.spotify_username}'s pool")
 
     session.execute(delete(PoolMemberRandomizationParameters).where(PoolMemberRandomizationParameters.pool_member.has(
         and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id))))
@@ -294,7 +296,8 @@ class PoolDatabaseConnectionRaw:
 
     def delete_from_pool(self, content_uri: str, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
-            _delete_pool_member(content_uri, user, session)
+            pool_member = _get_and_validate_member_to_delete(content_uri, user, session)
+            _delete_pool_member(pool_member, user, session)
             whole_pool = _get_user_pool(user, session)
         return whole_pool
 
@@ -325,7 +328,7 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
                 select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
-            if existing_playback is not None and existing_playback.current_track is not None:
+            if existing_playback is not None and existing_playback.current_track_uri is not None:
                 _update_user_playback(existing_playback, playing_track, override_timestamp)
             else:
                 _crete_user_playback(session, user, playing_track)
@@ -401,7 +404,11 @@ class PoolWebsocketUpdaterRaw:
 
     async def pool_updated(self, pool_contents: PoolFullContents, pool_id: int):
         for websocket in self._pool_sockets.get(pool_id, ()):
-            await websocket.send_json(pool_contents.model_dump())
+            websocket_event = {
+                "type": "model",
+                "model": pool_contents.model_dump()
+            }
+            await websocket.send_json(websocket_event)
 
 
 PoolWebsocketUpdater = Annotated[PoolWebsocketUpdaterRaw, Depends()]
@@ -417,7 +424,11 @@ class PlaybackWebsocketUpdaterRaw:
 
     async def playback_updated(self, new_track: PoolTrack, pool_id: int):
         for websocket in self._playback_sockets.get(pool_id, ()):
-            await websocket.send_json(new_track.model_dump())
+            websocket_event = {
+                "type": "model",
+                "model": new_track.model_dump()
+            }
+            await websocket.send_json(websocket_event)
 
 
 PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
@@ -436,7 +447,8 @@ class PoolPlaybackServiceRaw:
 
     def start_playback(self, user: User) -> PoolTrack:
         all_tracks = self._database_connection.get_playable_tracks(user)
-        next_track = random.choice(all_tracks)
+        users = self._database_connection.get_pool_users(user)
+        next_track = self._next_song_provider.select_next_song(all_tracks, users)
         self._spotify_client.start_playback(user, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
         return map_pool_member_entity_to_model(next_track)

@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock, call
 
 import pytest
@@ -5,6 +6,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
+from conftest import ErrorData
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 
@@ -50,6 +52,17 @@ def should_save_pool_in_database_with_user_id_when_created(test_client: TestClie
     assert actual_pool_content.duration_ms == my_track["duration_ms"]
 
 
+def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header, validate_response,
+                                             create_mock_track_search_result, create_pool_creation_data_json,
+                                             spotify_error_message: ErrorData):
+    my_track = create_mock_track_search_result()
+    data_json = create_pool_creation_data_json(my_track["uri"])
+    response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
+
+
 def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header,
                                              create_mock_album_search_result, validate_response,
                                              create_mock_track_search_result, create_mock_artist_search_result,
@@ -63,7 +76,7 @@ def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_toke
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/albums/{album['id']}",
-                                           headers={"Authorization": valid_token_header["token"]})
+                                           headers=valid_token_header)
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -108,10 +121,10 @@ def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_tok
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     assert requests_client.get.call_args_list[0] == call(f"https://api.spotify.com/v1/artists/{artist['id']}",
-                                                         headers={"Authorization": valid_token_header["token"]})
+                                                         headers=valid_token_header)
     assert (requests_client.get.call_args_list[1]
             == call(f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks",
-                    headers={"Authorization": valid_token_header["token"]}))
+                    headers=valid_token_header))
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -156,7 +169,7 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
-                                           headers={"Authorization": valid_token_header["token"]})
+                                           headers=valid_token_header)
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -267,4 +280,4 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_
                                            .options(joinedload(PoolMember.children)))
     assert actual_parent.name == playlist["name"]
     assert len(actual_parent.children) == playlist_length
-    assert requests_client.get.call_args.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert requests_client.get.call_args.kwargs["headers"] == valid_token_header

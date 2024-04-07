@@ -1,36 +1,34 @@
-import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import React, { useState } from 'react';
-import axios from "axios";
-import Album from "@/types/albumTypes";
-import Artist from "@/types/artistTypes";
-import Playlist from "@/types/playlistTypes";
-import Track from "@/types/trackTypes";
+import { IconButton, Menu, MenuItem, Tooltip } from '@mui/material'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import React, { useState } from 'react'
+import axios from 'axios'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
-interface Props {
+interface ShowMoreIconButtonProps {
     token: string
     item: Track | Album | Playlist | Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
 }
 
-export default function ShowMoreIconButton({
+const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
     token,
     item,
     updatePool,
-    enableAddButton
-}: Props) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    enableAddButton,
+}) => {
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
+        setAnchorEl(event.currentTarget)
+    }
 
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
+    const handleClose = (): void => {
+        setAnchorEl(null)
+    }
 
-    const createPool = () => {
+    const createPool = (): void => {
         const requestData = {
             spotify_uris: [
                 {
@@ -43,29 +41,29 @@ export default function ShowMoreIconButton({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch((error) => {
-                console.log("Request failed", error);
-            });
-    };
+            .catch(() => {
+                // TODO Error alert
+            })
+    }
 
     return (
         <>
-            <Tooltip title='Show more'>
+            <Tooltip title="Show more">
                 <IconButton
                     aria-label=""
                     onClick={handleClick}
                     sx={{
-                        "&:hover": {
+                        '&:hover': {
                             color: 'white',
                         },
                         color: 'black',
-                        margin: 1
+                        margin: 1,
                     }}
                 >
                     <MoreHorizIcon />
@@ -75,11 +73,12 @@ export default function ShowMoreIconButton({
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
-                sx={{
-                }}
+                sx={{}}
             >
                 <MenuItem onClick={createPool}>Create pool</MenuItem>
             </Menu>
         </>
     )
 }
+
+export default ShowMoreIconButton

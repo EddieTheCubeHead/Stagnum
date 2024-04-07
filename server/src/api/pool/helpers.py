@@ -9,7 +9,7 @@ _logger = getLogger("main.api.pool.helpers")
 
 def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
     return [PoolTrack(name=track.name,
-                      spotify_icon_uri=collection.image_url,
+                      spotify_icon_uri=track.image_url,
                       spotify_track_uri=track.content_uri,
                       duration_ms=track.duration_ms)
             for track in collection.children]

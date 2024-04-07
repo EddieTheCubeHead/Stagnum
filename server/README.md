@@ -86,9 +86,12 @@ There are further optional environment variables you can use to customize the be
 
 - `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation. Default
 `sqlite:///:memory:`
+- `VERBOSE_SQLALCHEMY`: control whether SQLAlchemy should output information into the console. Default `False`
 - `HOST`: control the host ip of the server. Default `127.0.0.1`
 - `PORT`: control the port of the server. Default `8000`
 - `RELOAD`: control whether the server should auto-reload on updates. Default `True`
+- `ENVIRONMENT`: control whether the server is run as a production server, or as a development server. Affects errors
+with error code 500. Value `production` (caps-insensitive) hides further information. Default `production`
 
 Finally, we have environmental variables for customizing randomization in pool playback. Setting these is optional,
 the server will use default values if these are not set

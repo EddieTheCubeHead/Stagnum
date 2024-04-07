@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from api.common.dependencies import validated_user_raw
+from conftest import ErrorData
 from database.entities import LoginState, User
 
 
@@ -111,7 +112,8 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct
     response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
                                f"&client_redirect_uri=test_url")
     exception = validate_response(response, 403)
-    assert exception["detail"] == "Login state is invalid or expired"
+    assert exception["detail"] == ("Login state is invalid or expired. "
+                                   "Please restart the login flow to ensure a fresh and valid state.")
 
 
 def should_delete_state_from_database_on_successful_login(correct_env_variables, base_auth_callback_call,
@@ -221,16 +223,14 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
     assert actual_token.session.user_token == json_data["access_token"]
 
 
-@pytest.mark.parametrize("code", [401, 403, 404, 500])
 def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_variables, validate_response,
                                                                  base_auth_callback_call, requests_client,
-                                                                 requests_client_with_auth_mock, code):
-    requests_client.post.return_value.status_code = code
-    expected_error_message = "my error message"
-    requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+                                                                 requests_client_with_auth_mock,
+                                                                 spotify_error_message: ErrorData):
     response = base_auth_callback_call()
-    json_data = validate_response(response, code)
-    assert json_data["detail"] == expected_error_message
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
 
 
 @pytest.mark.parametrize("default_me_return", [SubscriptionType.Free, SubscriptionType.Open], indirect=True)
@@ -270,3 +270,33 @@ def should_allow_another_log_in_after_first_one(correct_env_variables, validate_
     response = base_auth_callback_call(new_state)
 
     validate_response(response)
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client ID in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_id_not_present(monkeypatch, validate_response, test_client, environment,
+                                                             primary_valid_state_string, error_message):
+    client_secret = "my_client_secret"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client secret in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_secret_not_present(monkeypatch, test_client, error_message, environment,
+                                                                 primary_valid_state_string, validate_response):
+    client_id = "my_client_id"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message

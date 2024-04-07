@@ -1,14 +1,13 @@
-import datetime
 import functools
+import json
 from logging import getLogger
 from typing import Annotated
 
 import requests
 from fastapi import Depends, HTTPException, Header
 from requests import Response
-from sqlalchemy import select, and_
+from sqlalchemy import select
 
-from api.common.models import ParsedTokenResponse
 from database.database_connection import ConnectionManager
 from database.entities import User, UserSession
 
@@ -50,24 +49,36 @@ class RequestsClientRaw:
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
+def _validate_and_decode(response: Response) -> dict:
+    parsed_data = json.loads(response.content.decode("utf8"))
+    if response.status_code >= 400:
+        error_message = (f"Error code {response.status_code} received while calling Spotify API. "
+                         f"Message: {parsed_data["error"]}")
+        raise HTTPException(status_code=502, detail=error_message)
+    return parsed_data
+
+
 class SpotifyClientRaw:
     def __init__(self, request_client: RequestsClient):
         self._request_client = request_client
 
-    def get(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+    def get(self, query: str = None, *args, override_url: str = None, **kwargs) -> dict:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.get(f"{query}", *args, **kwargs)
+        raw_response = self._request_client.get(f"{query}", *args, **kwargs)
+        return _validate_and_decode(raw_response)
 
-    def post(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+    def post(self, query: str = None, *args, override_url: str = None, **kwargs) -> dict:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.post(f"{query}", *args, **kwargs)
+        raw_response = self._request_client.post(f"{query}", *args, **kwargs)
+        return _validate_and_decode(raw_response)
 
-    def put(self, query: str = None, *args, override_url: str = None, **kwargs) -> Response:
+    def put(self, query: str = None, *args, override_url: str = None, **kwargs):
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")
-        return self._request_client.put(f"{query}", *args, **kwargs)
+        raw_response = self._request_client.put(f"{query}", *args, **kwargs)
+        return _validate_and_decode(raw_response)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
@@ -125,10 +136,25 @@ class TokenHolderRaw:
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 
-def validated_user_raw(token: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+# Authorization is read case-sensitively from headers and needs to be capitalized
+# noinspection PyPep8Naming
+def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+    return _get_user_from_token(Authorization, token_holder)
+
+
+def _get_user_from_token(token, token_holder):
     _logger.debug(f"Getting user for token {token}")
     user = token_holder.get_user_from_token(token)
     return user
 
 
 validated_user = Annotated[User, Depends(validated_user_raw)]
+
+
+# Authorization is read case-sensitively from headers and needs to be capitalized
+# noinspection PyPep8Naming
+def validated_user_from_query_parameters_raw(Authorization: str, token_holder: TokenHolder) -> User:
+    return _get_user_from_token(Authorization, token_holder)
+
+
+validated_user_from_query_parameters = Annotated[User, Depends(validated_user_from_query_parameters_raw)]
