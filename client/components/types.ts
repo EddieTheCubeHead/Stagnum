@@ -1,23 +1,18 @@
+interface SimpleArtistData {
+    name: string
+    link: string
+}
+
 export interface Track {
     name: string
     link: string
     uri: string
-    artists: [
-        {
-            name: string
-            link: string
-        },
-    ]
+    artists: SimpleArtistData[]
     album: {
         name: string
         link: string
         uri: string
-        artists: [
-            {
-                name: string
-                link: string
-            },
-        ]
+        artists: SimpleArtistData[]
         year: number
         icon_link: string
     }
@@ -42,12 +37,7 @@ export interface Album {
     name: string
     link: string
     uri: string
-    artists: [
-        {
-            name: string
-            link: string
-        },
-    ]
+    artists: SimpleArtistData[]
     year: number
     icon_link: string
 }
