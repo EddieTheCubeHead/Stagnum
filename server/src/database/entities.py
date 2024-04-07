@@ -48,8 +48,8 @@ class PoolMember(EntityBase):
     content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
-    parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
-                                           default=None, nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
+                                                  default=None, nullable=True)
 
     parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent")

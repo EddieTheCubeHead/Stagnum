@@ -134,12 +134,12 @@ def implement_pool_from_members(test_client, create_token, log_user_in, create_h
 
 @pytest.mark.slow
 @pytest.mark.parametrize("existing_playback", [2], indirect=True)
-def should_always_alternate_songs_in_two_song_queue(existing_playback, test_client, valid_token_header,
-                                                    requests_client, get_query_parameter, weighted_parameters):
+def should_always_alternate_songs_in_two_song_queue(existing_playback, valid_token_header, skip_song, requests_client,
+                                                    get_query_parameter, weighted_parameters):
     assert len(existing_playback) == 2
     last_call_uri = None
     for _ in range(20):
-        test_client.post("/pool/playback/skip", headers=valid_token_header)
+        skip_song(valid_token_header)
         actual_queue_call = requests_client.post.call_args_list[-2]
         track_uri = get_query_parameter(actual_queue_call.args[0], "uri")
         assert last_call_uri != track_uri
@@ -165,13 +165,13 @@ def should_respect_custom_weight(next_song_provider, create_test_users, create_p
 
 
 @pytest.mark.slow
-def should_balance_users_by_playtime(create_test_users, create_pool_from_users, weighted_parameters, test_client,
+def should_balance_users_by_playtime(create_test_users, create_pool_from_users, weighted_parameters, skip_song,
                                      valid_token_header, db_connection, implement_pool_from_members):
     users = create_test_users(4)
     pool = create_pool_from_users(*[(user, 50) for user in users])
     implement_pool_from_members(users, pool)
     for _ in range(999):
-        test_client.post("/pool/playback/skip", headers=valid_token_header)
+        skip_song(valid_token_header)
     with db_connection.session() as session:
         pool_users = session.scalars(select(PoolJoinedUser)).unique().all()
     pool_users_playtime = [user.playback_time_ms for user in pool_users]
