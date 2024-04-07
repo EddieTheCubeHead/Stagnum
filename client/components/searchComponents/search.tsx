@@ -39,7 +39,7 @@ const Search: React.FC<SearchProps> = ({
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then((response) => {
                 if (!expanded) {
@@ -55,7 +55,7 @@ const Search: React.FC<SearchProps> = ({
     const handleJoinRequest = (): void => {
         axios
             .post(`${backend_uri}/pool/join/${idQuery}`, {
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then((response) => {
                 updatePool(response.data)
