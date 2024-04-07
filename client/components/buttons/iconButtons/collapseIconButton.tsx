@@ -2,13 +2,18 @@ import { IconButton } from '@mui/material'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-export default function CollapseiconButton(props: {
+interface CollapseIconButtonProps {
     expanded: boolean
     handleExpandClick: () => void
-}) {
+}
+
+const CollapseIconButton: React.FC<CollapseIconButtonProps> = ({
+    expanded,
+    handleExpandClick,
+}) => {
     return (
-        <IconButton onClick={props.handleExpandClick}>
-            {props.expanded ? (
+        <IconButton onClick={handleExpandClick}>
+            {expanded ? (
                 <ExpandLessIcon color="primary" fontSize="large" />
             ) : (
                 <ExpandMoreIcon color="primary" fontSize="large" />
@@ -16,3 +21,5 @@ export default function CollapseiconButton(props: {
         </IconButton>
     )
 }
+
+export default CollapseIconButton

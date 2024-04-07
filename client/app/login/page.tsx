@@ -6,11 +6,10 @@ import Image from 'next/image'
 import { Box, Link, Stack, Typography } from '@mui/material'
 import DefaultButton from '@/components/buttons/defaulButton'
 
-export default function Login() {
+const LoginPage: React.FC = () => {
     const router = useRouter()
 
-    const handleLoginRequest = () => {
-        console.log('Sending login request')
+    const handleLoginRequest = (): void => {
         const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
         const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -18,12 +17,11 @@ export default function Login() {
             .get(`${backend_uri}/auth/login`, {
                 params: { client_redirect_uri },
             })
-            .then(function (response) {
-                console.log(response.data.redirect_uri)
+            .then((response) => {
                 router.push(response.data.redirect_uri)
             })
             .catch(() => {
-                console.log('Request failed')
+                // TODO Error alert
             })
     }
 
@@ -119,3 +117,5 @@ export default function Login() {
         </Box>
     )
 }
+
+export default LoginPage

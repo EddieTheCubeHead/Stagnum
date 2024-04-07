@@ -1,21 +1,25 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import DefaultButton from '../../buttons/defaulButton'
-import theme from '@/utils/theme'
-import Artist from '@/types/artistTypes'
-import Track from '@/types/trackTypes'
-import Album from '@/types/albumTypes'
-import Playlist from '@/types/playlistTypes'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
 import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
+import { Album, Pool } from '@/components/types'
 
-export default function ArtistCard(props: {
-    artist: Artist
+interface AlbumCardProps {
+    album: Album
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
+}
+
+const AlbumCard: React.FC<AlbumCardProps> = ({
+    album,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+}) => {
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box
@@ -26,34 +30,36 @@ export default function ArtistCard(props: {
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {props.artist.icon_link && (
+                    {album.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.artist.icon_link})`,
+                                backgroundImage: `url(${album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
                     )}
-                    <Header3 text={props.artist.name} />
+                    <Header3 text={album.name} />
                 </Box>
                 <Box>
                     <AddToPoolButton
-                        newAdd={props.artist}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
+                        newAdd={album}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
                     />
                     <ShowMoreIconButton
-                        token={props.token}
-                        item={props.artist}
-                        updatePool={props.updatePool}
-                        enableAddButton={props.enableAddButton}
+                        token={token}
+                        item={album}
+                        updatePool={updatePool}
+                        enableAddButton={enableAddButton}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default AlbumCard
