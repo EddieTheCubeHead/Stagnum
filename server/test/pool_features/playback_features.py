@@ -122,7 +122,7 @@ async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_aw
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_call.args[0], "uri")
     assert called_uri in [track["uri"] for track in existing_playback]
-    assert actual_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert actual_call.kwargs["headers"] == valid_token_header
 
 
 def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, monkeypatch,
@@ -147,7 +147,7 @@ def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(
 async def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
                                                     valid_token_header, mock_token_holder: TokenHolder,
                                                     logged_in_user_id, fixed_track_length_ms, monkeypatch):
-    mock_token_holder.log_out(valid_token_header["token"])
+    mock_token_holder.log_out(valid_token_header["Authorization"])
 
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
@@ -174,7 +174,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
                                                      create_mock_track_search_result, build_success_response,
                                                      requests_client, create_pool_creation_data_json, test_client,
                                                      primary_user_token):
-    mock_token_holder.log_out(valid_token_header["token"])
+    mock_token_holder.log_out(valid_token_header["Authorization"])
 
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
@@ -213,9 +213,9 @@ def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_h
     assert actual_queue_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_queue_call.args[0], "uri")
     assert called_uri in [track["uri"] for track in existing_playback]
-    assert actual_queue_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert actual_queue_call.kwargs["headers"] == valid_token_header
     assert actual_skip_call.args[0].startswith("https://api.spotify.com/v1/me/player/next")
-    assert actual_skip_call.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert actual_skip_call.kwargs["headers"] == valid_token_header
 
 
 def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_token_header, test_client,

@@ -1,13 +1,15 @@
 import React from 'react'
 import { Link, Box, Grid } from '@mui/material'
-import theme from '@/utils/theme'
+import theme from '@/components/theme'
 import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
-import Playlist from '@/types/playlistTypes'
+import { Playlist } from '../types'
 
-//TODO: This footer needs to be fixed. It is not responsive and it overlaps with page components.
+interface FooterProps {
+    token: string
+}
 
-const Footer = (props: { token: string }) => {
+const Footer: React.FC<FooterProps> = ({ token }) => {
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
@@ -41,13 +43,14 @@ const Footer = (props: { token: string }) => {
                     <img
                         src={playlist.icon_link}
                         style={{ width: 50, height: 50, padding: 0, margin: 0 }}
+                        alt="Track image"
                     />
                     <Text
                         text={playlist.name}
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton token={props.token} />
+                    <SkipButton token={token} />
                 </Grid>
                 <Grid
                     item

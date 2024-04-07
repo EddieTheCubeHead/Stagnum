@@ -1,10 +1,12 @@
-import theme from '@/utils/theme'
+import theme from '@/components/theme'
 import { TextField } from '@mui/material'
 import { Dispatch, SetStateAction } from 'react'
 
-export default function SearchInput(props: {
+interface SearchInputProps {
     setQuery: Dispatch<SetStateAction<string>>
-}) {
+}
+
+const SearchInput: React.FC<SearchInputProps> = ({ setQuery }) => {
     return (
         <TextField
             sx={{
@@ -16,7 +18,9 @@ export default function SearchInput(props: {
             }}
             id="standard-search"
             label="Search field"
-            onChange={(e) => props.setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
         />
     )
 }
+
+export default SearchInput

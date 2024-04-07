@@ -75,7 +75,7 @@ def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_toke
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/albums/{album['id']}",
-                                           headers={"Authorization": valid_token_header["token"]})
+                                           headers=valid_token_header)
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -120,10 +120,10 @@ def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_tok
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     assert requests_client.get.call_args_list[0] == call(f"https://api.spotify.com/v1/artists/{artist['id']}",
-                                                         headers={"Authorization": valid_token_header["token"]})
+                                                         headers=valid_token_header)
     assert (requests_client.get.call_args_list[1]
             == call(f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks",
-                    headers={"Authorization": valid_token_header["token"]}))
+                    headers=valid_token_header))
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -168,7 +168,7 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
-                                           headers={"Authorization": valid_token_header["token"]})
+                                           headers=valid_token_header)
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
@@ -279,4 +279,4 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_
                                            .options(joinedload(PoolMember.children)))
     assert actual_parent.name == playlist["name"]
     assert len(actual_parent.children) == playlist_length
-    assert requests_client.get.call_args.kwargs["headers"]["Authorization"] == valid_token_header["token"]
+    assert requests_client.get.call_args.kwargs["headers"] == valid_token_header

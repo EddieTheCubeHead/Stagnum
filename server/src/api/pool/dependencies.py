@@ -330,7 +330,7 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
                 select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
-            if existing_playback is not None and existing_playback.current_track is not None:
+            if existing_playback is not None and existing_playback.current_track_uri is not None:
                 _update_user_playback(existing_playback, playing_track, override_timestamp)
             else:
                 _crete_user_playback(session, user, playing_track)
@@ -464,7 +464,8 @@ class PoolPlaybackServiceRaw:
 
     def start_playback(self, user: User) -> PoolTrack:
         all_tracks = self._database_connection.get_playable_tracks(user)
-        next_track = self._get_next_track(all_tracks, user)
+        users = self._database_connection.get_pool_users(user)
+        next_track = self._next_song_provider.select_next_song(all_tracks, users)
         self._spotify_client.start_playback(user, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
         return map_pool_member_entity_to_model(next_track)
