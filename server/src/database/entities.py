@@ -69,8 +69,8 @@ class PoolMemberRandomizationParameters(EntityBase):
 
 class Pool(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
-    owner_user_id: Mapped[int] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
+    owner_user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
     joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
     share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
