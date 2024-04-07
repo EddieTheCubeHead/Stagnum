@@ -21,7 +21,7 @@ export default function ManagePool(props: {
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { token },
+                    headers: { Authorization: token },
                 },
             )
             .then(function (response) {
