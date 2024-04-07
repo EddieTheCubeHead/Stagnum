@@ -392,6 +392,10 @@ class PoolDatabaseConnectionRaw:
             playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
             played_user.playback_time_ms += playtime
 
+    def get_pool_for_playback_session(self, playback_session: PlaybackSession) -> Pool:
+        with self._database_connection.session() as session:
+            return session.scalar(select(Pool).where(Pool.owner_user_id == playback_session.user_id))
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -433,6 +437,17 @@ class PlaybackWebsocketUpdaterRaw:
             await websocket.send_json(websocket_event)
 
 
+    async def send_error(self, error: Exception, pool_id: int):
+        for websocket in self._playback_sockets.get(pool_id, ()):
+            websocket_event = {
+                "type": "error",
+                "model": {
+                    "detail": str(error)
+                }
+            }
+            await websocket.send_json(websocket_event)
+
+
 PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
 
 
@@ -457,7 +472,11 @@ class PoolPlaybackServiceRaw:
     async def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
-            await self._update_playback(playback)
+            try:
+                await self._update_playback(playback)
+            except QueueNotEmptyException as exception:
+                pool = self._database_connection.get_pool_for_playback_session(playback)
+                await self._playback_updater.send_error(exception, pool.id)
 
     async def _update_playback(self, playback: PlaybackSession):
         if not self._token_holder.is_user_logged_in(playback.user_id):
