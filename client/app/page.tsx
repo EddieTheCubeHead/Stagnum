@@ -46,7 +46,7 @@ const HomeContent: React.FC = () => {
         if (code && state) {
             handleTokenRequest(code, state)
         } else {
-            //redirect('/login')
+            redirect('/login')
         }
     })
 
