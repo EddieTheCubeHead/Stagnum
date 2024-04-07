@@ -161,7 +161,7 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
 
 @pytest.fixture
 def another_logged_in_user_header(another_logged_in_user_token):
-    return {"token": another_logged_in_user_token}
+    return {"Authorization": another_logged_in_user_token}
 
 
 @pytest.fixture

@@ -43,7 +43,7 @@ export default function ShowMoreIconButton({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
             .then(function (response) {
                 updatePool(response.data)

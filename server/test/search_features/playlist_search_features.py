@@ -31,7 +31,7 @@ def should_query_spotify_for_playlists_with_provided_query_string(test_client, v
     requests_client.get = Mock(return_value=create_playlist_paginated_search(query))
     test_client.get(f"/search/playlists?query={query}", headers=valid_token_header)
     full_query = f"https://api.spotify.com/v1/search?q={query}&type=playlist&offset=0&limit=20"
-    requests_client.get.assert_called_with(full_query, headers={"Authorization": valid_token_header["token"]})
+    requests_client.get.assert_called_with(full_query, headers=valid_token_header)
 
 
 def should_return_less_results_if_twenty_not_found(test_client, valid_token_header, validate_response, requests_client,
@@ -53,6 +53,6 @@ def should_use_offset_and_limit_if_provided(test_client, valid_token_header, req
     requests_client.get = Mock(return_value=create_playlist_paginated_search(query, limit))
     result = test_client.get(f"/search/playlists?query={query}&offset={offset}&limit={limit}", headers=valid_token_header)
     full_query = f"https://api.spotify.com/v1/search?q={query}&type=playlist&offset={offset}&limit={limit}"
-    requests_client.get.assert_called_with(full_query, headers={"Authorization": valid_token_header["token"]})
+    requests_client.get.assert_called_with(full_query, headers=valid_token_header)
     search_result = validate_response(result)
     validate_paginated_result_length(search_result, limit)
