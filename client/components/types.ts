@@ -8,14 +8,7 @@ export interface Track {
     link: string
     uri: string
     artists: SimpleArtistData[]
-    album: {
-        name: string
-        link: string
-        uri: string
-        artists: SimpleArtistData[]
-        year: number
-        icon_link: string
-    }
+    album: Album
     duration_ms: number
 }
 
