@@ -39,6 +39,7 @@ const HomeContent: React.FC = () => {
     const state = queryParams.get('state')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
 
+    // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
         if (code && state) {
             handleTokenRequest(code, state)
