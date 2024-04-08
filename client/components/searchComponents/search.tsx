@@ -16,6 +16,8 @@ interface SearchProps {
     // eslint-disable-next-line no-unused-vars
     setSearchResults: (data: any) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -25,6 +27,7 @@ const Search: React.FC<SearchProps> = ({
     toggleExpanded,
     setSearchResults,
     enableAddButton,
+    setErrorAlert,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -47,8 +50,8 @@ const Search: React.FC<SearchProps> = ({
                 }
                 setSearchResults(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(`Searching failed with error: ${error.message}`)
             })
     }
 
@@ -61,8 +64,10 @@ const Search: React.FC<SearchProps> = ({
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Joining to pool failed with error: ${error.message}`,
+                )
             })
     }
 

@@ -13,6 +13,7 @@ import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
+import AlertComponent from '@/components/alertComponent'
 
 const HomePage: React.FC = () => {
     return (
@@ -27,6 +28,8 @@ const HomeContent: React.FC = () => {
         users: [],
         share_code: null,
     })
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const [token, setToken] = useState('')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -46,7 +49,7 @@ const HomeContent: React.FC = () => {
         } else {
             redirect('/login')
         }
-    })
+    }, [])
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios
@@ -56,9 +59,20 @@ const HomeContent: React.FC = () => {
             .then((response) => {
                 setToken(response.data.access_token)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Login callback failed with error: ${error.message}`,
+                )
             })
+    }
+
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
+    }
+
+    const closeAlert = (): void => {
+        setAlert(false)
     }
 
     const updatePool = (pool: Pool): void => {
@@ -108,6 +122,7 @@ const HomeContent: React.FC = () => {
                             toggleExpanded={toggleExpanded}
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
+                            setErrorAlert={setErrorAlert}
                         />
                     </Box>
                 </Grid>
@@ -122,6 +137,7 @@ const HomeContent: React.FC = () => {
                         token={token}
                         updatePool={updatePool}
                         expanded={expanded}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Grid>
 
@@ -153,12 +169,19 @@ const HomeContent: React.FC = () => {
                                 token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
+                                setErrorAlert={setErrorAlert}
                             />
                         </Box>
                     </Grid>
                 )}
             </Grid>
             <Footer token={token} />
+            {alert && (
+                <AlertComponent
+                    alertMessage={errorMessage}
+                    closeAlert={closeAlert}
+                />
+            )}
         </ThemeProvider>
     )
 }
