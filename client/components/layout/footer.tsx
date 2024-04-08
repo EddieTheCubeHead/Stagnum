@@ -10,12 +10,29 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ token }) => {
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
+    const WS_URI = `${backend_uri?.replace("http", "ws")}/pool/playback/register_listener?token=${token}`;
+    console.log(WS_URI)
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
         link: '',
         icon_link:
             'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
+    }
+
+    if(token.length > 0) {
+        const socket = new WebSocket(WS_URI)
+
+        // Connection opened
+        socket.addEventListener("open", event => {
+            socket.send("Connection established")
+        });
+
+        // Listen for messages
+        socket.addEventListener("message", event => {
+            console.log("Message from server ", event.data)
+        });
     }
 
     return (
