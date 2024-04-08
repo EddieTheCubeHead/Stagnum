@@ -55,7 +55,8 @@ RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
 def _validate_and_decode(response: RequestsResponse) -> dict:
-    parsed_data = json.loads(response.content.decode("utf8"))
+    response_string = response.content.decode("utf8")
+    parsed_data = json.loads(response_string) if response_string else None
     if response.status_code >= 400:
         error_message = (f"Error code {response.status_code} received while calling Spotify API. "
                          f"Message: {parsed_data["error"]}")

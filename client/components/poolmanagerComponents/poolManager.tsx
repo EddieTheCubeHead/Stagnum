@@ -12,6 +12,8 @@ interface PoolManagerProps {
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -19,6 +21,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     token,
     updatePool,
     expanded,
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleShare = (): void => {
@@ -33,8 +36,10 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .then((response) => {
                 updatePool(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Sharing pool failed with error: ${error.message}`,
+                )
             })
     }
 
@@ -148,6 +153,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                 key={key}
                                 token={token}
                                 updatePool={updatePool}
+                                setErrorAlert={setErrorAlert}
                             />
                         ))}
                     </>
@@ -160,6 +166,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     poolItem={poolItem}
                                     token={token}
                                     updatePool={updatePool}
+                                    setErrorAlert={setErrorAlert}
                                 />
                                 {poolItem.tracks.map(
                                     (
@@ -181,6 +188,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                                     }
                                                     token={token}
                                                     updatePool={updatePool}
+                                                    setErrorAlert={
+                                                        setErrorAlert
+                                                    }
                                                 />
                                             </Box>
                                         </Box>

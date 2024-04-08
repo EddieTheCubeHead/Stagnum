@@ -11,6 +11,8 @@ interface ArtistCordProps {
     token: string
     disabled: boolean
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const ArtistCard: React.FC<ArtistCordProps> = ({
@@ -19,6 +21,7 @@ const ArtistCard: React.FC<ArtistCordProps> = ({
     token,
     disabled,
     enableAddButton,
+    setErrorAlert,
 }) => {
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
@@ -49,12 +52,14 @@ const ArtistCard: React.FC<ArtistCordProps> = ({
                         updatePool={updatePool}
                         token={token}
                         disabled={disabled}
+                        setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
                         token={token}
                         item={artist}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>
