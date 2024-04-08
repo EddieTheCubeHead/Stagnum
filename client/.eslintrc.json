@@ -17,7 +17,6 @@
     ],
     "rules": {
         "indent": ["warn", 4], // Enforces consistent indentation using two spaces per indent level.
-        // "semi": ["warn", "always"], // Requires semicolons at the end of statements.
         "quotes": ["warn", "single"], // Enforces the use of single quotes for string literals.
         "no-var": "warn", // Disallows the use of var keyword for variable declarations, promoting let and const instead.
         "no-unused-vars": "warn", // Flags unused variables, helping to identify potential code issues.

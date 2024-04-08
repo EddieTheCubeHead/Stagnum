@@ -1,34 +1,34 @@
-import Track from '@/types/trackTypes'
-import { Box, Collapse, Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import SearchInput from '../inputfields.tsx/searchInput'
-import Playlist from '@/types/playlistTypes'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-//import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
-import ExpandedSearchContent from './expandedSearchContent'
+import SearchInput from './searchInput'
 import CollapseIconButton from '../buttons/iconButtons/collapseIconButton'
 import DefaultButton from '../buttons/defaulButton'
-import PoolInput from '../inputfields.tsx/poolInput'
+import PoolInput from '../poolInput'
+import { Pool } from '../types'
 
-interface Props {
+interface SearchProps {
     token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
     toggleExpanded: () => void
+    // eslint-disable-next-line no-unused-vars
     setSearchResults: (data: any) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-export default function Search({
+const Search: React.FC<SearchProps> = ({
     token,
     updatePool,
     expanded,
     toggleExpanded,
     setSearchResults,
     enableAddButton,
-}: Props) {
+    setErrorAlert,
+}) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [idQuery, setIdQuery] = useState('')
@@ -38,42 +38,40 @@ export default function Search({
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    const handleSearchRequest = () => {
+    const handleSearchRequest = (): void => {
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { token },
+                headers: { Authorization: token },
             })
-            .then(function (response) {
+            .then((response) => {
                 if (!expanded) {
                     toggleExpanded()
                 }
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(`Searching failed with error: ${error.message}`)
             })
     }
 
-    const handleJoinRequest = () => {
+    const handleJoinRequest = (): void => {
         axios
-            .post(
-                `${backend_uri}/pool/join/${idQuery}`,
-                {},
-                {
-                    headers: { token },
-                },
-            )
-            .then(function (response) {
+            .post(`${backend_uri}/pool/join/${idQuery}`, {
+                headers: { Authorization: token },
+            })
+            .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Joining to pool failed with error: ${error.message}`,
+                )
             })
     }
 
-    const handleExpandClick = () => {
+    const handleExpandClick = (): void => {
         toggleExpanded()
     }
 
@@ -146,3 +144,5 @@ export default function Search({
         </Box>
     )
 }
+
+export default Search

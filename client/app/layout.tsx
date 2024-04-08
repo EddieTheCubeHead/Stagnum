@@ -7,16 +7,18 @@ export const metadata: Metadata = {
     description: 'A pool-based playback handler for Spotify',
 }
 
-export default function RootLayout({
-    children,
-}: Readonly<{
+interface RootLayoutProps {
     children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body style={{ margin: 0, padding: 0 }}>
-        <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
-      </body>
-    </html>
-  );
 }
+
+const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
+    return (
+        <html lang="en">
+            <body style={{ margin: 0, padding: 0 }}>
+                <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
+            </body>
+        </html>
+    )
+}
+
+export default RootLayout

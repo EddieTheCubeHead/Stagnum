@@ -1,25 +1,28 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import DefaultButton from '../../buttons/defaulButton'
-import Track from '@/types/trackTypes'
-import Album from '@/types/albumTypes'
-import Playlist from '@/types/playlistTypes'
-import Artist from '@/types/artistTypes'
-import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
+import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
+import { Album, Pool } from '@/components/types'
 
-export default function TrackCard(props: {
-    track: Track
+interface AlbumCardProps {
+    album: Album
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
-    const truncatedName =
-        props.track.name.length > 25
-            ? props.track.name.slice(0, 25) + '...'
-            : props.track.name
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+}
 
+const AlbumCard: React.FC<AlbumCardProps> = ({
+    album,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+    setErrorAlert,
+}) => {
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box
@@ -30,34 +33,38 @@ export default function TrackCard(props: {
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {props.track.album.link && (
+                    {album.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.track.album.icon_link})`,
+                                backgroundImage: `url(${album.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
                     )}
-                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
+                    <Header3 text={album.name} />
                 </Box>
                 <Box>
                     <AddToPoolButton
-                        updatePool={props.updatePool}
-                        newAdd={props.track}
-                        token={props.token}
-                        disabled={props.disabled}
+                        newAdd={album}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={props.token}
-                        item={props.track}
-                        updatePool={props.updatePool}
-                        enableAddButton={props.enableAddButton}
+                        token={token}
+                        item={album}
+                        updatePool={updatePool}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default AlbumCard

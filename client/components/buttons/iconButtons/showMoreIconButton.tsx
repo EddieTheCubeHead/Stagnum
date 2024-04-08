@@ -2,35 +2,36 @@ import { IconButton, Menu, MenuItem, Tooltip } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import React, { useState } from 'react'
 import axios from 'axios'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
-interface Props {
+interface ShowMoreIconButtonProps {
     token: string
     item: Track | Album | Playlist | Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-export default function ShowMoreIconButton({
+const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
     token,
     item,
     updatePool,
     enableAddButton,
-}: Props) {
+    setErrorAlert,
+}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
         setAnchorEl(event.currentTarget)
     }
 
-    const handleClose = () => {
+    const handleClose = (): void => {
         setAnchorEl(null)
     }
 
-    const createPool = () => {
+    const createPool = (): void => {
         const requestData = {
             spotify_uris: [
                 {
@@ -43,14 +44,16 @@ export default function ShowMoreIconButton({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Creating pool failed with error: ${error.message}`,
+                )
             })
     }
 
@@ -82,3 +85,5 @@ export default function ShowMoreIconButton({
         </>
     )
 }
+
+export default ShowMoreIconButton

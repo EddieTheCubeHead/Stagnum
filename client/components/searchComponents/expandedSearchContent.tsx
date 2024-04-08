@@ -1,24 +1,36 @@
 import { Box, Stack } from '@mui/material'
 import { Header2 } from '../textComponents'
-import Track from '@/types/trackTypes'
-import Album from '@/types/albumTypes'
 import AlbumCard from './cards/albumCard'
-import Playlist from '@/types/playlistTypes'
-import Artist from '@/types/artistTypes'
 import TrackCard from './cards/trackCard'
 import PlaylistCard from './cards/playlistCard'
 import ArtistCard from './cards/artistCard'
+import { Album, Artist, Playlist, Pool, Track } from '../types'
 
-export default function ExpandedSearchContent(props: {
+interface ExpandedSearchContentProps {
     trackList: Track[]
     albumList: Album[]
     playlistList: Playlist[]
     artistList: Artist[]
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+}
+
+const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
+    trackList,
+    albumList,
+    playlistList,
+    artistList,
+    updatePool,
+    token,
+    disabled,
+    enableAddButton,
+    setErrorAlert,
+}) => {
     return (
         <Stack sx={{ padding: 1, width: 1 }}>
             <Header2 text={'Tracks'} sx={{ color: 'white' }} />
@@ -33,14 +45,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.trackList.slice(0, 2).map((track, key) => (
+                {trackList.slice(0, 2).map((track, key) => (
                     <TrackCard
                         key={key}
                         track={track}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -55,14 +68,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.trackList.slice(2, 4).map((track, key) => (
+                {trackList.slice(2, 4).map((track, key) => (
                     <TrackCard
                         key={key}
                         track={track}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -77,14 +91,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.albumList.slice(0, 2).map((album, key) => (
+                {albumList.slice(0, 2).map((album, key) => (
                     <AlbumCard
                         key={key}
                         album={album}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -98,14 +113,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.albumList.slice(2, 4).map((album, key) => (
+                {albumList.slice(2, 4).map((album, key) => (
                     <AlbumCard
                         key={key}
                         album={album}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -120,14 +136,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.playlistList.slice(0, 2).map((playlist, key) => (
+                {playlistList.slice(0, 2).map((playlist, key) => (
                     <PlaylistCard
                         key={key}
                         playlist={playlist}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -141,14 +158,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.playlistList.slice(2, 4).map((playlist, key) => (
+                {playlistList.slice(2, 4).map((playlist, key) => (
                     <PlaylistCard
                         key={key}
                         playlist={playlist}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -163,14 +181,15 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.artistList.slice(0, 2).map((artist, key) => (
+                {artistList.slice(0, 2).map((artist, key) => (
                     <ArtistCard
                         key={key}
                         artist={artist}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
@@ -184,17 +203,20 @@ export default function ExpandedSearchContent(props: {
                     },
                 }}
             >
-                {props.artistList.slice(2, 4).map((artist, key) => (
+                {artistList.slice(2, 4).map((artist, key) => (
                     <ArtistCard
                         key={key}
                         artist={artist}
-                        updatePool={props.updatePool}
-                        token={props.token}
-                        disabled={props.disabled}
-                        enableAddButton={props.enableAddButton}
+                        updatePool={updatePool}
+                        token={token}
+                        disabled={disabled}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 ))}
             </Box>
         </Stack>
     )
 }
+
+export default ExpandedSearchContent

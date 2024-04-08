@@ -5,15 +5,17 @@ import { useRouter } from "next/navigation";
 import { Box, Grid, Link, Stack, Typography } from "@mui/material";
 // import DefaultButton from "@/components/buttons/defaulButton";
 import Image from "next/image";
-import theme from "../utils/theme";
 import React from "react";
 import DefaultButton from "@/components/buttons/defaulButton";
+import { useState } from 'react'
+import AlertComponent from '@/components/alertComponent'
 
-export default function Login() {
+const LoginPage: React.FC = () => {
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const router = useRouter()
 
-    const handleLoginRequest = () => {
-        console.log('Sending login request')
+    const handleLoginRequest = (): void => {
         const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
         const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -21,14 +23,17 @@ export default function Login() {
             .get(`${backend_uri}/auth/login`, {
                 params: { client_redirect_uri },
             })
-            .then(function (response) {
-                console.log(response.data.redirect_uri)
+            .then((response) => {
                 router.push(response.data.redirect_uri)
             })
-            .catch(() => {
-                console.log('Request failed')
+            .catch((error) => {
+                setErrorMessage(error.message)
+                setAlert(true)
             })
     }
+    const closeAlert = (): void => {
+      setAlert(false)
+  }
 
   return (
     <Grid
@@ -104,19 +109,42 @@ export default function Login() {
           <DefaultButton action={handleLoginRequest} text="Login" />
           </Stack>
 
-        <Box display={"flex"} gap={2}>
-          <Link href="/about" color={"#ffffff"}>
-            About Stagnum
-          </Link>
-          <Link
-            href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-            color={theme.palette.primary.light}
-            target="_blank"
-          >
-            Contact Us
-          </Link>
-        </Box>
-      </Grid>
+                <Typography variant="caption" fontSize={'2rem'}>
+                    Simplified Collaborative Listening
+                </Typography>
+                <Stack
+                    spacing={2}
+                    direction={'row'}
+                    mt={2}
+                    alignItems={'center'}
+                >
+                    <Typography variant="h5" color={'white'}>
+                        Login with your Spotify
+                    </Typography>
+
+                    <DefaultButton action={handleLoginRequest} text="Login" />
+                </Stack>
+
+                <Box display={'flex'} gap={2}>
+                    <Link href="/about" color={'#ffffff'}>
+                        About Stagnum
+                    </Link>
+                    <Link
+                        href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
+                        color={'#42b74c'}
+                        target="_blank"
+                    >
+                        Contact Us
+                    </Link>
+                </Box>
+                {alert && (
+                    <AlertComponent
+                        alertMessage={`Login failed with error: ${errorMessage}`}
+                        closeAlert={closeAlert}
+                    />
+                )}
+                </Grid >
+     
       <Grid
         justifyContent={"center"}
         alignItems={"center"}
@@ -135,3 +163,5 @@ export default function Login() {
     </Grid>
   );
 }
+
+export default LoginPage

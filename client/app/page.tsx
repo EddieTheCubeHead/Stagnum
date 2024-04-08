@@ -1,23 +1,21 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { Box, Collapse, CssBaseline, Grid, Stack } from '@mui/material'
+import { Box, CssBaseline, Grid } from '@mui/material'
 import axios from 'axios'
 import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
-import theme from '../utils/theme'
-import MainHeaderCard from '@/components/layout/cards/mainHeaderCard'
-import Search from '@/components/layout/search'
-import PoolManager from '@/components/layout/poolManager'
-import '@/components/layout/css/customScrollBar.css'
-import ExpandedSearchContent from '@/components/layout/expandedSearchContent'
-import Track from '@/types/trackTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Album from '@/types/albumTypes'
+import theme from '../components/theme'
+import MainHeader from '@/components/searchComponents/cards/mainHeader'
+import Search from '@/components/searchComponents/search'
+import PoolManager from '@/components/poolmanagerComponents/poolManager'
+import '@/css/customScrollBar.css'
+import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
+import AlertComponent from '@/components/alertComponent'
 
-export default function HomePage() {
+const HomePage: React.FC = () => {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <HomeContent />
@@ -25,11 +23,13 @@ export default function HomePage() {
     )
 }
 
-function HomeContent() {
+const HomeContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
     })
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const [token, setToken] = useState('')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
@@ -42,43 +42,52 @@ function HomeContent() {
     const state = queryParams.get('state')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
 
+    // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
         if (code && state) {
             handleTokenRequest(code, state)
-        }
-        // Delete when we have an actual routeguard
-        else {
+        } else {
             redirect('/login')
         }
     }, [])
 
-    const handleTokenRequest = (code: string, state: string) => {
+    const handleTokenRequest = (code: string, state: string): void => {
         axios
             .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
                 params: { state, code, client_redirect_uri },
             })
-            .then(function (response) {
+            .then((response) => {
                 setToken(response.data.access_token)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Login callback failed with error: ${error.message}`,
+                )
             })
     }
 
-    // Function to add a new collection to a user
-    const updatePool = (pool: Pool) => {
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
+    }
+
+    const closeAlert = (): void => {
+        setAlert(false)
+    }
+
+    const updatePool = (pool: Pool): void => {
         setPool(pool)
     }
 
-    const toggleExpanded = () => {
+    const toggleExpanded = (): void => {
         setExpanded(!expanded)
     }
 
-    const enableAddButton = () => {
+    const enableAddButton = (): void => {
         setDisabled(false)
     }
 
-    const setSearchResults = (data: any) => {
+    const setSearchResults = (data: any): void => {
         setTrackList(data.tracks.results)
         setAlbumList(data.albums.results)
         setArtistList(data.artists.results)
@@ -96,7 +105,7 @@ function HomeContent() {
                 }}
             >
                 <Grid item xs={3}>
-                    <MainHeaderCard />
+                    <MainHeader />
                 </Grid>
 
                 <Grid item xs={9}>
@@ -113,6 +122,7 @@ function HomeContent() {
                             toggleExpanded={toggleExpanded}
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
+                            setErrorAlert={setErrorAlert}
                         />
                     </Box>
                 </Grid>
@@ -127,6 +137,7 @@ function HomeContent() {
                         token={token}
                         updatePool={updatePool}
                         expanded={expanded}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Grid>
 
@@ -158,12 +169,21 @@ function HomeContent() {
                                 token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
+                                setErrorAlert={setErrorAlert}
                             />
                         </Box>
                     </Grid>
                 )}
             </Grid>
             <Footer token={token} />
+            {alert && (
+                <AlertComponent
+                    alertMessage={errorMessage}
+                    closeAlert={closeAlert}
+                />
+            )}
         </ThemeProvider>
     )
 }
+
+export default HomePage

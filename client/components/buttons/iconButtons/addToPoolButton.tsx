@@ -1,40 +1,43 @@
 import { IconButton, Tooltip } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
 import axios from 'axios'
+import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
-interface Props {
+interface AddToPoolButtonProps {
     newAdd: Track | Album | Playlist | Artist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-export default function AddToPoolButton({
+const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
     newAdd,
     updatePool,
     token,
     disabled,
-}: Props) {
+    setErrorAlert,
+}) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         const requestData = {
             spotify_uri: newAdd.uri,
         }
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { token },
+                headers: { Authorization: token },
             })
-            .then(function (response) {
+            .then((response) => {
                 updatePool(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Adding to pool failed with error: ${error.message}`,
+                )
             })
     }
 
@@ -57,3 +60,5 @@ export default function AddToPoolButton({
         </Tooltip>
     )
 }
+
+export default AddToPoolButton
