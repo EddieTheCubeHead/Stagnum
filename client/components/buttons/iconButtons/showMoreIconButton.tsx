@@ -10,6 +10,8 @@ interface ShowMoreIconButtonProps {
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
@@ -17,6 +19,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
     item,
     updatePool,
     enableAddButton,
+    setErrorAlert,
 }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -47,8 +50,10 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Creating pool failed with error: ${error.message}`,
+                )
             })
     }
 

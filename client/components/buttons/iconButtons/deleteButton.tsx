@@ -8,12 +8,15 @@ interface DeleteButtonProps {
     token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({
     poolItem,
     token,
     updatePool,
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -37,8 +40,10 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
             .then((response) => {
                 updatePool(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Deleting from pool failed with error: ${error.message}`,
+                )
             })
     }
 
