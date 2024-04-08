@@ -81,4 +81,13 @@ def should_get_spotify_client_id_from_env_and_include_in_response(test_client: T
 
 def should_return_internal_server_error_if_no_client_id_in_env(test_client: TestClient, validate_response):
     response = test_client.get("/auth/login?client_redirect_uri=test")
-    validate_response(response, 500)
+    error = validate_response(response, 500)
+    assert error["detail"] == "Internal server error"
+
+
+def should_detail_internal_server_error_in_non_production_environment(test_client: TestClient, validate_response,
+                                                                      monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    response = test_client.get("/auth/login?client_redirect_uri=test")
+    error = validate_response(response, 500)
+    assert error["detail"] == "Could not find spotify client ID in environment variables"

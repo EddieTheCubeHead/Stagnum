@@ -11,7 +11,7 @@ from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess
 from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder
-from api.common.helpers import create_random_string
+from api.common.helpers import create_random_string, raise_internal_server_error
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
 
@@ -53,13 +53,6 @@ class AuthDatabaseConnectionRaw:
 AuthDatabaseConnection = Annotated[AuthDatabaseConnectionRaw, Depends()]
 
 
-def _validate_data(raw_data: Response) -> dict:
-    parsed_data = json.loads(raw_data.content.decode("utf8"))
-    if raw_data.status_code != 200:
-        raise HTTPException(status_code=raw_data.status_code, detail=parsed_data["error"])
-    return parsed_data
-
-
 _ALLOWED_PRODUCT_TYPES = {"premium"}
 
 
@@ -82,21 +75,19 @@ class AuthSpotifyClientRaw:
 
         data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
                                          data=form)
-        parsed_data = _validate_data(data)
-        return SpotifyTokenResponse(access_token=parsed_data["access_token"], token_type=parsed_data["token_type"],
-                                    expires_in=parsed_data["expires_in"], refresh_token=parsed_data["refresh_token"])
+        return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
+                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
 
     def get_me(self, token: str):
         headers = {
             "Authorization": token
         }
         data = self._spotify_client.get("me", headers=headers)
-        parsed_data = json.loads(data.content.decode("utf8"))
-        if parsed_data["product"] not in _ALLOWED_PRODUCT_TYPES:
+        if data["product"] not in _ALLOWED_PRODUCT_TYPES:
             raise HTTPException(status_code=401,
                                 detail="You need to have a Spotify Premium subscription to use Stagnum!")
-        user_avatar_url = parsed_data["images"][0]["url"] if len(parsed_data["images"]) > 0 else None
-        return User(spotify_id=parsed_data["id"], spotify_username=parsed_data["display_name"],
+        user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
+        return User(spotify_id=data["id"], spotify_username=data["display_name"],
                     spotify_avatar_url=user_avatar_url)
 
 
@@ -108,6 +99,20 @@ _required_scopes = [
     "user-read-private",
     "user-read-email"
 ]
+
+
+def _get_client_id():
+    client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
+    if client_id is None:
+        raise_internal_server_error("Could not find spotify client ID in environment variables")
+    return client_id
+
+
+def _get_client_secret():
+    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
+    if client_secret is None:
+        raise_internal_server_error("Could not find spotify client secret in environment variables")
+    return client_secret
 
 
 class AuthServiceRaw:
@@ -123,9 +128,7 @@ class AuthServiceRaw:
         scopes_string = " ".join(_required_scopes)
         state = create_random_string(16)
         self._database_connection.save_state(state)
-        client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
-        if client_id is None:
-            raise HTTPException(status_code=500)
+        client_id = _get_client_id()
         return LoginRedirect(redirect_uri=f"{base_url}scope={scopes_string}&state={state}&response_type=code"
                                           f"&redirect_uri={client_redirect_uri}&client_id={client_id}")
 
@@ -139,11 +142,13 @@ class AuthServiceRaw:
     def _validate_state(self, state):
         if not self._database_connection.is_valid_state(state):
             _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
-            raise HTTPException(status_code=403, detail="Login state is invalid or expired")
+            error_message = ("Login state is invalid or expired. "
+                             "Please restart the login flow to ensure a fresh and valid state.")
+            raise HTTPException(status_code=403, detail=error_message)
 
     def _fetch_token(self, client_redirect_uri, code) -> ParsedTokenResponse:
-        client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
-        client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
+        client_id = _get_client_id()
+        client_secret = _get_client_secret()
         _logger.debug(f"Fetching oauth auth token from spotify")
         token_result = self._spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
         token = f"{token_result.token_type} {token_result.access_token}"
