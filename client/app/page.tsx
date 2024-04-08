@@ -46,9 +46,9 @@ const HomeContent: React.FC = () => {
         if (code && state) {
             handleTokenRequest(code, state)
         } else {
-            redirect('/login')
+            //redirect('/login')
         }
-    })
+    }, [])
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios
