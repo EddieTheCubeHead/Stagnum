@@ -8,11 +8,14 @@ interface PoolTrackCardProps {
     token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
     poolItem,
     token,
     updatePool,
+    setErrorAlert,
 }) => {
     const truncatedName =
         poolItem.name.length > 25
@@ -47,6 +50,7 @@ const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
                         poolItem={poolItem}
                         token={token}
                         updatePool={updatePool}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>

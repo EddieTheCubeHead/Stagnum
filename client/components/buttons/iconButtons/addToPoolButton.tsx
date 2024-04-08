@@ -9,6 +9,8 @@ interface AddToPoolButtonProps {
     updatePool: (pool: Pool) => void
     token: string
     disabled: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
@@ -16,6 +18,7 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
     updatePool,
     token,
     disabled,
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -31,8 +34,10 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
             .then((response) => {
                 updatePool(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Adding to pool failed with error: ${error.message}`,
+                )
             })
     }
 
