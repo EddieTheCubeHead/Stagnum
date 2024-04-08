@@ -59,9 +59,9 @@ const HomeContent: React.FC = () => {
             .then((response) => {
                 setToken(response.data.access_token)
             })
-            .catch((error) => {
+            .catch((response) => {
                 setErrorAlert(
-                    `Login callback failed with error: ${error.message}`,
+                    `Login callback failed with error: ${response.message}`,
                 )
             })
     }
