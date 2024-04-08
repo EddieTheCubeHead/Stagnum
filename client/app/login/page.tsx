@@ -98,20 +98,7 @@ const LoginPage: React.FC = () => {
         >
           Simplified Collaborative Listening
         </Typography>
-        <Stack spacing={2} direction={"row"} mt={2} alignItems={"center"}>
-          <Typography
-            variant="h5"
-            color={"white"}
-            fontSize={{ xs: "1.2rem", md: "1.8rem" }}
-          >
-            Login with your Spotify
-          </Typography>
-          <DefaultButton action={handleLoginRequest} text="Login" />
-          </Stack>
-
-                <Typography variant="caption" fontSize={'2rem'}>
-                    Simplified Collaborative Listening
-                </Typography>
+        
                 <Stack
                     spacing={2}
                     direction={'row'}
