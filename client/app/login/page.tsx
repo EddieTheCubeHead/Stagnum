@@ -36,7 +36,7 @@ export default function Login() {
       spacing={2}
       bgcolor={"black"}
       sx={{ minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}
-      justifyContent={"center"}
+      // justifyContent={"center"}
       alignItems={"center"}
     >
       <Grid
@@ -117,11 +117,19 @@ export default function Login() {
           </Link>
         </Box>
       </Grid>
-      <Grid item xs={12} sm={6} display={{ xs: "none", sm: "flex" }}>
+      <Grid
+        justifyContent={"center"}
+        alignItems={"center"}
+        display={"flex"}
+        flexDirection={"column"}
+        position={'relative'}
+        sx={{flex:1,height: '50vh', marginRight: '7%', marginLeft: '7%'}}
+        zIndex={1}>
         <Image
-          src={require("@/public/homeBG.jpg")}
+          src={require("@/public/newHomeBG.png")}
           fill
           alt={"Home background"}
+          style={{objectFit: 'contain',flex: 1, right: 150}}
         />
       </Grid>
     </Grid>
