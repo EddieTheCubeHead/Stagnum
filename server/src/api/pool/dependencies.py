@@ -522,7 +522,7 @@ class PoolPlaybackServiceRaw:
 
     def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> bool:
         spotify_state = self._spotify_client.get_user_playback(user)
-        if spotify_state["currently_playing"]["item"]["uri"] != playback.current_track_uri:
+        if spotify_state["item"]["uri"] != playback.current_track_uri:
             self._fix_playback(playback, user)
         song_left_at_fetch = playback.current_track_duration_ms - spotify_state["progress_ms"]
         fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)

@@ -238,11 +238,12 @@ def should_return_token_in_headers_for_skip_route(existing_playback, valid_token
 @pytest.mark.wip
 @pytest.mark.asyncio
 async def should_get_spotify_playback_state_on_skip_and_defer_if_song_change_too_far(get_query_parameter, monkeypatch,
+                                                                                     requests_client,
                                                                                      fixed_track_length_ms,
+                                                                                     existing_playback,
+                                                                                     unskippable_spotify_playback,
                                                                                      valid_token_header,
-                                                                                     existing_playback, requests_client,
-                                                                                     run_scheduling_job,
-                                                                                     unskippable_spotify_playback):
+                                                                                     run_scheduling_job):
     delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
     soon = datetime.datetime.now() + delta_to_soon
     soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
@@ -253,6 +254,5 @@ async def should_get_spotify_playback_state_on_skip_and_defer_if_song_change_too
             return soon if tz_info is None else soon_utc
 
     monkeypatch.setattr(datetime, "datetime", MockDateTime)
-    requests_client.get = Mock()
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 0

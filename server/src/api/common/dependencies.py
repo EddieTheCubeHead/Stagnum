@@ -238,3 +238,19 @@ def _get_user_from_token(token: str, token_holder: TokenHolder) -> User:
     _logger.debug(f"Getting user for token {token}")
     user = token_holder.get_user_from_token(token)
     return user
+
+
+class DateTimeWrapperRaw:
+    """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
+
+    def __init__(self, timezone=datetime.timezone.utc):
+        self._timezone = timezone
+
+    def now(self):
+        return datetime.datetime.now(self._timezone)
+
+    def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
+        return timestamp.replace(tzinfo=self._timezone)
+
+
+DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]

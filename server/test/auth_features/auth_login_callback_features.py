@@ -146,8 +146,8 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
 
 
 def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_variables, validate_response,
-                                                                 base_auth_callback_call, requests_client,
-                                                                 requests_client_with_auth_mock,
+                                                                 base_auth_callback_call,
+                                                                 requests_client,
                                                                  spotify_error_message: ErrorData):
     response = base_auth_callback_call()
     json_data = validate_response(response, 502)
@@ -186,9 +186,12 @@ def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_re
 
 def should_allow_another_log_in_after_first_one(correct_env_variables, validate_response, base_auth_callback_call,
                                                 requests_client_with_auth_mock, default_token_return,
-                                                create_valid_state_string):
+                                                create_valid_state_string, default_me_return,
+                                                requests_client_post_queue, requests_client_get_queue):
     base_auth_callback_call()
     new_state = create_valid_state_string()
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(default_me_return)
     response = base_auth_callback_call(new_state)
 
     validate_response(response)
