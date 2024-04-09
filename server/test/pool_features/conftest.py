@@ -140,14 +140,13 @@ def another_logged_in_user_header(another_logged_in_user_token):
 
 
 @pytest.fixture
-def another_logged_in_user_token(faker, db_connection):
-    authorization_database_connection = AuthDatabaseConnection(db_connection)
+def another_logged_in_user_token(faker, db_connection, mock_datetime_wrapper):
+    authorization_database_connection = AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
     user_id = faker.uuid4()
     user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
     authorization_database_connection.update_logged_in_user(user, token_data)
     return token_data.token
-
 
 
 @pytest.fixture
@@ -161,8 +160,8 @@ def share_pool_and_get_code(test_client, valid_token_header, validate_response) 
 
 
 @pytest.fixture
-def pool_db_connection(db_connection: ConnectionManager):
-    return PoolDatabaseConnectionRaw(db_connection)
+def pool_db_connection(db_connection: ConnectionManager, mock_datetime_wrapper):
+    return PoolDatabaseConnectionRaw(db_connection, mock_datetime_wrapper)
 
 
 @pytest.fixture
@@ -176,9 +175,10 @@ def playback_updater():
 
 
 @pytest.fixture
-def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider, playback_updater):
+def playback_service(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider, playback_updater,
+                     mock_datetime_wrapper):
     return PoolPlaybackServiceRaw(pool_db_connection, pool_spotify_client, mock_token_holder, next_song_provider,
-                                  playback_updater)
+                                  mock_datetime_wrapper, playback_updater)
 
 
 @pytest.fixture

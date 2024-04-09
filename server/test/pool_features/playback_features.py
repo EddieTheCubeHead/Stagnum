@@ -102,21 +102,12 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
 
 
 @pytest.mark.asyncio
-async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, monkeypatch,
+async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, increment_now,
                                                                                    fixed_track_length_ms,
                                                                                    valid_token_header, requests_client,
                                                                                    get_query_parameter,
                                                                                    run_scheduling_job):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     await run_scheduling_job()
     actual_call = requests_client.post.call_args
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
@@ -125,19 +116,10 @@ async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_aw
     assert actual_call.kwargs["headers"] == valid_token_header
 
 
-def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, monkeypatch,
+def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, increment_now,
                                                                                 fixed_track_length_ms,
                                                                                 playback_service, requests_client):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 3000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 3000)))
     queue_next_songs(playback_service)
     actual_call = requests_client.post.call_args
     assert actual_call is None
@@ -145,20 +127,11 @@ def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(
 
 @pytest.mark.asyncio
 async def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
-                                                    valid_token_header, mock_token_holder: TokenHolder,
-                                                    logged_in_user_id, fixed_track_length_ms, monkeypatch):
+                                                          valid_token_header, mock_token_holder: TokenHolder,
+                                                          logged_in_user_id, fixed_track_length_ms, increment_now):
     mock_token_holder.log_out(valid_token_header["Authorization"])
 
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     await queue_next_songs(playback_service)
 
     with db_connection.session() as session:
@@ -170,24 +143,15 @@ async def should_inactivate_sessions_for_logged_out_users(db_connection, playbac
 
 def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, existing_playback,
                                                      valid_token_header, mock_token_holder: TokenHolder,
-                                                     logged_in_user, fixed_track_length_ms, monkeypatch,
+                                                     logged_in_user, fixed_track_length_ms, increment_now,
                                                      create_mock_track_search_result, build_success_response,
                                                      requests_client, create_pool_creation_data_json, test_client,
-                                                     primary_user_token):
+                                                     primary_user_token, auth_database_connection):
     mock_token_holder.log_out(valid_token_header["Authorization"])
 
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     queue_next_songs(playback_service)
-    AuthDatabaseConnection(db_connection).update_logged_in_user(logged_in_user, primary_user_token)
+    auth_database_connection.update_logged_in_user(logged_in_user, primary_user_token)
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]
@@ -237,22 +201,13 @@ def should_return_token_in_headers_for_skip_route(existing_playback, valid_token
 
 @pytest.mark.wip
 @pytest.mark.asyncio
-async def should_get_spotify_playback_state_on_skip_and_defer_if_song_change_too_far(get_query_parameter, monkeypatch,
+async def should_get_spotify_playback_state_on_skip_and_defer_if_song_change_too_far(get_query_parameter, increment_now,
                                                                                      requests_client,
                                                                                      fixed_track_length_ms,
                                                                                      existing_playback,
                                                                                      unskippable_spotify_playback,
                                                                                      valid_token_header,
                                                                                      run_scheduling_job):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 0

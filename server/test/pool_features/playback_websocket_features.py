@@ -8,18 +8,9 @@ from api.pool import queue_next_songs
 @pytest.mark.asyncio
 async def should_send_update_when_scheduled_queue_job_updates_playback(test_client, existing_playback,
                                                                        fixed_track_length_ms,
-                                                                       monkeypatch, run_scheduling_job,
+                                                                       increment_now, run_scheduling_job,
                                                                        valid_token):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await run_scheduling_job()
         data = websocket.receive_json()
@@ -46,17 +37,8 @@ async def should_send_queue_not_empty_error_through_websocket_on_scheduled_job(t
                                                                                valid_token, song_in_queue,
                                                                                shared_pool_code, playback_service,
                                                                                another_logged_in_user_header,
-                                                                               monkeypatch, fixed_track_length_ms):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+                                                                               increment_now, fixed_track_length_ms):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await queue_next_songs(playback_service)

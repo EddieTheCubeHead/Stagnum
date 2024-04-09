@@ -73,7 +73,7 @@ def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
 def application_with_dependencies(application, requests_client, db_connection, mock_datetime_wrapper):
     application.dependency_overrides[RequestsClientRaw] = lambda: requests_client
     application.dependency_overrides[ConnectionManager] = lambda: db_connection
-    application.dependency_overrides[DateTimeWrapper] = lambda: mock_datetime_wrapper
+    application.dependency_overrides[DateTimeWrapperRaw] = lambda: mock_datetime_wrapper
     return application
 
 
@@ -103,9 +103,9 @@ def auth_spotify_client(spotify_client):
 
 
 @pytest.fixture
-def mock_token_holder(application, db_connection, auth_spotify_client):
-    user_database_connection = UserDatabaseConnection(db_connection)
-    token_holder = TokenHolder(user_database_connection, auth_spotify_client, None)
+def mock_token_holder(application, db_connection, auth_spotify_client, mock_datetime_wrapper):
+    user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
+    token_holder = TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
     application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
@@ -131,8 +131,8 @@ def logged_in_user(logged_in_user_id) -> User:
 
 
 @pytest.fixture
-def auth_database_connection(db_connection) -> AuthDatabaseConnection:
-    return AuthDatabaseConnection(db_connection)
+def auth_database_connection(db_connection, mock_datetime_wrapper) -> AuthDatabaseConnection:
+    return AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
 
 
 @pytest.fixture
