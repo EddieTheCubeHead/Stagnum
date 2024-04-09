@@ -119,9 +119,8 @@ def should_accept_any_date_starting_with_year(test_client, valid_token_header, m
     assert search_result["albums"]["results"][0]["year"] == 2021
 
 
-def should_propagate_errors_from_spotify_api(requests_client, test_client, valid_token_header, validate_response,
+def should_propagate_errors_from_spotify_api(test_client, valid_token_header, validate_response,
                                              search_resource_url, spotify_error_message: ErrorData):
-    requests_client.post.return_value.status_code = spotify_error_message.code
     response = test_client.get(f"/search{search_resource_url}?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
     assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "

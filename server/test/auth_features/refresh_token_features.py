@@ -5,10 +5,10 @@ import pytest
 
 
 @pytest.fixture
-def refresh_token_return(mock_token_return, requests_client, faker):
+def refresh_token_return(mock_token_return, requests_client_post_queue, faker):
     token = faker.uuid4()
     refresh_token_response_data = mock_token_return(token)
-    requests_client.post = Mock(return_value=refresh_token_response_data)
+    requests_client_post_queue.append(refresh_token_response_data)
     return token
 
 
