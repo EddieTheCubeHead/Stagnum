@@ -4,7 +4,6 @@ from unittest.mock import Mock
 import pytest
 from sqlalchemy import select
 
-from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import TokenHolder
 from api.pool.tasks import queue_next_songs
 from database.entities import PlaybackSession
@@ -86,20 +85,21 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(c
 def should_save_next_track_change_time_on_playback_start(create_mock_track_search_result, requests_client_get_queue,
                                                          build_success_response, create_pool_creation_data_json,
                                                          test_client, valid_token_header, db_connection,
-                                                         logged_in_user_id):
+                                                         logged_in_user_id, approx_datetime, mock_datetime_wrapper):
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]
     requests_client_get_queue.extend(responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
-    start_time = datetime.datetime.now()
+    start_time = mock_datetime_wrapper.now()
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     with db_connection.session() as session:
         playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
     expected_end_time = start_time + datetime.timedelta(milliseconds=tracks[0]["duration_ms"])
-    assert playback_session.next_song_change_timestamp - expected_end_time < datetime.timedelta(seconds=1)
+    actual_end_time = mock_datetime_wrapper.ensure_utc(playback_session.next_song_change_timestamp)
+    assert actual_end_time == approx_datetime(expected_end_time, datetime.timedelta(seconds=1))
 
 
 @pytest.mark.asyncio
@@ -210,7 +210,6 @@ async def should_defer_skip_if_spotify_not_close_to_song_end(requests_client, ru
     assert len(requests_client.post.call_args_list) == 0
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 async def should_update_playback_end_time_in_db_after_defer(requests_client, run_scheduling_job, fixed_track_length_ms,
                                                             existing_playback, increment_now, db_connection,
