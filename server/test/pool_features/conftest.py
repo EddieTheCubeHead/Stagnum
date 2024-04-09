@@ -352,9 +352,11 @@ def create_skippable_spotify_playback(requests_client_get_queue, create_spotify_
 @pytest.fixture
 def create_unskippable_spotify_playback(requests_client_get_queue, create_spotify_playback_state,
                                         build_success_response, create_mock_track_search_result,
-                                        current_playback_data) -> Callable[[int | None], None]:
-    def wrapper(songs_in_queue: int = 0):
+                                        current_playback_data, mock_datetime_wrapper) \
+        -> Callable[[int | None], datetime.datetime]:
+    def wrapper(songs_in_queue: int = 0) -> datetime.datetime:
         playback_state = create_spotify_playback_state(5000)
+        song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(minutes=5000)
         next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
         queue_data = {
             "currently_playing": current_playback_data.current_track,
@@ -362,5 +364,6 @@ def create_unskippable_spotify_playback(requests_client_get_queue, create_spotif
         }
         requests_client_get_queue.append(build_success_response(playback_state))
         requests_client_get_queue.append(build_success_response(queue_data))
+        return song_end_timestamp
 
     return wrapper

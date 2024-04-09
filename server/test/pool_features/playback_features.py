@@ -201,11 +201,19 @@ def should_return_token_in_headers_for_skip_route(existing_playback, valid_token
 
 
 @pytest.mark.asyncio
-async def should_defer_skip_if_spotify_not_close_to_song_end(get_query_parameter, requests_client, run_scheduling_job,
-                                                             fixed_track_length_ms, existing_playback, increment_now,
-                                                             create_unskippable_spotify_playback, valid_token_header,
-                                                             requests_client_get_queue):
+async def should_defer_skip_if_spotify_not_close_to_song_end(requests_client, run_scheduling_job, fixed_track_length_ms,
+                                                             existing_playback, increment_now,
+                                                             create_unskippable_spotify_playback):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_unskippable_spotify_playback()
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 0
+
+
+@pytest.mark.asyncio
+async def should_update_playback_end_time_in_db_after_defer(requests_client, run_scheduling_job, fixed_track_length_ms,
+                                                            existing_playback, increment_now, db_connection,
+                                                            create_unskippable_spotify_playback):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_unskippable_spotify_playback()
+    await run_scheduling_job()
