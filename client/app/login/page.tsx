@@ -139,22 +139,15 @@ const LoginPage: React.FC = () => {
             <Grid
                 justifyContent={'center'}
                 alignItems={'center'}
-                display={'flex'}
-                flexDirection={'column'}
-                position={'relative'}
+                display={{  xs: 'none', sm: 'flex' }}
                 sx={{
-                    flex: 1,
-                    height: '50vh',
-                    marginRight: '7%',
-                    marginLeft: '7%',
+                    height: '100vh',
                 }}
-                zIndex={1}
             >
                 <Image
-                    src={require('@/public/newHomeBG.png')}
+                    src={require('@/public/homeBG.jpg')}
                     fill
                     alt={'Home background'}
-                    style={{ objectFit: 'contain', flex: 1, right: 150 }}
                 />
             </Grid>
         </Grid>
