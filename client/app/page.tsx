@@ -47,7 +47,7 @@ const HomeContent: React.FC = () => {
         if (code && state) {
             handleTokenRequest(code, state)
         } else {
-            redirect('/login')
+            //redirect('/login')
         }
     }, [])
 
@@ -59,9 +59,9 @@ const HomeContent: React.FC = () => {
             .then((response) => {
                 setToken(response.data.access_token)
             })
-            .catch((response) => {
+            .catch((error) => {
                 setErrorAlert(
-                    `Login callback failed with error: ${response.message}`,
+                    `Login callback failed with error: ${error.response.data.detail}`,
                 )
             })
     }

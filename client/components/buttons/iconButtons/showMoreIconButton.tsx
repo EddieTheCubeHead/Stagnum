@@ -52,7 +52,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Creating pool failed with error: ${error.message}`,
+                    `Creating pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }

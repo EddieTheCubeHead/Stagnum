@@ -42,7 +42,7 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Deleting from pool failed with error: ${error.message}`,
+                    `Deleting from pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }

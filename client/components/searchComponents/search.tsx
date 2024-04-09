@@ -51,7 +51,9 @@ const Search: React.FC<SearchProps> = ({
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                setErrorAlert(`Searching failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Searching failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 
@@ -66,7 +68,7 @@ const Search: React.FC<SearchProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Joining to pool failed with error: ${error.response.data.detail}`,
+                    `Joining to pool failed with error : ${error.response.data.detail}`,
                 )
             })
     }

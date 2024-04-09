@@ -38,7 +38,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Sharing pool failed with error: ${error.message}`,
+                    `Sharing pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }

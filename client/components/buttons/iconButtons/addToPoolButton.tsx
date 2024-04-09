@@ -36,7 +36,7 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Adding to pool failed with error: ${error.message}`,
+                    `Adding to pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }
