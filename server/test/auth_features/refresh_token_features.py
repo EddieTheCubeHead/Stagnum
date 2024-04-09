@@ -12,7 +12,6 @@ def refresh_token_return(mock_token_return, requests_client, faker):
     return token
 
 
-@pytest.mark.wip
 def should_refresh_token_if_expired_since_passed(existing_pool, refresh_token_return, test_client, valid_token_header,
                                                  assert_token_in_headers, monkeypatch, correct_env_variables):
     delta_to_soon = datetime.timedelta(seconds=3600)

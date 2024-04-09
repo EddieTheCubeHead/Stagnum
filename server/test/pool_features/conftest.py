@@ -273,3 +273,53 @@ def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
 
     return wrapper
 
+
+@pytest.fixture
+def create_spotify_playback_state(faker, fixed_track_length_ms,
+                                  create_mock_track_search_result) -> Callable[[int | None, bool | None], dict]:
+    def wrapper(playback_left: int = 1000, is_playing: bool = True) -> dict:
+        return {
+            "device": {
+                "id": faker.uuid4(),
+                "is_active": True,
+                "is_private_session": False,
+                "is_restricted": False,
+                "name": "my pc",
+                "volume_percent": random.randint(1, 100),
+                "supports_volume": False
+            },
+            "repeat_state": "track",
+            "shuffle_state": False,
+            "context": None,
+            "timestamp": datetime.datetime.now().timestamp(),
+            "progress_ms": fixed_track_length_ms - playback_left,
+            "is_playing": is_playing,
+            "item": create_mock_track_search_result(),
+            "currently_playing_type": "track",
+            "actions": {
+                "interrupting_playback": True,
+                "pausing": True,
+                "resuming": True,
+                "seeking": True,
+                "skipping_next": True,
+                "skipping_prev": True,
+                "toggling_repeat_context": True,
+                "toggling_shuffle": True,
+                "toggling_repeat_track": True,
+                "transferring_playback": True
+            }
+        }
+
+    return wrapper
+
+
+@pytest.fixture
+def skippable_spotify_playback(requests_client, create_spotify_playback_state, build_success_response):
+    playback_state = create_spotify_playback_state()
+    requests_client.get = Mock(return_value=build_success_response(playback_state))
+
+
+@pytest.fixture
+def unskippable_spotify_playback(requests_client, create_spotify_playback_state, build_success_response):
+    playback_state = create_spotify_playback_state(5000)
+    requests_client.get = Mock(return_value=build_success_response(playback_state))
