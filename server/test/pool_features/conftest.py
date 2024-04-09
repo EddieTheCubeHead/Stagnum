@@ -356,7 +356,7 @@ def create_unskippable_spotify_playback(requests_client_get_queue, create_spotif
         -> Callable[[int | None], datetime.datetime]:
     def wrapper(songs_in_queue: int = 0) -> datetime.datetime:
         playback_state = create_spotify_playback_state(5000)
-        song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(minutes=5000)
+        song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=5000)
         next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
         queue_data = {
             "currently_playing": current_playback_data.current_track,

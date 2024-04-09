@@ -7,6 +7,7 @@ from typing import Callable, override
 from unittest.mock import Mock
 
 import pytest
+from _pytest.python_api import ApproxBase
 from fastapi import FastAPI
 from sqlalchemy import select
 from starlette.responses import Response
@@ -476,3 +477,23 @@ def increment_now(mock_datetime_wrapper) -> Callable[[datetime.timedelta], None]
         mock_datetime_wrapper.increment_now(increment)
 
     return wrapper
+
+
+# "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
+class ApproxDatetime(ApproxBase):
+
+    def __init__(self, expected, abs: datetime.timedelta = datetime.timedelta(seconds=10)):
+        if abs < datetime.timedelta(0):
+            raise ValueError(f"absolute tolerance can't be negative: {abs}")
+        super().__init__(expected, abs=abs)
+
+    def __repr__(self):
+        return f"approx_datetime({self.expected!r} \u00b1 {self.abs!r})"
+
+    def __eq__(self, actual):
+        return abs(self.expected - actual) <= self.abs
+
+
+@pytest.fixture
+def approx_datetime():
+    return ApproxDatetime

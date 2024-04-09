@@ -402,6 +402,11 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(Pool).where(Pool.owner_user_id == playback_session.user_id))
 
+    def update_playback_ts(self, playback_session: PlaybackSession, new_timestamp: datetime.datetime):
+        with self._database_connection.session() as session:
+            session.add(playback_session)
+            playback_session.next_song_change_timestamp = new_timestamp
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -531,7 +536,7 @@ class PoolPlaybackServiceRaw:
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return True
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
-        # self._database_connection.update_playback_ts(new_end_timestamp)
+        self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return False
 
     def _fix_playback(self, playback: PlaybackSession, user: User):
