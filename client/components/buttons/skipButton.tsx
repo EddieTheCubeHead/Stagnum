@@ -4,14 +4,13 @@ import axios from 'axios'
 
 interface SkipButtonProps {
     disabled?: boolean
-    token: string
 }
 
-const SkipButton: React.FC<SkipButtonProps> = ({ disabled, token }) => {
+const SkipButton: React.FC<SkipButtonProps> = ({ disabled }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const skip = (): void => {
         const headers = {
-            Authorization: token,
+            Authorization: localStorage.getItem('token'),
         }
         axios
             .post(
