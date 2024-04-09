@@ -13,10 +13,11 @@ from database.entities import PlaybackSession
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
                                                                              requests_client, build_success_response,
                                                                              create_pool_creation_data_json,
-                                                                             test_client, valid_token_header):
+                                                                             test_client, valid_token_header,
+                                                                             requests_client_get_queue):
     tracks = [create_mock_track_search_result() for _ in range(15)]
     responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
 
@@ -82,13 +83,13 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(c
     assert call_uri == playlist["tracks"]["items"][0]["track"]["uri"]
 
 
-def should_save_next_track_change_time_on_playback_start(create_mock_track_search_result, requests_client,
+def should_save_next_track_change_time_on_playback_start(create_mock_track_search_result, requests_client_get_queue,
                                                          build_success_response, create_pool_creation_data_json,
                                                          test_client, valid_token_header, db_connection,
                                                          logged_in_user_id):
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
     start_time = datetime.datetime.now()
@@ -141,11 +142,11 @@ async def should_inactivate_sessions_for_logged_out_users(db_connection, playbac
     assert not playback_state.is_active
 
 
-def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, existing_playback,
+def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, requests_client_get_queue,
                                                      valid_token_header, mock_token_holder: TokenHolder,
                                                      logged_in_user, fixed_track_length_ms, increment_now,
                                                      create_mock_track_search_result, build_success_response,
-                                                     requests_client, create_pool_creation_data_json, test_client,
+                                                     existing_playback, create_pool_creation_data_json, test_client,
                                                      primary_user_token, auth_database_connection):
     mock_token_holder.log_out(valid_token_header["Authorization"])
 
@@ -155,7 +156,7 @@ def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_ser
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
     responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
 
@@ -199,15 +200,12 @@ def should_return_token_in_headers_for_skip_route(existing_playback, valid_token
     assert_token_in_headers(response)
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
-async def should_get_spotify_playback_state_on_skip_and_defer_if_song_change_too_far(get_query_parameter, increment_now,
-                                                                                     requests_client,
-                                                                                     fixed_track_length_ms,
-                                                                                     existing_playback,
-                                                                                     unskippable_spotify_playback,
-                                                                                     valid_token_header,
-                                                                                     run_scheduling_job):
+async def should_defer_skip_if_spotify_not_close_to_song_end(get_query_parameter, requests_client, run_scheduling_job,
+                                                             fixed_track_length_ms, existing_playback, increment_now,
+                                                             create_unskippable_spotify_playback, valid_token_header,
+                                                             requests_client_get_queue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_unskippable_spotify_playback()
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 0

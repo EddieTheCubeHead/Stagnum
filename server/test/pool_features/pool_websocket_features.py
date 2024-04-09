@@ -6,13 +6,13 @@ from api.pool.models import PoolContent
 
 def should_get_update_when_pool_contents_added(test_client, valid_token_header, shared_pool_code, logged_in_user_id,
                                                another_logged_in_user_header, build_success_response,
-                                               create_mock_playlist_fetch_result, requests_client,
+                                               create_mock_playlist_fetch_result, requests_client_get_queue,
                                                another_logged_in_user_token):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(
             f"/pool/register_listener?Authorization={another_logged_in_user_token}") as websocket:
         playlist = create_mock_playlist_fetch_result(15)
-        requests_client.get = Mock(return_value=build_success_response(playlist))
+        requests_client_get_queue.append(build_success_response(playlist))
         pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
         test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
         data = websocket.receive_json()

@@ -1,5 +1,6 @@
 import datetime
 import random
+from dataclasses import dataclass
 from typing import Callable, Coroutine
 from unittest.mock import Mock
 
@@ -16,7 +17,17 @@ from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRa
 from api.pool.models import PoolCreationData, PoolContent
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
-from database.entities import User
+from database.entities import User, PoolMember
+
+
+@dataclass
+class CurrentPlaybackData:
+    current_track: dict | None = None
+
+
+@pytest.fixture
+def current_playback_data() -> CurrentPlaybackData:
+    return CurrentPlaybackData()
 
 
 @pytest.fixture
@@ -121,7 +132,8 @@ def fixed_track_length_ms(minutes: int = 3, seconds: int = 30):
 @pytest.fixture
 def existing_playback(db_connection: ConnectionManager, create_mock_track_search_result,
                       build_success_response, requests_client_get_queue, create_pool_creation_data_json,
-                      test_client: TestClient, valid_token_header, fixed_track_length_ms, request):
+                      test_client: TestClient, valid_token_header, fixed_track_length_ms, request,
+                      current_playback_data, validate_response):
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     for track in tracks:
@@ -130,7 +142,11 @@ def existing_playback(db_connection: ConnectionManager, create_mock_track_search
     requests_client_get_queue.extend(responses)
     track_uris = [track["uri"] for track in tracks]
     data_json = create_pool_creation_data_json(*track_uris)
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    response = test_client.post("/pool", json=data_json, headers=valid_token_header)
+    currently_playing = validate_response(response)["currently_playing"]
+    for track in tracks:
+        if track["uri"] == currently_playing["spotify_track_uri"]:
+            current_playback_data.current_track = track
     return tracks
 
 
@@ -258,9 +274,10 @@ def song_in_queue(mock_filled_queue_get) -> dict:
 
 
 @pytest.fixture
-def run_scheduling_job(playback_service, mock_empty_queue_get) -> Callable[[], Coroutine[None, None, None]]:
+def run_scheduling_job(playback_service, create_skippable_spotify_playback) \
+        -> Callable[[], Coroutine[None, None, None]]:
     async def wrapper():
-        mock_empty_queue_get()
+        create_skippable_spotify_playback()
         await queue_next_songs(playback_service)
 
     return wrapper
@@ -276,8 +293,9 @@ def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
 
 
 @pytest.fixture
-def create_spotify_playback_state(faker, fixed_track_length_ms,
-                                  create_mock_track_search_result) -> Callable[[int | None, bool | None], dict]:
+def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_track_search_result,
+                                  current_playback_data, mock_datetime_wrapper) \
+        -> Callable[[int | None, bool | None], dict]:
     def wrapper(playback_left: int = 1000, is_playing: bool = True) -> dict:
         return {
             "device": {
@@ -292,10 +310,10 @@ def create_spotify_playback_state(faker, fixed_track_length_ms,
             "repeat_state": "track",
             "shuffle_state": False,
             "context": None,
-            "timestamp": datetime.datetime.now().timestamp(),
+            "timestamp": mock_datetime_wrapper.now().timestamp(),
             "progress_ms": fixed_track_length_ms - playback_left,
             "is_playing": is_playing,
-            "item": create_mock_track_search_result(),
+            "item": current_playback_data.current_track,
             "currently_playing_type": "track",
             "actions": {
                 "interrupting_playback": True,
@@ -315,12 +333,34 @@ def create_spotify_playback_state(faker, fixed_track_length_ms,
 
 
 @pytest.fixture
-def skippable_spotify_playback(requests_client_get_queue, create_spotify_playback_state, build_success_response):
-    playback_state = create_spotify_playback_state()
-    requests_client_get_queue.append(build_success_response(playback_state))
+def create_skippable_spotify_playback(requests_client_get_queue, create_spotify_playback_state,
+                                      build_success_response, create_mock_track_search_result,
+                                      current_playback_data) -> Callable[[int | None], None]:
+    def wrapper(songs_in_queue: int = 0):
+        playback_state = create_spotify_playback_state()
+        next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
+        queue_data = {
+            "currently_playing": current_playback_data.current_track,
+            "queue": next_songs,
+        }
+        requests_client_get_queue.append(build_success_response(playback_state))
+        requests_client_get_queue.append(build_success_response(queue_data))
+
+    return wrapper
 
 
 @pytest.fixture
-def unskippable_spotify_playback(requests_client_get_queue, create_spotify_playback_state, build_success_response):
-    playback_state = create_spotify_playback_state(5000)
-    requests_client_get_queue.append(build_success_response(playback_state))
+def create_unskippable_spotify_playback(requests_client_get_queue, create_spotify_playback_state,
+                                        build_success_response, create_mock_track_search_result,
+                                        current_playback_data) -> Callable[[int | None], None]:
+    def wrapper(songs_in_queue: int = 0):
+        playback_state = create_spotify_playback_state(5000)
+        next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
+        queue_data = {
+            "currently_playing": current_playback_data.current_track,
+            "queue": next_songs,
+        }
+        requests_client_get_queue.append(build_success_response(playback_state))
+        requests_client_get_queue.append(build_success_response(queue_data))
+
+    return wrapper

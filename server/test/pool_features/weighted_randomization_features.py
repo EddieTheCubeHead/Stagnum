@@ -64,7 +64,7 @@ def create_pool_from_users(faker) -> Callable[[tuple[tuple[User, int], ...]], di
 
 
 @pytest.fixture
-def mock_pool_member_spotify_fetch(requests_client, build_success_response) -> Callable[[PoolMember], None]:
+def mock_pool_member_spotify_fetch(requests_client_get_queue, build_success_response) -> Callable[[PoolMember], None]:
     def wrapper(pool_member: PoolMember):
         response = {
             "duration_ms": pool_member.duration_ms,
@@ -83,7 +83,7 @@ def mock_pool_member_spotify_fetch(requests_client, build_success_response) -> C
             "type": "track",
             "uri": pool_member.content_uri
         }
-        requests_client.get = Mock(return_value=build_success_response(response))
+        requests_client_get_queue.append(build_success_response(response))
 
     return wrapper
 

@@ -117,12 +117,13 @@ def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_t
 
 def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_token_header, validate_response,
                                               create_mock_track_search_result, create_mock_artist_search_result,
-                                              build_success_response, requests_client, create_pool_creation_data_json):
+                                              build_success_response, requests_client, create_pool_creation_data_json,
+                                              requests_client_get_queue):
     artist = create_mock_artist_search_result()
     tracks = {
         "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
     }
-    requests_client.get = Mock(side_effect=[build_success_response(artist), build_success_response(tracks)])
+    requests_client_get_queue.extend([build_success_response(artist), build_success_response(tracks)])
     data_json = create_pool_creation_data_json(artist["uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -141,14 +142,14 @@ def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_tok
 
 
 def should_save_artist_top_ten_tracks_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
-                                                          create_mock_artist_search_result, requests_client,
+                                                          create_mock_artist_search_result, requests_client_get_queue,
                                                           create_mock_track_search_result, build_success_response,
                                                           create_pool_creation_data_json, logged_in_user_id):
     artist = create_mock_artist_search_result()
     tracks = {
         "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
     }
-    requests_client.get = Mock(side_effect=[build_success_response(artist), build_success_response(tracks)])
+    requests_client_get_queue.extend([build_success_response(artist), build_success_response(tracks)])
     data_json = create_pool_creation_data_json(artist["uri"])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -235,7 +236,7 @@ def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid
 
 def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestClient, valid_token_header,
                                                              validate_response, create_mock_track_search_result,
-                                                             build_success_response, requests_client,
+                                                             build_success_response, requests_client_get_queue,
                                                              create_pool_creation_data_json, db_connection,
                                                              create_mock_artist_search_result,
                                                              create_mock_album_search_result, logged_in_user_id,
@@ -248,7 +249,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
     responses = [build_success_response(track) for track in tracks]
     responses.extend([build_success_response(artist), build_success_response(artist_tracks),
                       build_success_response(album), build_success_response(playlist)])
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks], artist["uri"], album["uri"],
                                                playlist["uri"])
 
@@ -268,15 +269,16 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
 
 @pytest.mark.slow
 def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_client: TestClient, valid_token_header,
-                                                                           db_connection, requests_client,
+                                                                           db_connection, requests_client_get_queue,
                                                                            create_mock_playlist_fetch_result,
                                                                            build_success_response, logged_in_user_id,
-                                                                           create_pool_creation_data_json):
+                                                                           create_pool_creation_data_json,
+                                                                           requests_client):
     playlist_length = 320
     playlist_fetches = create_mock_playlist_fetch_result(playlist_length)
     playlist = playlist_fetches[0]
     responses = [build_success_response(data_point) for data_point in playlist_fetches]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     data_json = create_pool_creation_data_json(playlist["uri"])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)

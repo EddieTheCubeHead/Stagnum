@@ -524,19 +524,18 @@ class PoolPlaybackServiceRaw:
         spotify_state = self._spotify_client.get_user_playback(user)
         if spotify_state["item"]["uri"] != playback.current_track_uri:
             self._fix_playback(playback, user)
-        song_left_at_fetch = playback.current_track_duration_ms - spotify_state["progress_ms"]
+        song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
         fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
         song_left = song_left_at_fetch - (fetch_lag / datetime.timedelta(milliseconds=1))
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return True
-        new_end_timestamp = self._datetime_wrapper.now(tz=datetime.timezone.utc) + datetime.timedelta(milliseconds=song_left)
+        new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
         # self._database_connection.update_playback_ts(new_end_timestamp)
         return False
 
     def _fix_playback(self, playback: PlaybackSession, user: User):
         pass
-
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]

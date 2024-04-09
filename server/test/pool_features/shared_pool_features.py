@@ -73,10 +73,10 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code, test_cl
                                                        validate_response, valid_token_header, existing_pool,
                                                        logged_in_user_id, create_mock_playlist_fetch_result,
                                                        requests_client, build_success_response, get_query_parameter,
-                                                       weighted_parameters, skip_song):
+                                                       weighted_parameters, skip_song, requests_client_get_queue):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(15)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
+    requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
 

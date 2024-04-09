@@ -396,7 +396,6 @@ class ErrorData:
 @pytest.fixture(params=[401, 403, 404, 500])
 def spotify_error_message(request, requests_client) -> ErrorData:
     code = request.param
-    requests_client.get.return_value.status_code = code
     expected_error_message = "my error message"
     for mock_method in (requests_client.get, requests_client.post, requests_client.put):
         mock_return = Mock()
@@ -429,13 +428,13 @@ def create_pool_creation_data_json():
 
 
 @pytest.fixture
-def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client_get_queue,
                   create_pool_creation_data_json, test_client, validate_response, valid_token_header,
                   db_connection, logged_in_user_id) -> list[PoolMember]:
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
