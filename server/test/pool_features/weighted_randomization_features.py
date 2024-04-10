@@ -110,13 +110,18 @@ def add_track_to_pool(mock_pool_member_spotify_fetch, create_member_post_data, t
 @pytest.fixture
 def implement_pool_from_members(test_client, create_token, log_user_in, create_header_from_token_response,
                                 valid_token_header, create_member_post_data, add_track_to_pool,
-                                share_pool_and_get_code, mock_pool_member_spotify_fetch) \
-        -> Callable[[list[User], dict[str, list[PoolMember]]], None]:
+                                share_pool_and_get_code, mock_pool_member_spotify_fetch,
+                                current_playback_data)  -> Callable[[list[User], dict[str, list[PoolMember]]], None]:
     def wrapper(users: list[User], pool_members: dict[str, list[PoolMember]]):
         main_user = users[0]
         main_user_pool = pool_members[main_user.spotify_id]
         creation_data = PoolCreationData(spotify_uris=[create_member_post_data(main_user_pool[0])]).model_dump()
         mock_pool_member_spotify_fetch(main_user_pool[0])
+        current_playback_data.current_track = {
+            "name": main_user_pool[0].name,
+            "uri": main_user_pool[0].content_uri,
+            "duration_ms": main_user_pool[0].duration_ms,
+        }
         test_client.post("/pool", json=creation_data, headers=valid_token_header)
         share_code = share_pool_and_get_code()
         for track in main_user_pool[1:]:

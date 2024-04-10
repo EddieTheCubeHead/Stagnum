@@ -124,7 +124,7 @@ class PoolSpotifyClientRaw:
 
     def get_user_playback(self, user: User) -> dict:
         header = build_auth_header(user)
-        return self._spotify_client.get("me/player", headers=header)
+        return self._spotify_client.get("me/player/currently-playing", headers=header)
 
     def get_user_queue(self, user: User) -> dict:
         header = build_auth_header(user)
@@ -474,6 +474,19 @@ class PlaybackWebsocketUpdaterRaw:
 PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
 
 
+def _get_additional_queue_part(queue_data: dict) -> list[dict]:
+    last_song_uri = queue_data["queue"][-1]["uri"]
+    additional_queue_part = []
+    for track_data in queue_data["queue"]:
+        if track_data["uri"] == last_song_uri:
+            break
+        additional_queue_part.append(track_data)
+
+    _logger.info(f"User queue: {additional_queue_part}")
+
+    return additional_queue_part
+
+
 class PoolPlaybackServiceRaw:
 
     def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
@@ -497,19 +510,18 @@ class PoolPlaybackServiceRaw:
     async def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
-            try:
-                await self._update_playback(playback)
-            except QueueNotEmptyException as exception:
-                pool = self._database_connection.get_pool_for_playback_session(playback)
-                await self._playback_updater.send_error(exception, pool.id)
+            await self._update_playback(playback)
 
     async def _update_playback(self, playback: PlaybackSession):
         if not self._token_holder.is_user_logged_in(playback.user_id):
             self._database_connection.set_playback_as_inactive(playback)
             return
         user = self._token_holder.get_user_from_user_id(playback.user_id)
+        _logger.info(f"Updating playback for user {user.spotify_username}")
         spotify_playback_end_timestamp = await self._validate_spotify_playback_state(playback, user)
+        _logger.info(f"{spotify_playback_end_timestamp} : {self._datetime_wrapper.now()}")
         if spotify_playback_end_timestamp is not None:
+            _logger.info(f"{spotify_playback_end_timestamp - self._datetime_wrapper.now()}")
             skipped_queue = await self._fix_queue(user)
             await self._queue_next_song(user, spotify_playback_end_timestamp)
             if skipped_queue:
@@ -540,12 +552,17 @@ class PoolPlaybackServiceRaw:
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
 
     async def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
+        fetch_start = self._datetime_wrapper.now()
         spotify_state = self._spotify_client.get_user_playback(user)
+        fetch_end = self._datetime_wrapper.now()
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
-        fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)
+        fetch_timestamp = ((fetch_end - fetch_start) / 2) + fetch_start
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
         song_left = song_left_at_fetch - (fetch_lag / datetime.timedelta(milliseconds=1))
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
+        _logger.info(f"Current time: {self._datetime_wrapper.now()}, fetch time: {fetch_timestamp}, fetch lag: {fetch_lag}")
+        _logger.info(f"song left at fetch: {song_left_at_fetch}, song left: {song_left}")
+        _logger.info(f"New end timestamp: {new_end_timestamp}")
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
         if spotify_state["item"]["uri"] != playback.current_track_uri:
@@ -567,12 +584,13 @@ class PoolPlaybackServiceRaw:
 
     async def _fix_queue(self, user: User) -> bool:
         has_skipped_songs = False
-        queue_data = self._spotify_client.get_user_queue(user)
-        while len(queue_data["queue"]) > 0:
+        queue_data = _get_additional_queue_part(self._spotify_client.get_user_queue(user))
+        while len(queue_data) > 0:
             has_skipped_songs = True
-            for _ in queue_data["queue"]:
+            for track_data in queue_data:
+                _logger.info(f"Skipping track {track_data["name"]} from user {user.spotify_username} queue.")
                 self._spotify_client.skip_current_song(user)
-            queue_data = self._spotify_client.get_user_queue(user)
+            queue_data = _get_additional_queue_part(self._spotify_client.get_user_queue(user))
 
         return has_skipped_songs
 

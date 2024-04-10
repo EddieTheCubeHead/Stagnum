@@ -218,12 +218,13 @@ def weighted_parameters(monkeypatch) -> RandomizationParameters:
 
 
 @pytest.fixture
-def build_empty_queue(create_mock_track_search_result) -> Callable[[], dict]:
+def build_empty_queue(create_mock_track_search_result, current_playback_data) -> Callable[[], dict]:
     def wrapper():
         currently_playing = create_mock_track_search_result()
+        queue_tail = [current_playback_data.current_track] * 50
         return {
             "currently_playing": currently_playing,
-            "queue": [],
+            "queue": queue_tail,
         }
 
     return wrapper
@@ -245,13 +246,14 @@ def empty_queue(mock_empty_queue_get) -> dict:
 
 
 @pytest.fixture
-def build_queue_with_song(create_mock_track_search_result) -> Callable[[], dict]:
+def build_queue_with_song(create_mock_track_search_result, current_playback_data) -> Callable[[], dict]:
     def wrapper():
         currently_playing = create_mock_track_search_result()
         next_song = create_mock_track_search_result()
+        queue_tail = [current_playback_data.current_track] * 50
         return {
             "currently_playing": currently_playing,
-            "queue": [next_song],
+            "queue": [next_song] + queue_tail,
         }
 
     return wrapper
@@ -311,7 +313,7 @@ def create_spotify_playback_state(faker, create_mock_track_search_result, mock_d
             "repeat_state": "track",
             "shuffle_state": False,
             "context": None,
-            "timestamp": mock_datetime_wrapper.now().timestamp(),
+            "timestamp": mock_datetime_wrapper.now().timestamp() * 1000, # Spotify sends timestamps in milliseconds
             "progress_ms": song_data["duration_ms"] - playback_left,
             "is_playing": is_playing,
             "item": song_data,
@@ -342,9 +344,10 @@ def create_spotify_playback(requests_client_get_queue, create_spotify_playback_s
         playback_state = create_spotify_playback_state(song_data, playback_left_ms)
         song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=playback_left_ms)
         next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
+        queue_tail = [current_playback_data.current_track] * 50
         queue_data = {
             "currently_playing": song_data,
-            "queue": next_songs,
+            "queue": next_songs + queue_tail,
         }
         requests_client_get_queue.append(build_success_response(playback_state))
         requests_client_get_queue.append(build_success_response(queue_data))
