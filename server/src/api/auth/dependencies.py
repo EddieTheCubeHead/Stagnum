@@ -1,12 +1,10 @@
 import base64
 import datetime
-import json
 import os
 from logging import getLogger
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
-from requests import Response
 from sqlalchemy import delete, select
 
 from api.auth.models import SpotifyTokenResponse, LoginRedirect, LoginSuccess

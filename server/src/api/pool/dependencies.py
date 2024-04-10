@@ -1,6 +1,4 @@
 import datetime
-import json
-import random
 from logging import getLogger
 from typing import Annotated
 
@@ -11,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHolder
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
+from api.pool.exceptions import QueueNotEmptyException
 from api.pool.helpers import map_pool_member_entity_to_model
 from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
 from api.pool.randomization_algorithms import NextSongProvider
@@ -115,6 +114,9 @@ class PoolSpotifyClientRaw:
 
     def set_next_song(self, user: User, track_uri: str):
         header = build_auth_header(user)
+        current_queue = self._spotify_client.get("me/player/queue", headers=header)
+        if current_queue["queue"]:
+            raise QueueNotEmptyException()
         self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
 
     def skip_current_song(self, user: User):
@@ -390,6 +392,10 @@ class PoolDatabaseConnectionRaw:
             playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
             played_user.playback_time_ms += playtime
 
+    def get_pool_for_playback_session(self, playback_session: PlaybackSession) -> Pool:
+        with self._database_connection.session() as session:
+            return session.scalar(select(Pool).where(Pool.owner_user_id == playback_session.user_id))
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
@@ -431,6 +437,17 @@ class PlaybackWebsocketUpdaterRaw:
             await websocket.send_json(websocket_event)
 
 
+    async def send_error(self, error: Exception, pool_id: int):
+        for websocket in self._playback_sockets.get(pool_id, ()):
+            websocket_event = {
+                "type": "error",
+                "model": {
+                    "detail": str(error)
+                }
+            }
+            await websocket.send_json(websocket_event)
+
+
 PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
 
 
@@ -456,7 +473,11 @@ class PoolPlaybackServiceRaw:
     async def update_user_playbacks(self):
         active_playbacks = self._database_connection.get_playbacks_to_update()
         for playback in active_playbacks:
-            await self._update_playback(playback)
+            try:
+                await self._update_playback(playback)
+            except QueueNotEmptyException as exception:
+                pool = self._database_connection.get_pool_for_playback_session(playback)
+                await self._playback_updater.send_error(exception, pool.id)
 
     async def _update_playback(self, playback: PlaybackSession):
         if not self._token_holder.is_user_logged_in(playback.user_id):
@@ -467,10 +488,9 @@ class PoolPlaybackServiceRaw:
 
     async def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
-        users = self._database_connection.get_pool_users(user)
         pool_owner = self._database_connection.get_users_pools_main_user(user)
         self._database_connection.save_playtime(pool_owner)
-        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
+        next_song = self._get_next_track(playable_tracks, user)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user, next_song.content_uri)
         pool = self._database_connection.get_pool(pool_owner)
@@ -478,8 +498,16 @@ class PoolPlaybackServiceRaw:
         self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
         return next_song
 
+    def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
+        users = self._database_connection.get_pool_users(user)
+        next_song = self._next_song_provider.select_next_song(playable_tracks, users)
+        return next_song
+
     async def skip_song(self, user: User) -> PoolTrack:
-        next_song = await self._queue_next_song(user, True)
+        try:
+            next_song = await self._queue_next_song(user, True)
+        except QueueNotEmptyException as exception:
+            raise HTTPException(status_code=400, detail=str(exception))
         self._spotify_client.skip_current_song(user)
         return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
