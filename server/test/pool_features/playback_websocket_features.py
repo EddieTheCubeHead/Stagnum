@@ -37,11 +37,11 @@ async def should_send_queue_not_empty_error_through_websocket_on_scheduled_job(t
                                                                                valid_token, shared_pool_code,
                                                                                playback_service, fixed_track_length_ms,
                                                                                another_logged_in_user_header,
-                                                                               create_skippable_spotify_playback,
+                                                                               create_spotify_playback,
                                                                                increment_now):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    create_skippable_spotify_playback(1)
+    create_spotify_playback(500, 1)
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()

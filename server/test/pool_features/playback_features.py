@@ -202,22 +202,39 @@ def should_return_token_in_headers_for_skip_route(existing_playback, valid_token
 
 @pytest.mark.asyncio
 async def should_defer_skip_if_spotify_not_close_to_song_end(requests_client, run_scheduling_job, fixed_track_length_ms,
-                                                             existing_playback, increment_now,
-                                                             create_unskippable_spotify_playback):
+                                                             existing_playback, increment_now, create_spotify_playback):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    create_unskippable_spotify_playback()
+    create_spotify_playback(5000)
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 0
 
 
 @pytest.mark.asyncio
-async def should_update_playback_end_time_in_db_after_defer(requests_client, run_scheduling_job, fixed_track_length_ms,
-                                                            existing_playback, increment_now, db_connection,
-                                                            create_unskippable_spotify_playback, mock_datetime_wrapper,
-                                                            approx_datetime):
+async def should_update_playback_end_time_in_db_after_defer(run_scheduling_job, fixed_track_length_ms, increment_now,
+                                                            existing_playback, db_connection, create_spotify_playback,
+                                                            mock_datetime_wrapper, approx_datetime):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    expected_end_time = create_unskippable_spotify_playback()
+    expected_end_time = create_spotify_playback(5000)
     await run_scheduling_job()
+
+    with db_connection.session() as session:
+        playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
+
+    actual_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
+    assert actual_timestamp == approx_datetime(expected_end_time, datetime.timedelta(milliseconds=250))
+
+
+@pytest.mark.wip
+@pytest.mark.asyncio
+async def should_correct_playback_time_based_on_spotify_status(requests_client, run_scheduling_job, existing_playback,
+                                                               fixed_track_length_ms, mock_datetime_wrapper,
+                                                               increment_now, db_connection, approx_datetime,
+                                                               create_spotify_playback):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 50)))
+    expected_end_time = create_spotify_playback(1950) + datetime.timedelta(milliseconds=fixed_track_length_ms)
+    await run_scheduling_job()
+
+    assert len(requests_client.post.call_args_list) == 1
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
