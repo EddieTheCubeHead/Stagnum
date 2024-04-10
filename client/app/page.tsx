@@ -37,6 +37,7 @@ const HomeContent: React.FC = () => {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
+    const [ongoingSearch, setOngoingSearch] = useState(false)
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
     const state = queryParams.get('state')
@@ -64,6 +65,10 @@ const HomeContent: React.FC = () => {
                     `Login callback failed with error: ${error.message}`,
                 )
             })
+    }
+
+    const toggleOngoingSearch = (): void => {
+        setOngoingSearch(!ongoingSearch)
     }
 
     const setErrorAlert = (message: string): void => {
@@ -123,6 +128,7 @@ const HomeContent: React.FC = () => {
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
                             setErrorAlert={setErrorAlert}
+                            toggleOngoingSearch={toggleOngoingSearch}
                         />
                     </Box>
                 </Grid>
@@ -170,6 +176,7 @@ const HomeContent: React.FC = () => {
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
+                                ongoingSearch={true}
                             />
                         </Box>
                     </Grid>

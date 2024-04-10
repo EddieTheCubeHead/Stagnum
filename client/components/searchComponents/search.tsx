@@ -18,6 +18,7 @@ interface SearchProps {
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
+    toggleOngoingSearch: () => void
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -28,6 +29,7 @@ const Search: React.FC<SearchProps> = ({
     setSearchResults,
     enableAddButton,
     setErrorAlert,
+    toggleOngoingSearch,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -39,6 +41,7 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        toggleOngoingSearch()
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
