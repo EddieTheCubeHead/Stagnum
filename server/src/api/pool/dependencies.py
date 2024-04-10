@@ -302,30 +302,30 @@ class PoolDatabaseConnectionRaw:
             all_tracks = _get_playable_tracks(user, session)
         return all_tracks
 
-    def save_playback_status(self, user: User, playing_track: PoolMember, override_timestamp: bool = False):
+    def save_playback_status(self, user: User, playing_track: PoolMember,
+                             playback_end_timestamp: datetime.datetime = None):
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
                 select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
             if existing_playback is not None and existing_playback.current_track_uri is not None:
-                self._update_user_playback(existing_playback, playing_track, override_timestamp)
+                self._update_user_playback(existing_playback, playing_track, playback_end_timestamp)
             else:
                 self._create_user_playback(session, user, playing_track)
 
             _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
 
     def _update_user_playback(self, existing_playback: PlaybackSession, playing_track: PoolMember,
-                              override_timestamp: bool = False):
+                              playback_end_timestamp: datetime.datetime = None):
         existing_playback.current_track_id = playing_track.id
         existing_playback.current_track_name = playing_track.name
         existing_playback.current_track_uri = playing_track.content_uri
         existing_playback.current_track_image_url = playing_track.image_url
         existing_playback.current_track_duration = playing_track.duration_ms
-        if not override_timestamp:
-            utc_end_time = self._datetime_wrapper.ensure_utc(existing_playback.next_song_change_timestamp)
-            delta = max(utc_end_time - self._datetime_wrapper.now(), datetime.timedelta(milliseconds=0))
+        new_song_length = datetime.timedelta(milliseconds=playing_track.duration_ms)
+        if playback_end_timestamp is None:
+            new_end_time = self._datetime_wrapper.now() + new_song_length
         else:
-            delta = datetime.timedelta(milliseconds=0)
-        new_end_time = self._datetime_wrapper.now() + delta + datetime.timedelta(milliseconds=playing_track.duration_ms)
+            new_end_time = self._datetime_wrapper.ensure_utc(playback_end_timestamp) + new_song_length
         existing_playback.next_song_change_timestamp = new_end_time
         existing_playback.is_active = True
 
@@ -496,10 +496,11 @@ class PoolPlaybackServiceRaw:
             self._database_connection.set_playback_as_inactive(playback)
             return
         user = self._token_holder.get_user_from_user_id(playback.user_id)
-        if self._validate_spotify_playback_state(playback, user):
-            await self._queue_next_song(user)
+        spotify_playback_end_timestamp = self._validate_spotify_playback_state(playback, user)
+        if spotify_playback_end_timestamp is not None:
+            await self._queue_next_song(user, spotify_playback_end_timestamp)
 
-    async def _queue_next_song(self, user: User, override_timestamp: bool = False) -> PoolMember:
+    async def _queue_next_song(self, user: User, playback_end_timestamp: datetime.datetime = None) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         pool_owner = self._database_connection.get_users_pools_main_user(user)
         self._database_connection.save_playtime(pool_owner)
@@ -508,7 +509,7 @@ class PoolPlaybackServiceRaw:
         self._spotify_client.set_next_song(user, next_song.content_uri)
         pool = self._database_connection.get_pool(pool_owner)
         await self._playback_updater.playback_updated(map_pool_member_entity_to_model(next_song), pool.id)
-        self._database_connection.save_playback_status(pool_owner, next_song, override_timestamp)
+        self._database_connection.save_playback_status(pool_owner, next_song, playback_end_timestamp)
         return next_song
 
     def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
@@ -518,14 +519,14 @@ class PoolPlaybackServiceRaw:
 
     async def skip_song(self, user: User) -> PoolTrack:
         try:
-            next_song = await self._queue_next_song(user, True)
+            next_song = await self._queue_next_song(user)
         except QueueNotEmptyException as exception:
             raise HTTPException(status_code=400, detail=str(exception))
         self._spotify_client.skip_current_song(user)
         return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
 
-    def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> bool:
+    def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
         spotify_state = self._spotify_client.get_user_playback(user)
         if spotify_state["item"]["uri"] != playback.current_track_uri:
             self._fix_playback(playback, user)
@@ -533,11 +534,11 @@ class PoolPlaybackServiceRaw:
         fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
         song_left = song_left_at_fetch - (fetch_lag / datetime.timedelta(milliseconds=1))
-        if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
-            return True
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
+        if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
+            return new_end_timestamp
         self._database_connection.update_playback_ts(playback, new_end_timestamp)
-        return False
+        return None
 
     def _fix_playback(self, playback: PlaybackSession, user: User):
         pass
