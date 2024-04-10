@@ -99,7 +99,7 @@ def should_save_next_track_change_time_on_playback_start(create_mock_track_searc
         playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
     expected_end_time = start_time + datetime.timedelta(milliseconds=tracks[0]["duration_ms"])
     actual_end_time = mock_datetime_wrapper.ensure_utc(playback_session.next_song_change_timestamp)
-    assert actual_end_time == approx_datetime(expected_end_time, datetime.timedelta(seconds=1))
+    assert actual_end_time == approx_datetime(expected_end_time, datetime.timedelta(milliseconds=500))
 
 
 @pytest.mark.asyncio
@@ -221,10 +221,9 @@ async def should_update_playback_end_time_in_db_after_defer(run_scheduling_job, 
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
 
     actual_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
-    assert actual_timestamp == approx_datetime(expected_end_time, datetime.timedelta(milliseconds=250))
+    assert actual_timestamp == approx_datetime(expected_end_time)
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 async def should_correct_playback_time_based_on_spotify_status(requests_client, run_scheduling_job, existing_playback,
                                                                fixed_track_length_ms, mock_datetime_wrapper,
@@ -240,4 +239,24 @@ async def should_correct_playback_time_based_on_spotify_status(requests_client, 
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
 
     actual_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
-    assert actual_timestamp == approx_datetime(expected_end_time, datetime.timedelta(milliseconds=250))
+    assert actual_timestamp == approx_datetime(expected_end_time)
+
+
+@pytest.mark.wip
+@pytest.mark.asyncio
+async def should_fix_playback_data_if_playing_song_has_changed(run_scheduling_job, fixed_track_length_ms, increment_now,
+                                                               existing_playback, db_connection, mock_datetime_wrapper,
+                                                               create_spotify_playback, approx_datetime,
+                                                               create_mock_track_search_result, requests_client):
+    new_track_data = create_mock_track_search_result()
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    expected_end_time = create_spotify_playback(20000, 0, new_track_data)
+    await run_scheduling_job()
+    assert len(requests_client.post.call_args_list) == 0
+
+    with db_connection.session() as session:
+        playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
+
+    assert playback_state.current_track_uri == new_track_data["uri"]
+    actual_change_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
+    assert actual_change_timestamp == approx_datetime(expected_end_time)

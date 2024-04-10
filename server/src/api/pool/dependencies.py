@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import delete, and_, select, or_, update
@@ -18,7 +18,7 @@ from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoine
     PoolMemberRandomizationParameters
 
 _logger = getLogger("main.api.pool.dependencies")
-_PLAYBACK_UPDATE_CUTOFF_MS = 2000
+_PLAYBACK_UPDATE_CUTOFF_MS = 3000
 
 FullPoolData = (list[PoolMember], list[User], PoolTrack | None, str | None)
 
@@ -316,7 +316,7 @@ class PoolDatabaseConnectionRaw:
 
     def _update_user_playback(self, existing_playback: PlaybackSession, playing_track: PoolMember,
                               playback_end_timestamp: datetime.datetime = None):
-        existing_playback.current_track_id = playing_track.id
+        existing_playback.current_track_id = playing_track.id if playing_track.id is not None else None
         existing_playback.current_track_name = playing_track.name
         existing_playback.current_track_uri = playing_track.content_uri
         existing_playback.current_track_image_url = playing_track.image_url
@@ -406,6 +406,17 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             session.add(playback_session)
             playback_session.next_song_change_timestamp = new_timestamp
+
+    def save_unexpected_track_change(self, playback: PlaybackSession, new_track: PoolMember,
+                                     end_timestamp: datetime.datetime):
+        with self._database_connection.session() as session:
+            session.add(playback)
+            playback.current_track = None
+            playback.current_track_uri = new_track.content_uri
+            playback.current_track_name = new_track.name
+            playback.current_track_image_url = new_track.image_url
+            playback.current_track_duration_ms = new_track.duration_ms
+            playback.next_song_change_timestamp = end_timestamp
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
@@ -528,8 +539,6 @@ class PoolPlaybackServiceRaw:
 
     def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
         spotify_state = self._spotify_client.get_user_playback(user)
-        if spotify_state["item"]["uri"] != playback.current_track_uri:
-            self._fix_playback(playback, user)
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
         fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
@@ -537,11 +546,18 @@ class PoolPlaybackServiceRaw:
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
-        self._database_connection.update_playback_ts(playback, new_end_timestamp)
+        if spotify_state["item"]["uri"] != playback.current_track_uri:
+            self._fix_playback(playback, spotify_state["item"], new_end_timestamp)
+        else:
+            self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
 
-    def _fix_playback(self, playback: PlaybackSession, user: User):
-        pass
+    def _fix_playback(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
+                      end_timestamp: datetime.datetime):
+        new_track = PoolMember(name=actual_song_data["name"], content_uri=actual_song_data["uri"],
+                               image_url=get_sharpest_icon(actual_song_data["album"]["images"]),
+                               duration_ms=actual_song_data["duration_ms"])
+        self._database_connection.save_unexpected_track_change(playback, new_track, end_timestamp)
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]

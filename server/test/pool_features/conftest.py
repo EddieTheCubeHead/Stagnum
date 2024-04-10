@@ -294,9 +294,9 @@ def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
 
 @pytest.fixture
 def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_track_search_result,
-                                  current_playback_data, mock_datetime_wrapper) \
-        -> Callable[[int | None, bool | None], dict]:
-    def wrapper(playback_left: int = 1000, is_playing: bool = True) -> dict:
+                                  mock_datetime_wrapper) \
+        -> Callable[[dict, int | None, bool | None], dict]:
+    def wrapper(song_data: dict, playback_left: int = 1000, is_playing: bool = True) -> dict:
         return {
             "device": {
                 "id": faker.uuid4(),
@@ -313,7 +313,7 @@ def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_trac
             "timestamp": mock_datetime_wrapper.now().timestamp(),
             "progress_ms": fixed_track_length_ms - playback_left,
             "is_playing": is_playing,
-            "item": current_playback_data.current_track,
+            "item": song_data,
             "currently_playing_type": "track",
             "actions": {
                 "interrupting_playback": True,
@@ -335,13 +335,14 @@ def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_trac
 @pytest.fixture
 def create_spotify_playback(requests_client_get_queue, create_spotify_playback_state, build_success_response,
                             create_mock_track_search_result, current_playback_data, mock_datetime_wrapper) \
-        -> Callable[[int | None, int | None], datetime.datetime]:
-    def wrapper(playback_left_ms: int = 500, songs_in_queue: int = 0) -> datetime.datetime:
-        playback_state = create_spotify_playback_state(playback_left_ms)
+        -> Callable[[int | None, int | None, dict | None], datetime.datetime]:
+    def wrapper(playback_left_ms: int = 500, songs_in_queue: int = 0, song_data: dict = None) -> datetime.datetime:
+        song_data = song_data if song_data is not None else current_playback_data.current_track
+        playback_state = create_spotify_playback_state(song_data, playback_left_ms)
         song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=playback_left_ms)
         next_songs = [create_mock_track_search_result() for _ in range(songs_in_queue)]
         queue_data = {
-            "currently_playing": current_playback_data.current_track,
+            "currently_playing": song_data,
             "queue": next_songs,
         }
         requests_client_get_queue.append(build_success_response(playback_state))
