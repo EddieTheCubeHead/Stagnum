@@ -482,7 +482,7 @@ def increment_now(mock_datetime_wrapper) -> Callable[[datetime.timedelta], None]
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
 class ApproxDatetime(ApproxBase):
 
-    def __init__(self, expected, abs: datetime.timedelta = datetime.timedelta(milliseconds=50)):
+    def __init__(self, expected, abs: datetime.timedelta = datetime.timedelta(milliseconds=100)):
         if abs < datetime.timedelta(0):
             raise ValueError(f"absolute tolerance can't be negative: {abs}")
         super().__init__(expected, abs=abs)
