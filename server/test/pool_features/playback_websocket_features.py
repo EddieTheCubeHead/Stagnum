@@ -51,3 +51,17 @@ async def should_send_queue_not_empty_error_through_websocket_on_scheduled_job(t
                             "in Stagnum. We are sorry for the inconvenience, Spotify does not offer tools for us to do "
                             "this automatically.")
         assert data["model"]["detail"] == expected_message
+
+
+@pytest.mark.asyncio
+async def should_notify_socket_if_playback_fix_occurs(run_scheduling_job, fixed_track_length_ms, increment_now,
+                                                      existing_playback, create_spotify_playback, test_client,
+                                                      create_mock_track_search_result, valid_token):
+    new_track_data = create_mock_track_search_result()
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_spotify_playback(20000, 0, new_track_data)
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
+        await run_scheduling_job()
+        data = websocket.receive_json()
+        assert data["type"] == "model"
+        assert data["model"]["spotify_track_uri"] == new_track_data["uri"]

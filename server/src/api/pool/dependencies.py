@@ -507,7 +507,7 @@ class PoolPlaybackServiceRaw:
             self._database_connection.set_playback_as_inactive(playback)
             return
         user = self._token_holder.get_user_from_user_id(playback.user_id)
-        spotify_playback_end_timestamp = self._validate_spotify_playback_state(playback, user)
+        spotify_playback_end_timestamp = await self._validate_spotify_playback_state(playback, user)
         if spotify_playback_end_timestamp is not None:
             await self._queue_next_song(user, spotify_playback_end_timestamp)
 
@@ -537,7 +537,7 @@ class PoolPlaybackServiceRaw:
         return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
 
-    def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
+    async def _validate_spotify_playback_state(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
         spotify_state = self._spotify_client.get_user_playback(user)
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
         fetch_timestamp = datetime.datetime.fromtimestamp(spotify_state["timestamp"], tz=datetime.timezone.utc)
@@ -547,17 +547,21 @@ class PoolPlaybackServiceRaw:
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
         if spotify_state["item"]["uri"] != playback.current_track_uri:
-            self._fix_playback(playback, spotify_state["item"], new_end_timestamp)
+            await self._fix_playback(playback, spotify_state["item"], new_end_timestamp)
         else:
             self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
 
-    def _fix_playback(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
+    async def _fix_playback(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
                       end_timestamp: datetime.datetime):
         new_track = PoolMember(name=actual_song_data["name"], content_uri=actual_song_data["uri"],
                                image_url=get_sharpest_icon(actual_song_data["album"]["images"]),
                                duration_ms=actual_song_data["duration_ms"])
         self._database_connection.save_unexpected_track_change(playback, new_track, end_timestamp)
+        pool_id = self._database_connection.get_pool_for_playback_session(playback).id
+        pool_track = PoolTrack(name=new_track.name, spotify_icon_uri=new_track.image_url,
+                               spotify_track_uri=new_track.content_uri, duration_ms=new_track.duration_ms)
+        await self._playback_updater.playback_updated(pool_track, pool_id)
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
