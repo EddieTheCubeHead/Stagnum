@@ -33,24 +33,19 @@ def should_send_update_when_other_user_in_pool_skips(test_client, existing_playb
 
 
 @pytest.mark.asyncio
-async def should_send_queue_not_empty_error_through_websocket_on_scheduled_job(test_client, existing_playback,
-                                                                               valid_token, shared_pool_code,
-                                                                               playback_service, fixed_track_length_ms,
-                                                                               another_logged_in_user_header,
-                                                                               create_spotify_playback,
-                                                                               increment_now):
+async def should_send_next_song_data_even_after_fixing_queue(test_client, existing_playback, valid_token,
+                                                             shared_pool_code, playback_service, fixed_track_length_ms,
+                                                             another_logged_in_user_header, create_spotify_playback,
+                                                             increment_now, mock_empty_queue_get):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     create_spotify_playback(500, 1)
+    mock_empty_queue_get()
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
         await queue_next_songs(playback_service)
         data = websocket.receive_json()
-        assert data["type"] == "error"
-        expected_message = ("Songs detected in Spotify queue! Please ensure your queue is empty by skipping in Spotify "
-                            "until the player repeats one song. Then reset Stagnum playback status by skipping a song "
-                            "in Stagnum. We are sorry for the inconvenience, Spotify does not offer tools for us to do "
-                            "this automatically.")
-        assert data["model"]["detail"] == expected_message
+        assert data["type"] == "model"
+        assert data["model"]
 
 
 @pytest.mark.asyncio

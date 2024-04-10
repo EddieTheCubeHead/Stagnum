@@ -269,8 +269,10 @@ def mock_filled_queue_get(requests_client_get_queue, build_success_response,
 
 
 @pytest.fixture
-def song_in_queue(mock_filled_queue_get) -> dict:
-    return mock_filled_queue_get()
+def song_in_queue(mock_filled_queue_get, mock_empty_queue_get) -> dict:
+    queue_data = mock_filled_queue_get()
+    mock_empty_queue_get()
+    return queue_data
 
 
 @pytest.fixture

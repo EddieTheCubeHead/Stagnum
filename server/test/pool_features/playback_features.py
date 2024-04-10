@@ -187,11 +187,8 @@ def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_t
                                                       requests_client, song_in_queue, validate_response):
     response = test_client.post("/pool/playback/skip", headers=valid_token_header)
 
-    json_data = validate_response(response, 400)
-    assert json_data["detail"] == ("Songs detected in Spotify queue! Please ensure your queue is empty by skipping "
-                                   "in Spotify until the player repeats one song. Then reset Stagnum playback status "
-                                   "by skipping a song in Stagnum. We are sorry for the inconvenience, Spotify does "
-                                   "not offer tools for us to do this automatically.")
+    validate_response(response)
+    assert len(requests_client.post.call_args_list) == 3
 
 
 def should_return_token_in_headers_for_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
@@ -259,3 +256,17 @@ async def should_fix_playback_data_if_playing_song_has_changed(run_scheduling_jo
     assert playback_state.current_track_uri == new_track_data["uri"]
     actual_change_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
     assert actual_change_timestamp == approx_datetime(expected_end_time)
+
+
+@pytest.mark.asyncio
+async def should_empty_queue_if_songs_in_queue_on_song_change(requests_client, run_scheduling_job,
+                                                              fixed_track_length_ms, existing_playback, increment_now,
+                                                              create_spotify_playback, mock_empty_queue_get):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_spotify_playback(500, 5)
+    mock_empty_queue_get()
+    await run_scheduling_job()
+    # 5 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
+    assert len(requests_client.post.call_args_list) == 7
+
+

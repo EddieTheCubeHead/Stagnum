@@ -116,9 +116,6 @@ class PoolSpotifyClientRaw:
 
     def set_next_song(self, user: User, track_uri: str):
         header = build_auth_header(user)
-        current_queue = self._spotify_client.get("me/player/queue", headers=header)
-        if current_queue["queue"]:
-            raise QueueNotEmptyException()
         self._spotify_client.post(f"me/player/queue?uri={track_uri}", headers=header)
 
     def skip_current_song(self, user: User):
@@ -128,6 +125,10 @@ class PoolSpotifyClientRaw:
     def get_user_playback(self, user: User) -> dict:
         header = build_auth_header(user)
         return self._spotify_client.get("me/player", headers=header)
+
+    def get_user_queue(self, user: User) -> dict:
+        header = build_auth_header(user)
+        return self._spotify_client.get("me/player/queue", headers=header)
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
@@ -509,7 +510,10 @@ class PoolPlaybackServiceRaw:
         user = self._token_holder.get_user_from_user_id(playback.user_id)
         spotify_playback_end_timestamp = await self._validate_spotify_playback_state(playback, user)
         if spotify_playback_end_timestamp is not None:
+            skipped_queue = await self._fix_queue(user)
             await self._queue_next_song(user, spotify_playback_end_timestamp)
+            if skipped_queue:
+                self._spotify_client.skip_current_song(user)
 
     async def _queue_next_song(self, user: User, playback_end_timestamp: datetime.datetime = None) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
@@ -529,10 +533,8 @@ class PoolPlaybackServiceRaw:
         return next_song
 
     async def skip_song(self, user: User) -> PoolTrack:
-        try:
-            next_song = await self._queue_next_song(user)
-        except QueueNotEmptyException as exception:
-            raise HTTPException(status_code=400, detail=str(exception))
+        await self._fix_queue(user)
+        next_song = await self._queue_next_song(user)
         self._spotify_client.skip_current_song(user)
         return PoolTrack(name=next_song.name, spotify_icon_uri=next_song.image_url,
                          spotify_track_uri=next_song.content_uri, duration_ms=next_song.duration_ms)
@@ -547,13 +549,13 @@ class PoolPlaybackServiceRaw:
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
         if spotify_state["item"]["uri"] != playback.current_track_uri:
-            await self._fix_playback(playback, spotify_state["item"], new_end_timestamp)
+            await self._fix_playback_data(playback, spotify_state["item"], new_end_timestamp)
         else:
             self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
 
-    async def _fix_playback(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
-                      end_timestamp: datetime.datetime):
+    async def _fix_playback_data(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
+                                 end_timestamp: datetime.datetime):
         new_track = PoolMember(name=actual_song_data["name"], content_uri=actual_song_data["uri"],
                                image_url=get_sharpest_icon(actual_song_data["album"]["images"]),
                                duration_ms=actual_song_data["duration_ms"])
@@ -562,6 +564,17 @@ class PoolPlaybackServiceRaw:
         pool_track = PoolTrack(name=new_track.name, spotify_icon_uri=new_track.image_url,
                                spotify_track_uri=new_track.content_uri, duration_ms=new_track.duration_ms)
         await self._playback_updater.playback_updated(pool_track, pool_id)
+
+    async def _fix_queue(self, user: User) -> bool:
+        has_skipped_songs = False
+        queue_data = self._spotify_client.get_user_queue(user)
+        while len(queue_data["queue"]) > 0:
+            has_skipped_songs = True
+            for _ in queue_data["queue"]:
+                self._spotify_client.skip_current_song(user)
+            queue_data = self._spotify_client.get_user_queue(user)
+
+        return has_skipped_songs
 
 
 PoolPlaybackService = Annotated[PoolPlaybackServiceRaw, Depends()]
