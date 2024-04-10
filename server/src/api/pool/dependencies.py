@@ -517,11 +517,9 @@ class PoolPlaybackServiceRaw:
             self._database_connection.set_playback_as_inactive(playback)
             return
         user = self._token_holder.get_user_from_user_id(playback.user_id)
-        _logger.info(f"Updating playback for user {user.spotify_username}")
         spotify_playback_end_timestamp = await self._validate_spotify_playback_state(playback, user)
-        _logger.info(f"{spotify_playback_end_timestamp} : {self._datetime_wrapper.now()}")
         if spotify_playback_end_timestamp is not None:
-            _logger.info(f"{spotify_playback_end_timestamp - self._datetime_wrapper.now()}")
+            _logger.info(f"Updating playback for user {user.spotify_username}")
             skipped_queue = await self._fix_queue(user)
             await self._queue_next_song(user, spotify_playback_end_timestamp)
             if skipped_queue:
@@ -560,9 +558,6 @@ class PoolPlaybackServiceRaw:
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
         song_left = song_left_at_fetch - (fetch_lag / datetime.timedelta(milliseconds=1))
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
-        _logger.info(f"Current time: {self._datetime_wrapper.now()}, fetch time: {fetch_timestamp}, fetch lag: {fetch_lag}")
-        _logger.info(f"song left at fetch: {song_left_at_fetch}, song left: {song_left}")
-        _logger.info(f"New end timestamp: {new_end_timestamp}")
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
         if spotify_state["item"]["uri"] != playback.current_track_uri:
