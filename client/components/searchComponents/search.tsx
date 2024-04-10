@@ -66,7 +66,7 @@ const Search: React.FC<SearchProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Joining to pool failed with error : ${error.response.data.detail}`,
+                    `Joining a pool failed with error : ${error.response.data.detail}`,
                 )
             })
     }
