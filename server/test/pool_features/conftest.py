@@ -293,8 +293,7 @@ def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
 
 
 @pytest.fixture
-def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_track_search_result,
-                                  mock_datetime_wrapper) \
+def create_spotify_playback_state(faker, create_mock_track_search_result, mock_datetime_wrapper) \
         -> Callable[[dict, int | None, bool | None], dict]:
     def wrapper(song_data: dict, playback_left: int = 1000, is_playing: bool = True) -> dict:
         return {
@@ -311,7 +310,7 @@ def create_spotify_playback_state(faker, fixed_track_length_ms, create_mock_trac
             "shuffle_state": False,
             "context": None,
             "timestamp": mock_datetime_wrapper.now().timestamp(),
-            "progress_ms": fixed_track_length_ms - playback_left,
+            "progress_ms": song_data["duration_ms"] - playback_left,
             "is_playing": is_playing,
             "item": song_data,
             "currently_playing_type": "track",

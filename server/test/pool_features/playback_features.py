@@ -242,7 +242,6 @@ async def should_correct_playback_time_based_on_spotify_status(requests_client, 
     assert actual_timestamp == approx_datetime(expected_end_time)
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 async def should_fix_playback_data_if_playing_song_has_changed(run_scheduling_job, fixed_track_length_ms, increment_now,
                                                                existing_playback, db_connection, mock_datetime_wrapper,
