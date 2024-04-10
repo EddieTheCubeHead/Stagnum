@@ -117,11 +117,13 @@ async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_aw
     assert actual_call.kwargs["headers"] == valid_token_header
 
 
-def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, increment_now,
-                                                                                fixed_track_length_ms,
-                                                                                playback_service, requests_client):
-    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 3000)))
-    queue_next_songs(playback_service)
+@pytest.mark.asyncio
+async def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, increment_now,
+                                                                                      fixed_track_length_ms,
+                                                                                      playback_service,
+                                                                                      requests_client):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 3500)))
+    await queue_next_songs(playback_service)
     actual_call = requests_client.post.call_args
     assert actual_call is None
 
@@ -184,11 +186,20 @@ def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_h
 
 
 def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_token_header, test_client,
-                                                      requests_client, song_in_queue, validate_response):
+                                                      requests_client, song_in_queue, validate_response,
+                                                      get_query_parameter):
     response = test_client.post("/pool/playback/skip", headers=valid_token_header)
 
     validate_response(response)
     assert len(requests_client.post.call_args_list) == 3
+    actual_queue_call = requests_client.post.call_args_list[1]
+    actual_skip_call = requests_client.post.call_args_list[2]
+    assert actual_queue_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
+    called_uri = get_query_parameter(actual_queue_call.args[0], "uri")
+    assert called_uri in [track["uri"] for track in existing_playback]
+    assert actual_queue_call.kwargs["headers"] == valid_token_header
+    assert actual_skip_call.args[0].startswith("https://api.spotify.com/v1/me/player/next")
+    assert actual_skip_call.kwargs["headers"] == valid_token_header
 
 
 def should_return_token_in_headers_for_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
@@ -270,3 +281,15 @@ async def should_empty_queue_if_songs_in_queue_on_song_change(requests_client, r
     assert len(requests_client.post.call_args_list) == 7
 
 
+@pytest.mark.asyncio
+async def should_handle_songs_added_to_queue_during_queue_fix(requests_client, run_scheduling_job,
+                                                              fixed_track_length_ms, existing_playback, increment_now,
+                                                              create_spotify_playback, mock_empty_queue_get,
+                                                              mock_filled_queue_get):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_spotify_playback(500, 3)
+    mock_filled_queue_get()
+    mock_empty_queue_get()
+    await run_scheduling_job()
+    # 4 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
+    assert len(requests_client.post.call_args_list) == 6
