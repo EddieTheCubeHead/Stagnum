@@ -48,8 +48,8 @@ class PoolMember(EntityBase):
     content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
-    parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
-                                           default=None, nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
+                                                  default=None, nullable=True)
 
     parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent")
@@ -97,15 +97,15 @@ class PoolJoinedUser(EntityBase):
 
 class PlaybackSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
-    current_track_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
+    current_track_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
                                                   nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
 
     # We cache these here, as deleting the active pool member and using a relationship to get its data causes issues
-    current_track_uri: Mapped[str] = mapped_column(String(128), nullable=True)
-    current_track_name: Mapped[str] = mapped_column(String(128), nullable=True)
-    current_track_image_url: Mapped[str] = mapped_column(String(256), nullable=True)
-    current_track_duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
+    current_track_uri: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    current_track_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    current_track_image_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    current_track_duration_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
 
     current_track: Mapped["PoolMember"] = relationship()

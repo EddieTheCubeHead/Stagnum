@@ -1,17 +1,17 @@
 from unittest.mock import Mock
 
-import pytest
 from sqlalchemy import select, and_
 
 from api.pool.models import PoolContent
 from database.entities import PoolMember
 
 
-def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_track_search_result, requests_client,
+def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(create_mock_track_search_result,
+                                                                    requests_client_get_queue,
                                                                     build_success_response, test_client,
                                                                     valid_token_header, validate_response):
     track = create_mock_track_search_result()
-    requests_client.get = Mock(return_value=build_success_response(track))
+    requests_client_get_queue.append(build_success_response(track))
     pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
 
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
@@ -32,12 +32,12 @@ def should_propagate_errors_from_spotify_api(create_mock_track_search_result, te
                                    f"Message: {spotify_error_message.message}")
 
 
-def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mock_track_search_result, requests_client,
-                                                                       build_success_response, test_client,
-                                                                       valid_token_header, db_connection,
-                                                                       logged_in_user_id):
+def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(create_mock_track_search_result,
+                                                                       requests_client_get_queue, test_client,
+                                                                       build_success_response,  valid_token_header,
+                                                                       db_connection, logged_in_user_id):
     track = create_mock_track_search_result()
-    requests_client.get = Mock(return_value=build_success_response(track))
+    requests_client_get_queue.append(build_success_response(track))
     pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
 
     test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
@@ -100,3 +100,15 @@ def should_use_collection_icon_as_track_icon_on_collection_addition(create_mock_
     user_pool = pool_response["users"][0]
     for track in user_pool["collections"][0]["tracks"]:
         assert track["spotify_icon_uri"] == album["images"][0]["url"]
+
+
+def should_include_current_token_in_response_headers(create_mock_track_search_result, requests_client,
+                                                                    build_success_response, test_client,
+                                                                    valid_token_header, assert_token_in_headers):
+    track = create_mock_track_search_result()
+    requests_client.get = Mock(return_value=build_success_response(track))
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+
+    response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    assert_token_in_headers(response)
