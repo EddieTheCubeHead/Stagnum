@@ -43,10 +43,10 @@ const HomeContent: React.FC = () => {
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (localStorage.getItem('token') === undefined) {
-            if (code && state) {
-                handleTokenRequest(code, state)
-            }
+        if (code && state) {
+            handleTokenRequest(code, state)
+        } else {
+            redirect('/login')
         }
     }, [])
 
