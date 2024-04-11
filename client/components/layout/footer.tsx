@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
 import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
-import { Playlist } from '../types'
+import { Playlist, Pool } from '../types'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string) => void,
+    pool: Pool,
 }
 
 const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
@@ -21,19 +22,21 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
             'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
     }
 
-    //if(localStorage.getItem('token').length > 0) {
-        const socket = new WebSocket(WS_URI)
+    useEffect(() => {
+        if(localStorage.getItem('token')) {
+            const socket = new WebSocket(WS_URI)
 
-        // Connection opened
-        socket.addEventListener("open", event => {
-            socket.send("Connection established")
-        });
+            // Connection opened
+            socket.addEventListener("open", event => {
+                socket.send("Connection established")
+            });
 
-        // Listen for messages
-        socket.addEventListener("message", event => {
-            console.log("Message from server ", event.data)
-        });
-    //}
+            // Listen for messages
+            socket.addEventListener("message", event => {
+                console.log("Message from server ", event.data)
+            });
+        }
+    });
 
     return (
         <Box
