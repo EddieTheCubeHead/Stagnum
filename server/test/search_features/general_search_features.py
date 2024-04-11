@@ -32,6 +32,11 @@ def build_spotify_general_search_response(mock_spotify_general_search, build_suc
     return wrapper
 
 
+@pytest.fixture(params=[None, "albums", "artists", "tracks", "playlists"])
+def search_resource_url(request) -> str:
+    return f"{f"/{request.param}"}" if request.param is not None else ""
+
+
 def should_return_twenty_items_from_search(test_client, valid_token_header, build_spotify_general_search_response,
                                            validate_response, requests_client, validate_paginated_result_length):
     query = "my query"
@@ -114,12 +119,19 @@ def should_accept_any_date_starting_with_year(test_client, valid_token_header, m
     assert search_result["albums"]["results"][0]["year"] == 2021
 
 
-@pytest.mark.parametrize("resource", [None, "albums", "artists", "tracks", "playlists"])
-def should_propagate_errors_from_spotify_api(requests_client, test_client, valid_token_header, validate_response,
-                                             resource, spotify_error_message: ErrorData):
-    requests_client.post.return_value.status_code = spotify_error_message.code
-    resource_part = f"{f"/{resource}"}" if resource is not None else ""
-    response = test_client.get(f"/search{resource_part}?query=test", headers=valid_token_header)
+def should_propagate_errors_from_spotify_api(test_client, valid_token_header, validate_response,
+                                             search_resource_url, spotify_error_message: ErrorData):
+    response = test_client.get(f"/search{search_resource_url}?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
     assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
                                    f"Message: {spotify_error_message.message}")
+
+
+def should_include_current_token_in_response_headers(requests_client, build_success_response, test_client,
+                                                     search_resource_url, valid_token_header, assert_token_in_headers,
+                                                     mock_spotify_general_search):
+    query = "test query"
+    search_result = mock_spotify_general_search(query)
+    requests_client.get = Mock(return_value=build_success_response(search_result))
+    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    assert_token_in_headers(result)
