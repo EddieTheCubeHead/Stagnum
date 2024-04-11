@@ -25,11 +25,11 @@ def should_not_have_track_in_database_after_deletion(existing_pool: list[PoolMem
 def should_be_able_to_delete_separate_child_from_collection(create_mock_track_search_result, test_client, db_connection,
                                                             create_mock_playlist_fetch_result, validate_response,
                                                             logged_in_user_id, valid_token_header,
-                                                            create_pool_creation_data_json, requests_client,
+                                                            create_pool_creation_data_json, requests_client_get_queue,
                                                             build_success_response):
     playlist = create_mock_playlist_fetch_result(15)
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
-    requests_client.get = Mock(return_value=build_success_response(playlist))
+    requests_client_get_queue.append(build_success_response(playlist))
     test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)
 
     response = test_client.delete(f"/pool/content/{expected_tracks[5]["uri"]}", headers=valid_token_header)
@@ -80,3 +80,9 @@ def should_return_error_if_member_is_not_users_own(test_client, shared_pool_code
 
     json_data = validate_response(response, 400)
     assert json_data["detail"] == "Can't delete a pool member added by another user."
+
+
+def should_include_token_in_headers(existing_pool: list[PoolMember], valid_token_header, test_client,
+                                    assert_token_in_headers):
+    response = test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)
+    assert_token_in_headers(response)

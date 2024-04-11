@@ -7,7 +7,6 @@ interface AddToPoolButtonProps {
     newAdd: Track | Album | Playlist | Artist
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
@@ -16,7 +15,6 @@ interface AddToPoolButtonProps {
 const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
     newAdd,
     updatePool,
-    token,
     disabled,
     setErrorAlert,
 }) => {
@@ -29,14 +27,14 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { Authorization: token },
+                headers: { Authorization: localStorage.getItem('token') },
             })
             .then((response) => {
                 updatePool(response.data)
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Adding to pool failed with error: ${error.message}`,
+                    `Adding to pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }

@@ -10,7 +10,7 @@ const AlertComponent: React.FC<AlertComponentProps> = ({
     closeAlert,
 }) => {
     return (
-        <Box position="fixed" top="8%" left="25%" zIndex={9999}>
+        <Box position="fixed" top="8%" left="15%" zIndex={9999}>
             <Alert
                 severity="error"
                 variant="filled"

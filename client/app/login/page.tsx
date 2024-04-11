@@ -25,9 +25,15 @@ const LoginPage: React.FC = () => {
                 router.push(response.data.redirect_uri)
             })
             .catch((error) => {
-                setErrorMessage(error.message)
-                setAlert(true)
+                setErrorAlert(
+                    `Login callback failed with error: ${error.response.data.detail}`,
+                )
             })
+    }
+
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
     }
 
     const closeAlert = (): void => {

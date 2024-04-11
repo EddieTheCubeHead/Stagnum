@@ -13,7 +13,6 @@ interface ExpandedSearchContentProps {
     artistList: Artist[]
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
@@ -27,7 +26,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     playlistList,
     artistList,
     updatePool,
-    token,
     disabled,
     enableAddButton,
     setErrorAlert,
