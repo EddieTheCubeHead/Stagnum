@@ -8,7 +8,6 @@ interface AlbumCardProps {
     album: Album
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
@@ -18,7 +17,6 @@ interface AlbumCardProps {
 const AlbumCard: React.FC<AlbumCardProps> = ({
     album,
     updatePool,
-    token,
     disabled,
     enableAddButton,
     setErrorAlert,
@@ -50,12 +48,10 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                     <AddToPoolButton
                         newAdd={album}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={token}
                         item={album}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}
