@@ -6,13 +6,13 @@ import { Text } from '../textComponents'
 import { Playlist } from '../types'
 
 interface FooterProps {
-    token: string
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-const Footer: React.FC<FooterProps> = ({ token }) => {
+const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
     const WS_URI = `${backend_uri?.replace("http", "ws")}/pool/playback/register_listener?token=${token}`;
-    console.log(WS_URI)
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
@@ -21,7 +21,7 @@ const Footer: React.FC<FooterProps> = ({ token }) => {
             'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
     }
 
-    if(token.length > 0) {
+    //if(localStorage.getItem('token').length > 0) {
         const socket = new WebSocket(WS_URI)
 
         // Connection opened
@@ -33,7 +33,7 @@ const Footer: React.FC<FooterProps> = ({ token }) => {
         socket.addEventListener("message", event => {
             console.log("Message from server ", event.data)
         });
-    }
+    //}
 
     return (
         <Box
@@ -67,7 +67,7 @@ const Footer: React.FC<FooterProps> = ({ token }) => {
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton token={token} />
+                    <SkipButton setErrorAlert={setErrorAlert} />
                 </Grid>
                 <Grid
                     item

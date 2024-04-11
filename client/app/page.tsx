@@ -30,7 +30,6 @@ const HomeContent: React.FC = () => {
     })
     const [alert, setAlert] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-    const [token, setToken] = useState('')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
     const [artistList, setArtistList] = useState<Artist[]>([])
@@ -44,10 +43,10 @@ const HomeContent: React.FC = () => {
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (code && state) {
-            handleTokenRequest(code, state)
-        } else {
-            redirect('/login')
+        if (localStorage.getItem('token') === undefined) {
+            if (code && state) {
+                handleTokenRequest(code, state)
+            }
         }
     }, [])
 
@@ -57,12 +56,13 @@ const HomeContent: React.FC = () => {
                 params: { state, code, client_redirect_uri },
             })
             .then((response) => {
-                setToken(response.data.access_token)
+                localStorage.setItem('token', response.data.access_token)
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Login callback failed with error: ${error.message}`,
+                    `Login callback failed with error: ${error.response.data.detail}`,
                 )
+                redirect('/login')
             })
     }
 
@@ -116,7 +116,6 @@ const HomeContent: React.FC = () => {
                         }}
                     >
                         <Search
-                            token={token}
                             updatePool={updatePool}
                             expanded={expanded}
                             toggleExpanded={toggleExpanded}
@@ -134,7 +133,6 @@ const HomeContent: React.FC = () => {
                 >
                     <PoolManager
                         pool={pool}
-                        token={token}
                         updatePool={updatePool}
                         expanded={expanded}
                         setErrorAlert={setErrorAlert}
@@ -166,7 +164,6 @@ const HomeContent: React.FC = () => {
                                 playlistList={playlistList}
                                 artistList={artistList}
                                 updatePool={updatePool}
-                                token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
@@ -175,7 +172,7 @@ const HomeContent: React.FC = () => {
                     </Grid>
                 )}
             </Grid>
-            <Footer token={token} />
+            <Footer setErrorAlert={setErrorAlert} />
             {alert && (
                 <AlertComponent
                     alertMessage={errorMessage}
