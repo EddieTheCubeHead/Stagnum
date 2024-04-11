@@ -4,9 +4,11 @@ import axios from 'axios'
 
 interface SkipButtonProps {
     disabled?: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-const SkipButton: React.FC<SkipButtonProps> = ({ disabled }) => {
+const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const skip = (): void => {
         const headers = {
@@ -23,8 +25,10 @@ const SkipButton: React.FC<SkipButtonProps> = ({ disabled }) => {
             .then(() => {
                 //TODO something?
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Skipping a song failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 

@@ -171,7 +171,7 @@ const HomeContent: React.FC = () => {
                     </Grid>
                 )}
             </Grid>
-            <Footer />
+            <Footer setErrorAlert={setErrorAlert} />
             {alert && (
                 <AlertComponent
                     alertMessage={errorMessage}

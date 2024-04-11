@@ -5,7 +5,12 @@ import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist } from '../types'
 
-const Footer: React.FC = () => {
+interface FooterProps {
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+}
+
+const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
@@ -46,7 +51,7 @@ const Footer: React.FC = () => {
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton />
+                    <SkipButton setErrorAlert={setErrorAlert} />
                 </Grid>
                 <Grid
                     item
