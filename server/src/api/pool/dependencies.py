@@ -391,6 +391,9 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             existing_playback: PlaybackSession = session.scalar(
                 select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+            # Track not set by Stagnum, but due to user error - using both Spotify and Stagnum controls
+            if existing_playback.current_track is None:
+                return
             played_user: PoolJoinedUser = session.scalar(
                 select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id))
             existing_end_time_utc = self._datetime_wrapper.ensure_utc(existing_playback.next_song_change_timestamp)
