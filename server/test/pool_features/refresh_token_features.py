@@ -41,7 +41,6 @@ async def should_refresh_token_in_queue_job(existing_playback, refresh_token_ret
     assert user_session.user_token == f"Bearer {refresh_token_return}"
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 async def should_accept_old_token_login_after_scheduler_refresh_and_return_new_token(existing_playback, increment_now,
                                                                                      refresh_token_return,
