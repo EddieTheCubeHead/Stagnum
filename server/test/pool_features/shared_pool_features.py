@@ -154,6 +154,15 @@ def should_return_error_response_when_attempting_to_join_already_joined_pool(sha
     assert result["detail"] == "Already a member of that pool!"
 
 
+def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(test_client, valid_token_header,
+                                                                                validate_response):
+    invalid_code = "invalid_code_123"
+    response = test_client.post(f"/pool/join/{invalid_code}", headers=valid_token_header)
+
+    result = validate_response(response, 404)
+    assert result["detail"] == f"Could not find pool with code \"{invalid_code}\""
+
+
 def should_return_error_response_when_attempting_to_share_own_pool_with_existing_share_code(shared_pool_code,
                                                                                             test_client,
                                                                                             valid_token_header,
