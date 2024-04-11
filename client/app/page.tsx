@@ -51,19 +51,24 @@ const HomeContent: React.FC = () => {
     }, [])
 
     const handleTokenRequest = (code: string, state: string): void => {
-        axios
-            .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
-                params: { state, code, client_redirect_uri },
-            })
-            .then((response) => {
-                localStorage.setItem('token', response.data.access_token)
-            })
-            .catch((error) => {
-                setErrorAlert(
-                    `Login callback failed with error: ${error.response.data.detail}`,
+        if (localStorage.getItem('token') === undefined) {
+            axios
+                .get(
+                    `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
+                    {
+                        params: { state, code, client_redirect_uri },
+                    },
                 )
-                redirect('/login')
-            })
+                .then((response) => {
+                    localStorage.setItem('token', response.data.access_token)
+                })
+                .catch((error) => {
+                    setErrorAlert(
+                        `Login callback failed with error: ${error.response.data.detail}`,
+                    )
+                    redirect('/login')
+                })
+        }
     }
 
     const setErrorAlert = (message: string): void => {
