@@ -1,3 +1,5 @@
+import base64
+import datetime
 import functools
 import json
 from logging import getLogger
@@ -5,13 +7,32 @@ from typing import Annotated
 
 import requests
 from fastapi import Depends, HTTPException, Header
-from requests import Response
+from fastapi import Response as FastAPIResponse
+from requests import Response as RequestsResponse
 from sqlalchemy import select
 
+from api.common.helpers import _get_client_id, _get_client_secret
+from api.common.models import SpotifyTokenResponse
 from database.database_connection import ConnectionManager
 from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
+
+
+class DateTimeWrapperRaw:
+    """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
+
+    def __init__(self, timezone=datetime.timezone.utc):
+        self._timezone = timezone
+
+    def now(self):
+        return datetime.datetime.now(self._timezone)
+
+    def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
+        return timestamp.replace(tzinfo=self._timezone)
+
+
+DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]
 
 
 class RequestsClientRaw:
@@ -49,7 +70,7 @@ class RequestsClientRaw:
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
-def _validate_and_decode(response: Response) -> dict:
+def _validate_and_decode(response: RequestsResponse) -> dict:
     response_string = response.content.decode("utf8")
     parsed_data = json.loads(response_string) if response_string else None
     if response.status_code >= 400:
@@ -86,11 +107,61 @@ SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
 
 DatabaseConnection = Annotated[ConnectionManager, Depends()]
 
+_ALLOWED_PRODUCT_TYPES = {"premium"}
+
+
+class AuthSpotifyClientRaw:
+
+    def __init__(self, spotify_client: SpotifyClient):
+        self._spotify_client = spotify_client
+
+    def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str) -> SpotifyTokenResponse:
+        form = {
+            "code": code,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code"
+        }
+        return self._get_token_from_form(client_id, client_secret, form)
+
+    def refresh_token(self, refresh_token: str, client_id: str, client_secret: str) -> SpotifyTokenResponse:
+        form = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token
+        }
+        return self._get_token_from_form(client_id, client_secret, form)
+
+    def _get_token_from_form(self, client_id, client_secret, form):
+        token = base64.b64encode((client_id + ':' + client_secret).encode('ascii')).decode('ascii')
+        headers = {
+            "Authorization": "Basic " + token,
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
+                                         data=form)
+        return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
+                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
+
+    def get_me(self, token: str):
+        headers = {
+            "Authorization": token
+        }
+        data = self._spotify_client.get("me", headers=headers)
+        if data["product"] not in _ALLOWED_PRODUCT_TYPES:
+            raise HTTPException(status_code=401,
+                                detail="You need to have a Spotify Premium subscription to use Stagnum!")
+        user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
+        return User(spotify_id=data["id"], spotify_username=data["display_name"],
+                    spotify_avatar_url=user_avatar_url)
+
+
+AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
+
 
 class UserDatabaseConnectionRaw:
 
-    def __init__(self, database_connection: DatabaseConnection):
+    def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper):
         self._database_connection = database_connection
+        self._datetime_wrapper = datetime_wrapper
 
     def get_from_token(self, token: str) -> User | None:
         with self._database_connection.session() as session:
@@ -105,24 +176,40 @@ class UserDatabaseConnectionRaw:
             user = session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
             session.delete(user.session)
 
+    def refresh_session(self, user: User, refreshed_session: SpotifyTokenResponse) -> UserSession:
+        with self._database_connection.session() as session:
+            user_session = session.scalar(select(UserSession).where(UserSession.user_id == user.spotify_id))
+            user_session.user_token = f"{refreshed_session.token_type} {refreshed_session.access_token}"
+            user_session.refresh_token = refreshed_session.refresh_token
+            user_session.expires_at = self._datetime_wrapper.now() + datetime.timedelta(
+                seconds=refreshed_session.expires_in)
+
+        return user_session
+
 
 UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 
 
 class TokenHolderRaw:
 
-    def __init__(self, user_database_connection: UserDatabaseConnection):
+    def __init__(self, user_database_connection: UserDatabaseConnection, auth_client: AuthSpotifyClient,
+                 datetime_wrapper: DateTimeWrapper, response: FastAPIResponse):
         self._user_database_connection = user_database_connection
+        self._auth_client = auth_client
+        self._datetime_wrapper = datetime_wrapper
+        self._response = response
 
     def get_user_from_token(self, token: str) -> User:
         user = self._user_database_connection.get_from_token(token)
         if user is None:
             _logger.error(f"Token {token} not found.")
             raise HTTPException(status_code=403, detail="Invalid bearer token!")
+        self._ensure_fresh_token(user)
         return user
 
     def get_user_from_user_id(self, user_id: str) -> User:
-        return self._user_database_connection.get_from_id(user_id)
+        user = self._user_database_connection.get_from_id(user_id)
+        return user
 
     def log_out(self, token: str):
         self._user_database_connection.log_out(token)
@@ -133,6 +220,16 @@ class TokenHolderRaw:
     def is_user_logged_in(self, user_id: str):
         return self._user_database_connection.get_from_id(user_id).session is not None
 
+    def _ensure_fresh_token(self, user: User):
+        user_session: UserSession = user.session
+        if self._datetime_wrapper.ensure_utc(user_session.expires_at) <= self._datetime_wrapper.now():
+            client_id = _get_client_id()
+            client_secret = _get_client_secret()
+            refreshed_session = self._auth_client.refresh_token(user_session.refresh_token, client_id, client_secret)
+            user_session = self._user_database_connection.refresh_session(user, refreshed_session)
+        if self._response is not None:
+            self._response.headers["Authorization"] = user_session.user_token
+
 
 TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
@@ -141,12 +238,6 @@ TokenHolder = Annotated[TokenHolderRaw, Depends()]
 # noinspection PyPep8Naming
 def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:
     return _get_user_from_token(Authorization, token_holder)
-
-
-def _get_user_from_token(token, token_holder):
-    _logger.debug(f"Getting user for token {token}")
-    user = token_holder.get_user_from_token(token)
-    return user
 
 
 validated_user = Annotated[User, Depends(validated_user_raw)]
@@ -159,3 +250,9 @@ def validated_user_from_query_parameters_raw(Authorization: str, token_holder: T
 
 
 validated_user_from_query_parameters = Annotated[User, Depends(validated_user_from_query_parameters_raw)]
+
+
+def _get_user_from_token(token: str, token_holder: TokenHolder) -> User:
+    _logger.debug(f"Getting user for token {token}")
+    user = token_holder.get_user_from_token(token)
+    return user
