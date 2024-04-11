@@ -43,10 +43,10 @@ const HomeContent: React.FC = () => {
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (code && state) {
-            handleTokenRequest(code, state)
-        } else {
-            redirect('/login')
+        if (localStorage.getItem('token') === undefined) {
+            if (code && state) {
+                handleTokenRequest(code, state)
+            }
         }
     }, [])
 
@@ -62,6 +62,7 @@ const HomeContent: React.FC = () => {
                 setErrorAlert(
                     `Login callback failed with error: ${error.response.data.detail}`,
                 )
+                redirect('/login')
             })
     }
 
