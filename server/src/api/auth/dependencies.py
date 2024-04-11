@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import delete, select
 
 from api.auth.models import LoginRedirect, LoginSuccess
-from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder, AuthSpotifyClient
+from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder, AuthSpotifyClient, DateTimeWrapper
 from api.common.helpers import create_random_string, raise_internal_server_error, _get_client_id, _get_client_secret
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
@@ -17,8 +17,9 @@ _logger = getLogger("main.api.auth.dependencies")
 
 
 class AuthDatabaseConnectionRaw:
-    def __init__(self, database_connection: DatabaseConnection):
+    def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper):
         self._database_connection = database_connection
+        self._datetime_wrapper = datetime_wrapper
 
     def save_state(self, state_string: str):
         _logger.debug(f"Saving state string {state_string} to database")
@@ -26,7 +27,8 @@ class AuthDatabaseConnectionRaw:
             new_state = LoginState(state_string=state_string)
             session.add(new_state)
 
-    def delete_expired_states(self, delete_before: datetime.datetime):
+    def delete_expired_states(self, delete_cutoff: datetime.timedelta):
+        delete_before = self._datetime_wrapper.now() - delete_cutoff
         _logger.debug(f"Deleting state strings created before {delete_before}")
         with self._database_connection.session() as session:
             session.execute(delete(LoginState).where(LoginState.insert_time_stamp < delete_before))
@@ -38,7 +40,7 @@ class AuthDatabaseConnectionRaw:
     def update_logged_in_user(self, user: User, token_result: ParsedTokenResponse, state: str = None):
         _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
-            token_expiry = datetime.datetime.now() + datetime.timedelta(seconds=token_result.expires_in)
+            token_expiry = self._datetime_wrapper.now() + datetime.timedelta(seconds=token_result.expires_in)
             user.session = UserSession(user_token=token_result.token, refresh_token=token_result.refresh_token,
                                        expires_at=token_expiry)
             session.merge(user)

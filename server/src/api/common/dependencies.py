@@ -19,6 +19,22 @@ from database.entities import User, UserSession
 _logger = getLogger("main.api.common.dependencies")
 
 
+class DateTimeWrapperRaw:
+    """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
+
+    def __init__(self, timezone=datetime.timezone.utc):
+        self._timezone = timezone
+
+    def now(self):
+        return datetime.datetime.now(self._timezone)
+
+    def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
+        return timestamp.replace(tzinfo=self._timezone)
+
+
+DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]
+
+
 class RequestsClientRaw:
     """A class to enable easy mocking of requests functionality with FastAPI dependency system.
 
@@ -91,7 +107,6 @@ SpotifyClient = Annotated[SpotifyClientRaw, Depends()]
 
 DatabaseConnection = Annotated[ConnectionManager, Depends()]
 
-
 _ALLOWED_PRODUCT_TYPES = {"premium"}
 
 
@@ -144,8 +159,9 @@ AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
 
 class UserDatabaseConnectionRaw:
 
-    def __init__(self, database_connection: DatabaseConnection):
+    def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper):
         self._database_connection = database_connection
+        self._datetime_wrapper = datetime_wrapper
 
     def get_from_token(self, token: str) -> User | None:
         with self._database_connection.session() as session:
@@ -165,7 +181,8 @@ class UserDatabaseConnectionRaw:
             user_session = session.scalar(select(UserSession).where(UserSession.user_id == user.spotify_id))
             user_session.user_token = f"{refreshed_session.token_type} {refreshed_session.access_token}"
             user_session.refresh_token = refreshed_session.refresh_token
-            user_session.expires_at = datetime.datetime.now() + datetime.timedelta(seconds=refreshed_session.expires_in)
+            user_session.expires_at = self._datetime_wrapper.now() + datetime.timedelta(
+                seconds=refreshed_session.expires_in)
 
         return user_session
 
@@ -176,10 +193,11 @@ UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 class TokenHolderRaw:
 
     def __init__(self, user_database_connection: UserDatabaseConnection, auth_client: AuthSpotifyClient,
-                 response: FastAPIResponse):
+                 datetime_wrapper: DateTimeWrapper, response: FastAPIResponse):
         self._user_database_connection = user_database_connection
-        self._response = response
         self._auth_client = auth_client
+        self._datetime_wrapper = datetime_wrapper
+        self._response = response
 
     def get_user_from_token(self, token: str) -> User:
         user = self._user_database_connection.get_from_token(token)
@@ -204,7 +222,7 @@ class TokenHolderRaw:
 
     def _ensure_fresh_token(self, user: User):
         user_session: UserSession = user.session
-        if user_session.expires_at <= datetime.datetime.now():
+        if self._datetime_wrapper.ensure_utc(user_session.expires_at) <= self._datetime_wrapper.now():
             client_id = _get_client_id()
             client_secret = _get_client_secret()
             refreshed_session = self._auth_client.refresh_token(user_session.refresh_token, client_id, client_secret)

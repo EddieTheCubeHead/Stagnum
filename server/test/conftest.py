@@ -1,11 +1,13 @@
+import datetime
 import json
 import random
 import re
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, override
 from unittest.mock import Mock
 
 import pytest
+from _pytest.python_api import ApproxBase
 from fastapi import FastAPI
 from sqlalchemy import select
 from starlette.responses import Response
@@ -14,7 +16,7 @@ from starlette.testclient import TestClient
 from api.application import create_app
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection, \
-    AuthSpotifyClient, SpotifyClient
+    AuthSpotifyClient, SpotifyClient, DateTimeWrapperRaw, DateTimeWrapper
 from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
@@ -39,6 +41,27 @@ def requests_client():
 
 
 @pytest.fixture
+def requests_client_get_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.get = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
+def requests_client_post_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.post = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
+def requests_client_put_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.put = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
 def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
     echo = "-v" in pytestconfig.invocation_params.args
     monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
@@ -48,9 +71,10 @@ def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
 
 
 @pytest.fixture
-def application_with_dependencies(application, requests_client, db_connection):
+def application_with_dependencies(application, requests_client, db_connection, mock_datetime_wrapper):
     application.dependency_overrides[RequestsClientRaw] = lambda: requests_client
     application.dependency_overrides[ConnectionManager] = lambda: db_connection
+    application.dependency_overrides[DateTimeWrapperRaw] = lambda: mock_datetime_wrapper
     return application
 
 
@@ -80,9 +104,9 @@ def auth_spotify_client(spotify_client):
 
 
 @pytest.fixture
-def mock_token_holder(application, db_connection, auth_spotify_client):
-    user_database_connection = UserDatabaseConnection(db_connection)
-    token_holder = TokenHolder(user_database_connection, auth_spotify_client, None)
+def mock_token_holder(application, db_connection, auth_spotify_client, mock_datetime_wrapper):
+    user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
+    token_holder = TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
     application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
@@ -108,8 +132,8 @@ def logged_in_user(logged_in_user_id) -> User:
 
 
 @pytest.fixture
-def auth_database_connection(db_connection) -> AuthDatabaseConnection:
-    return AuthDatabaseConnection(db_connection)
+def auth_database_connection(db_connection, mock_datetime_wrapper) -> AuthDatabaseConnection:
+    return AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
 
 
 @pytest.fixture
@@ -373,7 +397,6 @@ class ErrorData:
 @pytest.fixture(params=[401, 403, 404, 500])
 def spotify_error_message(request, requests_client) -> ErrorData:
     code = request.param
-    requests_client.get.return_value.status_code = code
     expected_error_message = "my error message"
     for mock_method in (requests_client.get, requests_client.post, requests_client.put):
         mock_return = Mock()
@@ -406,13 +429,13 @@ def create_pool_creation_data_json():
 
 
 @pytest.fixture
-def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client,
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client_get_queue,
                   create_pool_creation_data_json, test_client, validate_response, valid_token_header,
                   db_connection, logged_in_user_id) -> list[PoolMember]:
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     responses = [build_success_response(track) for track in tracks]
-    requests_client.get = Mock(side_effect=responses)
+    requests_client_get_queue.extend(responses)
     data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -422,7 +445,55 @@ def existing_pool(request, create_mock_track_search_result, build_success_respon
 
 
 @pytest.fixture
-def requests_client_with_auth_mock(requests_client, default_token_return, default_me_return):
-    requests_client.post = Mock(return_value=default_token_return)
-    requests_client.get = Mock(return_value=default_me_return)
+def requests_client_with_auth_mock(requests_client_post_queue, requests_client_get_queue, default_token_return,
+                                   default_me_return):
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(default_me_return)
     return default_token_return.content
+
+
+class MockDateTimeWrapper(DateTimeWrapperRaw):
+
+    def __init__(self):
+        super().__init__()
+        self._add_to_now: datetime.timedelta = datetime.timedelta(milliseconds=0)
+
+    @override
+    def now(self) -> datetime.datetime:
+        return datetime.datetime.now(tz=self._timezone) + self._add_to_now
+
+    def increment_now(self, delta: datetime.timedelta):
+        self._add_to_now += delta
+
+
+@pytest.fixture
+def mock_datetime_wrapper() -> MockDateTimeWrapper:
+    return MockDateTimeWrapper()
+
+
+@pytest.fixture
+def increment_now(mock_datetime_wrapper) -> Callable[[datetime.timedelta], None]:
+    def wrapper(increment: datetime.timedelta):
+        mock_datetime_wrapper.increment_now(increment)
+
+    return wrapper
+
+
+# "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
+class ApproxDatetime(ApproxBase):
+
+    def __init__(self, expected, abs: datetime.timedelta = datetime.timedelta(milliseconds=250)):
+        if abs < datetime.timedelta(0):
+            raise ValueError(f"absolute tolerance can't be negative: {abs}")
+        super().__init__(expected, abs=abs)
+
+    def __repr__(self):
+        return f"approx_datetime({self.expected!r} \u00b1 {self.abs!r})"
+
+    def __eq__(self, actual):
+        return abs(self.expected - actual) <= self.abs
+
+
+@pytest.fixture
+def approx_datetime():
+    return ApproxDatetime
