@@ -138,8 +138,9 @@ class AuthSpotifyClientRaw:
         }
         data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
                                          data=form)
+        refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
         return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
-                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
+                                    expires_in=data["expires_in"], refresh_token=refresh_token)
 
     def get_me(self, token: str):
         headers = {

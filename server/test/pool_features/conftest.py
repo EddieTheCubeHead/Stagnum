@@ -1,4 +1,5 @@
 import datetime
+import json
 import random
 from dataclasses import dataclass
 from typing import Callable, Coroutine
@@ -353,5 +354,16 @@ def create_spotify_playback(requests_client_get_queue, create_spotify_playback_s
             }
             requests_client_get_queue.append(build_success_response(queue_data))
         return song_end_timestamp
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_no_player_playback_state_response(requests_client_get_queue) -> Callable[[], None]:
+    def wrapper():
+        response = Mock()
+        response.status_code = 204
+        response.content = json.dumps("").encode("utf-8")
+        requests_client_get_queue.append(response)
 
     return wrapper

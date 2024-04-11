@@ -1,4 +1,6 @@
 import datetime
+import json
+from typing import Callable
 from unittest.mock import Mock
 
 import pytest
@@ -6,7 +8,7 @@ from sqlalchemy import select
 
 from api.common.dependencies import TokenHolder
 from api.pool.tasks import queue_next_songs
-from database.entities import PlaybackSession
+from database.entities import PlaybackSession, Pool
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
@@ -308,3 +310,17 @@ async def should_correctly_skip_next_song_after_user_changes_song(run_scheduling
     create_spotify_playback(1000, 0, new_track_data)
     await run_scheduling_job()
     assert len(requests_client.post.call_args_list) == 1
+
+
+@pytest.mark.asyncio
+async def should_end_playback_on_no_active_player(existing_playback, increment_now, fixed_track_length_ms,
+                                                  valid_token_header, requests_client, db_connection,
+                                                  run_scheduling_job, mock_no_player_playback_state_response):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    mock_no_player_playback_state_response()
+
+    await run_scheduling_job()
+
+    with db_connection.session() as session:
+        assert session.scalar(select(PlaybackSession)) is None
+        assert session.scalar(select(Pool)) is None
