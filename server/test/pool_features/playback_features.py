@@ -295,13 +295,10 @@ async def should_handle_songs_added_to_queue_during_queue_fix(requests_client, r
     assert len(requests_client.post.call_args_list) == 6
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 async def should_correctly_skip_next_song_after_user_changes_song(run_scheduling_job, create_mock_track_search_result,
-                                                                  increment_now, db_connection, fixed_track_length_ms,
-                                                                  mock_datetime_wrapper, create_spotify_playback,
-                                                                  approx_datetime, existing_playback, requests_client,
-                                                                  requests_client_get_queue):
+                                                                  increment_now, fixed_track_length_ms, requests_client,
+                                                                  create_spotify_playback, existing_playback):
     new_track_data = create_mock_track_search_result()
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(20000, None, new_track_data)
