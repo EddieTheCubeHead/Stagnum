@@ -9,7 +9,7 @@ import requests
 from fastapi import Depends, HTTPException, Header
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from api.common.helpers import _get_client_id, _get_client_secret
 from api.common.models import SpotifyTokenResponse
@@ -138,8 +138,9 @@ class AuthSpotifyClientRaw:
         }
         data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
                                          data=form)
+        refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
         return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
-                                    expires_in=data["expires_in"], refresh_token=data["refresh_token"])
+                                    expires_in=data["expires_in"], refresh_token=refresh_token)
 
     def get_me(self, token: str):
         headers = {
@@ -165,7 +166,11 @@ class UserDatabaseConnectionRaw:
 
     def get_from_token(self, token: str) -> User | None:
         with self._database_connection.session() as session:
-            return session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
+            user = session.scalar(select(User).where(
+                User.session.has(or_(UserSession.user_token == token, UserSession.last_login_token == token))))
+            if user is not None:
+                user.session.last_login_token = token
+            return user
 
     def get_from_id(self, user_id: str) -> User | None:
         with self._database_connection.session() as session:
@@ -209,6 +214,7 @@ class TokenHolderRaw:
 
     def get_user_from_user_id(self, user_id: str) -> User:
         user = self._user_database_connection.get_from_id(user_id)
+        self._ensure_fresh_token(user)
         return user
 
     def log_out(self, token: str):
