@@ -1,5 +1,5 @@
-import Box from '@mui/material'
-import Typography from '@mui/material'
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid'
 
 const AboutPage: React.FC = () => {
     return (

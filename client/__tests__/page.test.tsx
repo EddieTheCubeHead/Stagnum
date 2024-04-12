@@ -1,15 +1,13 @@
 /* eslint-disable testing-library/prefer-screen-queries */
-import React from 'react'
 import { render } from '@testing-library/react'
-import NotAboutPage from '@/app/about/page'
+import React from 'react'
+import About from '../app/about/page'
 import '@testing-library/jest-dom'
 
-describe('NotAboutPage', () => {
-    it('renders correctly', () => {
-        const { getByText } = render(<NotAboutPage />)
-        const specificText = getByText('This is not about page')
+describe('Page', () => {
+    it('Render starts with load', () => {
+        const { getByText } = render(<About />)
+        const specificText = getByText('About Stagnum')
         expect(specificText).toBeInTheDocument()
     })
-
-    // Add more test cases as needed
 })
