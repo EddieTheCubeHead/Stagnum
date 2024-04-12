@@ -1,4 +1,5 @@
 import datetime
+import json
 import random
 from dataclasses import dataclass
 from typing import Callable, Coroutine
@@ -288,9 +289,9 @@ def run_scheduling_job(playback_service, create_spotify_playback) \
 
 
 @pytest.fixture
-def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
+def skip_song(test_client, create_spotify_playback) -> Callable[[dict], Response]:
     def wrapper(headers: dict):
-        mock_empty_queue_get()
+        create_spotify_playback(50000, 0)
         return test_client.post("/pool/playback/skip", headers=headers)
 
     return wrapper
@@ -353,5 +354,30 @@ def create_spotify_playback(requests_client_get_queue, create_spotify_playback_s
             }
             requests_client_get_queue.append(build_success_response(queue_data))
         return song_end_timestamp
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_no_player_playback_state_response(requests_client_get_queue) -> Callable[[], None]:
+    def wrapper():
+        response = Mock()
+        response.status_code = 204
+        response.content = json.dumps("").encode("utf-8")
+        requests_client_get_queue.append(response)
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_playback_paused_response(requests_client_get_queue, create_spotify_playback_state,
+                                  current_playback_data, mock_empty_queue_get) -> Callable[[], None]:
+    def wrapper():
+        response = Mock()
+        response.status_code = 204
+        response_data = create_spotify_playback_state(current_playback_data.current_track, 5000, False)
+        response.content = json.dumps(response_data).encode("utf-8")
+        requests_client_get_queue.append(response)
+        mock_empty_queue_get()
 
     return wrapper

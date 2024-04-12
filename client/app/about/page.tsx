@@ -1,7 +1,11 @@
 'use client'
 
+<<<<<<< HEAD
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
+=======
+import { Grid, Typography } from '@mui/material'
+>>>>>>> master
 
 const AboutPage: React.FC = () => {
     return (

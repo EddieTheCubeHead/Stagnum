@@ -17,26 +17,6 @@ def base_auth_login_call(monkeypatch, test_client):
 
 
 @pytest.fixture
-def mock_token_return() -> Callable[[str | None, int | None, str | None], Response]:
-    def wrapper(token: str = "my access_token", expires_in: int = 800,
-                refresh_token: str = "my refresh token") -> Response:
-        return_json = {
-            "access_token": token,
-            "token_type": "Bearer",
-            "scopes": "ignored here",
-            "expires_in": expires_in,
-            "refresh_token": refresh_token
-        }
-        response = Mock()
-        response.status_code = 200
-        response.content = json.dumps(return_json).encode("utf-8")
-        return response
-
-    return wrapper
-
-
-
-@pytest.fixture
 def default_token_return(mock_token_return) -> Response:
     return mock_token_return()
 
@@ -60,15 +40,6 @@ def default_me_return(request):
     response.status_code = 200
     response.content = json.dumps(return_json).encode("utf-8")
     return response
-
-
-@pytest.fixture
-def correct_env_variables(monkeypatch):
-    client_id = "my_client_id"
-    client_secret = "my_client_secret"
-    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
-    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
-    return client_id, client_secret
 
 
 @pytest.fixture
