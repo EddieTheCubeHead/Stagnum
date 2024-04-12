@@ -4,6 +4,7 @@
   - [Installing python](#installing-python)
   - [Creating a virtual environment](#creating-a-virtual-environment)
   - [Installing dependencies](#installing-dependencies)
+  - [Ensuring you have Spotify application credential](#ensuring-you-have-spotify-application-credential)
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)
   - [Viewing API documentation](#viewing-api-documentation)
@@ -16,7 +17,7 @@
 
 ## Development setup
 
-To set up a local development environment, please follow the subsections under this header carefully.
+This section should contain everything you need to set up a local development environment.
 
 ### Installing python
 
@@ -38,6 +39,8 @@ will become the interpreter for the venv created. You can check the version with
 ```bash
 python -V
 ```
+
+Notice the capital V.
 
 `python` uses python version from `PATH` in your computer. You can have multiple versions
 installed. Pointing to `python.exe` in the installation root directly lets you choose which
@@ -71,22 +74,21 @@ script depending on the type of your terminal, the examples are for bash and pow
 .venv/Scripts/activate.ps1
 ```
 
-If the venv was activated correctly you should see line feeds start with `(venv)` in your
+If the venv was activated correctly you should see line feeds start with `(.venv)` in your
 terminal.
 
 ### Installing dependencies
 
-You can install dependencies by running
+Once you have activated the venv, you can install dependencies by running
 
 ```bash
 pip install -r server/requirements.txt
 ```
 
-In the repository root. Leave the `server/` -part out if you are working directly in the
-server folder. If you want to also install requirements for running tests, see 
-[Running the test set](#running-the-test-set).
+in the repository root. Leave the `server/` -part out if you are working directly in the
+server folder.
 
-### Ensuring you have spotify application credential
+### Ensuring you have Spotify application credential
 
 Please create a [Spotify Application](https://developer.spotify.com/dashboard). Store your client ID and client secret,
 we will need them later. Before leaving, we need to add our local instance into the list of allowed redirect URIs for
@@ -213,7 +215,8 @@ following message is returned, if everything works correctly:
 ## Running PostgreSQL locally
 
 Please read through the following instructions carefully if you are planning on using PostgreSQL as a local development
-database.
+database. Basically you need to set up your PostgreSQL server, and then run our alembic migration scripts to apply the
+migrations into the server.
 
 ### Install and setup PostgreSQL (quick tutorial)
 
@@ -241,6 +244,8 @@ See [how to set environment variables](#how-to-set-environment-variables) for se
 
 For now migrations are not automatically ran with the server. This is subject to change as the team explores
 alembic more.
+
+All alembic-related commands should be run in the `server` folder.
 
 After you have installed requirements or test requirements in venv and set the environment variable for database
 connection string according to the previous chapter, you can run migrations with the following command:
