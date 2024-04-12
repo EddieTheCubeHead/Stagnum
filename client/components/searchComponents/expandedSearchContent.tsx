@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Stack } from '@mui/material'
+import { Box, LinearProgress, Stack } from '@mui/material'
 import { Header2 } from '../textComponents'
 import AlbumCard from './cards/albumCard'
 import TrackCard from './cards/trackCard'
@@ -32,7 +32,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     ongoingSearch,
 }) => {
     return (
-        <Box>
+        <Box sx={{ width: 1 }}>
             {ongoingSearch ? (
                 <Stack sx={{ padding: 1, width: 1 }}>
                     <Header2 text={'Tracks'} sx={{ color: 'white' }} />
@@ -211,8 +211,8 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                     </Box>
                 </Stack>
             ) : (
-                <Box sx={{ display: 'flex' }}>
-                    <CircularProgress />
+                <Box sx={{ width: '100%', padding: 2 }}>
+                    <LinearProgress />
                 </Box>
             )}
         </Box>
