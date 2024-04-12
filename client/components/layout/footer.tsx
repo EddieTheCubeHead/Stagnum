@@ -6,10 +6,11 @@ import { Text } from '../textComponents'
 import { Playlist } from '../types'
 
 interface FooterProps {
-    token: string
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-const Footer: React.FC<FooterProps> = ({ token }) => {
+const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
@@ -50,7 +51,7 @@ const Footer: React.FC<FooterProps> = ({ token }) => {
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton token={token} />
+                    <SkipButton setErrorAlert={setErrorAlert} />
                 </Grid>
                 <Grid
                     item

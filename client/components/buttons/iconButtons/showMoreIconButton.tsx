@@ -5,7 +5,6 @@ import axios from 'axios'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 
 interface ShowMoreIconButtonProps {
-    token: string
     item: Track | Album | Playlist | Artist
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
@@ -15,7 +14,6 @@ interface ShowMoreIconButtonProps {
 }
 
 const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
-    token,
     item,
     updatePool,
     enableAddButton,
@@ -44,7 +42,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { Authorization: token },
+                headers: { Authorization: localStorage.getItem('token') },
             })
             .then((response) => {
                 updatePool(response.data)
@@ -52,7 +50,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Creating pool failed with error: ${error.message}`,
+                    `Creating a pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }

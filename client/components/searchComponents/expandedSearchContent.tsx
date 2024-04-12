@@ -13,7 +13,6 @@ interface ExpandedSearchContentProps {
     artistList: Artist[]
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
@@ -26,7 +25,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     playlistList,
     artistList,
     updatePool,
-    token,
     disabled,
     enableAddButton,
     setErrorAlert,
@@ -50,7 +48,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         track={track}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -73,7 +70,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         track={track}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -96,7 +92,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         album={album}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -118,7 +113,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         album={album}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -141,7 +135,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         playlist={playlist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -163,7 +156,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         playlist={playlist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -186,7 +178,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         artist={artist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}
@@ -208,7 +199,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         key={key}
                         artist={artist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         enableAddButton={enableAddButton}
                         setErrorAlert={setErrorAlert}

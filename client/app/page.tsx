@@ -30,7 +30,6 @@ const HomeContent: React.FC = () => {
     })
     const [alert, setAlert] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-    const [token, setToken] = useState('')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
     const [artistList, setArtistList] = useState<Artist[]>([])
@@ -52,18 +51,24 @@ const HomeContent: React.FC = () => {
     }, [])
 
     const handleTokenRequest = (code: string, state: string): void => {
-        axios
-            .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
-                params: { state, code, client_redirect_uri },
-            })
-            .then((response) => {
-                setToken(response.data.access_token)
-            })
-            .catch((error) => {
-                setErrorAlert(
-                    `Login callback failed with error: ${error.message}`,
+        if (localStorage.getItem('token') === undefined) {
+            axios
+                .get(
+                    `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
+                    {
+                        params: { state, code, client_redirect_uri },
+                    },
                 )
-            })
+                .then((response) => {
+                    localStorage.setItem('token', response.data.access_token)
+                })
+                .catch((error) => {
+                    setErrorAlert(
+                        `Login callback failed with error: ${error.response.data.detail}`,
+                    )
+                    redirect('/login')
+                })
+        }
     }
 
     const setErrorAlert = (message: string): void => {
@@ -116,7 +121,6 @@ const HomeContent: React.FC = () => {
                         }}
                     >
                         <Search
-                            token={token}
                             updatePool={updatePool}
                             expanded={expanded}
                             toggleExpanded={toggleExpanded}
@@ -134,7 +138,6 @@ const HomeContent: React.FC = () => {
                 >
                     <PoolManager
                         pool={pool}
-                        token={token}
                         updatePool={updatePool}
                         expanded={expanded}
                         setErrorAlert={setErrorAlert}
@@ -166,7 +169,6 @@ const HomeContent: React.FC = () => {
                                 playlistList={playlistList}
                                 artistList={artistList}
                                 updatePool={updatePool}
-                                token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
@@ -175,7 +177,7 @@ const HomeContent: React.FC = () => {
                     </Grid>
                 )}
             </Grid>
-            <Footer token={token} />
+            <Footer setErrorAlert={setErrorAlert} />
             {alert && (
                 <AlertComponent
                     alertMessage={errorMessage}
