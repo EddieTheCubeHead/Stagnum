@@ -1,7 +1,7 @@
 /* eslint-disable testing-library/prefer-screen-queries */
 import React from 'react'
 import { render } from '@testing-library/react'
-import NotAboutPage from '../app/notaboutpage/page'
+import NotAboutPage from '@/app/about/page'
 import '@testing-library/jest-dom'
 
 describe('NotAboutPage', () => {
