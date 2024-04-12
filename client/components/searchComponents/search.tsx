@@ -8,7 +8,6 @@ import PoolInput from '../poolInput'
 import { Pool } from '../types'
 
 interface SearchProps {
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
@@ -21,7 +20,6 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({
-    token,
     updatePool,
     expanded,
     toggleExpanded,
@@ -42,7 +40,7 @@ const Search: React.FC<SearchProps> = ({
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { Authorization: token },
+                headers: { Authorization: localStorage.getItem('token') },
             })
             .then((response) => {
                 if (!expanded) {
@@ -51,14 +49,16 @@ const Search: React.FC<SearchProps> = ({
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                setErrorAlert(`Searching failed with error: ${error.message}`)
+                setErrorAlert(
+                    `Searching failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 
     const handleJoinRequest = (): void => {
         axios
             .post(`${backend_uri}/pool/join/${idQuery}`, {
-                headers: { Authorization: token },
+                headers: { Authorization: localStorage.getItem('token') },
             })
             .then((response) => {
                 updatePool(response.data)
@@ -66,7 +66,7 @@ const Search: React.FC<SearchProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Joining to pool failed with error: ${error.message}`,
+                    `Joining a pool failed with error : ${error.response.data.detail}`,
                 )
             })
     }

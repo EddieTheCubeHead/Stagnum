@@ -8,7 +8,6 @@ import { Pool, PoolUser } from '../types'
 
 interface PoolManagerProps {
     pool: Pool
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
@@ -18,7 +17,6 @@ interface PoolManagerProps {
 
 const PoolManager: React.FC<PoolManagerProps> = ({
     pool,
-    token,
     updatePool,
     expanded,
     setErrorAlert,
@@ -30,7 +28,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { Authorization: token },
+                    headers: { Authorization: localStorage.getItem('token') },
                 },
             )
             .then((response) => {
@@ -38,7 +36,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             })
             .catch((error) => {
                 setErrorAlert(
-                    `Sharing pool failed with error: ${error.message}`,
+                    `Sharing a pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }
@@ -151,7 +149,6 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             <PoolTrackCard
                                 poolItem={poolItem}
                                 key={key}
-                                token={token}
                                 updatePool={updatePool}
                                 setErrorAlert={setErrorAlert}
                             />
@@ -164,7 +161,6 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             <Stack spacing={2} key={key}>
                                 <PoolCollectionCard
                                     poolItem={poolItem}
-                                    token={token}
                                     updatePool={updatePool}
                                     setErrorAlert={setErrorAlert}
                                 />
@@ -186,7 +182,6 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                                     poolItem={
                                                         poolCollectionItem
                                                     }
-                                                    token={token}
                                                     updatePool={updatePool}
                                                     setErrorAlert={
                                                         setErrorAlert
