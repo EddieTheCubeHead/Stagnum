@@ -34,6 +34,10 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     return (
         <Box sx={{ width: 1 }}>
             {ongoingSearch ? (
+                <Box sx={{ width: '100%', padding: 2 }}>
+                    <LinearProgress />
+                </Box>
+            ) : (
                 <Stack sx={{ padding: 1, width: 1 }}>
                     <Header2 text={'Tracks'} sx={{ color: 'white' }} />
                     <Box
@@ -210,10 +214,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         ))}
                     </Box>
                 </Stack>
-            ) : (
-                <Box sx={{ width: '100%', padding: 2 }}>
-                    <LinearProgress />
-                </Box>
             )}
         </Box>
     )

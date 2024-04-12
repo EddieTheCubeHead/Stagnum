@@ -17,6 +17,8 @@ interface SearchProps {
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
+    toggleOngoingSearch: () => void
+    ongoingSearch: boolean
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -26,6 +28,8 @@ const Search: React.FC<SearchProps> = ({
     setSearchResults,
     enableAddButton,
     setErrorAlert,
+    toggleOngoingSearch,
+    ongoingSearch,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -37,6 +41,8 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        console.log('starting search', ongoingSearch)
+        toggleOngoingSearch()
         if (!expanded) {
             toggleExpanded()
         }
@@ -45,16 +51,20 @@ const Search: React.FC<SearchProps> = ({
                 params: { query },
                 headers: {
                     Authorization: localStorage.getItem('token'),
-                    test: 'test',
                 },
             })
             .then((response) => {
                 setSearchResults(response.data)
             })
             .catch((error) => {
+                toggleOngoingSearch()
                 setErrorAlert(
                     `Searching failed with error: ${error.response.data.detail}`,
                 )
+            })
+            .finally(() => {
+                console.log('completed search', ongoingSearch)
+                toggleOngoingSearch()
             })
     }
 

@@ -51,6 +51,10 @@ const HomeContent: React.FC = () => {
         }
     }, [])
 
+    useEffect(() => {
+        console.log(ongoingSearch)
+    }, [ongoingSearch])
+
     const handleTokenRequest = (code: string, state: string): void => {
         axios
             .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
@@ -68,8 +72,7 @@ const HomeContent: React.FC = () => {
     }
 
     const toggleOngoingSearch = (): void => {
-        setOngoingSearch(!ongoingSearch)
-        console.log('ongoing search set to:', ongoingSearch)
+        setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
     }
 
     const setErrorAlert = (message: string): void => {
@@ -86,7 +89,6 @@ const HomeContent: React.FC = () => {
     }
 
     const toggleExpanded = (): void => {
-        toggleOngoingSearch()
         setExpanded(!expanded)
     }
 
@@ -129,6 +131,8 @@ const HomeContent: React.FC = () => {
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
                             setErrorAlert={setErrorAlert}
+                            toggleOngoingSearch={toggleOngoingSearch}
+                            ongoingSearch={ongoingSearch}
                         />
                     </Box>
                 </Grid>
