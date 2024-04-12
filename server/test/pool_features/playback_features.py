@@ -333,7 +333,7 @@ async def should_end_playback_on_no_active_player_when_queueing_next_song(existi
 def should_raise_error_on_no_active_player_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
                                                               db_connection, valid_token_header, requests_client,
                                                               mock_no_player_playback_state_response, skip_song,
-                                                               validate_response):
+                                                              validate_response):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_no_player_playback_state_response()
 
@@ -341,3 +341,32 @@ def should_raise_error_on_no_active_player_when_skipping_song(existing_playback,
 
     data_json = validate_response(response, 400)
     assert data_json["detail"] == "Could not find active playback"
+
+
+@pytest.mark.asyncio
+async def should_end_playback_on_playback_paused_when_queueing_next_song(increment_now, valid_token_header,
+                                                                         db_connection, fixed_track_length_ms,
+                                                                         existing_playback, requests_client,
+                                                                         run_scheduling_job,
+                                                                         mock_playback_paused_response):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    mock_playback_paused_response()
+
+    await run_scheduling_job()
+
+    with db_connection.session() as session:
+        assert session.scalar(select(PlaybackSession)) is None
+        assert session.scalar(select(Pool)) is None
+
+
+def should_raise_error_on_playback_paused_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
+                                                             db_connection, valid_token_header, requests_client,
+                                                             mock_playback_paused_response, skip_song,
+                                                             validate_response):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    mock_playback_paused_response()
+
+    response = skip_song(valid_token_header)
+
+    data_json = validate_response(response, 400)
+    assert data_json["detail"] == "Your playback is paused, please resume playback to continue using Stagnum!"

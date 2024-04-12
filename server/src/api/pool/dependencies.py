@@ -506,6 +506,9 @@ def _get_additional_queue_part(queue_data: dict) -> list[dict]:
 def _validate_spotify_state(spotify_state: dict[str, Any] | None):
     if not spotify_state:
         raise HTTPException(status_code=400, detail="Could not find active playback")
+    if not spotify_state["is_playing"]:
+        raise HTTPException(status_code=400,
+                            detail="Your playback is paused, please resume playback to continue using Stagnum!")
     return True
 
 

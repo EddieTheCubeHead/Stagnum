@@ -367,3 +367,17 @@ def mock_no_player_playback_state_response(requests_client_get_queue) -> Callabl
         requests_client_get_queue.append(response)
 
     return wrapper
+
+
+@pytest.fixture
+def mock_playback_paused_response(requests_client_get_queue, create_spotify_playback_state,
+                                  current_playback_data, mock_empty_queue_get) -> Callable[[], None]:
+    def wrapper():
+        response = Mock()
+        response.status_code = 204
+        response_data = create_spotify_playback_state(current_playback_data.current_track, 5000, False)
+        response.content = json.dumps(response_data).encode("utf-8")
+        requests_client_get_queue.append(response)
+        mock_empty_queue_get()
+
+    return wrapper
