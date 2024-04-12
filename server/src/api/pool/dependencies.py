@@ -503,6 +503,12 @@ def _get_additional_queue_part(queue_data: dict) -> list[dict]:
     return additional_queue_part
 
 
+def _validate_spotify_state(spotify_state: dict[str, Any] | None):
+    if not spotify_state:
+        raise HTTPException(status_code=400, detail="Could not find active playback")
+    return True
+
+
 class PoolPlaybackServiceRaw:
 
     def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
@@ -559,6 +565,7 @@ class PoolPlaybackServiceRaw:
         return next_song
 
     async def skip_song(self, user: User) -> PoolTrack:
+        self._fetch_and_validate_spotify_state(user)
         await self._fix_queue(user)
         next_song = await self._queue_next_song(user)
         self._spotify_client.skip_current_song(user)
@@ -567,8 +574,10 @@ class PoolPlaybackServiceRaw:
 
     async def _get_spotify_playback_timestamp(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
         fetch_start = self._datetime_wrapper.now()
-        spotify_state = self._spotify_client.get_user_playback(user)
-        if not self._validate_spotify_state(spotify_state, user):
+        try:
+            spotify_state = self._fetch_and_validate_spotify_state(user)
+        except HTTPException:
+            self._database_connection.stop_and_purge_playback(user)
             return None
         fetch_end = self._datetime_wrapper.now()
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
@@ -584,11 +593,10 @@ class PoolPlaybackServiceRaw:
             self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
 
-    def _validate_spotify_state(self, spotify_state: dict[str, Any] | None, user: User) -> bool:
-        if not spotify_state:
-            self._database_connection.stop_and_purge_playback(user)
-            return False
-        return True
+    def _fetch_and_validate_spotify_state(self, user: User) -> dict:
+        spotify_state = self._spotify_client.get_user_playback(user)
+        _validate_spotify_state(spotify_state)
+        return spotify_state
 
     async def _fix_playback_data(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
                                  end_timestamp: datetime.datetime):

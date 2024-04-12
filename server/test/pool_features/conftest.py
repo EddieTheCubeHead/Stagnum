@@ -289,9 +289,9 @@ def run_scheduling_job(playback_service, create_spotify_playback) \
 
 
 @pytest.fixture
-def skip_song(test_client, mock_empty_queue_get) -> Callable[[dict], Response]:
+def skip_song(test_client, create_spotify_playback) -> Callable[[dict], Response]:
     def wrapper(headers: dict):
-        mock_empty_queue_get()
+        create_spotify_playback(50000, 0)
         return test_client.post("/pool/playback/skip", headers=headers)
 
     return wrapper

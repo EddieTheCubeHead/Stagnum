@@ -188,8 +188,10 @@ def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_h
 
 
 def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_token_header, test_client,
-                                                      requests_client, song_in_queue, validate_response,
-                                                      get_query_parameter):
+                                                      requests_client, validate_response, create_spotify_playback,
+                                                      get_query_parameter, mock_empty_queue_get):
+    create_spotify_playback(50000, 1)
+    mock_empty_queue_get()
     response = test_client.post("/pool/playback/skip", headers=valid_token_header)
 
     validate_response(response)
@@ -313,9 +315,11 @@ async def should_correctly_skip_next_song_after_user_changes_song(run_scheduling
 
 
 @pytest.mark.asyncio
-async def should_end_playback_on_no_active_player(existing_playback, increment_now, fixed_track_length_ms,
-                                                  valid_token_header, requests_client, db_connection,
-                                                  run_scheduling_job, mock_no_player_playback_state_response):
+async def should_end_playback_on_no_active_player_when_queueing_next_song(existing_playback, increment_now,
+                                                                          fixed_track_length_ms, db_connection,
+                                                                          valid_token_header, requests_client,
+                                                                          mock_no_player_playback_state_response,
+                                                                          run_scheduling_job):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_no_player_playback_state_response()
 
@@ -324,3 +328,16 @@ async def should_end_playback_on_no_active_player(existing_playback, increment_n
     with db_connection.session() as session:
         assert session.scalar(select(PlaybackSession)) is None
         assert session.scalar(select(Pool)) is None
+
+
+def should_raise_error_on_no_active_player_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
+                                                              db_connection, valid_token_header, requests_client,
+                                                              mock_no_player_playback_state_response, skip_song,
+                                                               validate_response):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    mock_no_player_playback_state_response()
+
+    response = skip_song(valid_token_header)
+
+    data_json = validate_response(response, 400)
+    assert data_json["detail"] == "Could not find active playback"

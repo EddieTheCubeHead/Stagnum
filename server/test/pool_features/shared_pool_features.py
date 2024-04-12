@@ -181,11 +181,10 @@ def should_return_token_in_headers_for_join_route(shared_pool_code, test_client,
 
 @pytest.mark.asyncio
 async def should_delete_joined_users_pools_on_playback_stop(existing_playback, increment_now, fixed_track_length_ms,
-                                                            valid_token_header, requests_client, db_connection,
-                                                            run_scheduling_job, mock_no_player_playback_state_response,
-                                                            another_logged_in_user_header, test_client,
-                                                            shared_pool_code, create_mock_track_search_result,
-                                                            requests_client_get_queue, build_success_response):
+                                                            db_connection, run_scheduling_job, shared_pool_code,
+                                                            mock_no_player_playback_state_response, test_client,
+                                                            another_logged_in_user_header, requests_client_get_queue,
+                                                            create_mock_track_search_result, build_success_response):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     track = create_mock_track_search_result()
