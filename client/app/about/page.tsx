@@ -17,7 +17,7 @@ const AboutPage: React.FC = () => {
             }}
         >
             <Typography variant="h1" mb={4}>
-                About Stagnum
+                About Stagnu
             </Typography>
             <Typography>
                 Stagnum is an open source project that aims to be a simple and
