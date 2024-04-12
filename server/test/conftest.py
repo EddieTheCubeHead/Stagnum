@@ -104,10 +104,9 @@ def auth_spotify_client(spotify_client):
 
 
 @pytest.fixture
-def mock_token_holder(application, db_connection, auth_spotify_client, mock_datetime_wrapper):
+def mock_token_holder(db_connection, auth_spotify_client, mock_datetime_wrapper):
     user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
     token_holder = TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
-    application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
     return token_holder
 
 
@@ -497,3 +496,31 @@ class ApproxDatetime(ApproxBase):
 @pytest.fixture
 def approx_datetime():
     return ApproxDatetime
+
+
+@pytest.fixture
+def mock_token_return() -> Callable[[str | None, int | None, str | None], Response]:
+    def wrapper(token: str = "my access_token", expires_in: int = 800,
+                refresh_token: str = "my refresh token") -> Response:
+        return_json = {
+            "access_token": token,
+            "token_type": "Bearer",
+            "scopes": "ignored here",
+            "expires_in": expires_in,
+            "refresh_token": refresh_token
+        }
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(return_json).encode("utf-8")
+        return response
+
+    return wrapper
+
+
+@pytest.fixture
+def correct_env_variables(monkeypatch):
+    client_id = "my_client_id"
+    client_secret = "my_client_secret"
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
+    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
+    return client_id, client_secret

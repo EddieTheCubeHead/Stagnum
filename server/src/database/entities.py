@@ -30,6 +30,7 @@ class UserSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     user_token: Mapped[str] = mapped_column(String(512), nullable=False)
     refresh_token: Mapped[str] = mapped_column(String(512), nullable=False)
+    last_login_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
     user: Mapped["User"] = relationship(lazy="joined", back_populates="session")
