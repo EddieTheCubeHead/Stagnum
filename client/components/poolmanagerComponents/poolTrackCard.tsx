@@ -21,7 +21,14 @@ const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
             : poolItem.name
 
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 0.6, minHeight: 66 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 0.6,
+                minHeight: 66,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',

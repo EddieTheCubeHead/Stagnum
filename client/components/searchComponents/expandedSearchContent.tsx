@@ -32,7 +32,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     ongoingSearch,
 }) => {
     return (
-        <Box sx={{ width: 1 }}>
+        <Box sx={{ width: 1, boxShadow: '3px 3px 3px' }}>
             {ongoingSearch ? (
                 <Box sx={{ width: '100%', padding: 2 }}>
                     <LinearProgress

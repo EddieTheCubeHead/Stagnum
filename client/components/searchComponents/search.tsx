@@ -122,7 +122,7 @@ const Search: React.FC<SearchProps> = ({
                 borderTopRightRadius: 12,
                 borderBottomLeftRadius: expanded ? 0 : 12,
                 borderBottomRightRadius: expanded ? 0 : 12,
-                boxShadow: 2,
+                boxShadow: '3px 3px 3px',
             }}
         >
             <Grid container marginX={1}>
