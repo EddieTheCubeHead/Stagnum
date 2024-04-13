@@ -17,6 +17,7 @@ interface SearchProps {
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
+    toggleOngoingSearch: () => void
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -26,6 +27,7 @@ const Search: React.FC<SearchProps> = ({
     setSearchResults,
     enableAddButton,
     setErrorAlert,
+    toggleOngoingSearch,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -37,29 +39,40 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        toggleOngoingSearch()
+        if (!expanded) {
+            toggleExpanded()
+        }
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token'),
+                },
             })
             .then((response) => {
-                if (!expanded) {
-                    toggleExpanded()
-                }
                 setSearchResults(response.data)
             })
             .catch((error) => {
+                toggleExpanded()
                 setErrorAlert(
                     `Searching failed with error: ${error.response.data.detail}`,
                 )
+            })
+            .finally(() => {
+                toggleOngoingSearch()
             })
     }
 
     const handleJoinRequest = (): void => {
         axios
-            .post(`${backend_uri}/pool/join/${idQuery}`, {
-                headers: { Authorization: localStorage.getItem('token') },
-            })
+            .post(
+                `${backend_uri}/pool/join/${idQuery}`,
+                {},
+                {
+                    headers: { Authorization: localStorage.getItem('token') },
+                },
+            )
             .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
