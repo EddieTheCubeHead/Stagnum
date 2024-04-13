@@ -61,6 +61,10 @@ const HomeContent: React.FC = () => {
                 params: { state, code, client_redirect_uri },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 localStorage.setItem('token', response.data.access_token)
             })
             .catch((error) => {

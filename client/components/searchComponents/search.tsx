@@ -54,6 +54,10 @@ const Search: React.FC<SearchProps> = ({
                 },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 setSearchResults(response.data)
             })
             .catch((error) => {
@@ -78,6 +82,10 @@ const Search: React.FC<SearchProps> = ({
                 },
             )
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
                 enableAddButton()
             })
