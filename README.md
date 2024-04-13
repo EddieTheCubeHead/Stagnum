@@ -17,11 +17,16 @@ the file and rename the copy into `.env`. The values in `example.env` are good d
 fine using them. There should be no need to change the values unless you specifically want to experiment with different
 settings.
 
-The full list of environment variable meanings can be seen from `server/README.md` section `Running the server`. The one
-change for docker compose running is the splitting of the `DATABASE_CONNECTION_URL`. Instead the env file contains 
-variables `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`. These are used to configure the docker container 
-running PostgreSQL and then combined to form the database connection url that is fed to the server. For local 
-development these can thus be anything.
+The full list of environment variable meanings can be seen by combining `client/README.md` section 
+`setting up the environments` and `server/README.md` section `Running the server`. 
+
+There are some notable change for docker compose running for server environment variables. The first one is the 
+splitting of the `DATABASE_CONNECTION_URL`. Instead, the env file contains variables `POSTGRES_USER`, 
+`POSTGRES_PASSWORD` and `POSTGRES_DB`. These are used to configure the docker container running PostgreSQL and then 
+combined to form the database connection url that is fed to the server. For local development these can thus be 
+anything and can be left as their default values. The variables controlling auto-reload, the host and the port are also 
+not present. Instead, variables `BACKEND_PORT` and `FRONTEND_PORT` control which ports docker exposes for the backend 
+and the frontend respectively.
 
 ## Set up secrets
 
