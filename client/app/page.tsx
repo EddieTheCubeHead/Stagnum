@@ -41,15 +41,29 @@ const HomeContent: React.FC = () => {
     const code = queryParams.get('code')
     const state = queryParams.get('state')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (code && state) {
-            handleTokenRequest(code, state)
-        } else {
-            redirect('/login')
-        }
+        checkIfPoolExists()
     }, [])
+
+    const checkIfPoolExists = (): void => {
+        axios
+            .get(`${backend_uri}/pool/`, {
+                headers: { Authorization: localStorage.getItem('token') },
+            })
+            .then((response) => {
+                updatePool(response.data)
+            })
+            .catch(() => {
+                if (code && state) {
+                    handleTokenRequest(code, state)
+                } else {
+                    redirect('/login')
+                }
+            })
+    }
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios
