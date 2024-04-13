@@ -51,10 +51,6 @@ const HomeContent: React.FC = () => {
         }
     }, [])
 
-    useEffect(() => {
-        console.log(ongoingSearch)
-    }, [ongoingSearch])
-
     const handleTokenRequest = (code: string, state: string): void => {
         axios
             .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
@@ -136,7 +132,6 @@ const HomeContent: React.FC = () => {
                             enableAddButton={enableAddButton}
                             setErrorAlert={setErrorAlert}
                             toggleOngoingSearch={toggleOngoingSearch}
-                            ongoingSearch={ongoingSearch}
                         />
                     </Box>
                 </Grid>
