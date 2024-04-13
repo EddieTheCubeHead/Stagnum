@@ -16,3 +16,10 @@ class ParsedTokenResponse(BaseModel):
     token: str
     refresh_token: str
     expires_in: int
+
+
+class SpotifyTokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+    refresh_token: str

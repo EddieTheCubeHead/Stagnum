@@ -8,7 +8,6 @@ interface TrackCardProps {
     track: Track
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
@@ -18,7 +17,6 @@ interface TrackCardProps {
 const TrackCard: React.FC<TrackCardProps> = ({
     track,
     updatePool,
-    token,
     disabled,
     enableAddButton,
     setErrorAlert,
@@ -53,12 +51,10 @@ const TrackCard: React.FC<TrackCardProps> = ({
                     <AddToPoolButton
                         updatePool={updatePool}
                         newAdd={track}
-                        token={token}
                         disabled={disabled}
                         setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={token}
                         item={track}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}

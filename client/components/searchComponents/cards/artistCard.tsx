@@ -8,7 +8,6 @@ interface ArtistCordProps {
     artist: Artist
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
@@ -18,7 +17,6 @@ interface ArtistCordProps {
 const ArtistCard: React.FC<ArtistCordProps> = ({
     artist,
     updatePool,
-    token,
     disabled,
     enableAddButton,
     setErrorAlert,
@@ -50,12 +48,10 @@ const ArtistCard: React.FC<ArtistCordProps> = ({
                     <AddToPoolButton
                         newAdd={artist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
                         setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={token}
                         item={artist}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}

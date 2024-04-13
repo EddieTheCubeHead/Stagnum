@@ -47,3 +47,17 @@ def raise_internal_server_error(message: str) -> Never:
     if environment == "production":
         message = "Internal server error"
     raise HTTPException(status_code=500, detail=message)
+
+
+def _get_client_id():
+    client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
+    if client_id is None:
+        raise_internal_server_error("Could not find spotify client ID in environment variables")
+    return client_id
+
+
+def _get_client_secret():
+    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
+    if client_secret is None:
+        raise_internal_server_error("Could not find spotify client secret in environment variables")
+    return client_secret
