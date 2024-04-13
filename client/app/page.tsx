@@ -173,7 +173,7 @@ const HomeContent: React.FC = () => {
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
-                                ongoingSearch={true}
+                                ongoingSearch={ongoingSearch}
                             />
                         </Box>
                     </Grid>
