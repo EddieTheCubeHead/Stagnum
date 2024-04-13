@@ -70,9 +70,13 @@ const Search: React.FC<SearchProps> = ({
 
     const handleJoinRequest = (): void => {
         axios
-            .post(`${backend_uri}/pool/join/${idQuery}`, {
-                headers: { Authorization: localStorage.getItem('token') },
-            })
+            .post(
+                `${backend_uri}/pool/join/${idQuery}`,
+                {},
+                {
+                    headers: { Authorization: localStorage.getItem('token') },
+                },
+            )
             .then((response) => {
                 updatePool(response.data)
                 enableAddButton()
