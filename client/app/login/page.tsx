@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
             <Grid
                 justifyContent={'center'}
                 alignItems={'center'}
-                display={{  xs: 'none', sm: 'flex' }}
+                display={{ xs: 'none', sm: 'flex' }}
                 sx={{
                     height: '100vh',
                 }}
