@@ -92,8 +92,8 @@ server folder.
 
 Please create a [Spotify Application](https://developer.spotify.com/dashboard). Store your client ID and client secret,
 we will need them later. Before leaving, we need to add our local instance into the list of allowed redirect URIs for
-OAuth: Go into the edit settings view (Basic information -> edit). Add `http://localhost:80` into the list of allowed 
-Redirect URIs.
+OAuth: Go into the edit settings view (Basic information -> edit). Add [`http://localhost:80`](http://localhost:80) 
+into the list of allowed Redirect URIs.
 
 ### Running the server
 
@@ -132,12 +132,20 @@ integer percentage value of the whole pool length. Default `60`
 - `PSEUDO_RANDOM_CEILING`: control the "ceiling" at which point songs' weight modifier from being played before is none
 (`1`). The modifier changes linearly between `0` at the floor point and `1` in the ceiling point. Default `90`
 
-You can validate the server is working by going to [`localhost:8080`]() in your browser. The
-server should respond with the following message:
+You can validate the server is working by going to [`localhost:8080/health`](http://localhost:8080/health) in your 
+browser. The server should respond with healthcheck data that looks something like this:
 
 ```json
 {
-  "message": "Hello world"
+    "status": "HEALTHY",
+    "time_elapsed": "PT0.046225S",
+    "resources": [
+        {
+            "status": "HEALTHY",
+            "time_elapsed":"PT0.001002S",
+            "resource":"database"
+        }
+    ]
 }
 ```
 
@@ -160,7 +168,7 @@ pytest server
 
 ### Viewing API documentation
 
-Once the server is running you can visit the [`localhost:8080/docs`]() route to 
+Once the server is running you can visit the [`localhost:8080/docs`](http://localhost:8080/docs) route to 
 check the API documentation.
 
 
@@ -201,14 +209,24 @@ docker run -p 8080:8080 \
 stagnum-server
 ```
 
-Replace the values in brackets with correct ones.
+Replace the values in brackets with correct ones. You can also add more environment variables if you wish to customize
+the server behaviour. See [running the server](#running-the-server) for full reference on the available environment
+variables.
 
-You can browse to [`localhost:8080`]() to verify the server is running. Once again the
-following message is returned, if everything works correctly:
+You can browse to [`localhost:8080/health`](http://localhost:8080/health) to verify the server is running. Once again 
+a message similar to the following one indicating the server health should be returned:
 
 ```json
 {
-  "message": "Hello world"
+    "status": "HEALTHY",
+    "time_elapsed": "PT0.046225S",
+    "resources": [
+        {
+            "status": "HEALTHY",
+            "time_elapsed":"PT0.001002S",
+            "resource":"database"
+        }
+    ]
 }
 ```
 
