@@ -36,6 +36,7 @@ const HomeContent: React.FC = () => {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
+    const [ongoingSearch, setOngoingSearch] = useState(false)
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
     const state = queryParams.get('state')
@@ -50,25 +51,28 @@ const HomeContent: React.FC = () => {
         }
     }, [])
 
+    useEffect(() => {
+        console.log(ongoingSearch)
+    }, [ongoingSearch])
+
     const handleTokenRequest = (code: string, state: string): void => {
-        if (localStorage.getItem('token') === undefined) {
-            axios
-                .get(
-                    `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`,
-                    {
-                        params: { state, code, client_redirect_uri },
-                    },
+        axios
+            .get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login/callback`, {
+                params: { state, code, client_redirect_uri },
+            })
+            .then((response) => {
+                localStorage.setItem('token', response.data.access_token)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Login callback failed with error: ${error.response.data.detail}`,
                 )
-                .then((response) => {
-                    localStorage.setItem('token', response.data.access_token)
-                })
-                .catch((error) => {
-                    setErrorAlert(
-                        `Login callback failed with error: ${error.response.data.detail}`,
-                    )
-                    redirect('/login')
-                })
-        }
+                redirect('/login')
+            })
+    }
+
+    const toggleOngoingSearch = (): void => {
+        setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
     }
 
     const setErrorAlert = (message: string): void => {
@@ -127,6 +131,8 @@ const HomeContent: React.FC = () => {
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
                             setErrorAlert={setErrorAlert}
+                            toggleOngoingSearch={toggleOngoingSearch}
+                            ongoingSearch={ongoingSearch}
                         />
                     </Box>
                 </Grid>
@@ -172,6 +178,7 @@ const HomeContent: React.FC = () => {
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
+                                ongoingSearch={ongoingSearch}
                             />
                         </Box>
                     </Grid>
