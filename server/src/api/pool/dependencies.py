@@ -231,7 +231,9 @@ def _get_pool_for_user(user: User, session: Session) -> Pool:
         or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id))))
 
 
-def _validate_pool_join(pool, user):
+def _validate_pool_join(pool: Pool | None, user: User, pool_code: str):
+    if pool is None:
+        raise HTTPException(status_code=404, detail=f"Could not find pool with code \"{pool_code}\"")
     if pool.owner_user_id == user.spotify_id:
         raise HTTPException(status_code=400, detail="Attempted to join own pool!")
     if user.spotify_id in (pool_user.user_id for pool_user in pool.joined_users):
@@ -385,7 +387,7 @@ class PoolDatabaseConnectionRaw:
     def join_pool(self, user: User, code: str) -> FullPoolData:
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.share_data.has(PoolShareData.code == code)))
-            _validate_pool_join(pool, user)
+            _validate_pool_join(pool, user, code)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
