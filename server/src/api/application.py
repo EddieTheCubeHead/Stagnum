@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api import pool, search, auth
+from api import pool, search, auth, health
 
 _logger = getLogger("main.application")
 
@@ -42,9 +42,8 @@ def create_app() -> FastAPI:
     application = FastAPI(lifespan=setup_scheduler)
 
     _logger.debug("Adding routers")
-    application.include_router(auth.router)
-    application.include_router(search.router)
-    application.include_router(pool.router)
+    for api_module in (auth, search, pool, health):
+        application.include_router(api_module.router)
 
     application.add_middleware(CORSMiddleware,
                                allow_origins=_get_allowed_origins(), allow_credentials=True,
