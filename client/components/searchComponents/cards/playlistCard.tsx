@@ -27,13 +27,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
             : playlist.name
 
     return (
-        <Card
-            sx={{
-                bgcolor: 'secondary.main',
-                width: 1,
-                boxShadow: '3px 3px 3px',
-            }}
-        >
+        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
             <Box
                 sx={{
                     display: 'flex',

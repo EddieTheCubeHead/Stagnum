@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
-import SkipButton from '../buttons/iconButtons/skipButton'
+import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist } from '../types'
 

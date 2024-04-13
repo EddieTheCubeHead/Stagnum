@@ -22,14 +22,7 @@ const PoolCollectionCard: React.FC<PoolCollectionCardProps> = ({
             : poolItem.name
 
     return (
-        <Card
-            sx={{
-                bgcolor: 'secondary.main',
-                width: 1,
-                minHeight: 66,
-                boxShadow: '3px 3px 3px',
-            }}
-        >
+        <Card sx={{ bgcolor: 'secondary.main', width: 1, minHeight: 66 }}>
             <Box
                 sx={{
                     display: 'flex',

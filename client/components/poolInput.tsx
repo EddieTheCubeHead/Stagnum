@@ -13,7 +13,7 @@ const PoolInput: React.FC<PoolInputProps> = ({ setQuery }) => {
                 bgcolor: theme.palette.secondary.main,
                 margin: 1,
                 borderRadius: 1,
-                boxShadow: '3px 3px 3px',
+                boxShadow: 2,
             }}
             id="standard-search"
             label="Pool ID"

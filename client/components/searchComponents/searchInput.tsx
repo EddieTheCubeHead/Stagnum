@@ -13,7 +13,7 @@ const SearchInput: React.FC<SearchInputProps> = ({ setQuery }) => {
                 bgcolor: theme.palette.secondary.main,
                 margin: 1,
                 borderRadius: 1,
-                boxShadow: '3px 3px 3px',
+                boxShadow: 2,
                 width: '80%',
             }}
             id="standard-search"

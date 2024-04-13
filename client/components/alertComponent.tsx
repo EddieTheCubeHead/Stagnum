@@ -15,7 +15,6 @@ const AlertComponent: React.FC<AlertComponentProps> = ({
                 severity="error"
                 variant="filled"
                 onClose={() => closeAlert()}
-                sx={{ boxShadow: '3px 3px 3px' }}
             >
                 {alertMessage}
             </Alert>

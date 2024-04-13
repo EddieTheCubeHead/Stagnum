@@ -18,11 +18,7 @@ const DefaultButton: React.FC<DefaultButtonProps> = ({
             disableElevation
             onClick={action}
             disabled={disabled}
-            sx={{
-                borderRadius: 4,
-                width: 'fit-content',
-                boxShadow: '3px 3px 3px rgba(0, 0, 0, 0.3)',
-            }}
+            sx={{ borderRadius: 4, width: 'fit-content' }}
         >
             <Typography fontWeight={'bold'}>{text}</Typography>
         </Button>
