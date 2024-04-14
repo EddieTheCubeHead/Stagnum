@@ -1,6 +1,23 @@
 # Creating an ECS cluster
 resource "aws_ecs_cluster" "aws-cluster" {
   name = "${var.app_name}-cluster"
+  
+  configuration {
+    execute_command_configuration {
+      kms_key_id = aws_kms_key.stagnum.arn
+      logging    = "OVERRIDE"
+
+      log_configuration {
+        cloud_watch_encryption_enabled = true
+        cloud_watch_log_group_name     = aws_cloudwatch_log_group.log-group.name
+      }  
+    }
+  }
+}
+
+resource "aws_kms_key" "stagnum" {
+  description             = "stagnum"
+  deletion_window_in_days = 7
 }
 
 # creating an iam policy document for ecsTaskExecutionRole
@@ -25,6 +42,10 @@ resource "aws_iam_role" "ecsTaskExecutionRole" {
 resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
   role       = aws_iam_role.ecsTaskExecutionRole.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_cloudwatch_log_group" "log-group" {
+  name ="stagnum-logs"
 }
 
 locals {
@@ -62,6 +83,15 @@ resource "aws_ecs_task_definition" "aws-task" {
         "timeout": 30,
         "retries": 5,
         "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
+          "awslogs-region": "${var.aws_region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "stagnum"
+        }
       }
     },
     {
@@ -96,7 +126,16 @@ resource "aws_ecs_task_definition" "aws-task" {
           "containerName":"${local.database_name}",
           "condition":"HEALTHY"
         }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
+          "awslogs-region": "${var.aws_region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "stagnum"
+        }
+      }
     },
     {
       "name": "${local.database_name}",
@@ -120,6 +159,15 @@ resource "aws_ecs_task_definition" "aws-task" {
         "timeout": 30,
         "retries": 5,
         "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
+          "awslogs-region": "${var.aws_region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "stagnum"
+        }
       }
     }
   ]
