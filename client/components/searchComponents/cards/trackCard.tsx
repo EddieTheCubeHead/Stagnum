@@ -8,17 +8,18 @@ interface TrackCardProps {
     track: Track
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const TrackCard: React.FC<TrackCardProps> = ({
     track,
     updatePool,
-    token,
     disabled,
     enableAddButton,
+    setErrorAlert,
 }) => {
     const truncatedName =
         track.name.length > 25 ? track.name.slice(0, 25) + '...' : track.name
@@ -50,14 +51,14 @@ const TrackCard: React.FC<TrackCardProps> = ({
                     <AddToPoolButton
                         updatePool={updatePool}
                         newAdd={track}
-                        token={token}
                         disabled={disabled}
+                        setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={token}
                         item={track}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>

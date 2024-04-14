@@ -5,15 +5,16 @@ import { Pool, PoolCollection, PoolTrack } from '../types'
 
 interface PoolCollectionCardProps {
     poolItem: PoolCollection | PoolTrack
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const PoolCollectionCard: React.FC<PoolCollectionCardProps> = ({
     poolItem,
-    token,
     updatePool,
+    setErrorAlert,
 }) => {
     const truncatedName =
         poolItem.name.length > 25
@@ -46,8 +47,8 @@ const PoolCollectionCard: React.FC<PoolCollectionCardProps> = ({
                 <Box>
                     <DeleteButton
                         poolItem={poolItem}
-                        token={token}
                         updatePool={updatePool}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>

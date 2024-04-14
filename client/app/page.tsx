@@ -7,12 +7,13 @@ import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
 import theme from '../components/theme'
-import MainHeader from '@/components/searchComponents/cards/mainHeader'
 import Search from '@/components/searchComponents/search'
 import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
+import AlertComponent from '@/components/alertComponent'
+import Image from 'next/image'
 
 const HomePage: React.FC = () => {
     return (
@@ -27,25 +28,42 @@ const HomeContent: React.FC = () => {
         users: [],
         share_code: null,
     })
-    const [token, setToken] = useState('')
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
     const [artistList, setArtistList] = useState<Artist[]>([])
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
+    const [ongoingSearch, setOngoingSearch] = useState(false)
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
     const state = queryParams.get('state')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
+    // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (code && state) {
-            handleTokenRequest(code, state)
-        } else {
-            redirect('/login')
-        }
-    })
+        checkIfPoolExists()
+    }, [])
+
+    const checkIfPoolExists = (): void => {
+        axios
+            .get(`${backend_uri}/pool/`, {
+                headers: { Authorization: localStorage.getItem('token') },
+            })
+            .then((response) => {
+                updatePool(response.data)
+            })
+            .catch(() => {
+                if (code && state) {
+                    handleTokenRequest(code, state)
+                } else {
+                    redirect('/login')
+                }
+            })
+    }
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios
@@ -53,11 +71,31 @@ const HomeContent: React.FC = () => {
                 params: { state, code, client_redirect_uri },
             })
             .then((response) => {
-                setToken(response.data.access_token)
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                localStorage.setItem('token', response.data.access_token)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Login callback failed with error: ${error.response.data.detail}`,
+                )
+                redirect('/login')
             })
+    }
+
+    const toggleOngoingSearch = (): void => {
+        setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
+    }
+
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
+    }
+
+    const closeAlert = (): void => {
+        setAlert(false)
     }
 
     const updatePool = (pool: Pool): void => {
@@ -90,7 +128,16 @@ const HomeContent: React.FC = () => {
                 }}
             >
                 <Grid item xs={3}>
-                    <MainHeader />
+                    <Image
+                        src={require('@/public/Stagnum_Logo.png')}
+                        alt={'Home background'}
+                        style={{
+                            objectFit: 'contain',
+                            width: '100%',
+                            height: '100%',
+                            padding: 2,
+                        }}
+                    />
                 </Grid>
 
                 <Grid item xs={9}>
@@ -101,12 +148,13 @@ const HomeContent: React.FC = () => {
                         }}
                     >
                         <Search
-                            token={token}
                             updatePool={updatePool}
                             expanded={expanded}
                             toggleExpanded={toggleExpanded}
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
+                            setErrorAlert={setErrorAlert}
+                            toggleOngoingSearch={toggleOngoingSearch}
                         />
                     </Box>
                 </Grid>
@@ -118,9 +166,9 @@ const HomeContent: React.FC = () => {
                 >
                     <PoolManager
                         pool={pool}
-                        token={token}
                         updatePool={updatePool}
                         expanded={expanded}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Grid>
 
@@ -149,15 +197,22 @@ const HomeContent: React.FC = () => {
                                 playlistList={playlistList}
                                 artistList={artistList}
                                 updatePool={updatePool}
-                                token={token}
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
+                                setErrorAlert={setErrorAlert}
+                                ongoingSearch={ongoingSearch}
                             />
                         </Box>
                     </Grid>
                 )}
             </Grid>
-            <Footer token={token} />
+            <Footer setErrorAlert={setErrorAlert} />
+            {alert && (
+                <AlertComponent
+                    alertMessage={errorMessage}
+                    closeAlert={closeAlert}
+                />
+            )}
         </ThemeProvider>
     )
 }

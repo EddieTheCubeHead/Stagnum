@@ -8,20 +8,11 @@ from api.pool import queue_next_songs
 @pytest.mark.asyncio
 async def should_send_update_when_scheduled_queue_job_updates_playback(test_client, existing_playback,
                                                                        fixed_track_length_ms,
-                                                                       monkeypatch, playback_service,
+                                                                       increment_now, run_scheduling_job,
                                                                        valid_token):
-    delta_to_soon = datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000))
-    soon = datetime.datetime.now() + delta_to_soon
-    soon_utc = datetime.datetime.now(datetime.timezone.utc) + delta_to_soon
-
-    class MockDateTime:
-        @classmethod
-        def now(cls, tz_info=None):
-            return soon if tz_info is None else soon_utc
-
-    monkeypatch.setattr(datetime, "datetime", MockDateTime)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
-        await queue_next_songs(playback_service)
+        await run_scheduling_job()
         data = websocket.receive_json()
         model_data = data["model"]
         assert model_data["name"] in [track["name"] for track in existing_playback]
@@ -31,11 +22,41 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
 
 
 def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
-                                                     valid_token, shared_pool_code, validate_response):
+                                                     valid_token, shared_pool_code, validate_response, skip_song):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
-        response = test_client.post("/pool/playback/skip", headers=another_logged_in_user_header)
+        response = skip_song(another_logged_in_user_header)
         result = validate_response(response)
         data = websocket.receive_json()
         assert data["type"] == "model"
         assert data["model"] == result
+
+
+@pytest.mark.asyncio
+async def should_send_next_song_data_even_after_fixing_queue(test_client, existing_playback, valid_token,
+                                                             shared_pool_code, playback_service, fixed_track_length_ms,
+                                                             another_logged_in_user_header, create_spotify_playback,
+                                                             increment_now, mock_empty_queue_get):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    create_spotify_playback(500, 1)
+    mock_empty_queue_get()
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
+        await queue_next_songs(playback_service)
+        data = websocket.receive_json()
+        assert data["type"] == "model"
+        assert data["model"]
+
+
+@pytest.mark.asyncio
+async def should_notify_socket_if_playback_fix_occurs(run_scheduling_job, fixed_track_length_ms, increment_now,
+                                                      existing_playback, create_spotify_playback, test_client,
+                                                      create_mock_track_search_result, valid_token):
+    new_track_data = create_mock_track_search_result()
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    create_spotify_playback(20000, 0, new_track_data)
+    with test_client.websocket_connect(f"/pool/playback/register_listener?Authorization={valid_token}") as websocket:
+        await run_scheduling_job()
+        data = websocket.receive_json()
+        assert data["type"] == "model"
+        assert data["model"]["spotify_track_uri"] == new_track_data["uri"]

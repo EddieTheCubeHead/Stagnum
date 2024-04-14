@@ -8,7 +8,6 @@ import PoolInput from '../poolInput'
 import { Pool } from '../types'
 
 interface SearchProps {
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
@@ -16,15 +15,19 @@ interface SearchProps {
     // eslint-disable-next-line no-unused-vars
     setSearchResults: (data: any) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+    toggleOngoingSearch: () => void
 }
 
 const Search: React.FC<SearchProps> = ({
-    token,
     updatePool,
     expanded,
     toggleExpanded,
     setSearchResults,
     enableAddButton,
+    setErrorAlert,
+    toggleOngoingSearch,
 }) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
@@ -36,33 +39,56 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        toggleOngoingSearch()
+        if (!expanded) {
+            toggleExpanded()
+        }
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { Authorization: token },
+                headers: {
+                    Authorization: localStorage.getItem('token'),
+                },
             })
             .then((response) => {
-                if (!expanded) {
-                    toggleExpanded()
-                }
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 setSearchResults(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                toggleExpanded()
+                setErrorAlert(
+                    `Searching failed with error: ${error.response.data.detail}`,
+                )
+            })
+            .finally(() => {
+                toggleOngoingSearch()
             })
     }
 
     const handleJoinRequest = (): void => {
         axios
-            .post(`${backend_uri}/pool/join/${idQuery}`, {
-                headers: { Authorization: token },
-            })
+            .post(
+                `${backend_uri}/pool/join/${idQuery}`,
+                {},
+                {
+                    headers: { Authorization: localStorage.getItem('token') },
+                },
+            )
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
                 enableAddButton()
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Joining a pool failed with error : ${error.response.data.detail}`,
+                )
             })
     }
 
