@@ -65,5 +65,5 @@ functional, the return value should look something like follows:
 
 # Developing
 
-For developing and running server and client locally without docker compose in `client/README.md` and 
+For developing and running server and client locally without docker compose see `client/README.md` and 
 `server/README.md`.
