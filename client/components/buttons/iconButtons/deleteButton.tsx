@@ -5,15 +5,16 @@ import { Pool, PoolCollection, PoolTrack } from '@/components/types'
 
 interface DeleteButtonProps {
     poolItem: PoolCollection | PoolTrack
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({
     poolItem,
-    token,
     updatePool,
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -31,14 +32,20 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
                     ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`
                     : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
                 {
-                    headers: { Authorization: token },
+                    headers: { Authorization: localStorage.getItem('token') },
                 },
             )
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Deleting from pool failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 

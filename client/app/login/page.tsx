@@ -5,8 +5,12 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Box, Link, Stack, Typography } from '@mui/material'
 import DefaultButton from '@/components/buttons/defaulButton'
+import { useState } from 'react'
+import AlertComponent from '@/components/alertComponent'
 
 const LoginPage: React.FC = () => {
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const router = useRouter()
 
     const handleLoginRequest = (): void => {
@@ -18,11 +22,26 @@ const LoginPage: React.FC = () => {
                 params: { client_redirect_uri },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 router.push(response.data.redirect_uri)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Login callback failed with error: ${error.response.data.detail}`,
+                )
             })
+    }
+
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
+    }
+
+    const closeAlert = (): void => {
+        setAlert(false)
     }
 
     return (
@@ -113,6 +132,12 @@ const LoginPage: React.FC = () => {
                         Contact Us
                     </Link>
                 </Box>
+                {alert && (
+                    <AlertComponent
+                        alertMessage={`Login failed with error: ${errorMessage}`}
+                        closeAlert={closeAlert}
+                    />
+                )}
             </Box>
         </Box>
     )

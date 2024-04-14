@@ -8,17 +8,18 @@ import { Pool, PoolUser } from '../types'
 
 interface PoolManagerProps {
     pool: Pool
-    token: string
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
     pool,
-    token,
     updatePool,
     expanded,
+    setErrorAlert,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleShare = (): void => {
@@ -27,14 +28,20 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { Authorization: token },
+                    headers: { Authorization: localStorage.getItem('token') },
                 },
             )
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Sharing a pool failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 
@@ -146,8 +153,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             <PoolTrackCard
                                 poolItem={poolItem}
                                 key={key}
-                                token={token}
                                 updatePool={updatePool}
+                                setErrorAlert={setErrorAlert}
                             />
                         ))}
                     </>
@@ -158,8 +165,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             <Stack spacing={2} key={key}>
                                 <PoolCollectionCard
                                     poolItem={poolItem}
-                                    token={token}
                                     updatePool={updatePool}
+                                    setErrorAlert={setErrorAlert}
                                 />
                                 {poolItem.tracks.map(
                                     (
@@ -179,8 +186,10 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                                     poolItem={
                                                         poolCollectionItem
                                                     }
-                                                    token={token}
                                                     updatePool={updatePool}
+                                                    setErrorAlert={
+                                                        setErrorAlert
+                                                    }
                                                 />
                                             </Box>
                                         </Box>

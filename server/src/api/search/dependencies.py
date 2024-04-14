@@ -1,4 +1,3 @@
-import json
 from logging import getLogger
 from typing import Annotated
 
@@ -117,7 +116,6 @@ class SearchSpotifyClientRaw:
         album_result: AlbumSearchResult = _build_paginated_album_search(result["albums"])
         tracks_result: TrackSearchResult = _build_paginated_track_search(result["tracks"])
         playlists_result: PlaylistSearchResult = _build_paginated_playlist_search(result["playlists"])
-        print(type(playlists_result))
         return GeneralSearchResult(tracks=tracks_result, artists=artist_result, albums=album_result,
                                    playlists=playlists_result)
 

@@ -4,14 +4,15 @@ import axios from 'axios'
 
 interface SkipButtonProps {
     disabled?: boolean
-    token: string
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-const SkipButton: React.FC<SkipButtonProps> = ({ disabled, token }) => {
+const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const skip = (): void => {
         const headers = {
-            Authorization: token,
+            Authorization: localStorage.getItem('token'),
         }
         axios
             .post(
@@ -21,11 +22,17 @@ const SkipButton: React.FC<SkipButtonProps> = ({ disabled, token }) => {
                     headers: headers,
                 },
             )
-            .then(() => {
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 //TODO something?
             })
-            .catch(() => {
-                // TODO Error alert
+            .catch((error) => {
+                setErrorAlert(
+                    `Skipping a song failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 

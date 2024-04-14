@@ -8,17 +8,18 @@ interface PlaylistCardProps {
     playlist: Playlist
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
 const PlaylistCard: React.FC<PlaylistCardProps> = ({
     playlist,
     updatePool,
-    token,
     disabled,
     enableAddButton,
+    setErrorAlert,
 }) => {
     const truncatedName =
         playlist.name.length > 25
@@ -52,14 +53,14 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
                     <AddToPoolButton
                         newAdd={playlist}
                         updatePool={updatePool}
-                        token={token}
                         disabled={disabled}
+                        setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={token}
                         item={playlist}
                         updatePool={updatePool}
                         enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>
