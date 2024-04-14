@@ -32,8 +32,8 @@ locals {
   backend_name  = "${var.app_name}-back-container"
   database_name = "${var.app_name}-data-container"
   frontend_url  = "${aws_alb.aws-lb.dns_name}"
-  backend_url   = "localhost:8080"
-  database_url  = "localhost:5432"
+  backend_url   = "127.0.0.1:8080"
+  database_url  = "127.0.0.1:5432"
 }
 
 # Creating the task definition
@@ -74,7 +74,9 @@ resource "aws_ecs_task_definition" "aws-task" {
         }
       ],
       "environment": [
-        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}:/${var.postgres_db}"},
+        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}/${var.postgres_db}"},
+        { "name":"SPOTIFY_CLIENT_ID", "value": "${var.spotify_client_id}"},
+        { "name":"SPOTIFY_CLIENT_SECRET", "value": "${var.spotify_client_secret}"},
         { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
         { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
         { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
