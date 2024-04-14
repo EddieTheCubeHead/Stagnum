@@ -22,8 +22,8 @@ _logger = getLogger("main.api.common.dependencies")
 class DateTimeWrapperRaw:
     """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
 
-    def __init__(self, timezone=datetime.timezone.utc):
-        self._timezone = timezone
+    def __init__(self):
+        self._timezone = datetime.timezone.utc
 
     def now(self):
         return datetime.datetime.now(self._timezone)
