@@ -22,6 +22,10 @@ const LoginPage: React.FC = () => {
                 params: { client_redirect_uri },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 router.push(response.data.redirect_uri)
             })
             .catch((error) => {

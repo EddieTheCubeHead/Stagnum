@@ -22,7 +22,11 @@ const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
                     headers: headers,
                 },
             )
-            .then(() => {
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 //TODO something?
             })
             .catch((error) => {
