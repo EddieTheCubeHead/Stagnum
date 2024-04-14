@@ -154,7 +154,7 @@ resource "aws_ecs_task_definition" "aws-task" {
       "memory": 2048,
       "cpu": 1024,
       "healthCheck":{
-        "command": ["CMD-SHELL", "pg_isready -d data"],
+        "command": ["CMD-SHELL", "pg_isready -d ${var.postgres_db}"],
         "interval": 10,
         "timeout": 30,
         "retries": 5,
