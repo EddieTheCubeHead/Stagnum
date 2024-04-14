@@ -73,11 +73,12 @@ const AboutPage: React.FC = () => {
                         to know about Stagnum.
                     </Typography>
                 </Grid>
-                <Image
-                    sx={{ width: '50%'}}
-                    src={require('@/public/try.png')}
-                    alt={'headphone'}
-                />
+                <Grid width={'50%'}>
+                    <Image
+                        src={require('@/public/try.png')}
+                        alt={'headphone'}
+                    />
+                </Grid>
             </Grid>
 
             <Grid
@@ -87,12 +88,12 @@ const AboutPage: React.FC = () => {
                     display: 'flex',
                 }}
             >
-                <Image
-                    sx={{ width: '50%'}}
-                    src={require('@/public/exx1.png')}
-                    alt={'headphone'}
-                />
-
+                <Grid width={'50%'}>
+                    <Image
+                        src={require('@/public/exx1.png')}
+                        alt={'headphone'}
+                    />
+                </Grid>
                 <Grid
                     width={'50%'}
                     sx={{
