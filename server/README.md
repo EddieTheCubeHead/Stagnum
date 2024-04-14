@@ -70,7 +70,7 @@ script depending on the type of your terminal, the examples are for bash and pow
 ```
 
 ```powershell
-// Powershell
+# Powershell
 .venv/Scripts/activate.ps1
 ```
 
@@ -132,6 +132,9 @@ doubled (`[-1, 1]`). Default `20`
 integer percentage value of the whole pool length. Default `60`
 - `PSEUDO_RANDOM_CEILING`: control the "ceiling" at which point songs' weight modifier from being played before is none
 (`1`). The modifier changes linearly between `0` at the floor point and `1` in the ceiling point. Default `90`
+
+Please ensure `PSEUDO_RANDOM_FLOOR` is always smaller than `PSEUDO_RANDOM_CEILING`, or prepare wandering into the land
+of "undefined behaviour".
 
 You can validate the server is working by going to [`localhost:8080/health`](http://localhost:8080/health) in your 
 browser. The server should respond with healthcheck data that looks something like this:
@@ -293,6 +296,6 @@ export DATABASE_CONNECTION_STRING="postgresql://postgres:my_pass@localhost:5432/
 ```
 
 ```powershell
-// Powershell
+# Powershell
 $Env:DATABASE_CONNECTION_STRING = "postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```
