@@ -1,34 +1,34 @@
-import Track from '@/types/trackTypes'
-import { Box, Collapse, Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import SearchInput from '../inputfields.tsx/searchInput'
-import Playlist from '@/types/playlistTypes'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-//import CollapseIconButton from "../buttons/iconButtons/collapseIconButton";
-import ExpandedSearchContent from './expandedSearchContent'
+import SearchInput from './searchInput'
 import CollapseIconButton from '../buttons/iconButtons/collapseIconButton'
 import DefaultButton from '../buttons/defaulButton'
-import PoolInput from '../inputfields.tsx/poolInput'
+import PoolInput from '../poolInput'
+import { Pool } from '../types'
 
-interface Props {
-    token: string
+interface SearchProps {
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     expanded: boolean
     toggleExpanded: () => void
+    // eslint-disable-next-line no-unused-vars
     setSearchResults: (data: any) => void
     enableAddButton: () => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+    toggleOngoingSearch: () => void
 }
 
-export default function Search({
-    token,
+const Search: React.FC<SearchProps> = ({
     updatePool,
     expanded,
     toggleExpanded,
     setSearchResults,
     enableAddButton,
-}: Props) {
+    setErrorAlert,
+    toggleOngoingSearch,
+}) => {
     const mounted = useRef(false)
     const [query, setQuery] = useState('')
     const [idQuery, setIdQuery] = useState('')
@@ -38,42 +38,61 @@ export default function Search({
 
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    const handleSearchRequest = () => {
+    const handleSearchRequest = (): void => {
+        toggleOngoingSearch()
+        if (!expanded) {
+            toggleExpanded()
+        }
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
-                headers: { token },
+                headers: {
+                    Authorization: localStorage.getItem('token'),
+                },
             })
-            .then(function (response) {
-                if (!expanded) {
-                    toggleExpanded()
-                }
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 setSearchResults(response.data)
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                toggleExpanded()
+                setErrorAlert(
+                    `Searching failed with error: ${error.response.data.detail}`,
+                )
+            })
+            .finally(() => {
+                toggleOngoingSearch()
             })
     }
 
-    const handleJoinRequest = () => {
+    const handleJoinRequest = (): void => {
         axios
             .post(
                 `${backend_uri}/pool/join/${idQuery}`,
                 {},
                 {
-                    headers: { token },
+                    headers: { Authorization: localStorage.getItem('token') },
                 },
             )
-            .then(function (response) {
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
                 enableAddButton()
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Joining a pool failed with error : ${error.response.data.detail}`,
+                )
             })
     }
 
-    const handleExpandClick = () => {
+    const handleExpandClick = (): void => {
         toggleExpanded()
     }
 
@@ -146,3 +165,5 @@ export default function Search({
         </Box>
     )
 }
+
+export default Search

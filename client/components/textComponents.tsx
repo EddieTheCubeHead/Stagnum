@@ -4,7 +4,10 @@ interface CustomTypographyProps extends TypographyProps {
     text: string
 }
 
-export function Header1({ text, ...typographyProps }: CustomTypographyProps) {
+export const Header1: React.FC<CustomTypographyProps> = ({
+    text,
+    ...typographyProps
+}) => {
     return (
         <Typography fontSize={30} {...typographyProps}>
             {text}
@@ -12,7 +15,10 @@ export function Header1({ text, ...typographyProps }: CustomTypographyProps) {
     )
 }
 
-export function Header2({ text, ...typographyProps }: CustomTypographyProps) {
+export const Header2: React.FC<CustomTypographyProps> = ({
+    text,
+    ...typographyProps
+}) => {
     return (
         <Typography fontSize={24} {...typographyProps}>
             {text}
@@ -20,7 +26,10 @@ export function Header2({ text, ...typographyProps }: CustomTypographyProps) {
     )
 }
 
-export function Header3({ text, ...typographyProps }: CustomTypographyProps) {
+export const Header3: React.FC<CustomTypographyProps> = ({
+    text,
+    ...typographyProps
+}) => {
     return (
         <Typography fontSize={18} {...typographyProps}>
             {text}
@@ -28,7 +37,10 @@ export function Header3({ text, ...typographyProps }: CustomTypographyProps) {
     )
 }
 
-export function Text({ text, ...typographyProps }: CustomTypographyProps) {
+export const Text: React.FC<CustomTypographyProps> = ({
+    text,
+    ...typographyProps
+}) => {
     return (
         <Typography fontSize={14} {...typographyProps}>
             {text}

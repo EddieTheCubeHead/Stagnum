@@ -1,24 +1,30 @@
 import { Box, Card } from '@mui/material'
 import { Header3 } from '../../textComponents'
-import DefaultButton from '../../buttons/defaulButton'
-import Track from '@/types/trackTypes'
-import Album from '@/types/albumTypes'
-import Playlist from '@/types/playlistTypes'
-import Artist from '@/types/artistTypes'
-import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
 import AddToPoolButton from '@/components/buttons/iconButtons/addToPoolButton'
+import ShowMoreIconButton from '@/components/buttons/iconButtons/showMoreIconButton'
+import { Playlist, Pool } from '@/components/types'
 
-export default function TrackCard(props: {
-    track: Track
+interface PlaylistCardProps {
+    playlist: Playlist
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
-    token: string
     disabled: boolean
     enableAddButton: () => void
-}) {
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+}
+
+const PlaylistCard: React.FC<PlaylistCardProps> = ({
+    playlist,
+    updatePool,
+    disabled,
+    enableAddButton,
+    setErrorAlert,
+}) => {
     const truncatedName =
-        props.track.name.length > 25
-            ? props.track.name.slice(0, 25) + '...'
-            : props.track.name
+        playlist.name.length > 25
+            ? playlist.name.slice(0, 25) + '...'
+            : playlist.name
 
     return (
         <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
@@ -30,34 +36,36 @@ export default function TrackCard(props: {
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {props.track.album.link && (
+                    {playlist.icon_link && (
                         <Box
                             sx={{
                                 width: 50,
                                 height: 50,
-                                backgroundImage: `url(${props.track.album.icon_link})`,
+                                backgroundImage: `url(${playlist.icon_link})`,
                                 backgroundSize: 'cover',
                                 margin: 1,
                             }}
                         />
                     )}
-                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
+                    <Header3 text={truncatedName} />
                 </Box>
                 <Box>
                     <AddToPoolButton
-                        updatePool={props.updatePool}
-                        newAdd={props.track}
-                        token={props.token}
-                        disabled={props.disabled}
+                        newAdd={playlist}
+                        updatePool={updatePool}
+                        disabled={disabled}
+                        setErrorAlert={setErrorAlert}
                     />
                     <ShowMoreIconButton
-                        token={props.token}
-                        item={props.track}
-                        updatePool={props.updatePool}
-                        enableAddButton={props.enableAddButton}
+                        item={playlist}
+                        updatePool={updatePool}
+                        enableAddButton={enableAddButton}
+                        setErrorAlert={setErrorAlert}
                     />
                 </Box>
             </Box>
         </Card>
     )
 }
+
+export default PlaylistCard

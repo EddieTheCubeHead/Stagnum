@@ -1,19 +1,26 @@
+import datetime
 import json
 import random
 import re
-from typing import Callable
+from dataclasses import dataclass
+from typing import Callable, override
 from unittest.mock import Mock
 
 import pytest
+from _pytest.python_api import ApproxBase
 from fastapi import FastAPI
+from sqlalchemy import select
+from starlette.responses import Response
 from starlette.testclient import TestClient
 
 from api.application import create_app
 from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection
+from api.common.dependencies import RequestsClientRaw, TokenHolder, TokenHolderRaw, UserDatabaseConnection, \
+    AuthSpotifyClient, SpotifyClient, DateTimeWrapperRaw, DateTimeWrapper
 from api.common.models import ParsedTokenResponse
+from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
-from database.entities import User
+from database.entities import User, PoolMember
 
 
 @pytest.fixture
@@ -23,20 +30,51 @@ def application() -> FastAPI:
 
 @pytest.fixture
 def requests_client():
-    return Mock()
+    mock_response = Mock()
+    mock_response.content = json.dumps({"default": "test_response"}).encode("utf-8")
+    mock_response.status_code = 200
+    mock_client = Mock()
+    mock_client.put = Mock(return_value=mock_response)
+    mock_client.post = Mock(return_value=mock_response)
+    mock_client.get = Mock(return_value=mock_response)
+    return mock_client
 
 
 @pytest.fixture
-def db_connection(tmp_path, pytestconfig) -> ConnectionManager:
+def requests_client_get_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.get = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
+def requests_client_post_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.post = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
+def requests_client_put_queue(requests_client) -> [Response]:
+    queue = []
+    requests_client.put = Mock(side_effect=queue)
+    return queue
+
+
+@pytest.fixture
+def db_connection(tmp_path, pytestconfig, monkeypatch) -> ConnectionManager:
     echo = "-v" in pytestconfig.invocation_params.args
-    connection = ConnectionManager(f"sqlite:///{tmp_path}/test_db", echo)
+    monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
+    monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
+    connection = ConnectionManager()
     return connection
 
 
 @pytest.fixture
-def application_with_dependencies(application, requests_client, db_connection):
+def application_with_dependencies(application, requests_client, db_connection, mock_datetime_wrapper):
     application.dependency_overrides[RequestsClientRaw] = lambda: requests_client
     application.dependency_overrides[ConnectionManager] = lambda: db_connection
+    application.dependency_overrides[DateTimeWrapperRaw] = lambda: mock_datetime_wrapper
     return application
 
 
@@ -56,10 +94,19 @@ def validate_response():
 
 
 @pytest.fixture
-def mock_token_holder(application, db_connection):
-    user_database_connection = UserDatabaseConnection(db_connection)
-    token_holder = TokenHolder(user_database_connection)
-    application.dependency_overrides[TokenHolderRaw] = lambda: token_holder
+def spotify_client(requests_client):
+    return SpotifyClient(requests_client)
+
+
+@pytest.fixture
+def auth_spotify_client(spotify_client):
+    return AuthSpotifyClient(spotify_client)
+
+
+@pytest.fixture
+def mock_token_holder(db_connection, auth_spotify_client, mock_datetime_wrapper):
+    user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
+    token_holder = TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
     return token_holder
 
 
@@ -67,7 +114,7 @@ def mock_token_holder(application, db_connection):
 def create_token(faker) -> Callable[[], ParsedTokenResponse]:
     def wrapper() -> ParsedTokenResponse:
         token = faker.uuid4()
-        return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=999999)
+        return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=3600)
     
     return wrapper
 
@@ -84,8 +131,8 @@ def logged_in_user(logged_in_user_id) -> User:
 
 
 @pytest.fixture
-def auth_database_connection(db_connection) -> AuthDatabaseConnection:
-    return AuthDatabaseConnection(db_connection)
+def auth_database_connection(db_connection, mock_datetime_wrapper) -> AuthDatabaseConnection:
+    return AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
 
 
 @pytest.fixture
@@ -99,7 +146,7 @@ def log_user_in(auth_database_connection) -> Callable[[User, ParsedTokenResponse
 @pytest.fixture
 def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[str, str]]:
     def wrapper(token_response: ParsedTokenResponse) -> dict[str, str]:
-        return {"token": token_response.token}
+        return {"Authorization": token_response.token}
 
     return wrapper
 
@@ -108,6 +155,12 @@ def create_header_from_token_response() -> Callable[[ParsedTokenResponse], dict[
 def valid_token_header(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
     log_user_in(logged_in_user, primary_user_token)
     return create_header_from_token_response(primary_user_token)
+
+
+@pytest.fixture
+def valid_token(log_user_in, logged_in_user, primary_user_token, create_header_from_token_response):
+    log_user_in(logged_in_user, primary_user_token)
+    return primary_user_token.token
 
 
 @pytest.fixture
@@ -331,3 +384,143 @@ def get_query_parameter():
         return match.group(1)
 
     return wrapper
+
+
+
+@dataclass
+class ErrorData:
+    message: str
+    code: int
+
+
+@pytest.fixture(params=[401, 403, 404, 500])
+def spotify_error_message(request, requests_client) -> ErrorData:
+    code = request.param
+    expected_error_message = "my error message"
+    for mock_method in (requests_client.get, requests_client.post, requests_client.put):
+        mock_return = Mock()
+        mock_return.status_code = code
+        mock_return.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+        mock_method.return_value = mock_return
+    return ErrorData(expected_error_message, code)
+
+
+@pytest.fixture
+def assert_token_in_headers(validate_response) -> Callable[[Response], str]:
+    def wrapper(response: Response) -> str:
+        validate_response(response)
+        header_token = response.headers["Authorization"]
+        assert len(header_token) > 0
+        assert type(header_token) == str
+        return header_token
+
+    return wrapper
+
+
+@pytest.fixture
+def create_pool_creation_data_json():
+    def wrapper(*uris: str):
+        return PoolCreationData(
+            spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
+        ).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def existing_pool(request, create_mock_track_search_result, build_success_response, requests_client_get_queue,
+                  create_pool_creation_data_json, test_client, validate_response, valid_token_header,
+                  db_connection, logged_in_user_id) -> list[PoolMember]:
+    track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
+    tracks = [create_mock_track_search_result() for _ in range(track_amount)]
+    responses = [build_success_response(track) for track in tracks]
+    requests_client_get_queue.extend(responses)
+    data_json = create_pool_creation_data_json(*[track["uri"] for track in tracks])
+
+    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    with db_connection.session() as session:
+        members = session.scalars(select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
+    return members
+
+
+@pytest.fixture
+def requests_client_with_auth_mock(requests_client_post_queue, requests_client_get_queue, default_token_return,
+                                   default_me_return):
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(default_me_return)
+    return default_token_return.content
+
+
+class MockDateTimeWrapper(DateTimeWrapperRaw):
+
+    def __init__(self):
+        super().__init__()
+        self._add_to_now: datetime.timedelta = datetime.timedelta(milliseconds=0)
+
+    @override
+    def now(self) -> datetime.datetime:
+        return datetime.datetime.now(tz=self._timezone) + self._add_to_now
+
+    def increment_now(self, delta: datetime.timedelta):
+        self._add_to_now += delta
+
+
+@pytest.fixture
+def mock_datetime_wrapper() -> MockDateTimeWrapper:
+    return MockDateTimeWrapper()
+
+
+@pytest.fixture
+def increment_now(mock_datetime_wrapper) -> Callable[[datetime.timedelta], None]:
+    def wrapper(increment: datetime.timedelta):
+        mock_datetime_wrapper.increment_now(increment)
+
+    return wrapper
+
+
+# "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
+class ApproxDatetime(ApproxBase):
+
+    def __init__(self, expected, abs: datetime.timedelta = datetime.timedelta(milliseconds=250)):
+        if abs < datetime.timedelta(0):
+            raise ValueError(f"absolute tolerance can't be negative: {abs}")
+        super().__init__(expected, abs=abs)
+
+    def __repr__(self):
+        return f"approx_datetime({self.expected!r} \u00b1 {self.abs!r})"
+
+    def __eq__(self, actual):
+        return abs(self.expected - actual) <= self.abs
+
+
+@pytest.fixture
+def approx_datetime():
+    return ApproxDatetime
+
+
+@pytest.fixture
+def mock_token_return() -> Callable[[str | None, int | None, str | None], Response]:
+    def wrapper(token: str = "my access_token", expires_in: int = 800,
+                refresh_token: str = "my refresh token") -> Response:
+        return_json = {
+            "access_token": token,
+            "token_type": "Bearer",
+            "scopes": "ignored here",
+            "expires_in": expires_in,
+            "refresh_token": refresh_token
+        }
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(return_json).encode("utf-8")
+        return response
+
+    return wrapper
+
+
+@pytest.fixture
+def correct_env_variables(monkeypatch):
+    client_id = "my_client_id"
+    client_secret = "my_client_secret"
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
+    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
+    return client_id, client_secret

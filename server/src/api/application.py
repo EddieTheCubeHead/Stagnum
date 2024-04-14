@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from logging import getLogger
 
@@ -6,9 +7,13 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api import pool, search, auth
+from api import pool, search, auth, health
 
 _logger = getLogger("main.application")
+
+
+_ALLOWED_METHODS = ["GET", "POST", "DELETE", "OPTIONS"]
+_ALLOWED_HEADERS = ["Authorization"]
 
 
 @asynccontextmanager
@@ -27,17 +32,22 @@ async def setup_scheduler(_: FastAPI):
     yield
 
 
+def _get_allowed_origins() -> [str]:
+    raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")
+    return raw_environment_value.split(",")
+
+
 def create_app() -> FastAPI:
     _logger.debug("Creating FastAPI application")
     application = FastAPI(lifespan=setup_scheduler)
 
     _logger.debug("Adding routers")
-    application.include_router(auth.router)
-    application.include_router(search.router)
-    application.include_router(pool.router)
+    for api_module in (auth, search, pool, health):
+        application.include_router(api_module.router)
 
-    application.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"],
-                               allow_headers=["*"])
+    application.add_middleware(CORSMiddleware,
+                               allow_origins=_get_allowed_origins(), allow_credentials=True,
+                               allow_methods=_ALLOWED_METHODS, allow_headers=_ALLOWED_HEADERS)
 
     @application.get("/")
     async def root():

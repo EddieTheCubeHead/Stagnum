@@ -30,6 +30,7 @@ class UserSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     user_token: Mapped[str] = mapped_column(String(512), nullable=False)
     refresh_token: Mapped[str] = mapped_column(String(512), nullable=False)
+    last_login_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
     user: Mapped["User"] = relationship(lazy="joined", back_populates="session")
@@ -48,8 +49,8 @@ class PoolMember(EntityBase):
     content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
-    parent_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
-                                           default=None, nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
+                                                  default=None, nullable=True)
 
     parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
     children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent")
@@ -69,8 +70,8 @@ class PoolMemberRandomizationParameters(EntityBase):
 
 class Pool(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
-    owner_user_id: Mapped[int] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
+    owner_user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
     joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
     share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
@@ -97,9 +98,15 @@ class PoolJoinedUser(EntityBase):
 
 class PlaybackSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
-    current_track_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
+    current_track_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
                                                   nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
+
+    # We cache these here, as deleting the active pool member and using a relationship to get its data causes issues
+    current_track_uri: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    current_track_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    current_track_image_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    current_track_duration_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
 
     current_track: Mapped["PoolMember"] = relationship()

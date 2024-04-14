@@ -2,6 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from conftest import ErrorData
+
 
 @pytest.fixture
 def mock_spotify_general_search(requests_client, create_mock_album_search_result, create_mock_playlist_search_result,
@@ -28,6 +30,11 @@ def build_spotify_general_search_response(mock_spotify_general_search, build_suc
         return build_success_response(mock_spotify_general_search(query, limit))
 
     return wrapper
+
+
+@pytest.fixture(params=[None, "albums", "artists", "tracks", "playlists"])
+def search_resource_url(request) -> str:
+    return f"{f"/{request.param}"}" if request.param is not None else ""
 
 
 def should_return_twenty_items_from_search(test_client, valid_token_header, build_spotify_general_search_response,
@@ -59,7 +66,7 @@ def should_call_spotify_with_the_provided_query(test_client, valid_token_header,
     test_client.get(f"/search?query={query}", headers=valid_token_header)
     types = ",".join(["track", "album", "artist", "playlist"])
     full_query = f"https://api.spotify.com/v1/search?q={query}&type={types}&offset=0&limit=20"
-    requests_client.get.assert_called_with(full_query, headers={"Authorization": valid_token_header["token"]})
+    requests_client.get.assert_called_with(full_query, headers=valid_token_header)
 
 
 def should_return_largest_image(test_client, valid_token_header, mock_spotify_general_search, validate_response,
@@ -110,3 +117,21 @@ def should_accept_any_date_starting_with_year(test_client, valid_token_header, m
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
     search_result = validate_response(result)
     assert search_result["albums"]["results"][0]["year"] == 2021
+
+
+def should_propagate_errors_from_spotify_api(test_client, valid_token_header, validate_response,
+                                             search_resource_url, spotify_error_message: ErrorData):
+    response = test_client.get(f"/search{search_resource_url}?query=test", headers=valid_token_header)
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
+
+
+def should_include_current_token_in_response_headers(requests_client, build_success_response, test_client,
+                                                     search_resource_url, valid_token_header, assert_token_in_headers,
+                                                     mock_spotify_general_search):
+    query = "test query"
+    search_result = mock_spotify_general_search(query)
+    requests_client.get = Mock(return_value=build_success_response(search_result))
+    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    assert_token_in_headers(result)

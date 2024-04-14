@@ -1,14 +1,9 @@
-import os
-import string
-import random
 from logging import getLogger
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
-from api.auth.dependencies import AuthDatabaseConnection, AuthSpotifyClient, AuthService
+from api.auth.dependencies import AuthService
 from api.auth.models import LoginRedirect, LoginSuccess
-from api.common.dependencies import TokenHolder
-
 
 _logger = getLogger("main.api.auth.routes")
 

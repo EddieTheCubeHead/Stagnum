@@ -2,11 +2,17 @@ import { IconButton } from '@mui/material'
 import SkipNextIcon from '@mui/icons-material/SkipNext'
 import axios from 'axios'
 
-function SkipButton(props: { disabled?: boolean; token: string }) {
+interface SkipButtonProps {
+    disabled?: boolean
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
+}
+
+const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
-    const skip = () => {
+    const skip = (): void => {
         const headers = {
-            token: props.token,
+            Authorization: localStorage.getItem('token'),
         }
         axios
             .post(
@@ -17,17 +23,23 @@ function SkipButton(props: { disabled?: boolean; token: string }) {
                 },
             )
             .then((response) => {
-                console.log(response)
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                //TODO something?
             })
             .catch((error) => {
-                console.log('Request failed', error)
+                setErrorAlert(
+                    `Skipping a song failed with error: ${error.response.data.detail}`,
+                )
             })
     }
 
     return (
-        <IconButton aria-label="skip" onClick={skip} disabled={props.disabled}>
+        <IconButton aria-label="skip" onClick={skip} disabled={disabled}>
             <SkipNextIcon
-                color={!props.disabled ? 'primary' : 'disabled'}
+                color={!disabled ? 'primary' : 'disabled'}
                 fontSize="large"
             />
         </IconButton>

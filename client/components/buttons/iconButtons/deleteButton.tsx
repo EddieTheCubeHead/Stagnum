@@ -1,50 +1,52 @@
 import { Tooltip, IconButton } from '@mui/material'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import axios from 'axios'
-import Album from '@/types/albumTypes'
-import Artist from '@/types/artistTypes'
-import Playlist from '@/types/playlistTypes'
-import Track from '@/types/trackTypes'
+import { Pool, PoolCollection, PoolTrack } from '@/components/types'
 
-interface Props {
+interface DeleteButtonProps {
     poolItem: PoolCollection | PoolTrack
-    token: string
+    // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
+    // eslint-disable-next-line no-unused-vars
+    setErrorAlert: (message: string) => void
 }
 
-export default function DeleteButton({ poolItem, token, updatePool }: Props) {
+const DeleteButton: React.FC<DeleteButtonProps> = ({
+    poolItem,
+    updatePool,
+    setErrorAlert,
+}) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
-    const handleClick = () => {
-        if ((poolItem as PoolCollection).spotify_collection_uri) {
-            axios
-                .delete(
-                    `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`,
-                    {
-                        headers: { token },
-                    },
-                )
-                .then(function (response) {
-                    updatePool(response.data)
-                })
-                .catch((error) => {
-                    console.log('Request failed', error)
-                })
+    const handleClick = (): void => {
+        let isCollection: boolean
+        if ('spotify_collection_uri' in poolItem) {
+            isCollection = true
         } else {
-            axios
-                .delete(
-                    `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
-                    {
-                        headers: { token },
-                    },
-                )
-                .then(function (response) {
-                    updatePool(response.data)
-                })
-                .catch((error) => {
-                    console.log('Request failed', error)
-                })
+            isCollection = false
         }
+
+        axios
+            .delete(
+                isCollection
+                    ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`
+                    : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
+                {
+                    headers: { Authorization: localStorage.getItem('token') },
+                },
+            )
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                updatePool(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Deleting from pool failed with error: ${error.response.data.detail}`,
+                )
+            })
     }
 
     return (
@@ -65,3 +67,5 @@ export default function DeleteButton({ poolItem, token, updatePool }: Props) {
         </Tooltip>
     )
 }
+
+export default DeleteButton

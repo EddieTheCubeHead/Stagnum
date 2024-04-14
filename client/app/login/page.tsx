@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Box, Link, Stack, Typography } from '@mui/material'
 import DefaultButton from '@/components/buttons/defaulButton'
+import { useState } from 'react'
+import AlertComponent from '@/components/alertComponent'
 
-export default function Login() {
+const LoginPage: React.FC = () => {
+    const [alert, setAlert] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const router = useRouter()
 
-    const handleLoginRequest = () => {
-        console.log('Sending login request')
+    const handleLoginRequest = (): void => {
         const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
         const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
@@ -18,13 +21,27 @@ export default function Login() {
             .get(`${backend_uri}/auth/login`, {
                 params: { client_redirect_uri },
             })
-            .then(function (response) {
-                console.log(response.data.redirect_uri)
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 router.push(response.data.redirect_uri)
             })
-            .catch(() => {
-                console.log('Request failed')
+            .catch((error) => {
+                setErrorAlert(
+                    `Login callback failed with error: ${error.response.data.detail}`,
+                )
             })
+    }
+
+    const setErrorAlert = (message: string): void => {
+        setErrorMessage(message)
+        setAlert(true)
+    }
+
+    const closeAlert = (): void => {
+        setAlert(false)
     }
 
     return (
@@ -115,7 +132,15 @@ export default function Login() {
                         Contact Us
                     </Link>
                 </Box>
+                {alert && (
+                    <AlertComponent
+                        alertMessage={`Login failed with error: ${errorMessage}`}
+                        closeAlert={closeAlert}
+                    />
+                )}
             </Box>
         </Box>
     )
 }
+
+export default LoginPage

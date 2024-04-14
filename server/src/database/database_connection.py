@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from database.entities import EntityBase
 
-
 _logger = getLogger("main.database_connection")
 
 
@@ -20,9 +19,9 @@ class ConnectionManager:
     # thus preventing us from dropping data. Not perfect but good enough. We're mostly using Postgre anyway.
     _sqlite_in_memory_engine = None
 
-    def __init__(self, db_address: str = None, echo: bool = False):
-        if db_address is None:
-            db_address = os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
+    def __init__(self):
+        db_address = os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
+        echo = os.getenv("VERBOSE_SQLALCHEMY", default="False").lower() != "false"
         _logger.debug(f"Initializing database connection manager from connection string '{db_address}'")
         if db_address == "sqlite:///:memory:":
             _logger.debug("Using sqlite in-memory database")

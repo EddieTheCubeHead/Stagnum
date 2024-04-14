@@ -11,91 +11,14 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from api.common.dependencies import validated_user_raw
+from conftest import ErrorData
 from database.entities import LoginState, User
-
-
-@pytest.fixture
-def correct_env_variables(monkeypatch):
-    client_id = "my_client_id"
-    client_secret = "my_client_secret"
-    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
-    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
-    return client_id, client_secret
-
-
-@pytest.fixture
-def base_auth_callback_call(correct_env_variables, test_client, primary_valid_state_string):
-    def wrapper(state: str = None):
-        state_string = state if state is not None else primary_valid_state_string
-        return test_client.get(
-            f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url")
-
-    return wrapper
-
-
-@pytest.fixture
-def create_valid_state_string(db_connection) -> Callable[[], str]:
-    def wrapper():
-        state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
-        with db_connection.session() as session:
-            session.add(LoginState(state_string=state_string))
-        return state_string
-
-    return wrapper
-
-
-@pytest.fixture
-def primary_valid_state_string(create_valid_state_string):
-    return create_valid_state_string()
-
-
-@pytest.fixture
-def default_token_return():
-    return_json = {
-        "access_token": "my access token",
-        "token_type": "Bearer",
-        "scopes": "ignored here",
-        "expires_in": 800,
-        "refresh_token": "my refresh token"
-    }
-    response = Mock()
-    response.status_code = 200
-    response.content = json.dumps(return_json).encode("utf-8")
-    return response
 
 
 class SubscriptionType(Enum):
     Premium = "premium"
     Open = "open"
     Free = "free"
-
-
-@pytest.fixture
-def default_me_return(request):
-    return_json = {
-        "country": "Finland",
-        "display_name": "Test User",
-        "id": "test user",
-        "images": [
-            {
-                "url": "https://image.example.com",
-                "height": 300,
-                "width": 300
-            }
-        ],
-        "product": request.param.value if hasattr(request, "param") else "premium"
-    }
-    response = Mock()
-    response.status_code = 200
-    response.content = json.dumps(return_json).encode("utf-8")
-    return response
-
-
-@pytest.fixture
-def requests_client_with_auth_mock(requests_client, default_token_return, default_me_return):
-    requests_client.post = Mock(return_value=default_token_return)
-    requests_client.get = Mock(return_value=default_me_return)
-    return default_token_return.content
 
 
 @pytest.fixture
@@ -111,7 +34,8 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(correct
     response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
                                f"&client_redirect_uri=test_url")
     exception = validate_response(response, 403)
-    assert exception["detail"] == "Login state is invalid or expired"
+    assert exception["detail"] == ("Login state is invalid or expired. "
+                                   "Please restart the login flow to ensure a fresh and valid state.")
 
 
 def should_delete_state_from_database_on_successful_login(correct_env_variables, base_auth_callback_call,
@@ -221,16 +145,14 @@ def should_save_token_on_success_and_auth_with_token_afterwards(auth_test, corre
     assert actual_token.session.user_token == json_data["access_token"]
 
 
-@pytest.mark.parametrize("code", [401, 403, 404, 500])
 def should_throw_exception_on_login_if_spotify_token_fetch_fails(correct_env_variables, validate_response,
-                                                                 base_auth_callback_call, requests_client,
-                                                                 requests_client_with_auth_mock, code):
-    requests_client.post.return_value.status_code = code
-    expected_error_message = "my error message"
-    requests_client.post.return_value.content = json.dumps({"error": expected_error_message}).encode("utf-8")
+                                                                 base_auth_callback_call,
+                                                                 requests_client,
+                                                                 spotify_error_message: ErrorData):
     response = base_auth_callback_call()
-    json_data = validate_response(response, code)
-    assert json_data["detail"] == expected_error_message
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
 
 
 @pytest.mark.parametrize("default_me_return", [SubscriptionType.Free, SubscriptionType.Open], indirect=True)
@@ -244,7 +166,8 @@ def should_throw_exception_on_login_if_user_has_no_premium_subscription(correct_
 
 
 def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_response, base_auth_callback_call,
-                                              requests_client, default_token_return):
+                                              requests_client_get_queue, requests_client_post_queue,
+                                              default_token_return):
     return_json = {
         "country": "Finland",
         "display_name": "Test User",
@@ -255,8 +178,8 @@ def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_re
     response = Mock()
     response.status_code = 200
     response.content = json.dumps(return_json).encode("utf-8")
-    requests_client.post = Mock(return_value=default_token_return)
-    requests_client.get = Mock(return_value=response)
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(response)
 
     response = base_auth_callback_call()
     validate_response(response)
@@ -264,9 +187,42 @@ def should_be_able_to_handle_null_user_avatar(correct_env_variables, validate_re
 
 def should_allow_another_log_in_after_first_one(correct_env_variables, validate_response, base_auth_callback_call,
                                                 requests_client_with_auth_mock, default_token_return,
-                                                create_valid_state_string):
+                                                create_valid_state_string, default_me_return,
+                                                requests_client_post_queue, requests_client_get_queue):
     base_auth_callback_call()
     new_state = create_valid_state_string()
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(default_me_return)
     response = base_auth_callback_call(new_state)
 
     validate_response(response)
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client ID in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_id_not_present(monkeypatch, validate_response, test_client, environment,
+                                                             primary_valid_state_string, error_message):
+    client_secret = "my_client_secret"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", client_secret)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message
+
+
+@pytest.mark.parametrize("environment,error_message",
+                         [("development", "Could not find spotify client secret in environment variables"),
+                          ("production", "Internal server error")])
+def should_raise_internal_exception_if_client_secret_not_present(monkeypatch, test_client, error_message, environment,
+                                                                 primary_valid_state_string, validate_response):
+    client_id = "my_client_id"
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SPOTIFY_CLIENT_ID", client_id)
+
+    response = test_client.get(
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri=test_url")
+    error = validate_response(response, 500)
+    assert error["detail"] == error_message
