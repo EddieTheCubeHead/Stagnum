@@ -22,7 +22,7 @@ const AboutPage: React.FC = () => {
                 <Image
                     style={{ width: '100%', height: 500, objectFit: 'cover' }}
                     src={require('@/public/about1.jpg')}
-                    alt={'About Stagnum'}
+                    alt={'About_Stagnum'}
                 />
 
                 <Typography
