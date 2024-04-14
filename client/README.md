@@ -94,7 +94,7 @@ simple as entering the following commands in the project root.
 
 ```bash
 docker build -t stagnum-client ./client
-docker run -p 80:80 stagnum-client
+docker run -p 80:3000 stagnum-client
 ```
 
 Open [localhost](http://localhost:80) with your browser to verify that the client is running.
