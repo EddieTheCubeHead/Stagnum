@@ -70,7 +70,7 @@ script depending on the type of your terminal, the examples are for bash and pow
 ```
 
 ```powershell
-// Powershell
+# Powershell
 .venv/Scripts/activate.ps1
 ```
 
@@ -295,6 +295,6 @@ export DATABASE_CONNECTION_STRING="postgresql://postgres:my_pass@localhost:5432/
 ```
 
 ```powershell
-// Powershell
+# Powershell
 $Env:DATABASE_CONNECTION_STRING = "postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```
