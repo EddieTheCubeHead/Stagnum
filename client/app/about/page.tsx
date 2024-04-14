@@ -74,7 +74,7 @@ const AboutPage: React.FC = () => {
                     </Typography>
                 </Grid>
                 <Image
-                    width={'50%'}
+                    sx={{ width: '50%'}}
                     src={require('@/public/try.png')}
                     alt={'headphone'}
                 />
@@ -88,7 +88,7 @@ const AboutPage: React.FC = () => {
                 }}
             >
                 <Image
-                    width={'50%'}
+                    sx={{ width: '50%'}}
                     src={require('@/public/exx1.png')}
                     alt={'headphone'}
                 />
