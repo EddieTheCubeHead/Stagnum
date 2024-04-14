@@ -14,6 +14,12 @@ services:
     environment:
       NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
       NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000/about || exit 1" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     env_file:
       - .env
   backend:
@@ -31,6 +37,14 @@ services:
       - internal
     environment:
       DATABASE_CONNECTION_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${DATABASE_PORT}/${POSTGRES_DB}
+      VERBOSE_SQLALCHEMY: false
+      CORS_ORIGIN: http://localhost
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health/ || exit 1" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     secrets:
       - spotify_client_id
       - spotify_client_secret
