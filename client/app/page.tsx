@@ -7,13 +7,13 @@ import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
 import theme from '../components/theme'
-import MainHeader from '@/components/searchComponents/cards/mainHeader'
 import Search from '@/components/searchComponents/search'
 import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 import AlertComponent from '@/components/alertComponent'
+import Image from 'next/image'
 
 const HomePage: React.FC = () => {
     return (
@@ -124,7 +124,16 @@ const HomeContent: React.FC = () => {
                 }}
             >
                 <Grid item xs={3}>
-                    <MainHeader />
+                    <Image
+                        src={require('@/public/Stagnum_Logo.png')}
+                        alt={'Home background'}
+                        style={{
+                            objectFit: 'contain',
+                            width: '100%',
+                            height: '100%',
+                            padding: 2,
+                        }}
+                    />
                 </Grid>
 
                 <Grid item xs={9}>
