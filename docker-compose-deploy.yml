@@ -2,9 +2,7 @@ version: "3.8"
 
 services:
   frontend:
-    build:
-      context: ./client/
-      dockerfile: Dockerfile
+    image: eddiethecubehead/stagnum_client:master
     restart: always
     ports:
       - ${FRONTEND_PORT}:3000
@@ -14,21 +12,13 @@ services:
     environment:
       NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
       NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000/about || exit 1" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
     depends_on:
       backend:
         condition: service_healthy
     env_file:
       - .env
   backend:
-    build:
-      context: ./server/
-      dockerfile: Dockerfile
+    image: eddiethecubehead/stagnum_server:master
     restart: always
     ports:
       - ${BACKEND_PORT}:8080
@@ -68,8 +58,6 @@ services:
       start_period: 30s
     ports:
       - ${DATABASE_PORT}:5432
-    volumes:
-      - data:/var/lib/postgresql/data
     networks:
       - internal
     env_file:
@@ -80,9 +68,6 @@ secrets:
     file: ./secret_spotify_client_id.txt
   spotify_client_secret:
     file: ./secret_spotify_client_secret.txt
-
-volumes:
-  data:
 
 
 networks:

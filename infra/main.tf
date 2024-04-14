@@ -108,7 +108,7 @@ resource "aws_ecs_task_definition" "aws-task" {
         { "name":"SPOTIFY_CLIENT_ID", "value": "${var.spotify_client_id}"},
         { "name":"SPOTIFY_CLIENT_SECRET", "value": "${var.spotify_client_secret}"},
         { "name":"VERBOSE_SQLALCHEMY", "value": "false"},
-        { "name":"CORS_ORIGIN", "value": "http://localhost"},
+        { "name":"CORS_ORIGINS", "value": "*"},
         { "name":"ENVIRONMENT", "value": "production"},
         { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
         { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},

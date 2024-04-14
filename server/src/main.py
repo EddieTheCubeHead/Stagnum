@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from api.application import _get_allowed_origins
 
 from logging_config import setup_logging
 
@@ -23,13 +24,18 @@ def _inject_secret(secret_name: str):
 
 def _inject_secrets():
     secret_files = ["spotify_client_id", "spotify_client_secret"]
-    _logger.debug(f"Injecting secrets from the following files: {secret_files}")
+    _logger.debug(f"Injecting secrets from th_get_allowed_origins() e following files: {secret_files}")
     for secret_file in secret_files:
         _inject_secret(secret_file)
+
+def _check_cors():
+    all_allowed_cors = _get_allowed_origins()
+    _logger.info(f"Allowed CORS origins: {all_allowed_cors}")
 
 
 if __name__ == "__main__":
     _inject_secrets()
+    _check_cors()
     uvicorn.run("api.application:create_app",
                 host=os.getenv("HOST", default="127.0.0.1"),
                 port=int(os.getenv("PORT", default="8080")),
