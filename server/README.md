@@ -118,6 +118,7 @@ See [Running PostGreSQL locally](#running-postgresql-locally) for more informati
 - `RELOAD`: control whether the server should auto-reload on updates. Default `True`
 - `ENVIRONMENT`: control whether the server is run as a production server, or as a development server. Affects errors
 with error code 500. Value `production` (caps-insensitive) hides further information. Default `production`
+- `CORS_ORIGINS`: a comma-separated string of origins allowed for CORS. Default `http://localhost:80`
 
 Finally, we have environmental variables for customizing randomization in pool playback. Setting these is also 
 optional, the server will use default values if these are not set
