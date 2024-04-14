@@ -22,11 +22,11 @@ The full list of environment variable meanings can be seen by combining `client/
 
 There are some notable change for docker compose running for server environment variables. The first one is the 
 splitting of the `DATABASE_CONNECTION_URL`. Instead, the env file contains variables `POSTGRES_USER`, 
-`POSTGRES_PASSWORD` and `POSTGRES_DB`. These are used to configure the docker container running PostgreSQL and then 
-combined to form the database connection url that is fed to the server. For local development these can thus be 
-anything and can be left as their default values. The variables controlling auto-reload, the host and the port are also 
-not present. Instead, variables `BACKEND_PORT` and `FRONTEND_PORT` control which ports docker exposes for the backend 
-and the frontend respectively.
+`POSTGRES_PASSWORD`, `POSTGRES_DB` and `DATABASE_PORT`. These are used to configure the docker container running 
+PostgreSQL and then combined to form the database connection url that is fed to the server. For local development
+these can thus be anything and can be left as their default values. The variables controlling auto-reload, the 
+host and the port are also not present. Instead, variables `BACKEND_PORT` and `FRONTEND_PORT` control which ports
+docker exposes for the backend and the frontend respectively.
 
 ## Set up secrets
 
