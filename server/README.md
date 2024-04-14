@@ -4,6 +4,7 @@
   - [Installing python](#installing-python)
   - [Creating a virtual environment](#creating-a-virtual-environment)
   - [Installing dependencies](#installing-dependencies)
+  - [Ensuring you have Spotify application credential](#ensuring-you-have-spotify-application-credential)
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)
   - [Viewing API documentation](#viewing-api-documentation)
@@ -16,14 +17,19 @@
 
 ## Development setup
 
+This section should contain everything you need to set up a local development environment.
+
 ### Installing python
 
 Development is conducted in python 3.12. You can download it from
-[the official python website](https://www.python.org/downloads/).
+[the official python website](https://www.python.org/downloads/). 
+
+**Please note that using an older version of python WILL BREAK the server, as we are actively using two 
+features (generics syntax, typing syntax) introduced in python 3.12!**
 
 ### Creating a virtual environment
 
-It's recommended to create a virtual environment for each python program you run locally.
+It's recommended to create a virtual environment (venv, from now on) for each python program you run locally.
 This prevents the packages you install from polluting the global package pool and prevents
 having multiple versions of the same package installed.
 
@@ -33,6 +39,8 @@ will become the interpreter for the venv created. You can check the version with
 ```bash
 python -V
 ```
+
+Notice the capital V.
 
 `python` uses python version from `PATH` in your computer. You can have multiple versions
 installed. Pointing to `python.exe` in the installation root directly lets you choose which
@@ -53,25 +61,39 @@ path-to-python-3-12-executable -m venv ./.venv
 ```
 
 Then, you can use the following command to activate the venv (please choose the correct
-script depending on the type of your terminal, this one is for shell!)
+script depending on the type of your terminal, the examples are for bash and powershell!)
+
 
 ```bash
+# bash
 .venv/Scripts/activate
 ```
 
-If the venv was activated correctly you should see line feeds start with `(venv)` in your
+```powershell
+# Powershell
+.venv/Scripts/activate.ps1
+```
+
+If the venv was activated correctly you should see line feeds start with `(.venv)` in your
 terminal.
 
 ### Installing dependencies
 
-You can install dependencies by running
+Once you have activated the venv, you can install dependencies by running
 
 ```bash
 pip install -r server/requirements.txt
 ```
 
-In the repository root. Leave the `server/` -part out if you are working directly in the
+in the repository root. Leave the `server/` -part out if you are working directly in the
 server folder.
+
+### Ensuring you have Spotify application credential
+
+Please create a [Spotify Application](https://developer.spotify.com/dashboard). Store your client ID and client secret,
+we will need them later. Before leaving, we need to add our local instance into the list of allowed redirect URIs for
+OAuth: Go into the edit settings view (Basic information -> edit). Add [`http://localhost:80`](http://localhost:80) 
+into the list of allowed Redirect URIs.
 
 ### Running the server
 
@@ -82,19 +104,24 @@ on setting environment variables:
 - `SPOTIFY_CLIENT_ID`: the client id of the Stagnum spotify application (or your personal dev app)
 - `SPOTIFY_CLIENT_SECRET`: the client secret of the Stagnum spotify application (or your personal dev app)
 
-There are further optional environment variables you can use to customize the behaviour of the server.
+There are further optional environment variables you can use to customize the behaviour of the server. These will
+fall back to the default values presented here if not given.
+
+Please note that it is highly recommended to set up a local PostgreSQL instance for development environments.
+See [Running PostGreSQL locally](#running-postgresql-locally) for more information.
 
 - `DATABASE_CONNECTION_URL`: control the SQLAlchemy database connection formation. Default
 `sqlite:///:memory:`
 - `VERBOSE_SQLALCHEMY`: control whether SQLAlchemy should output information into the console. Default `False`
 - `HOST`: control the host ip of the server. Default `127.0.0.1`
-- `PORT`: control the port of the server. Default `8000`
+- `PORT`: control the port of the server. Default `8080`
 - `RELOAD`: control whether the server should auto-reload on updates. Default `True`
 - `ENVIRONMENT`: control whether the server is run as a production server, or as a development server. Affects errors
 with error code 500. Value `production` (caps-insensitive) hides further information. Default `production`
+- `CORS_ORIGINS`: a comma-separated string of origins allowed for CORS. Default `http://localhost:80`
 
-Finally, we have environmental variables for customizing randomization in pool playback. Setting these is optional,
-the server will use default values if these are not set
+Finally, we have environmental variables for customizing randomization in pool playback. Setting these is also 
+optional, the server will use default values if these are not set
 
 - `CUSTOM_WEIGHT_SCALE`: control the effect of custom weight on song randomization. Formula is `W^C`, where `W` is the
 value given here, and `C` is the custom weight given by user (`[-1, 1]`). Default `5`
@@ -106,12 +133,23 @@ integer percentage value of the whole pool length. Default `60`
 - `PSEUDO_RANDOM_CEILING`: control the "ceiling" at which point songs' weight modifier from being played before is none
 (`1`). The modifier changes linearly between `0` at the floor point and `1` in the ceiling point. Default `90`
 
-You can validate the server is working by going to `localhost:8000` in your browser. The
-server should respond with the following message:
+Please ensure `PSEUDO_RANDOM_FLOOR` is always smaller than `PSEUDO_RANDOM_CEILING`, or prepare wandering into the land
+of "undefined behaviour".
+
+You can validate the server is working by going to [`localhost:8080/health`](http://localhost:8080/health) in your 
+browser. The server should respond with healthcheck data that looks something like this:
 
 ```json
 {
-  "message": "Hello world"
+    "status": "HEALTHY",
+    "time_elapsed": "PT0.046225S",
+    "resources": [
+        {
+            "status": "HEALTHY",
+            "time_elapsed":"PT0.001002S",
+            "resource":"database"
+        }
+    ]
 }
 ```
 
@@ -134,7 +172,8 @@ pytest server
 
 ### Viewing API documentation
 
-Once the server is running you can visit the `docs` route to check the API documentation.
+Once the server is running you can visit the [`localhost:8080/docs`](http://localhost:8080/docs) route to 
+check the API documentation.
 
 
 ### Logging configuration
@@ -157,11 +196,8 @@ This means the following environment variables can be used to overwrite the valu
 
 ## Running with docker
 
-**Note that for now running with docker uses an in-memory SQLite database meaning you won't get persistence!
-Persistence with docker TBA!**
-
 If you don't need to do development work on the server and just want it running to, for
-example, test the frontend against it, it is recommended to run the server with docker.
+example, test the frontend against it, you can run the server with docker.
 You can find detailed instructions for installing Docker from their
 ["Get started" site](https://www.docker.com/get-started/).
 
@@ -177,24 +213,39 @@ docker run -p 8080:8080 \
 stagnum-server
 ```
 
-Replace the values in brackets with correct ones.
+Replace the values in brackets with correct ones. You can also add more environment variables if you wish to customize
+the server behaviour. See [running the server](#running-the-server) for full reference on the available environment
+variables.
 
-You can browse to `localhost:8080` to verify the server is running. Once again the
-following message is returned, if everything works correctly:
+You can browse to [`localhost:8080/health`](http://localhost:8080/health) to verify the server is running. Once again 
+a message similar to the following one indicating the server health should be returned:
 
 ```json
 {
-  "message": "Hello world"
+    "status": "HEALTHY",
+    "time_elapsed": "PT0.046225S",
+    "resources": [
+        {
+            "status": "HEALTHY",
+            "time_elapsed":"PT0.001002S",
+            "resource":"database"
+        }
+    ]
 }
 ```
 
 ## Running PostgreSQL locally
 
+Please read through the following instructions carefully if you are planning on using PostgreSQL as a local development
+database. Basically you need to set up your PostgreSQL server, and then run our alembic migration scripts to apply the
+migrations into the server.
+
 ### Install and setup PostgreSQL (quick tutorial)
 
-**Note:** you don't need to follow these instructions if you already know how to work with PostgreSQL, in that
-case, just set up a local database, and set env variable `DATABASE_CONNECTION_STRING` to a conn string for said
-database. (`postgresql://postgres:password@localhost:5432/my_database`)
+*Note:* you don't need to follow the instructions in this chapter if you already know how to work with PostgreSQL, 
+in that case, just set up a local database, and set env variable `DATABASE_CONNECTION_URL` to a conn string for said
+database. (`postgresql://postgres:password@localhost:5432/my_database`). Then you can move on to 
+[Creating and running migrations](#creating-and-running-migrations)
 
 You can install PostgreSQL from [their website](https://www.postgresql.org/). Install PostgreSQL and pgAdmin 4.
 Store your password in your database manager of choice and remember the port you set, or preferably, just use the
@@ -215,6 +266,8 @@ See [how to set environment variables](#how-to-set-environment-variables) for se
 
 For now migrations are not automatically ran with the server. This is subject to change as the team explores
 alembic more.
+
+All alembic-related commands should be run in the `server` folder.
 
 After you have installed requirements or test requirements in venv and set the environment variable for database
 connection string according to the previous chapter, you can run migrations with the following command:
@@ -243,6 +296,6 @@ export DATABASE_CONNECTION_STRING="postgresql://postgres:my_pass@localhost:5432/
 ```
 
 ```powershell
-// Powershell
+# Powershell
 $Env:DATABASE_CONNECTION_STRING = "postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```

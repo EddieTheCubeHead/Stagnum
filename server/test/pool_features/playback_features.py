@@ -146,16 +146,17 @@ async def should_inactivate_sessions_for_logged_out_users(db_connection, playbac
     assert not playback_state.is_active
 
 
-def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, requests_client_get_queue,
-                                                     valid_token_header, mock_token_holder: TokenHolder,
-                                                     logged_in_user, fixed_track_length_ms, increment_now,
-                                                     create_mock_track_search_result, build_success_response,
-                                                     existing_playback, create_pool_creation_data_json, test_client,
-                                                     primary_user_token, auth_database_connection):
+@pytest.mark.asyncio
+async def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, requests_client_get_queue,
+                                                           valid_token_header, mock_token_holder: TokenHolder,
+                                                           logged_in_user, fixed_track_length_ms, increment_now,
+                                                           create_mock_track_search_result, build_success_response,
+                                                           existing_playback, create_pool_creation_data_json,
+                                                           test_client, primary_user_token, auth_database_connection):
     mock_token_holder.log_out(valid_token_header["Authorization"])
 
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    queue_next_songs(playback_service)
+    await queue_next_songs(playback_service)
     auth_database_connection.update_logged_in_user(logged_in_user, primary_user_token)
 
     tracks = [create_mock_track_search_result() for _ in range(1)]
