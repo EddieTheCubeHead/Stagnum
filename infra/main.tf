@@ -88,7 +88,13 @@ resource "aws_ecs_task_definition" "aws-task" {
         "timeout": 30,
         "retries": 5,
         "startPeriod": 30
-      }
+      },
+      "dependsOn":[
+        {
+          "containerName":"${local.database_name}",
+          "condition":"HEALTHY"
+        }
+      ]
     },
     {
       "name": "${local.database_name}",
