@@ -53,8 +53,8 @@ locals {
   backend_name  = "${var.app_name}-back-container"
   database_name = "${var.app_name}-data-container"
   frontend_url  = "${aws_alb.aws-lb.dns_name}"
-  backend_url   = "127.0.0.1:8080"
-  database_url  = "127.0.0.1:5432"
+  backend_url   = "localhost:8080"
+  database_url  = "localhost:5432"
 }
 
 # Creating the task definition
@@ -107,6 +107,9 @@ resource "aws_ecs_task_definition" "aws-task" {
         { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}/${var.postgres_db}"},
         { "name":"SPOTIFY_CLIENT_ID", "value": "${var.spotify_client_id}"},
         { "name":"SPOTIFY_CLIENT_SECRET", "value": "${var.spotify_client_secret}"},
+        { "name":"VERBOSE_SQLALCHEMY", "value": "true"},
+        { "name":"CORS_ORIGIN", "value": "http://localhost"},
+        { "name":"ENVIRONMENT", "value": "production"},
         { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
         { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
         { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
@@ -115,7 +118,7 @@ resource "aws_ecs_task_definition" "aws-task" {
       "memory": 2048,
       "cpu": 1024,
       "healthCheck":{
-        "command": ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"],
+        "command": ["CMD-SHELL", "curl -f http://${local.backend_url}/health || exit 1"],
         "interval": 10,
         "timeout": 30,
         "retries": 5,
