@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "aws-task" {
       "memory": 2048,
       "cpu": 1024,
       "healthCheck":{
-        "command": ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"],
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/"],
         "interval": 10,
         "timeout": 30,
         "retries": 5,
@@ -118,7 +118,7 @@ resource "aws_ecs_task_definition" "aws-task" {
       "memory": 2048,
       "cpu": 1024,
       "healthCheck":{
-        "command": ["CMD-SHELL", "curl -f http://${local.backend_url}/health || exit 1"],
+        "command": ["CMD-SHELL", "curl -f http://${local.backend_url}/health"],
         "interval": 10,
         "timeout": 30,
         "retries": 5,
