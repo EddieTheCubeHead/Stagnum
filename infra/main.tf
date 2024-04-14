@@ -28,24 +28,26 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
 }
 
 locals {
-  frontend_url = "localhost:3000"
-  backend_url = "localhost:8080"
-  database_url = "localhost:5432"
+  frontend_name = "${var.app_name}-front-container"
+  backend_name  = "${var.app_name}-back-container"
+  database_name = "${var.app_name}-data-container"
+  frontend_url  = "${aws_alb.aws-lb.dns_name}"
+  backend_url   = "localhost:8080"
+  database_url  = "localhost:5432"
 }
 
 # Creating the task definition
 resource "aws_ecs_task_definition" "aws-task" {
-  family                   = "${var.app_name}-task" 
+  family                   = "${var.app_name}-task"
   container_definitions    = <<DEFINITION
   [
     {
-      "name": "${var.app_name}-front-container",
-      "image": "docker.io/eddiethecubehead/stagnum_client:master",
+      "name": "${local.frontend_name}",
+      "image": "eddiethecubehead/stagnum_client:master",
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 3000,
-          "hostPort": 3000
+          "containerPort": 3000
         }
       ],
       "environment": [
@@ -53,36 +55,48 @@ resource "aws_ecs_task_definition" "aws-task" {
         { "name": "NEXT_PUBLIC_BACKEND_URI", "value": "${local.backend_url}" }
       ],
       "memory": 2048,
-      "cpu": 256
+      "cpu": 1024,
+      "healthCheck":{
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"],
+        "interval": 10,
+        "timeout": 30,
+        "retries": 5,
+        "startPeriod": 30
+      }
     },
     {
-      "name": "${var.app_name}-back-container",
-      "image": "docker.io/eddiethecubehead/stagnum_server:master",
+      "name": "${local.backend_name}",
+      "image": "eddiethecubehead/stagnum_server:master",
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 8080,
-          "hostPort": 8080
+          "containerPort": 8080
         }
       ],
       "environment": [
-        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}/${var.postgres_db}"},
+        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}:/${var.postgres_db}"},
         { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
         { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
         { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
         { "name":"PSEUDO_RANDOM_CEILING", "value": "${var.pseudo_random_ceiling}"}
       ],
       "memory": 2048,
-      "cpu": 256
+      "cpu": 1024,
+      "healthCheck":{
+        "command": ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"],
+        "interval": 10,
+        "timeout": 30,
+        "retries": 5,
+        "startPeriod": 30
+      }
     },
     {
-      "name": "${var.app_name}-data-container",
-      "image": "public.ecr.aws/docker/library/postgres:latest",
+      "name": "${local.database_name}",
+      "image": "postgres",
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 5432,
-          "hostPort": 5432
+          "containerPort": 5432
         }
       ],
       "environment":[
@@ -91,19 +105,26 @@ resource "aws_ecs_task_definition" "aws-task" {
         { "name":"POSTGRES_DB","value": "${var.postgres_db}"}
       ],
       "memory": 2048,
-      "cpu": 256
+      "cpu": 1024,
+      "healthCheck":{
+        "command": ["CMD-SHELL", "pg_isready -d data"],
+        "interval": 10,
+        "timeout": 30,
+        "retries": 5,
+        "startPeriod": 30
+      }
     }
   ]
   DEFINITION
-  requires_compatibilities = ["FARGATE"] # Stating that we are using ECS Fargate
-  network_mode             = "awsvpc"    # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 2048 * 4     # Specifying the memory our task requires
-  cpu                      = 256 * 4     # Specifying the CPU our task requires
+  requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
+  network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
+  memory                   = 2048 * 4                              # Specifying the memory our task requires
+  cpu                      = 1024 * 4                              # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
 # Providing a reference to our default VPC
-resource "aws_default_vpc" "default_vpc"{
+resource "aws_default_vpc" "default_vpc" {
 
 }
 
@@ -121,7 +142,7 @@ resource "aws_default_subnet" "default_subnet_b" {
 resource "aws_alb" "aws-lb" {
   name               = "${var.app_name}-lb" # Naming our load balancer
   load_balancer_type = "application"
-  subnets = ["${aws_default_subnet.default_subnet_a.id}","${aws_default_subnet.default_subnet_b.id}"]
+  subnets            = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
 
   # Referencing the security group
   security_groups = ["${aws_security_group.aws-lb_security_group.id}"]
@@ -145,16 +166,22 @@ resource "aws_security_group" "aws-lb_security_group" {
 }
 
 # Creating a target group for the load balancer
-resource "aws_lb_target_group" "aws-target_group" {
+resource "aws_lb_target_group" "front-target-group" {
   name        = "target-group"
-  port        = 80
+  port        = "80"
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = aws_default_vpc.default_vpc.id # Referencing the default VPC
+
   health_check {
-    matcher = "200,301,302"
-    path    = "/"
+    path = "/"
+    interval = 60
+    timeout = 10
+    healthy_threshold = 5
+    unhealthy_threshold = 5
+    matcher = "200-399"
   }
+
 }
 
 # Creating a listener for the load balancer
@@ -162,29 +189,30 @@ resource "aws_lb_listener" "aws-listener" {
   load_balancer_arn = aws_alb.aws-lb.arn # Referencing our load balancer
   port              = "80"
   protocol          = "HTTP"
+
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.aws-target_group.arn # Referencing our tagrte group
+    target_group_arn = aws_lb_target_group.front-target-group.arn # Referencing our target group
   }
 }
 
 # Creating the service
 resource "aws_ecs_service" "aws-service" {
-  name            = "${var.app_name}-service"                        
+  name            = "${var.app_name}-service"
   cluster         = aws_ecs_cluster.aws-cluster.id       # Referencing our created Cluster
   task_definition = aws_ecs_task_definition.aws-task.arn # Referencing the task our service will spin up
   launch_type     = "FARGATE"
-  desired_count   = 1 # Setting the number of containers we want deployed to 3
+  desired_count   = 1 # Setting the number of tasks we want deployed
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.aws-target_group.arn # Referencing our target group
+    target_group_arn = aws_lb_target_group.front-target-group.arn # Referencing our target group
     container_name   = "${var.app_name}-front-container"
     container_port   = 3000 # Specifying the container port
   }
 
   network_configuration {
-    subnets = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = true                                                # Providing our containers with public IPs
+    subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
+    assign_public_ip = true
     security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
   }
 }
