@@ -18,7 +18,7 @@ class EntityBase(DeclarativeBase):
 class User(EntityBase):
     spotify_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     spotify_username: Mapped[str] = mapped_column(String(64))
-    spotify_avatar_url: Mapped[str] = mapped_column(String(256), nullable=True)
+    spotify_avatar_url: Mapped[str] = mapped_column(String(512), nullable=True)
 
     session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user", cascade="all, delete-orphan")
     joined_pool: Mapped["PoolJoinedUser"] = relationship(lazy="joined", back_populates="user")
