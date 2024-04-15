@@ -90,18 +90,20 @@ async def join_pool(code: str, user: validated_user, pool_websocket_updater: Web
     return data_model
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/")
 async def delete_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
-                      websocket_updater: WebsocketUpdater):
+                      websocket_updater: WebsocketUpdater) -> PoolFullContents:
     pool_users = pool_database_connection.stop_and_purge_playback(user)
     empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
     await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool",
                                         empty_pool.model_dump())
+    return empty_pool
 
 
-@router.post("/leave", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/leave")
 async def leave_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
-                     websocket_updater: WebsocketUpdater):
+                     websocket_updater: WebsocketUpdater) -> PoolFullContents:
     pool = create_pool_return_model(*pool_database_connection.leave_pool(user))
     await websocket_updater.push_update([user_data.user.spotify_id for user_data in pool.users], "pool",
                                         pool.model_dump())
+    return PoolFullContents(users=[], share_code=None, currently_playing=None)
