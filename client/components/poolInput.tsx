@@ -1,6 +1,6 @@
 import theme from '@/components/theme'
-import { TextField } from '@mui/material'
 import { Dispatch, SetStateAction } from 'react'
+import CustomInput from './customInput'
 
 interface PoolInputProps {
     setQuery: Dispatch<SetStateAction<string>>
@@ -8,7 +8,7 @@ interface PoolInputProps {
 
 const PoolInput: React.FC<PoolInputProps> = ({ setQuery }) => {
     return (
-        <TextField
+        <CustomInput
             sx={{
                 bgcolor: theme.palette.secondary.main,
                 margin: 1,
