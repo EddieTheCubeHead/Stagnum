@@ -5,6 +5,7 @@ import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
+import theme from '../theme'
 
 interface PoolManagerProps {
     pool: Pool
@@ -126,7 +127,14 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             {pool.users.length > 3 ? (
                                 <AvatarGroup total={pool.users.length}>
                                     {pool.users.map((user: PoolUser) => (
-                                         <Tooltip title={user.user.display_name}  key={user.user.display_name}>
+                                         <Tooltip title={user.user.display_name} 
+                                         key={user.user.display_name} 
+                                         arrow
+                                         componentsProps={{tooltip: {style:{
+                                            boxShadow: '3px 3px 3px',
+                                            backgroundColor: theme.palette.common.white,
+                                            fontSize: '18px'
+                                         }}}}>
                                         <Avatar
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
