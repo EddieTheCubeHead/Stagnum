@@ -81,7 +81,7 @@ const HomePageContent: React.FC = () => {
                 setCurrentTrack(response.data.currently_playing)
                 updatePool(response.data)
                 const token = localStorage.getItem('token')
-                if (typeof token == 'string') {
+                if (typeof token === 'string') {
                     openPlaybackSocket(token)
                 }
             })
@@ -125,7 +125,7 @@ const HomePageContent: React.FC = () => {
         const WS_URI = `${backend_uri?.replace('http', 'ws')}/websocket/connect?Authorization=${token}`
         const socket = new WebSocket(WS_URI)
 
-        socket.onopen = () => {}
+        socket.onopen
 
         socket.onmessage = function (event) {
             const res = JSON.parse(event.data)
