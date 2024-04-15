@@ -13,6 +13,14 @@ def should_delete_track_and_return_remaining_pool_if_given_track_id(existing_poo
     assert len(pool_response["users"][0]["tracks"]) == len(existing_pool) - 1
 
 
+def should_return_self_as_owner_on_deletion(existing_pool: list[PoolMember], valid_token_header,
+                                            validate_response, test_client, logged_in_user):
+    response = test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)
+
+    pool_response = validate_response(response)
+    assert pool_response["owner"]["spotify_id"] == logged_in_user.spotify_id
+
+
 def should_not_have_track_in_database_after_deletion(existing_pool: list[PoolMember], valid_token_header, test_client,
                                                      db_connection, logged_in_user_id):
     test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)

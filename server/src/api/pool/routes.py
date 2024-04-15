@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from starlette import status
 
 from api.common.dependencies import validated_user
+from api.common.helpers import map_user_entity_to_model
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, \
     WebsocketUpdater
 from api.pool.helpers import create_pool_return_model
@@ -26,7 +27,8 @@ async def create_pool(base_collection: PoolCreationData, user: validated_user,
     pool_user_content = spotify_client.get_pool_content(user, *base_collection.spotify_uris)
     database_connection.create_pool(pool_user_content)
     current_track = pool_playback_service.start_playback(user)
-    return PoolFullContents(users=[pool_user_content], currently_playing=current_track)
+    return PoolFullContents(users=[pool_user_content], currently_playing=current_track,
+                            owner=map_user_entity_to_model(user))
 
 
 @router.get("/")
