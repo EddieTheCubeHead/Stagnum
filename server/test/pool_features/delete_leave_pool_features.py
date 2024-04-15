@@ -21,6 +21,16 @@ def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, valida
         assert session.scalar(select(PlaybackSession)) is None
 
 
+def should_send_playback_pause_on_pool_delete(existing_playback, test_client, requests_client,
+                                              valid_token_header):
+    requests_client.put.reset_mock()
+
+    test_client.delete("/pool", headers=valid_token_header)
+
+    actual_call = requests_client.put.call_args
+    assert actual_call.args[0] == "https://api.spotify.com/v1/me/player/pause"
+
+
 def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code, another_logged_in_user_header, test_client,
                                                    validate_response, db_connection, create_mock_playlist_fetch_result,
                                                    requests_client_get_queue, build_success_response,

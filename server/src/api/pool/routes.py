@@ -92,8 +92,9 @@ async def join_pool(code: str, user: validated_user, pool_websocket_updater: Web
 
 @router.delete("/")
 async def delete_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
-                      websocket_updater: WebsocketUpdater) -> PoolFullContents:
+                      websocket_updater: WebsocketUpdater, spotify_client: PoolSpotifyClient) -> PoolFullContents:
     pool_users = pool_database_connection.stop_and_purge_playback(user)
+    spotify_client.stop_playback(user)
     empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
     await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool",
                                         empty_pool.model_dump())

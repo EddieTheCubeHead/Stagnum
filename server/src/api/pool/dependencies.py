@@ -128,6 +128,10 @@ class PoolSpotifyClientRaw:
         header = build_auth_header(user)
         return self._spotify_client.get("me/player/queue", headers=header)
 
+    def stop_playback(self, user: User):
+        header = build_auth_header(user)
+        return self._spotify_client.put("me/player/pause", headers=header)
+
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
 
