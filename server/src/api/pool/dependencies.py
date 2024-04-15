@@ -443,6 +443,12 @@ class PoolDatabaseConnectionRaw:
             session.execute(delete(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
         return users
 
+    def leave_pool(self, user: User) -> list[User]:
+        with self._database_connection.session() as session:
+            users = self.get_pool_users(user)
+            _purge_existing_transient_pool(map_user_entity_to_model(user), session)
+        return users
+
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 

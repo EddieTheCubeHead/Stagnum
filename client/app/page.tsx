@@ -221,7 +221,7 @@ const HomePageContent: React.FC = () => {
                     </Grid>
                 )}
             </Grid>
-            <Footer setErrorAlert={setErrorAlert} pool={pool}/>
+            <Footer setErrorAlert={setErrorAlert} pool={pool} />
             {alert && (
                 <AlertComponent
                     alertMessage={errorMessage}

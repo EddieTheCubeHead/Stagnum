@@ -3,7 +3,6 @@ from logging import getLogger
 from fastapi import APIRouter
 from starlette import status
 
-
 from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, \
     WebsocketUpdater
@@ -92,8 +91,17 @@ async def join_pool(code: str, user: validated_user, pool_websocket_updater: Web
 
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection, 
-                      playback_websocket_updater: WebsocketUpdater):
+async def delete_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
+                      websocket_updater: WebsocketUpdater):
     pool_users = pool_database_connection.stop_and_purge_playback(user)
     empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
-    await playback_websocket_updater.push_update([user.spotify_id for user in pool_users], "pool", empty_pool.model_dump())
+    await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool",
+                                        empty_pool.model_dump())
+
+
+@router.post("/leave", status_code=status.HTTP_204_NO_CONTENT)
+async def leave_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
+                     websocket_updater: WebsocketUpdater):
+    pool_users = pool_database_connection.leave_pool(user)
+    empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
+    await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool", empty_pool.model_dump())
