@@ -33,10 +33,12 @@ def current_playback_data() -> CurrentPlaybackData:
 
 @pytest.fixture
 def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
-    def wrapper(track_amount: int):
+    def wrapper(track_amount: int, append_none: bool = False):
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
         tracks = [create_mock_track_search_result() for _ in range(track_amount)]
+        if append_none:
+            tracks.append(None)
         playlist_tracks = []
         for track in tracks:
             playlist_tracks.append({
