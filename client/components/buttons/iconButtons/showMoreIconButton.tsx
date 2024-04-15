@@ -61,13 +61,14 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
     return (
         <>
-            <Tooltip title="Show more">
+            <Tooltip title="Show more" arrow>
                 <IconButton
                     aria-label=""
                     onClick={handleClick}
                     sx={{
                         '&:hover': {
                             color: 'primary.main',
+                            transform: 'scale(1.2)',
                         },
                         color: 'secondary.light',
                         margin: 1,

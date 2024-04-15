@@ -196,6 +196,30 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
         assert actual_track["name"] == expected_track["name"]
 
 
+def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(test_client: TestClient,
+                                                                                valid_token_header, validate_response,
+                                                                                create_mock_playlist_fetch_result,
+                                                                                create_mock_track_search_result,
+                                                                                build_success_response,
+                                                                                requests_client,
+                                                                                create_pool_creation_data_json):
+    playlist = create_mock_playlist_fetch_result(30, True)
+    requests_client.get = Mock(return_value=build_success_response(playlist))
+    data_json = create_pool_creation_data_json(playlist["uri"])
+
+    result = test_client.post("/pool", json=data_json, headers=valid_token_header)
+
+    requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
+                                           headers=valid_token_header)
+    pool_response = validate_response(result)
+    user_pool = pool_response["users"][0]
+    assert user_pool["tracks"] == []
+    expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
+    assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks) - 1
+    for expected_track, actual_track in zip(expected_tracks[:-1], user_pool["collections"][0]["tracks"]):
+        assert actual_track["name"] == expected_track["name"]
+
+
 def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
                                                    create_mock_playlist_fetch_result, build_success_response,
                                                    requests_client, create_pool_creation_data_json, logged_in_user_id):
