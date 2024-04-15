@@ -172,6 +172,59 @@ const HomePageContent: React.FC = () => {
             })
     }
 
+    const handleDelete = (): void => {
+        axios
+            .delete(`${backend_uri}/pool`, {
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
+            })
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                console.log(response.data)
+                updatePool(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Deleting pool failed with error: ${error.response.data.detail}`,
+                    'error',
+                )
+            })
+    }
+
+    const handleLeave = (): void => {
+        axios
+            .post(
+                `${backend_uri}/pool/leave`,
+                {},
+                {
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
+                },
+            )
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                updatePool(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Leaving pool failed with error: ${error.response.data.detail}`,
+                    'error',
+                )
+            })
+    }
+
     const toggleOngoingSearch = (): void => {
         setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
     }
@@ -266,6 +319,8 @@ const HomePageContent: React.FC = () => {
                         expanded={expanded}
                         setErrorAlert={setErrorAlert}
                         user={user}
+                        handleDelete={handleDelete}
+                        handleLeave={handleLeave}
                     />
                 </Grid>
 
@@ -307,6 +362,9 @@ const HomePageContent: React.FC = () => {
                 setErrorAlert={setErrorAlert}
                 pool={pool}
                 currentTrack={currentTrack}
+                user={user}
+                handleDelete={handleDelete}
+                handleLeave={handleLeave}
             />
             {alert && (
                 <AlertComponent

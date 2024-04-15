@@ -3,7 +3,7 @@ import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
 import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
-import { Pool, PoolTrack } from '../types'
+import { Pool, PoolTrack, User } from '../types'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import NegativeButton from '../buttons/negativeButton'
@@ -13,16 +13,27 @@ interface FooterProps {
     setErrorAlert: (message: string, type: 'error' | 'success') => void
     pool: Pool
     currentTrack: PoolTrack
+    handleDelete: () => void
+    handleLeave: () => void
+    user: User
 }
 
 const Footer: React.FC<FooterProps> = ({
     setErrorAlert,
     pool,
     currentTrack,
+    handleDelete,
+    handleLeave,
+    user,
 }) => {
     const router = useRouter()
 
     const setTokenToNull = (): void => {
+        if (pool.users[0].user.spotify_id === user.spotify_id) {
+            handleDelete
+        } else {
+            handleLeave
+        }
         localStorage.removeItem('token')
         router.push('/login')
     }

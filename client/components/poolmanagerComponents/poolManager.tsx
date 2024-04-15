@@ -14,6 +14,8 @@ interface PoolManagerProps {
     // eslint-disable-next-line no-unused-vars
     user: User
     setErrorAlert: (message: string, type: 'error' | 'success') => void
+    handleDelete: () => void
+    handleLeave: () => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -22,6 +24,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     expanded,
     setErrorAlert,
     user,
+    handleDelete,
+    handleLeave,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleShare = (): void => {
@@ -47,58 +51,6 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Sharing a pool failed with error: ${error.response.data.detail}`,
-                    'error',
-                )
-            })
-    }
-
-    const handleDelete = (): void => {
-        axios
-            .delete(`${backend_uri}/pool`, {
-                headers: {
-                    Authorization: localStorage.getItem('token')
-                        ? localStorage.getItem('token')
-                        : '',
-                },
-            })
-            .then((response) => {
-                localStorage.setItem(
-                    'token',
-                    response.config.headers.Authorization as string,
-                )
-                updatePool(response.data)
-            })
-            .catch((error) => {
-                setErrorAlert(
-                    `Deleting pool failed with error: ${error.response.data.detail}`,
-                    'error',
-                )
-            })
-    }
-
-    const handleLeave = (): void => {
-        axios
-            .post(
-                `${backend_uri}/pool/leave`,
-                {},
-                {
-                    headers: {
-                        Authorization: localStorage.getItem('token')
-                            ? localStorage.getItem('token')
-                            : '',
-                    },
-                },
-            )
-            .then((response) => {
-                localStorage.setItem(
-                    'token',
-                    response.config.headers.Authorization as string,
-                )
-                updatePool(response.data)
-            })
-            .catch((error) => {
-                setErrorAlert(
-                    `Leaving pool failed with error: ${error.response.data.detail}`,
                     'error',
                 )
             })
