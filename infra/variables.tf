@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "app_environment" {
   description = "The name of aws environment to be deployed"
   type        = string
-  default     = "prod"
+  default     = "production"
 }
 
 variable "app_name" {
