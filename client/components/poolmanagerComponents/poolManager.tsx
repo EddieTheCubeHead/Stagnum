@@ -135,26 +135,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                         <Tooltip
                                             title={user.user.display_name}
                                             key={user.user.display_name}
-                                            arrow
-                                            componentsProps={{
-                                                tooltip: {
-                                                    style: {
-                                                        backgroundColor:
-                                                            theme.palette
-                                                                .primary.main,
-                                                        fontSize: '14px',
-                                                        color: theme.palette
-                                                            .common.white,
-                                                        boxShadow:
-                                                            '1px 1px 1px',
-                                                    },
-                                                },
-                                                arrow: {
-                                                    style: {
-                                                        color: theme.palette
-                                                            .primary.main,
-                                                    },
-                                                },
+                                            sx={{
+                                                boxShadow:
+                                                    '3px 3px 3px rgba(0, 0, 0, 0.3)',
                                             }}
                                         >
                                             <Avatar
@@ -171,25 +154,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                             title={user.user.display_name}
                                             key={user.user.display_name}
                                             arrow
-                                            componentsProps={{
-                                                tooltip: {
-                                                    style: {
-                                                        backgroundColor:
-                                                            theme.palette
-                                                                .primary.main,
-                                                        fontSize: '14px',
-                                                        color: theme.palette
-                                                            .common.white,
-                                                        boxShadow:
-                                                            '1px 1px 1px',
-                                                    },
-                                                },
-                                                arrow: {
-                                                    style: {
-                                                        color: theme.palette
-                                                            .primary.main,
-                                                    },
-                                                },
+                                            sx={{
+                                                boxShadow:
+                                                    '3px 3px 3px rgba(0, 0, 0, 0.3)',
                                             }}
                                         >
                                             <Avatar

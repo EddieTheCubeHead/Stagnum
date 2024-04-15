@@ -61,7 +61,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
     return (
         <>
-            <Tooltip title="Show more">
+            <Tooltip title="Show more" arrow>
                 <IconButton
                     aria-label=""
                     onClick={handleClick}
