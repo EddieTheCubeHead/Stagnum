@@ -9,7 +9,7 @@ interface AddToPoolButtonProps {
     updatePool: (pool: Pool) => void
     disabled: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
@@ -39,10 +39,12 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
+                setErrorAlert('Added item to pool successfully', 'success')
             })
             .catch((error) => {
                 setErrorAlert(
                     `Adding to pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }

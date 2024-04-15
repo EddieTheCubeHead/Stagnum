@@ -392,6 +392,7 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.share_data.has(PoolShareData.code == code)))
             _validate_pool_join(pool, user, code)
+            _purge_existing_transient_pool(map_user_entity_to_model(user), session)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 
