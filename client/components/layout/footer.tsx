@@ -4,6 +4,9 @@ import theme from '@/components/theme'
 import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist } from '../types'
+import DefaultButton from '../buttons/defaulButton'
+import { useRouter } from 'next/navigation'
+import router from 'next/router'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
@@ -11,12 +14,19 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
+    const router = useRouter()
+
     const playlist: Playlist = {
         name: '90s Ambient Techno Mix',
         uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
         link: '',
         icon_link:
             'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
+    }
+
+    const setTokenToNull = (): void => {
+        localStorage.removeItem('token')
+        router.push('/login')
     }
 
     return (
@@ -32,6 +42,9 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
             }}
         >
             <Grid container>
+                <Grid item>
+                    <DefaultButton text={'Log out'} action={setTokenToNull} />
+                </Grid>
                 <Grid
                     item
                     xs={9}
