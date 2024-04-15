@@ -8,6 +8,9 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from api import pool, search, auth, health
+from api.common.dependencies import validated_user
+from api.common.helpers import map_user_entity_to_model
+from api.common.models import UserModel
 
 from api.common.helpers import _get_allowed_origins
 
@@ -50,5 +53,10 @@ def create_app() -> FastAPI:
     @application.get("/")
     async def root():
         return {"message": "Hello World!"}
+
+    @application.get("/me")
+    async def get_me(user: validated_user) -> UserModel:
+        return map_user_entity_to_model(user)
+
 
     return application
