@@ -54,13 +54,14 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
     }
 
     return (
-        <Tooltip title="Delete from pool">
+        <Tooltip title="Delete from pool" arrow>
             <IconButton
                 aria-label=""
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
                         color: 'primary.main',
+                        transform: 'scale(1.2)',
                     },
                     color: 'secondary.light',
                     margin: 1,

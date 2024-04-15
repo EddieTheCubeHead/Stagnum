@@ -48,13 +48,14 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
     }
 
     return (
-        <Tooltip title="Add to pool">
+        <Tooltip title="Add to pool" arrow>
             <IconButton
                 aria-label=""
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
                         color: 'primary.main',
+                        transform: 'scale(1.2)',
                     },
                     color: 'secondary.light',
                     margin: 1,
