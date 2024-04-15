@@ -3,8 +3,8 @@
 import Footer from '@/components/layout/footer'
 import { Box, CssBaseline, Grid } from '@mui/material'
 import axios from 'axios'
-import { useSearchParams, redirect } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams, redirect, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
 import theme from '../components/theme'
 import Search from '@/components/searchComponents/search'
@@ -16,14 +16,6 @@ import AlertComponent from '@/components/alertComponent'
 import Image from 'next/image'
 
 const HomePage: React.FC = () => {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <HomeContent />
-        </Suspense>
-    )
-}
-
-const HomeContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
@@ -37,6 +29,7 @@ const HomeContent: React.FC = () => {
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
     const [ongoingSearch, setOngoingSearch] = useState(false)
+    const router = useRouter()
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
     const state = queryParams.get('state')
@@ -60,7 +53,7 @@ const HomeContent: React.FC = () => {
                 if (code && state) {
                     handleTokenRequest(code, state)
                 } else {
-                    redirect('/login')
+                    router.push('/login')
                 }
             })
     }
@@ -81,7 +74,7 @@ const HomeContent: React.FC = () => {
                 setErrorAlert(
                     `Login callback failed with error: ${error.response.data.detail}`,
                 )
-                redirect('/login')
+                router.push('/login')
             })
     }
 
