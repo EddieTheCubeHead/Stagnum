@@ -1,10 +1,19 @@
-import { Box, Stack, Grid, Avatar, AvatarGroup, Tooltip } from '@mui/material'
+import {
+    Box,
+    Stack,
+    Grid,
+    Avatar,
+    AvatarGroup,
+    Tooltip,
+    IconButton,
+} from '@mui/material'
 import PoolTrackCard from './poolCollectionCard'
 import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 
 interface PoolManagerProps {
     pool: Pool
@@ -41,7 +50,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
-                copyToClipboard(response.data)
+                copyToClipboard()
             })
             .catch((error) => {
                 setErrorAlert(
@@ -51,7 +60,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             })
     }
 
-    const copyToClipboard = (pool: Pool): void => {
+    const copyToClipboard = (): void => {
         if (pool.share_code !== null) {
             navigator.clipboard.writeText(pool.share_code)
             setErrorAlert('Code copied to clipboard', 'success')
@@ -139,10 +148,27 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     action={handleShare}
                                 />
                             ) : (
-                                <Header2
-                                    text={pool.share_code}
-                                    color={'secondary.light'}
-                                />
+                                <Box display={'flex'} marginRight={2}>
+                                    <Header2
+                                        text={pool.share_code}
+                                        color={'secondary.light'}
+                                    />
+                                    <IconButton
+                                        aria-label="copy-icon"
+                                        onClick={copyToClipboard}
+                                        sx={{
+                                            '&:hover': {
+                                                color: 'primary.main',
+                                                transform: 'scale(1.2)',
+                                            },
+                                            color: 'secondary.light',
+                                            marginRight: 1,
+                                            marginLeft: 1,
+                                        }}
+                                    >
+                                        <ContentCopyIcon />
+                                    </IconButton>
+                                </Box>
                             )}
                         </Grid>
                         <Grid
