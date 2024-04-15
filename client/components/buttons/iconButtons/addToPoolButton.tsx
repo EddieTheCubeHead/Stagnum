@@ -50,9 +50,9 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
-                        color: 'white',
+                        color: 'primary.main',
                     },
-                    color: 'black',
+                    color: 'secondary.light',
                     margin: 1,
                 }}
                 disabled={disabled}

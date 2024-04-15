@@ -42,7 +42,7 @@ const ArtistCard: React.FC<ArtistCordProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={artist.name} />
+                    <Header3 text={artist.name} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton

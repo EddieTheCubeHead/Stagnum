@@ -45,7 +45,7 @@ const TrackCard: React.FC<TrackCardProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton
