@@ -4,9 +4,7 @@ import theme from '@/components/theme'
 import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist } from '../types'
-import DefaultButton from '../buttons/defaulButton'
 import { useRouter } from 'next/navigation'
-import router from 'next/router'
 import NegativeButton from '../buttons/negativeButton'
 
 interface FooterProps {
