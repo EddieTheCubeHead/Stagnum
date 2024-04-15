@@ -55,21 +55,46 @@ variable "postgres_db" {
   description = "The database to use"
   sensitive   = false
   type        = string
-
 }
 
 variable "custom_weigth_scale" {
-  default = 5
+  description = "Custom weight for the backend. This is a weight of how much the user_weight_scale affects"
+  default     = 5
+  type        = number
 }
 
 variable "user_weight_scale" {
-  default = 20
+  description = "Users weight for backend. How much users playtime affects the algorithm"
+  default     = 20
+  type        = number
 }
 
 variable "pseudo_random_floor" {
-  default = 60
+  description = "Floor for the sorting algorithm"
+  default     = 60
+  type        = number
 }
 
 variable "pseudo_random_ceiling" {
-  default = 90
+  description = "Ceiling for the sorting algorithm"
+  default     = 90
+  type        = number
+}
+
+variable "verbose_sqlalchemy" {
+  description = "Should the sqlalchemy be verbose"
+  default     = false
+  type        = bool
+}
+
+variable "cors_origins" {
+  description = "The Cors for the backend to use"
+  default     = "*"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment to run the containers"
+  default     = "production"
+  type        = string
 }
