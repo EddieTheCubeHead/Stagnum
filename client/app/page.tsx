@@ -162,7 +162,7 @@ const HomeContent: React.FC = () => {
                 <Grid
                     item
                     xs={expanded ? 3 : 12}
-                    sx={{ height: 'calc(90vh - 80px)', overflow: 'auto' }}
+                    sx={{ height: 'calc(90vh - 80px)', overflow: 'auto', mt: expanded ? 0 : 1.5 }}
                 >
                     <PoolManager
                         pool={pool}
