@@ -18,7 +18,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const router = useRouter()
     const [currentTrack, setCurrentTrack] = useState<PoolTrack>({
-        name: '',
+        name: 'Playback',
         spotify_icon_uri: '',
         spotify_track_uri: '',
         duration_ms: 0,
@@ -73,6 +73,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
                     justifyContent="center"
                     alignItems="center"
                     container
+                    gap={2}
                 >
                     {/*Image size fixed only for demo. Change when addressing first comment*/}
                     <Image
@@ -80,7 +81,11 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
                             width: 50,
                             height: 50,
                         }}
-                        src={require('@/public/logo.png')}
+                        src={
+                            currentTrack.spotify_icon_uri.length > 0
+                                ? currentTrack.spotify_icon_uri
+                                : require('@/public/logo.png')
+                        }
                         alt={'Track image'}
                     />
 
@@ -92,7 +97,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
 
                     <SkipButton
                         setErrorAlert={setErrorAlert}
-                        disabled={!pool}
+                        disabled={pool.users.length == 0}
                     />
                 </Grid>
                 <Grid
@@ -112,7 +117,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
                             }}
                             href="/about"
                         >
-                            About
+                            About Stagnum
                         </Link>
                     </Grid>
                     <Grid item xs={6}>
