@@ -37,6 +37,18 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     handleLeave,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    if (pool === null || pool.users === undefined) {
+        pool = {
+            users: [],
+            share_code: null,
+            currently_playing: {
+                name: '',
+                spotify_icon_uri: '',
+                spotify_track_uri: '',
+                duration_ms: 0,
+            },
+        }
+    }
     const handleShare = (): void => {
         axios
             .post(

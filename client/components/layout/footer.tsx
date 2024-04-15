@@ -38,6 +38,28 @@ const Footer: React.FC<FooterProps> = ({
         router.push('/login')
     }
 
+    if (currentTrack === null || currentTrack === undefined) {
+        currentTrack = {
+            name: 'Playback',
+            spotify_icon_uri: '',
+            spotify_track_uri: '',
+            duration_ms: 0,
+        }
+    }
+
+    if (pool === null || pool.users === undefined) {
+        pool = {
+            users: [],
+            share_code: null,
+            currently_playing: {
+                name: '',
+                spotify_icon_uri: '',
+                spotify_track_uri: '',
+                duration_ms: 0,
+            },
+        }
+    }
+
     return (
         <Box
             sx={{
