@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket = "stagnum-prod-tfstate-bucket"
-    key = "state/terraform.tfstate"
-    region = "eu-north-1"
-    encrypt = true
+    bucket         = "stagnum-prod-tfstate-bucket"
+    key            = "state/terraform.tfstate"
+    region         = "eu-north-1"
+    encrypt        = true
     dynamodb_table = "stagnum-prod-tf-lockid"
   }
 
