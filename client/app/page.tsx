@@ -167,6 +167,7 @@ const HomePageContent: React.FC = () => {
             .catch((error) => {
                 setErrorAlert(
                     `Getting user failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }

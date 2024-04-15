@@ -71,6 +71,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Deleting pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
@@ -98,6 +99,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Leaving pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
