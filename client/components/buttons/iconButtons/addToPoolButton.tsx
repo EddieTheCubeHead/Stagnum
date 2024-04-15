@@ -27,7 +27,11 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 localStorage.setItem(

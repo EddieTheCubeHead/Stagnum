@@ -32,7 +32,11 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
                     ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`
                     : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {

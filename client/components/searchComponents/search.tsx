@@ -78,7 +78,11 @@ const Search: React.FC<SearchProps> = ({
                 `${backend_uri}/pool/join/${idQuery}`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {

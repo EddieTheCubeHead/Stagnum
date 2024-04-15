@@ -52,7 +52,11 @@ const HomePageContent: React.FC = () => {
     const checkIfPoolExists = (): void => {
         axios
             .get(`${backend_uri}/pool/`, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 updatePool(response.data)
