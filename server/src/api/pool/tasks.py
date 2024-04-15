@@ -3,7 +3,7 @@ from logging import getLogger
 from api.common.dependencies import SpotifyClient, RequestsClientRaw, TokenHolder, UserDatabaseConnection, \
     AuthSpotifyClient, DateTimeWrapper
 from api.pool.dependencies import PoolDatabaseConnection, PoolSpotifyClient, PoolPlaybackService, \
-    PlaybackWebsocketUpdater
+    WebsocketUpdater
 from api.pool.randomization_algorithms import NextSongProvider
 from database.database_connection import ConnectionManager
 
@@ -19,7 +19,7 @@ _user_db_connection = UserDatabaseConnection(_connection_manager, _datetime_wrap
 _auth_spotify_client = AuthSpotifyClient(_spotify_client)
 _token_holder = TokenHolder(_user_db_connection, _auth_spotify_client, _datetime_wrapper, None)
 _next_song_provider = NextSongProvider()
-_playback_updater = PlaybackWebsocketUpdater()
+_playback_updater = WebsocketUpdater()
 _pool_playback_service = PoolPlaybackService(_pool_db_connection, _pool_spotify_client, _token_holder,
                                              _next_song_provider, _datetime_wrapper, _playback_updater)
 

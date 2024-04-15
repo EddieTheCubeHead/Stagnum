@@ -1,6 +1,6 @@
 import datetime
 from logging import getLogger
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import delete, and_, select, or_, update
@@ -10,7 +10,7 @@ from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHold
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
 from api.pool.helpers import map_pool_member_entity_to_model
-from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
+from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
 from api.pool.randomization_algorithms import NextSongProvider
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData, \
     PoolMemberRandomizationParameters
@@ -446,54 +446,27 @@ class PoolDatabaseConnectionRaw:
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
 
-class PoolWebsocketUpdaterRaw:
-    _pool_sockets: dict[int, list[WebSocket]] = {}
+class WebsocketUpdaterRaw:
+    _sockets: dict[str, WebSocket] = {}
 
-    def add_socket(self, websocket: WebSocket, pool: Pool):
-        if pool.id not in self._pool_sockets:
-            self._pool_sockets[pool.id] = []
-        self._pool_sockets[pool.id].append(websocket)
+    def add_socket(self, websocket: WebSocket, user: User):
+        self._sockets[user.spotify_id] = websocket
 
-    async def pool_updated(self, pool_contents: PoolFullContents, pool_id: int):
-        for websocket in self._pool_sockets.get(pool_id, ()):
+    async def push_update(self, user_ids: list[str], model: Literal["error", "current_track", "pool"], json: dict):
+        for user_id in user_ids:
+            if user_id not in self._sockets:
+                continue
             websocket_event = {
-                "type": "model",
-                "model": pool_contents.model_dump()
+                "type": model,
+                "model": json
             }
-            await websocket.send_json(websocket_event)
+            await self._sockets[user_id].send_json(websocket_event)
+
+    def remove_socket(self, user: User):
+        self._sockets.pop(user.spotify_id)
 
 
-PoolWebsocketUpdater = Annotated[PoolWebsocketUpdaterRaw, Depends()]
-
-
-class PlaybackWebsocketUpdaterRaw:
-    _playback_sockets: dict[int, list[WebSocket]] = {}
-
-    def add_socket(self, websocket: WebSocket, pool: Pool):
-        if pool.id not in self._playback_sockets:
-            self._playback_sockets[pool.id] = []
-        self._playback_sockets[pool.id].append(websocket)
-
-    async def playback_updated(self, new_track: PoolTrack, pool_id: int):
-        for websocket in self._playback_sockets.get(pool_id, ()):
-            websocket_event = {
-                "type": "model",
-                "model": new_track.model_dump()
-            }
-            await websocket.send_json(websocket_event)
-
-    async def send_error(self, error: Exception, pool_id: int):
-        for websocket in self._playback_sockets.get(pool_id, ()):
-            websocket_event = {
-                "type": "error",
-                "model": {
-                    "detail": str(error)
-                }
-            }
-            await websocket.send_json(websocket_event)
-
-
-PlaybackWebsocketUpdater = Annotated[PlaybackWebsocketUpdaterRaw, Depends()]
+WebsocketUpdater = Annotated[WebsocketUpdaterRaw, Depends()]
 
 
 def _get_additional_queue_part(queue_data: dict) -> list[dict]:
@@ -522,13 +495,13 @@ class PoolPlaybackServiceRaw:
 
     def __init__(self, database_connection: PoolDatabaseConnection, spotify_client: PoolSpotifyClient,
                  token_holder: TokenHolder, next_song_provider: NextSongProvider, datetime_wrapper: DateTimeWrapper,
-                 playback_updater: PlaybackWebsocketUpdater):
+                 websocket_updater: WebsocketUpdater):
         self._database_connection = database_connection
         self._spotify_client = spotify_client
         self._token_holder = token_holder
         self._next_song_provider = next_song_provider
         self._datetime_wrapper = datetime_wrapper
-        self._playback_updater = playback_updater
+        self._websocket_updater = websocket_updater
 
     def start_playback(self, user: User) -> PoolTrack:
         all_tracks = self._database_connection.get_playable_tracks(user)
@@ -563,10 +536,14 @@ class PoolPlaybackServiceRaw:
         next_song = self._get_next_track(playable_tracks, user)
         _logger.info(f"Adding song {next_song.name} to queue for user {user.spotify_username}")
         self._spotify_client.set_next_song(user, next_song.content_uri)
-        pool = self._database_connection.get_pool(pool_owner)
-        await self._playback_updater.playback_updated(map_pool_member_entity_to_model(next_song), pool.id)
+        await self._playback_updated(pool_owner, next_song)
         self._database_connection.save_playback_status(pool_owner, next_song, playback_end_timestamp)
         return next_song
+
+    async def _playback_updated(self, pool_owner: User, new_track: PoolMember):
+        pool_user_ids = [user.spotify_id for user in self._database_connection.get_pool_users(pool_owner)]
+        await self._websocket_updater.push_update(pool_user_ids, "current_track",
+                                                  map_pool_member_entity_to_model(new_track).model_dump())
 
     def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
         users = self._database_connection.get_pool_users(user)
@@ -597,7 +574,8 @@ class PoolPlaybackServiceRaw:
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
         if spotify_state["item"]["uri"] != playback.current_track_uri:
-            await self._fix_playback_data(playback, spotify_state["item"], new_end_timestamp)
+            next_track = await self._fix_playback_data(playback, spotify_state["item"], new_end_timestamp)
+            await self._playback_updated(user, next_track)
         else:
             self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
@@ -608,15 +586,12 @@ class PoolPlaybackServiceRaw:
         return spotify_state
 
     async def _fix_playback_data(self, playback: PlaybackSession, actual_song_data: dict[str, Any],
-                                 end_timestamp: datetime.datetime):
+                                 end_timestamp: datetime.datetime) -> PoolMember:
         new_track = PoolMember(name=actual_song_data["name"], content_uri=actual_song_data["uri"],
                                image_url=get_sharpest_icon(actual_song_data["album"]["images"]),
                                duration_ms=actual_song_data["duration_ms"])
         self._database_connection.save_unexpected_track_change(playback, new_track, end_timestamp)
-        pool_id = self._database_connection.get_pool_for_playback_session(playback).id
-        pool_track = PoolTrack(name=new_track.name, spotify_icon_uri=new_track.image_url,
-                               spotify_track_uri=new_track.content_uri, duration_ms=new_track.duration_ms)
-        await self._playback_updater.playback_updated(pool_track, pool_id)
+        return new_track
 
     async def _fix_queue(self, user: User) -> bool:
         has_skipped_songs = False
