@@ -52,15 +52,17 @@ export interface PoolCollection {
 export interface PoolUser {
     tracks: PoolTrack[]
     collections: PoolCollection[]
-    user: {
-        display_name: string
-        icon_url: string
-        spotify_id: string
-    }
+    user: User
 }
 
 export interface Pool {
     currently_playing: PoolTrack
     users: PoolUser[]
     share_code: null
+}
+
+export interface User {
+    display_name: string
+    icon_url: string
+    spotify_id: string
 }
