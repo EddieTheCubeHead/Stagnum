@@ -1,9 +1,11 @@
 terraform {
-  #    backend "s3" {
-  #        bucket = var.app_name
-  #        key = var.aws_access_key
-  #        region = var.aws_region
-  #    }
+  backend "s3" {
+    bucket = "stagnum-tfstate-bucket"
+    key = "state/terraform.tfstate"
+    region = "eu-north-1"
+    encrypt = true
+    dynamodb_table = "stagnum-tf-lockid"
+  }
 
   required_providers {
     aws = {
