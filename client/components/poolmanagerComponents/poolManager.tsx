@@ -145,10 +145,13 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                          arrow
                                          componentsProps={{tooltip: {style:{
                                             boxShadow: '1px 1px 1px',
-                                            backgroundColor: theme.palette.common.white,
-                                            fontSize: '18px',
-                                            color: theme.palette.primary.dark
-                                         }}, arrow: {style: {backgroundColor: theme.palette.common.white}}}}>
+                                            backgroundColor: theme.palette.primary.main,
+                                            fontSize: '14px',
+                                            color: theme.palette.common.white
+                                         }}, 
+                                        //  arrow: {style: {backgroundColor: theme.palette.primary.main}}
+                                        }}
+                                         >
                                         <Avatar
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
