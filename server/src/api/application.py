@@ -12,6 +12,8 @@ from api.common.dependencies import validated_user
 from api.common.helpers import map_user_entity_to_model
 from api.common.models import UserModel
 
+from api.common.helpers import _get_allowed_origins
+
 _logger = getLogger("main.application")
 
 
@@ -33,11 +35,6 @@ async def setup_scheduler(_: FastAPI):
     _logger.debug("Adding queue next songs job")
     scheduler.add_job(pool.queue_next_songs, "interval", seconds=1)
     yield
-
-
-def _get_allowed_origins() -> [str]:
-    raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")
-    return raw_environment_value.split(",")
 
 
 def create_app() -> FastAPI:
