@@ -149,7 +149,7 @@ const Search: React.FC<SearchProps> = ({
             <Grid container marginX={1}>
                 <Grid
                     item
-                    xs={1}
+                    xs={8}
                     display={'flex'}
                     justifyContent={'center'}
                     alignItems={'center'}
@@ -158,20 +158,16 @@ const Search: React.FC<SearchProps> = ({
                         expanded={expanded}
                         handleExpandClick={handleExpandClick}
                     />
-                </Grid>
-                <Grid item xs={7}>
                     <SearchInput setQuery={setQuery} />
-                </Grid>
-                <Grid item xs={3}>
-                    <PoolInput setQuery={setIdQuery} />
                 </Grid>
                 <Grid
                     item
-                    xs={1}
+                    xs={4}
                     display={'flex'}
                     justifyContent={'center'}
                     alignItems={'center'}
                 >
+                    <PoolInput setQuery={setIdQuery} />
                     <DefaultButton text="Join" action={handleJoinRequest} />
                 </Grid>
             </Grid>
