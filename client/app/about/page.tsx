@@ -2,6 +2,9 @@
 
 import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
+import aboutImage1 from '../../public/about1.jpg'
+import aboutImage2 from '../../public/about2.png'
+import aboutImage3 from '../../public/about3.png'
 
 const AboutPage: React.FC = () => {
     return (
@@ -21,8 +24,10 @@ const AboutPage: React.FC = () => {
             <Grid>
                 <Image
                     style={{ width: '100%', height: 500, objectFit: 'cover' }}
-                    src={require('../../public/about1.jpg')}
+                    src={aboutImage1}
                     alt={'About_Stagnum'}
+                    width={500}
+                    height={550}
                 />
 
                 <Typography
@@ -75,8 +80,10 @@ const AboutPage: React.FC = () => {
                 </Grid>
                 <Grid width={'50%'}>
                     <Image
-                        src={require('../../public/about2.png')}
+                        src={aboutImage2}
                         alt={'headphone'}
+                        width={750}
+                        height={450}
                     />
                 </Grid>
             </Grid>
@@ -90,8 +97,10 @@ const AboutPage: React.FC = () => {
             >
                 <Grid width={'50%'}>
                     <Image
-                        src={require('../../public/about3.png')}
+                        src={aboutImage3}
                         alt={'headphone'}
+                        width={750}
+                        height={450}
                     />
                 </Grid>
                 <Grid
@@ -118,8 +127,8 @@ const AboutPage: React.FC = () => {
                     </Typography>
                     <Typography mt={1} textAlign={'center'}>
                         To comply with Spotify’s guidelines, Stagnum can only be
-                        used by users with Spotify Premium.
-                        Also, user can not have any private session active while using Stagnum.
+                        used by users with Spotify Premium. Also, user can not
+                        have any private session active while using Stagnum.
                     </Typography>
                 </Grid>
             </Grid>
@@ -188,7 +197,7 @@ const AboutPage: React.FC = () => {
                             3.
                         </Typography>
                         <Typography variant="h5" mb={6} textAlign={'center'}>
-                        Search for your favorite songs and add them to the
+                            Search for your favorite songs and add them to the
                             pool
                         </Typography>
                     </Grid>
