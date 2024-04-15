@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timedelta
 
-import pytest
 from sqlalchemy import select
 
 from api.common.helpers import map_user_entity_to_model
