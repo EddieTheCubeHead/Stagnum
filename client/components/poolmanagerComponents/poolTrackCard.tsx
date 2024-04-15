@@ -48,7 +48,7 @@ const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
                         }}
                     />
 
-                    <Header3 text={truncatedName} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <DeleteButton

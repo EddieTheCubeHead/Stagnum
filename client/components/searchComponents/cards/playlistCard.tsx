@@ -53,7 +53,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={truncatedName} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton
