@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from api.pool.models import PoolContent
+from api.pool.models import PoolContent, PoolFullContents
 from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession
 
 
@@ -9,7 +9,10 @@ def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, valida
                                           valid_token_header):
     response = test_client.delete("/pool", headers=valid_token_header)
 
-    validate_response(response, 204)
+    response_model = PoolFullContents.model_validate(validate_response(response))
+    assert response_model.users == []
+    assert response_model.currently_playing is None
+    assert response_model.share_code is None
 
     with db_connection.session() as session:
         assert session.scalar(select(Pool)) is None
@@ -32,7 +35,10 @@ def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code, another_log
 
     response = test_client.post("/pool/leave", headers=another_logged_in_user_header)
 
-    validate_response(response, 204)
+    response_model = PoolFullContents.model_validate(validate_response(response))
+    assert response_model.users == []
+    assert response_model.currently_playing is None
+    assert response_model.share_code is None
 
     user_id = another_logged_in_user.spotify_id
     with db_connection.session() as session:
