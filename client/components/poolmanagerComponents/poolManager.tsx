@@ -41,6 +41,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
+                copyToClipboard(response.data)
             })
             .catch((error) => {
                 setErrorAlert(
@@ -48,6 +49,13 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     'error',
                 )
             })
+    }
+
+    const copyToClipboard = (pool: Pool): void => {
+        if (pool.share_code !== null) {
+            navigator.clipboard.writeText(pool.share_code)
+            setErrorAlert('Code copied to clipboard', 'success')
+        }
     }
 
     const avatar = (user: PoolUser): JSX.Element => (
