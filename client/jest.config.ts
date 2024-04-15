@@ -67,6 +67,7 @@ module.exports = {
     transformIgnorePatterns: [
         '/node_modules/',
         '^.+\\.module\\.(css|sass|scss)$',
+        "\\.pnp\\.[^\\\/]+$",
     ],
 }
 
