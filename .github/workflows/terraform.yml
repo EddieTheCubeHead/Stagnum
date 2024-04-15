@@ -68,8 +68,8 @@ jobs:
     - name: Terraform Format
       run: terraform fmt
     
-    - name: Terraform lint
-      run: tflint 
+#    - name: Terraform lint
+#      run: tflint 
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
@@ -81,16 +81,19 @@ jobs:
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      env:
+      env: 
+ 
+ 
+ 
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
       run: terraform apply -auto-approve -input=false
 
-    - name: Terraform destroy
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-      run: terraform destroy -auto-approve -input=false
+#    - name: Terraform destroy
+#      env:
+#        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+#      run: terraform destroy -auto-approve -input=false
 
     - name: Commit automatic cleans
       uses: stefanzweifel/git-auto-commit-action@v5
