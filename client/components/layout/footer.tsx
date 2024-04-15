@@ -63,7 +63,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
             }}
         >
             <Grid container>
-                <Grid item xs={1} sx={{ padding: 1 }}>
+                <Grid item xs={2} sx={{ padding: 1 }}>
                     <NegativeButton text={'Log out'} action={setTokenToNull} />
                 </Grid>
                 <Grid
@@ -97,29 +97,35 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
                 </Grid>
                 <Grid
                     item
-                    xs={8}
+                    xs={2}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
+                    sx={{ padding: 1 }}
+                    container
                 >
-                    <Link
-                        sx={{
-                            color: theme.palette.primary.contrastText,
-                            paddingRight: 2,
-                        }}
-                        href="/about"
-                    >
-                        About Stagnum
-                    </Link>
-                    <Link
-                        sx={{
-                            color: theme.palette.secondary.main,
-                        }}
-                        href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-                        target="_blank"
-                    >
-                        Contact Us
-                    </Link>
+                    <Grid item xs={6}>
+                        <Link
+                            sx={{
+                                color: theme.palette.primary.contrastText,
+                                paddingRight: 2,
+                            }}
+                            href="/about"
+                        >
+                            About
+                        </Link>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Link
+                            sx={{
+                                color: theme.palette.primary.contrastText,
+                            }}
+                            href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
+                            target="_blank"
+                        >
+                            Contact Us
+                        </Link>
+                    </Grid>
                 </Grid>
             </Grid>
         </Box>
