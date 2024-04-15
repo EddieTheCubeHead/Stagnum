@@ -50,6 +50,21 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             })
     }
 
+    const avatar = (user: PoolUser): JSX.Element => (
+        <Tooltip
+            title={user.user.display_name}
+            key={user.user.display_name}
+            sx={{
+                boxShadow: '3px 3px 3px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                    transform: 'scale(1.1)',
+                },
+            }}
+        >
+            <Avatar alt={user.user.display_name} src={user.user.icon_url} />
+        </Tooltip>
+    )
+
     return (
         <Box
             sx={{
@@ -131,46 +146,15 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         >
                             {pool.users.length > 3 ? (
                                 <AvatarGroup total={pool.users.length}>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Tooltip
-                                            title={user.user.display_name}
-                                            key={user.user.display_name}
-                                            sx={{
-                                                boxShadow:
-                                                    '3px 3px 3px rgba(0, 0, 0, 0.3)',
-                                                '&:hover': {
-                                                    transform: 'scale(1.1)',
-                                                },
-                                            }}
-                                        >
-                                            <Avatar
-                                                alt={user.user.display_name}
-                                                src={user.user.icon_url}
-                                            />
-                                        </Tooltip>
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </AvatarGroup>
                             ) : (
                                 <>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Tooltip
-                                            title={user.user.display_name}
-                                            key={user.user.display_name}
-                                            arrow
-                                            sx={{
-                                                boxShadow:
-                                                    '3px 3px 3px rgba(0, 0, 0, 0.3)',
-                                                '&:hover': {
-                                                    transform: 'scale(1.1)',
-                                                },
-                                            }}
-                                        >
-                                            <Avatar
-                                                alt={user.user.display_name}
-                                                src={user.user.icon_url}
-                                            />
-                                        </Tooltip>
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </>
                             )}
                         </Grid>
