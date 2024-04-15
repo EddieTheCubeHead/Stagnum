@@ -26,8 +26,10 @@ class ConnectionManager:
         if db_address == "sqlite:///:memory:":
             _logger.debug("Using sqlite in-memory database")
             self.engine = self._use_persistent_in_memory_engine(db_address, echo)
-        else:
+        elif db_address.startswith("sqlite"):
             self.engine = create_engine(db_address, echo=echo)
+        else:
+            self.engine = create_engine(db_address, echo=echo, connect_args={"options": "-c timezone=utc"})
         self._session = sessionmaker()
         self._session.configure(bind=self.engine)
         self.init_objects(EntityBase)
