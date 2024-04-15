@@ -80,7 +80,7 @@ const HomePageContent: React.FC = () => {
             .then((response) => {
                 setCurrentTrack(response.data.currently_playing)
                 updatePool(response.data)
-                let token = localStorage.getItem('token')
+                const token = localStorage.getItem('token')
                 if (typeof token == 'string') {
                     openPlaybackSocket(token)
                 }
@@ -129,12 +129,12 @@ const HomePageContent: React.FC = () => {
 
         socket.onmessage = function (event) {
             const res = JSON.parse(event.data)
-            if (res.type == 'current_track') {
+            if (res.type === 'current_track') {
                 setCurrentTrack(res.model)
-            } else if (res.type == 'pool') {
+            } else if (res.type === 'pool') {
                 updatePool(res.model)
                 setCurrentTrack(res.model.currently_playing)
-            } else if (res.type == 'error') {
+            } else if (res.type === 'error') {
                 setErrorAlert(
                     'Displaying current playback failed: ' + res.model,
                 )
