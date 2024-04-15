@@ -55,11 +55,14 @@ const Footer: React.FC<FooterProps> = ({
                 >
                     {/*Image size fixed only for demo. Change when addressing first comment*/}
                     {currentTrack.spotify_icon_uri.length > 0 ? (
-                        <img
-                            src={currentTrack.spotify_icon_uri}
-                            style={{
+                        <Box
+                            sx={{
                                 width: 50,
                                 height: 50,
+                                backgroundImage: `url(${currentTrack.spotify_icon_uri})`,
+                                bgcolor: 'black',
+                                backgroundSize: 'cover',
+                                margin: 1,
                             }}
                         />
                     ) : (
