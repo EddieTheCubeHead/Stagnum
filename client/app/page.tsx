@@ -57,11 +57,17 @@ const HomePageContent: React.FC = () => {
             .then((response) => {
                 updatePool(response.data)
             })
-            .catch(() => {
-                if (code && state) {
-                    handleTokenRequest(code, state)
+            .catch((error) => {
+                if (error.response.status === 404) {
+                    setErrorAlert(
+                        `Get pool failed with error: ${error.response.data.detail}`,
+                    )
                 } else {
-                    router.push('/login')
+                    if (code && state) {
+                        handleTokenRequest(code, state)
+                    } else {
+                        router.push('/login')
+                    }
                 }
             })
     }
