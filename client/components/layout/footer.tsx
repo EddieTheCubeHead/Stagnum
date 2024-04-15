@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
-import SkipButton from '../buttons/skipButton'
+import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist, Pool, Track } from '../types'
 
