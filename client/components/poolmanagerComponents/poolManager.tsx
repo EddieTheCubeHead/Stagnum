@@ -176,14 +176,14 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                 text={
                                     pool.users[0].user.spotify_id ===
                                     user.spotify_id
-                                        ? 'Leave Pool'
-                                        : 'Delete Pool'
+                                        ? 'Delete Pool'
+                                        : 'Leave Pool'
                                 }
                                 action={
                                     pool.users[0].user.spotify_id ===
                                     user.spotify_id
-                                        ? handleLeave
-                                        : handleDelete
+                                        ? handleDelete
+                                        : handleLeave
                                 }
                             />
                         )}
