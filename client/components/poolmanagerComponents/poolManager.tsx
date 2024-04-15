@@ -138,6 +138,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                             sx={{
                                                 boxShadow:
                                                     '3px 3px 3px rgba(0, 0, 0, 0.3)',
+                                                '&:hover': {
+                                                    transform: 'scale(1.1)',
+                                                },
                                             }}
                                         >
                                             <Avatar
@@ -157,6 +160,9 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                             sx={{
                                                 boxShadow:
                                                     '3px 3px 3px rgba(0, 0, 0, 0.3)',
+                                                '&:hover': {
+                                                    transform: 'scale(1.1)',
+                                                },
                                             }}
                                         >
                                             <Avatar

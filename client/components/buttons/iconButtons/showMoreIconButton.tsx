@@ -68,6 +68,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
                     sx={{
                         '&:hover': {
                             color: 'primary.main',
+                            transform: 'scale(1.2)',
                         },
                         color: 'secondary.light',
                         margin: 1,
