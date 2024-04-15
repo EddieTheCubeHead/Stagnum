@@ -57,11 +57,17 @@ const HomePageContent: React.FC = () => {
             .then((response) => {
                 updatePool(response.data)
             })
-            .catch(() => {
-                if (code && state) {
-                    handleTokenRequest(code, state)
+            .catch((error) => {
+                if (error.response.status === 404) {
+                    setErrorAlert(
+                        `Get pool failed with error: ${error.response.data.detail}`,
+                    )
                 } else {
-                    router.push('/login')
+                    if (code && state) {
+                        handleTokenRequest(code, state)
+                    } else {
+                        router.push('/login')
+                    }
                 }
             })
     }
@@ -163,7 +169,11 @@ const HomePageContent: React.FC = () => {
                 <Grid
                     item
                     xs={expanded ? 3 : 12}
-                    sx={{ height: 'calc(90vh - 80px)', overflow: 'auto', mt: expanded ? 0 : 1.5 }}
+                    sx={{
+                        height: 'calc(90vh - 80px)',
+                        overflow: 'auto',
+                        mt: expanded ? 0 : 1.5,
+                    }}
                 >
                     <PoolManager
                         pool={pool}
