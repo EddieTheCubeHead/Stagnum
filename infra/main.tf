@@ -1,7 +1,7 @@
 # Creating an ECS cluster
 resource "aws_ecs_cluster" "aws-cluster" {
   name = "${var.app_name}-cluster"
-  
+
   configuration {
     execute_command_configuration {
       kms_key_id = aws_kms_key.stagnum.arn
@@ -10,7 +10,7 @@ resource "aws_ecs_cluster" "aws-cluster" {
       log_configuration {
         cloud_watch_encryption_enabled = true
         cloud_watch_log_group_name     = aws_cloudwatch_log_group.log-group.name
-      }  
+      }
     }
   }
 }
@@ -45,15 +45,15 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
 }
 
 resource "aws_cloudwatch_log_group" "log-group" {
-  name ="stagnum-logs"
+  name = "stagnum-logs"
 }
 
 locals {
   frontend_name = "${var.app_name}-front-container"
   backend_name  = "${var.app_name}-back-container"
   database_name = "${var.app_name}-data-container"
-  frontend_url  = "${aws_alb.aws-lb.dns_name}"
-  backend_url   = "localhost:8080"
+  frontend_url  = aws_alb.aws-lb.dns_name
+  backend_url   = aws_alb.aws-lb.dns_name
   database_url  = "localhost:5432"
 }
 
@@ -219,25 +219,42 @@ resource "aws_security_group" "aws-lb_security_group" {
 
 # Creating a target group for the load balancer
 resource "aws_lb_target_group" "front-target-group" {
-  name        = "target-group"
+  name        = "front-target-group"
   port        = "80"
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = aws_default_vpc.default_vpc.id # Referencing the default VPC
 
   health_check {
-    path = "/"
-    interval = 60
-    timeout = 10
-    healthy_threshold = 5
+    path                = "/"
+    interval            = 60
+    timeout             = 10
+    healthy_threshold   = 5
     unhealthy_threshold = 5
-    matcher = "200-399"
+    matcher             = "200-399"
   }
-
 }
 
-# Creating a listener for the load balancer
-resource "aws_lb_listener" "aws-listener" {
+# Creating a target group for the load balancer
+resource "aws_lb_target_group" "back-target-group" {
+  name        = "back-target-group"
+  port        = "80"
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = aws_default_vpc.default_vpc.id # Referencing the default VPC
+
+  health_check {
+    path                = "/"
+    interval            = 60
+    timeout             = 10
+    healthy_threshold   = 5
+    unhealthy_threshold = 5
+    matcher             = "200-399"
+  }
+}
+
+# Creating a client listener for the load balancer
+resource "aws_lb_listener" "client-listener" {
   load_balancer_arn = aws_alb.aws-lb.arn # Referencing our load balancer
   port              = "80"
   protocol          = "HTTP"
@@ -248,6 +265,18 @@ resource "aws_lb_listener" "aws-listener" {
   }
 }
 
+resource "aws_lb_listener" "server-listener" {
+  load_balancer_arn = aws_alb.aws-lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.back-target-group.arn
+  }
+}
+
+
 # Creating the service
 resource "aws_ecs_service" "aws-service" {
   name            = "${var.app_name}-service"
@@ -256,10 +285,17 @@ resource "aws_ecs_service" "aws-service" {
   launch_type     = "FARGATE"
   desired_count   = 1 # Setting the number of tasks we want deployed
 
+
   load_balancer {
     target_group_arn = aws_lb_target_group.front-target-group.arn # Referencing our target group
     container_name   = "${var.app_name}-front-container"
     container_port   = 3000 # Specifying the container port
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.back-target-group.arn
+    container_name   = "${var.app_name}-back-container"
+    container_port   = 8080
   }
 
   network_configuration {
