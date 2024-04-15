@@ -52,8 +52,8 @@ locals {
   frontend_name = "${var.app_name}-front-container"
   backend_name  = "${var.app_name}-back-container"
   database_name = "${var.app_name}-data-container"
-  frontend_url  = aws_alb.front-lb.dns_name
-  backend_url   = aws_alb.back-lb.dns_name
+  frontend_url  = "http://${aws_alb.front-lb.dns_name}"
+  backend_url   = "http://${aws_alb.back-lb.dns_name}"
   database_url  = "localhost:5432"
 }
 
