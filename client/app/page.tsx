@@ -168,6 +168,7 @@ const HomePageContent: React.FC = () => {
         setPool(pool)
         if (pool.share_code !== null) {
             navigator.clipboard.writeText(pool.share_code)
+            setErrorAlert('Code copied to clipboard', 'success')
         }
     }
 
