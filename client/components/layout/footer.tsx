@@ -5,6 +5,8 @@ import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
 import { Pool, PoolTrack } from '../types'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import NegativeButton from '../buttons/negativeButton'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
@@ -14,6 +16,7 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const router = useRouter()
     const [currentTrack, setCurrentTrack] = useState<PoolTrack>({
         name: '',
         spotify_icon_uri: '',
@@ -42,6 +45,11 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
         }
     }, [pool])
 
+    const setTokenToNull = (): void => {
+        localStorage.removeItem('token')
+        router.push('/login')
+    }
+
     return (
         <Box
             sx={{
@@ -55,9 +63,12 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
             }}
         >
             <Grid container>
+                <Grid item xs={1} sx={{ padding: 1 }}>
+                    <NegativeButton text={'Log out'} action={setTokenToNull} />
+                </Grid>
                 <Grid
                     item
-                    xs={3}
+                    xs={8}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"

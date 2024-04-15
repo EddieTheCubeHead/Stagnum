@@ -28,7 +28,11 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
@@ -53,6 +57,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 overflow: 'auto',
                 borderRadius: '12px',
                 boxShadow: '3px 3px 3px',
+                px: 1,
             }}
         >
             <Stack
