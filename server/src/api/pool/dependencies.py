@@ -162,8 +162,8 @@ def _purge_existing_transient_pool(user: UserModel, session: Session):
     session.execute(delete(PoolMemberRandomizationParameters).where(
         PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id)))
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
-    session.execute(delete(PoolJoinedUser).where(
-        PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id))))
+    session.execute(delete(PoolJoinedUser).where(and_(PoolJoinedUser.pool.has(Pool.name == None)),
+                                                 PoolJoinedUser.user_id == user.spotify_id))
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id)))
 
 

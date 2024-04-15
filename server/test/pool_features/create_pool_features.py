@@ -32,11 +32,11 @@ def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(tes
                                                                              validate_response,
                                                                              create_mock_track_search_result,
                                                                              build_success_response,
-                                                                             requests_client,
+                                                                             requests_client_get_queue,
                                                                              create_pool_creation_data_json):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client.get = Mock(return_value=build_success_response(my_track))
+    requests_client_get_queue.append(build_success_response(my_track))
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
     pool_response = validate_response(response)
     assert pool_response["users"][0]["tracks"][0]["name"] == my_track["name"]
