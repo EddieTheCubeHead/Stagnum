@@ -37,7 +37,7 @@ def _build_tracks_without_image(tracks: list[dict]) -> list[PoolTrack]:
                         spotify_icon_uri=get_sharpest_icon(track["album"]["images"]),
                         spotify_track_uri=track["uri"],
                         duration_ms=track["duration_ms"])
-              for track in tracks]
+              for track in tracks if track is not None]
     return tracks
 
 
