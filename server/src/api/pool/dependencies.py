@@ -10,7 +10,7 @@ from api.common.dependencies import SpotifyClient, DatabaseConnection, TokenHold
 from api.common.helpers import get_sharpest_icon, map_user_entity_to_model, build_auth_header, create_random_string
 from api.common.models import UserModel
 from api.pool.helpers import map_pool_member_entity_to_model
-from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents
+from api.pool.models import PoolContent, PoolCollection, PoolTrack, PoolUserContents, PoolFullContents
 from api.pool.randomization_algorithms import NextSongProvider
 from database.entities import PoolMember, User, PlaybackSession, Pool, PoolJoinedUser, PoolShareData, \
     PoolMemberRandomizationParameters
@@ -436,11 +436,12 @@ class PoolDatabaseConnectionRaw:
             playback.current_track_duration_ms = new_track.duration_ms
             playback.next_song_change_timestamp = end_timestamp
 
-    def stop_and_purge_playback(self, user: User):
+    def stop_and_purge_playback(self, user: User) -> list[User]:
         with self._database_connection.session() as session:
             users = self.get_pool_users(user)
             _purge_playback_users_pools(users, session)
             session.execute(delete(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id))
+        return users
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
@@ -563,7 +564,10 @@ class PoolPlaybackServiceRaw:
         try:
             spotify_state = self._fetch_and_validate_spotify_state(user)
         except HTTPException:
-            self._database_connection.stop_and_purge_playback(user)
+            pool_users = self._database_connection.stop_and_purge_playback(user)
+            empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
+            await self._websocket_updater.push_update([user.spotify_id for user in pool_users], "pool",
+                                                      empty_pool.model_dump())
             return None
         fetch_end = self._datetime_wrapper.now()
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]

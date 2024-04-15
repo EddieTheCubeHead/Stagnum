@@ -100,3 +100,16 @@ async def should_notify_socket_if_playback_fix_occurs(run_scheduling_job, fixed_
         assert data["type"] == "current_track"
         assert data["model"]["spotify_track_uri"] == new_track_data["uri"]
 
+
+def should_wipe_pool_for_listeners_on_pool_delete(test_client, existing_playback, valid_token_header, validate_response,
+                                                  another_logged_in_user_token, shared_pool_code, skip_song,
+                                                  another_logged_in_user_header):
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    with test_client.websocket_connect(f"/websocket/connect?Authorization={another_logged_in_user_token}") as websocket:
+        test_client.delete("/pool", headers=valid_token_header)
+        data = websocket.receive_json()
+        assert data["type"] == "pool"
+        assert data["model"]["users"] == []
+        assert data["model"]["currently_playing"] is None
+        assert data["model"]["share_code"] is None
+
