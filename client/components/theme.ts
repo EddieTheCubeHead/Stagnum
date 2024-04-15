@@ -10,7 +10,7 @@ const theme = createTheme({
             main: '#1976D2', // Blue
         },
         secondary: {
-            main: '#626262', // Gray
+            main: '#414141', // Gray
             dark: '#212121', // Dark Grey
             light: '#D5D5D5', // Light grey
         },
