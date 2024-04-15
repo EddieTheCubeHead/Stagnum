@@ -1,6 +1,6 @@
 import os
 from logging import getLogger
-from api.common.helpers import _get_allowed_origins, _get_environment
+from api.common.helpers import _get_allowed_origins
 
 from logging_config import setup_logging
 
@@ -19,8 +19,7 @@ def _inject_secret(secret_name: str):
         with open(f"/run/secrets/{secret_name}") as secret_file:
             secret = secret_file.read()
             os.environ[env_name] = secret
-            if _get_environment() != "production":
-                _logger.debug(f"Setting environment variable {env_name} from file {secret_name} as {secret}")
+            _logger.debug(f"Setting environment variable {env_name} from file {secret_name}")
             
 
 
@@ -31,9 +30,8 @@ def _inject_secrets():
         _inject_secret(secret_file)
 
 def _check_cors():
-    if _get_environment() != "production": 
-        all_allowed_cors = _get_allowed_origins()
-        _logger.info(f"Allowed CORS origins: {all_allowed_cors}")
+    all_allowed_cors = _get_allowed_origins()
+    _logger.info(f"Allowed CORS origins: {all_allowed_cors}")
 
 
 if __name__ == "__main__":
