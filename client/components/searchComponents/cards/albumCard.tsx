@@ -48,7 +48,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={album.name} />
+                    <Header3 text={album.name} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton
