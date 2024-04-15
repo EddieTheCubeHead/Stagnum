@@ -27,7 +27,11 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 localStorage.setItem(
@@ -50,9 +54,9 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
-                        color: 'white',
+                        color: 'primary.main',
                     },
-                    color: 'black',
+                    color: 'secondary.light',
                     margin: 1,
                 }}
                 disabled={disabled}

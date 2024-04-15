@@ -42,7 +42,11 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 updatePool(response.data)
@@ -63,9 +67,9 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
                     onClick={handleClick}
                     sx={{
                         '&:hover': {
-                            color: 'white',
+                            color: 'primary.main',
                         },
-                        color: 'black',
+                        color: 'secondary.light',
                         margin: 1,
                     }}
                 >
