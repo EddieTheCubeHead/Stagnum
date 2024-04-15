@@ -7,13 +7,13 @@ import { useSearchParams, redirect } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
 import theme from '../components/theme'
-import MainHeader from '@/components/searchComponents/cards/mainHeader'
 import Search from '@/components/searchComponents/search'
 import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
 import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
 import AlertComponent from '@/components/alertComponent'
+import Image from 'next/image'
 
 const HomePage: React.FC = () => {
     return (
@@ -36,19 +36,34 @@ const HomeContent: React.FC = () => {
     const [playlistList, setPlaylistList] = useState<Playlist[]>([])
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
+    const [ongoingSearch, setOngoingSearch] = useState(false)
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
     const state = queryParams.get('state')
     const client_redirect_uri = process.env.NEXT_PUBLIC_FRONTEND_URI
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        if (localStorage.getItem('token') === undefined) {
-            if (code && state) {
-                handleTokenRequest(code, state)
-            }
-        }
+        checkIfPoolExists()
     }, [])
+
+    const checkIfPoolExists = (): void => {
+        axios
+            .get(`${backend_uri}/pool/`, {
+                headers: { Authorization: localStorage.getItem('token') },
+            })
+            .then((response) => {
+                updatePool(response.data)
+            })
+            .catch(() => {
+                if (code && state) {
+                    handleTokenRequest(code, state)
+                } else {
+                    redirect('/login')
+                }
+            })
+    }
 
     const handleTokenRequest = (code: string, state: string): void => {
         axios
@@ -56,6 +71,10 @@ const HomeContent: React.FC = () => {
                 params: { state, code, client_redirect_uri },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 localStorage.setItem('token', response.data.access_token)
             })
             .catch((error) => {
@@ -64,6 +83,10 @@ const HomeContent: React.FC = () => {
                 )
                 redirect('/login')
             })
+    }
+
+    const toggleOngoingSearch = (): void => {
+        setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
     }
 
     const setErrorAlert = (message: string): void => {
@@ -105,7 +128,16 @@ const HomeContent: React.FC = () => {
                 }}
             >
                 <Grid item xs={3}>
-                    <MainHeader />
+                    <Image
+                        src={require('@/public/Stagnum_Logo.png')}
+                        alt={'Home background'}
+                        style={{
+                            objectFit: 'contain',
+                            width: '100%',
+                            height: '100%',
+                            padding: 2,
+                        }}
+                    />
                 </Grid>
 
                 <Grid item xs={9}>
@@ -122,6 +154,7 @@ const HomeContent: React.FC = () => {
                             setSearchResults={setSearchResults}
                             enableAddButton={enableAddButton}
                             setErrorAlert={setErrorAlert}
+                            toggleOngoingSearch={toggleOngoingSearch}
                         />
                     </Box>
                 </Grid>
@@ -167,6 +200,7 @@ const HomeContent: React.FC = () => {
                                 disabled={disabled}
                                 enableAddButton={enableAddButton}
                                 setErrorAlert={setErrorAlert}
+                                ongoingSearch={ongoingSearch}
                             />
                         </Box>
                     </Grid>
