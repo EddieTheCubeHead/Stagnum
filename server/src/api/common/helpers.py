@@ -43,21 +43,29 @@ def create_random_string(length: int) -> str:
 
 
 def raise_internal_server_error(message: str) -> Never:
-    environment = os.getenv("ENVIRONMENT", default="production").lower()
+    environment = _get_environment()
     if environment == "production":
         message = "Internal server error"
     raise HTTPException(status_code=500, detail=message)
 
 
-def _get_client_id():
+def _get_client_id() -> str:
     client_id = os.getenv("SPOTIFY_CLIENT_ID", default=None)
     if client_id is None:
         raise_internal_server_error("Could not find spotify client ID in environment variables")
     return client_id
 
 
-def _get_client_secret():
+def _get_client_secret() -> str:
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", default=None)
     if client_secret is None:
         raise_internal_server_error("Could not find spotify client secret in environment variables")
     return client_secret
+
+def _get_environment() -> str:
+    environment = os.getenv("ENVIRONMENT", default="production").lower()
+    return environment
+
+def _get_allowed_origins() -> list[str]:
+    raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")
+    return raw_environment_value.split(",")
