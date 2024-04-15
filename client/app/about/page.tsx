@@ -21,7 +21,7 @@ const AboutPage: React.FC = () => {
             <Grid>
                 <Image
                     style={{ width: '100%', height: 500, objectFit: 'cover' }}
-                    src={require('@/public/about1.jpg')}
+                    src={require('../../public/about1.jpg')}
                     alt={'About_Stagnum'}
                 />
 
@@ -75,7 +75,7 @@ const AboutPage: React.FC = () => {
                 </Grid>
                 <Grid width={'50%'}>
                     <Image
-                        src={require('@/public/try.png')}
+                        src={require('../../public/about2.png')}
                         alt={'headphone'}
                     />
                 </Grid>
@@ -90,7 +90,7 @@ const AboutPage: React.FC = () => {
             >
                 <Grid width={'50%'}>
                     <Image
-                        src={require('@/public/exx1.png')}
+                        src={require('../../public/about3.png')}
                         alt={'headphone'}
                     />
                 </Grid>
