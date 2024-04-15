@@ -166,6 +166,9 @@ const HomePageContent: React.FC = () => {
     const updatePool = (pool: Pool): void => {
         setCurrentTrack(pool.currently_playing)
         setPool(pool)
+        if (pool.share_code !== null) {
+            navigator.clipboard.writeText(pool.share_code)
+        }
     }
 
     const toggleExpanded = (): void => {
