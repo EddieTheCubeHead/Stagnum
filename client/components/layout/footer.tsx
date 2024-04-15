@@ -1,42 +1,36 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
 import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
-import { Playlist, Pool } from '../types'
+import { Playlist, Pool, Track } from '../types'
+import useWebSocket from 'react-use-websocket'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void,
-    pool: Pool,
+    setErrorAlert: (message: string) => void
+    pool: Pool
 }
 
 const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI;
-    const WS_URI = `${backend_uri?.replace("http", "ws")}/pool/playback/register_listener?token=${token}`;
-    const playlist: Playlist = {
-        name: '90s Ambient Techno Mix',
-        uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
+    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
+    const [currentTrack, setCurrentTrack] = useState<Track>({
+        name: 'Playback not found',
         link: '',
-        icon_link:
-            'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
-    }
+        uri: '',
+        artists: [],
+        album: {} as any,
+        duration_ms: 0,
+    })
+    const WS_URI = `${backend_uri?.replace('http', 'ws')}/pool/playback/register_listener?Authorization=${localStorage.getItem('token')}`
+    const { lastJsonMessage } = useWebSocket(WS_URI, {
+        share: false,
+        shouldReconnect: () => true,
+    })
 
     useEffect(() => {
-        if(localStorage.getItem('token')) {
-            const socket = new WebSocket(WS_URI)
-
-            // Connection opened
-            socket.addEventListener("open", event => {
-                socket.send("Connection established")
-            });
-
-            // Listen for messages
-            socket.addEventListener("message", event => {
-                console.log("Message from server ", event.data)
-            });
-        }
-    });
+        console.log(`Got a new message: ${lastJsonMessage}`)
+    }, [lastJsonMessage])
 
     return (
         <Box
@@ -61,12 +55,12 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
                 >
                     {/*Image size fixed only for demo. Change when addressing first comment*/}
                     <img
-                        src={playlist.icon_link}
+                        src={currentTrack.link}
                         style={{ width: 50, height: 50, padding: 0, margin: 0 }}
                         alt="Track image"
                     />
                     <Text
-                        text={playlist.name}
+                        text={currentTrack.name}
                         fontWeight={'bold'}
                         color={'white'}
                     />
