@@ -10,7 +10,7 @@ interface ShowMoreIconButtonProps {
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
@@ -55,6 +55,7 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Creating a pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }

@@ -16,9 +16,7 @@ interface ExpandedSearchContentProps {
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
-    // eslint-disable-next-line no-unused-vars
-    setSuccessAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
     ongoingSearch: boolean
 }
 
@@ -32,7 +30,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     enableAddButton,
     setErrorAlert,
     ongoingSearch,
-    setSuccessAlert,
 }) => {
     const track = (key: number, track: Track): JSX.Element => (
         <TrackCard
@@ -42,7 +39,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
             disabled={disabled}
             enableAddButton={enableAddButton}
             setErrorAlert={setErrorAlert}
-            setSuccessAlert={setSuccessAlert}
         />
     )
 
@@ -54,7 +50,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
             disabled={disabled}
             enableAddButton={enableAddButton}
             setErrorAlert={setErrorAlert}
-            setSuccessAlert={setSuccessAlert}
         />
     )
 
@@ -66,7 +61,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
             disabled={disabled}
             enableAddButton={enableAddButton}
             setErrorAlert={setErrorAlert}
-            setSuccessAlert={setSuccessAlert}
         />
     )
 
@@ -78,7 +72,6 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
             disabled={disabled}
             enableAddButton={enableAddButton}
             setErrorAlert={setErrorAlert}
-            setSuccessAlert={setSuccessAlert}
         />
     )
 
@@ -120,7 +113,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         }}
                     >
                         {trackList
-                            .slice(0, 2)
+                            .slice(2, 4)
                             .map((trackItem, key) => track(key, trackItem))}
                     </Box>
                     <Header2 text={'Albums'} sx={{ color: 'white' }} />
@@ -211,7 +204,7 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                         }}
                     >
                         {artistList
-                            .slice(0, 2)
+                            .slice(2, 4)
                             .map((artistItem, key) => artist(key, artistItem))}
                     </Box>
                 </Stack>

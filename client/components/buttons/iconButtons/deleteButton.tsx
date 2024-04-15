@@ -8,7 +8,7 @@ interface DeleteButtonProps {
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({
@@ -49,6 +49,7 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Deleting from pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
