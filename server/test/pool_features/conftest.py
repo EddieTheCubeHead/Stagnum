@@ -159,12 +159,16 @@ def another_logged_in_user_header(another_logged_in_user_token):
 
 
 @pytest.fixture
-def another_logged_in_user_token(faker, db_connection, mock_datetime_wrapper):
-    authorization_database_connection = AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
+def another_logged_in_user(faker) -> User:
     user_id = faker.uuid4()
-    user = User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
+    return User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
+
+
+@pytest.fixture
+def another_logged_in_user_token(another_logged_in_user, db_connection, mock_datetime_wrapper):
+    authorization_database_connection = AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
-    authorization_database_connection.update_logged_in_user(user, token_data)
+    authorization_database_connection.update_logged_in_user(another_logged_in_user, token_data)
     return token_data.token
 
 
