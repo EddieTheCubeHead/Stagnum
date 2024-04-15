@@ -129,12 +129,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     {pool.users.map((user: PoolUser) => (
                                          <Tooltip title={user.user.display_name} 
                                          key={user.user.display_name} 
-                                         arrow
-                                         componentsProps={{tooltip: {style:{
-                                            boxShadow: '3px 3px 3px',
-                                            backgroundColor: theme.palette.common.white,
-                                            fontSize: '18px'
-                                         }}}}>
+                                         >
                                         <Avatar
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
@@ -145,7 +140,14 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             ) : (
                                 <>
                                     {pool.users.map((user: PoolUser) => (
-                                         <Tooltip title={user.user.display_name} key={user.user.display_name}>
+                                         <Tooltip title={user.user.display_name} 
+                                         key={user.user.display_name}
+                                         arrow
+                                         componentsProps={{tooltip: {style:{
+                                            boxShadow: '3px 3px 3px',
+                                            backgroundColor: theme.palette.common.white,
+                                            fontSize: '18px'
+                                         }}}}>
                                         <Avatar
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
