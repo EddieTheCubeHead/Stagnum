@@ -26,7 +26,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
 
     const setTokenToNull = (): void => {
         localStorage.removeItem('token')
-        router.push('/login')
+        //router.push('/login')
     }
 
     return (
