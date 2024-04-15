@@ -52,14 +52,13 @@ locals {
   frontend_name = "${var.app_name}-front-container"
   backend_name  = "${var.app_name}-back-container"
   database_name = "${var.app_name}-data-container"
-  frontend_url  = aws_alb.aws-lb.dns_name
-  backend_url   = aws_alb.aws-lb.dns_name
+  frontend_url  = aws_alb.front-lb.dns_name
+  backend_url   = aws_alb.back-lb.dns_name
   database_url  = "localhost:5432"
 }
 
-# Creating the task definition
-resource "aws_ecs_task_definition" "aws-task" {
-  family                   = "${var.app_name}-task"
+resource "aws_ecs_task_definition" "front-task" {
+  family                   = "${var.app_name}-front-task"
   container_definitions    = <<DEFINITION
   [
     {
@@ -86,7 +85,21 @@ resource "aws_ecs_task_definition" "aws-task" {
           "awslogs-stream-prefix": "stagnum"
         }
       }
-    },
+    }
+  ]
+  DEFINITION
+  requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
+  network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
+  memory                   = 2048                                  # Specifying the memory our task requires
+  cpu                      = 1024                                  # Specifying the CPU our task requires
+  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
+}
+
+# Creating the task definition
+resource "aws_ecs_task_definition" "back-task" {
+  family                   = "${var.app_name}-back-task"
+  container_definitions    = <<DEFINITION
+  [
     {
       "name": "${local.backend_name}",
       "image": "eddiethecubehead/stagnum_server:master",
@@ -147,8 +160,8 @@ resource "aws_ecs_task_definition" "aws-task" {
         { "name":"POSTGRES_PASSWORD","value": "${var.postgres_pass}"},
         { "name":"POSTGRES_DB","value": "${var.postgres_db}"}
       ],
-      "memory": 2048,
-      "cpu": 1024,
+      "memory": 1024,
+      "cpu": 256,
       "healthCheck":{
         "command": ["CMD-SHELL", "pg_isready -d ${var.postgres_db}"],
         "interval": 10,
@@ -170,8 +183,8 @@ resource "aws_ecs_task_definition" "aws-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 2048 * 4                              # Specifying the memory our task requires
-  cpu                      = 1024 * 4                              # Specifying the CPU our task requires
+  memory                   = 2048 * 2                              # Specifying the memory our task requires
+  cpu                      = 1024 * 2                              # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
@@ -191,8 +204,17 @@ resource "aws_default_subnet" "default_subnet_b" {
 }
 
 # Creating a load balancer
-resource "aws_alb" "aws-lb" {
-  name               = "${var.app_name}-lb" # Naming our load balancer
+resource "aws_alb" "front-lb" {
+  name               = "${var.app_name}-front-lb" # Naming our load balancer
+  load_balancer_type = "application"
+  subnets            = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
+
+  # Referencing the security group
+  security_groups = ["${aws_security_group.aws-lb_security_group.id}"]
+}
+
+resource "aws_alb" "back-lb" {
+  name               = "${var.app_name}-back-lb" # Naming our load balancer
   load_balancer_type = "application"
   subnets            = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
 
@@ -255,7 +277,7 @@ resource "aws_lb_target_group" "back-target-group" {
 
 # Creating a client listener for the load balancer
 resource "aws_lb_listener" "client-listener" {
-  load_balancer_arn = aws_alb.aws-lb.arn # Referencing our load balancer
+  load_balancer_arn = aws_alb.front-lb.arn # Referencing our load balancer
   port              = "80"
   protocol          = "HTTP"
 
@@ -266,7 +288,7 @@ resource "aws_lb_listener" "client-listener" {
 }
 
 resource "aws_lb_listener" "server-listener" {
-  load_balancer_arn = aws_alb.aws-lb.arn
+  load_balancer_arn = aws_alb.back-lb.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -278,10 +300,10 @@ resource "aws_lb_listener" "server-listener" {
 
 
 # Creating the service
-resource "aws_ecs_service" "aws-service" {
-  name            = "${var.app_name}-service"
-  cluster         = aws_ecs_cluster.aws-cluster.id       # Referencing our created Cluster
-  task_definition = aws_ecs_task_definition.aws-task.arn # Referencing the task our service will spin up
+resource "aws_ecs_service" "stagnum-front-service" {
+  name            = "${var.app_name}-front-service"
+  cluster         = aws_ecs_cluster.aws-cluster.id         # Referencing our created Cluster
+  task_definition = aws_ecs_task_definition.front-task.arn # Referencing the task our service will spin up
   launch_type     = "FARGATE"
   desired_count   = 1 # Setting the number of tasks we want deployed
 
@@ -291,6 +313,20 @@ resource "aws_ecs_service" "aws-service" {
     container_name   = "${var.app_name}-front-container"
     container_port   = 3000 # Specifying the container port
   }
+
+  network_configuration {
+    subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
+    assign_public_ip = true
+    security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
+  }
+}
+
+resource "aws_ecs_service" "stagnum-back-service" {
+  name            = "${var.app_name}-back-service"
+  cluster         = aws_ecs_cluster.aws-cluster.id        # Referencing our created Cluster
+  task_definition = aws_ecs_task_definition.back-task.arn # Referencing the task our service will spin up
+  launch_type     = "FARGATE"
+  desired_count   = 1 # Setting the number of tasks we want deployed
 
   load_balancer {
     target_group_arn = aws_lb_target_group.back-target-group.arn
