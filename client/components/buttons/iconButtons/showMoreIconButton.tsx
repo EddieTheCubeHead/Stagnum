@@ -67,9 +67,9 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
                     onClick={handleClick}
                     sx={{
                         '&:hover': {
-                            color: 'white',
+                            color: 'primary.main',
                         },
-                        color: 'black',
+                        color: 'secondary.light',
                         margin: 1,
                     }}
                 >

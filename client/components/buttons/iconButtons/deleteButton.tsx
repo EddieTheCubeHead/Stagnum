@@ -60,9 +60,9 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
-                        color: 'white',
+                        color: 'primary.main',
                     },
-                    color: 'black',
+                    color: 'secondary.light',
                     margin: 1,
                 }}
             >
