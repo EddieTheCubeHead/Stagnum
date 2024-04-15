@@ -40,14 +40,18 @@ const Search: React.FC<SearchProps> = ({
 
     const handleSearchRequest = (): void => {
         toggleOngoingSearch()
+
         if (!expanded) {
             toggleExpanded()
         }
+
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
                 },
             })
             .then((response) => {
@@ -74,7 +78,11 @@ const Search: React.FC<SearchProps> = ({
                 `${backend_uri}/pool/join/${idQuery}`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
