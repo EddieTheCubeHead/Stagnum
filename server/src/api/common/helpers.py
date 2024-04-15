@@ -64,6 +64,7 @@ def _get_client_secret() -> str:
 
 def _get_environment() -> str:
     environment = os.getenv("ENVIRONMENT", default="production").lower()
+    return environment
 
 def _get_allowed_origins() -> list[str]:
     raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")
