@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from fastapi import APIRouter, WebSocket
+from starlette.websockets import WebSocketDisconnect
 
 from api.common.dependencies import validated_user, validated_user_from_query_parameters
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater, \
@@ -95,6 +96,11 @@ async def register_for_pool_updates(websocket: WebSocket, user: validated_user_f
     await websocket.accept()
     pool = pool_database_connection.get_pool(user)
     pool_websocket_updater.add_socket(websocket, pool)
+    try:
+        while True:
+            await websocket.receive_json()
+    except WebSocketDisconnect:
+        _logger.info("Socket disconnected")
 
 
 @router.websocket("/playback/register_listener")
@@ -104,3 +110,8 @@ async def register_for_playback_updates(websocket: WebSocket, user: validated_us
     await websocket.accept()
     playback_pool = pool_database_connection.get_pool(user)
     playback_websocket_updater.add_socket(websocket, playback_pool)
+    try:
+        while True:
+            await websocket.receive_json()
+    except WebSocketDisconnect:
+        _logger.info("Socket disconnected")
