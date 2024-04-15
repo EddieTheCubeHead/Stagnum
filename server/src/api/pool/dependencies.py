@@ -180,6 +180,8 @@ def _purge_playback_users_pools(users: list[User], session: Session):
 def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
     _logger.debug(f"Getting current pool for user {user.spotify_username}")
     pool = _get_pool_for_user(user, session)
+    if pool is None:
+        raise HTTPException(status_code=404, detail=f"Could not find pool for user {user.spotify_username}")
     return list(session.scalars(
         select(PoolMember).where(and_(PoolMember.pool_id == pool.id, PoolMember.parent_id == None))
         .options(joinedload(PoolMember.children))).unique().all())
@@ -379,6 +381,8 @@ class PoolDatabaseConnectionRaw:
         share_code = create_random_string(8).upper()
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.owner_user_id == user.spotify_id))
+            if pool is None:
+                raise HTTPException(status_code=404, detail=f"Could not find pool for user {user.spotify_username}")
             if pool.share_data is not None:
                 raise HTTPException(status_code=400, detail="Pool already shared!")
             pool.share_data = PoolShareData(code=share_code)
