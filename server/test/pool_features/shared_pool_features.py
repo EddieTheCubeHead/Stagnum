@@ -245,18 +245,3 @@ def should_be_able_to_create_another_pool_after_joining_one(shared_pool_code, te
     response = test_client.post("/pool", json=data_json, headers=another_logged_in_user_header)
     pool_response = validate_response(response)
     assert pool_response["users"][0]["tracks"][0]["name"] == my_track["name"]
-
-
-@pytest.mark.wip
-def should_be_able_to_join_another_pool_after_creating_one(shared_pool_code, test_client, build_success_response,
-                                                           create_pool_creation_data_json, validate_response,
-                                                           create_mock_track_search_result, requests_client_get_queue,
-                                                           another_logged_in_user_header):
-    my_track = create_mock_track_search_result()
-    data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client_get_queue.append(build_success_response(my_track))
-    test_client.post("/pool", json=data_json, headers=another_logged_in_user_header)
-
-    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    pool_response = validate_response(response)
-    assert len(pool_response["users"]) == 2
