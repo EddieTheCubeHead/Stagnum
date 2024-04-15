@@ -77,13 +77,6 @@ resource "aws_ecs_task_definition" "aws-task" {
       ],
       "memory": 2048,
       "cpu": 1024,
-      "healthCheck":{
-        "command": ["CMD-SHELL", "curl -f http://localhost:3000/about || exit 1"],
-        "interval": 10,
-        "timeout": 30,
-        "retries": 5,
-        "startPeriod": 30
-      },
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
