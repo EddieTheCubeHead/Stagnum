@@ -115,7 +115,7 @@ resource "aws_ecs_task_definition" "back-task" {
         { "name":"SPOTIFY_CLIENT_SECRET", "value": "${var.spotify_client_secret}"},
         { "name":"VERBOSE_SQLALCHEMY", "value": "${var.verbose_sqlalchemy}"},
         { "name":"CORS_ORIGINS", "value": "${var.cors_origins}"},
-        { "name":"ENVIRONMENT", "value": "${var.environment}"},
+        { "name":"ENVIRONMENT", "value": "${var.app_environment}"},
         { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
         { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
         { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},

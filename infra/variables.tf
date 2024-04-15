@@ -92,9 +92,3 @@ variable "cors_origins" {
   default     = "*"
   type        = string
 }
-
-variable "environment" {
-  description = "The environment to run the containers"
-  default     = "production"
-  type        = string
-}
