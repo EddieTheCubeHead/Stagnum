@@ -39,6 +39,9 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        if (!query) {
+            return
+        }
         toggleOngoingSearch()
         if (!expanded) {
             toggleExpanded()
