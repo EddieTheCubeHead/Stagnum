@@ -140,6 +140,7 @@ const HomePageContent: React.FC = () => {
             } else if (res.type === 'error') {
                 setErrorAlert(
                     'Displaying current playback failed: ' + res.model,
+                    'error',
                 )
             }
         }
