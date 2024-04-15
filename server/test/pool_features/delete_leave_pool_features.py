@@ -5,8 +5,9 @@ from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession
 
 
 @pytest.mark.wip
-def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, validate_response, db_connection):
-    response = test_client.delete("/pool")
+def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, validate_response, db_connection,
+                                          valid_token_header):
+    response = test_client.delete("/pool", headers=valid_token_header)
 
     validate_response(response, 204)
 
