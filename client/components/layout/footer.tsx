@@ -12,38 +12,16 @@ interface FooterProps {
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
     pool: Pool
+    currentTrack: PoolTrack
 }
 
-const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
+const Footer: React.FC<FooterProps> = ({
+    setErrorAlert,
+    pool,
+    currentTrack,
+}) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const router = useRouter()
-    const [currentTrack, setCurrentTrack] = useState<PoolTrack>({
-        name: 'Playback',
-        spotify_icon_uri: '',
-        spotify_track_uri: '',
-        duration_ms: 0,
-    })
-
-    useEffect(() => {
-        if (localStorage.getItem('token')) {
-            const WS_URI = `${backend_uri?.replace('http', 'ws')}/pool/playback/register_listener?Authorization=${localStorage.getItem('token')}`
-            const socket = new WebSocket(WS_URI)
-
-            socket.onopen = () => {}
-
-            socket.onmessage = function (event) {
-                const res = JSON.parse(event.data)
-                console.log(res)
-                if ((res.type = 'model')) {
-                    setCurrentTrack(res.model)
-                } else if ((res.type = 'error')) {
-                    setErrorAlert(
-                        'Displaying current playback failed: ' + res.model,
-                    )
-                }
-            }
-        }
-    }, [pool])
 
     const setTokenToNull = (): void => {
         localStorage.removeItem('token')
@@ -76,18 +54,24 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert, pool }) => {
                     gap={2}
                 >
                     {/*Image size fixed only for demo. Change when addressing first comment*/}
-                    <Image
-                        style={{
-                            width: 50,
-                            height: 50,
-                        }}
-                        src={
-                            currentTrack.spotify_icon_uri.length > 0
-                                ? currentTrack.spotify_icon_uri
-                                : require('@/public/logo.png')
-                        }
-                        alt={'Track image'}
-                    />
+                    {currentTrack.spotify_icon_uri.length > 0 ? (
+                        <img
+                            src={currentTrack.spotify_icon_uri}
+                            style={{
+                                width: 50,
+                                height: 50,
+                            }}
+                        />
+                    ) : (
+                        <Image
+                            style={{
+                                width: 50,
+                                height: 50,
+                            }}
+                            src={require('@/public/logo.png')}
+                            alt={'Track image'}
+                        />
+                    )}
 
                     <Text
                         text={currentTrack.name}

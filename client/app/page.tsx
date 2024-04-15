@@ -11,7 +11,14 @@ import Search from '@/components/searchComponents/search'
 import PoolManager from '@/components/poolmanagerComponents/poolManager'
 import '@/css/customScrollBar.css'
 import ExpandedSearchContent from '@/components/searchComponents/expandedSearchContent'
-import { Album, Artist, Playlist, Pool, Track } from '@/components/types'
+import {
+    Album,
+    Artist,
+    Playlist,
+    Pool,
+    PoolTrack,
+    Track,
+} from '@/components/types'
 import AlertComponent from '@/components/alertComponent'
 import Image from 'next/image'
 
@@ -37,6 +44,12 @@ const HomePageContent: React.FC = () => {
     const [albumList, setAlbumList] = useState<Album[]>([])
     const [disabled, setDisabled] = useState(true)
     const [ongoingSearch, setOngoingSearch] = useState(false)
+    const [currentTrack, setCurrentTrack] = useState<PoolTrack>({
+        name: 'Playback',
+        spotify_icon_uri: '',
+        spotify_track_uri: '',
+        duration_ms: 0,
+    })
     const router = useRouter()
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
@@ -59,7 +72,12 @@ const HomePageContent: React.FC = () => {
                 },
             })
             .then((response) => {
+                setCurrentTrack(response.data.currently_playing)
                 updatePool(response.data)
+                let token = localStorage.getItem('token')
+                if (typeof token == 'string') {
+                    openPlaybackSocket(token)
+                }
             })
             .catch((error) => {
                 if (error.response.status === 404) {
@@ -87,6 +105,7 @@ const HomePageContent: React.FC = () => {
                     response.config.headers.Authorization as string,
                 )
                 localStorage.setItem('token', response.data.access_token)
+                openPlaybackSocket(response.data.access_token)
             })
             .catch((error) => {
                 setErrorAlert(
@@ -94,6 +113,32 @@ const HomePageContent: React.FC = () => {
                 )
                 router.push('/login')
             })
+    }
+
+    const openPlaybackSocket = (token: string): void => {
+        const WS_URI = `${backend_uri?.replace('http', 'ws')}/websocket/connect?Authorization=${token}`
+        const socket = new WebSocket(WS_URI)
+
+        socket.onopen = () => {}
+
+        socket.onmessage = function (event) {
+            const res = JSON.parse(event.data)
+            console.log(res)
+            if (res.type == 'current_track') {
+                setCurrentTrack(res.model)
+            } else if (res.type == 'pool') {
+                let currentPool: Pool = {
+                    share_code: res.model.share_code,
+                    users: res.model.users,
+                }
+                updatePool(currentPool)
+                setCurrentTrack(res.model.currently_playing)
+            } else if (res.type == 'error') {
+                setErrorAlert(
+                    'Displaying current playback failed: ' + res.model,
+                )
+            }
+        }
     }
 
     const toggleOngoingSearch = (): void => {
@@ -221,7 +266,11 @@ const HomePageContent: React.FC = () => {
                     </Grid>
                 )}
             </Grid>
-            <Footer setErrorAlert={setErrorAlert} pool={pool}/>
+            <Footer
+                setErrorAlert={setErrorAlert}
+                pool={pool}
+                currentTrack={currentTrack}
+            />
             {alert && (
                 <AlertComponent
                     alertMessage={errorMessage}
