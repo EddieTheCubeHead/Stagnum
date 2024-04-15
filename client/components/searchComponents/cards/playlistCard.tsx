@@ -11,7 +11,7 @@ interface PlaylistCardProps {
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const PlaylistCard: React.FC<PlaylistCardProps> = ({

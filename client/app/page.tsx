@@ -43,6 +43,7 @@ const HomePageContent: React.FC = () => {
     })
     const [alert, setAlert] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const [alertType, setAlertType] = useState<'error' | 'success'>('error')
     const [expanded, setExpanded] = useState(false)
     const [trackList, setTrackList] = useState<Track[]>([])
     const [artistList, setArtistList] = useState<Artist[]>([])
@@ -89,6 +90,7 @@ const HomePageContent: React.FC = () => {
                 if (error.response.status === 404) {
                     setErrorAlert(
                         `Get pool failed with error: ${error.response.data.detail}`,
+                        'error',
                     )
                 } else {
                     if (code && state) {
@@ -116,6 +118,7 @@ const HomePageContent: React.FC = () => {
             .catch((error) => {
                 setErrorAlert(
                     `Login callback failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
                 router.push('/login')
             })
@@ -137,6 +140,7 @@ const HomePageContent: React.FC = () => {
             } else if (res.type === 'error') {
                 setErrorAlert(
                     'Displaying current playback failed: ' + res.model,
+                    'error',
                 )
             }
         }
@@ -146,9 +150,13 @@ const HomePageContent: React.FC = () => {
         setOngoingSearch((prevOngoingSearch) => !prevOngoingSearch)
     }
 
-    const setErrorAlert = (message: string): void => {
+    const setErrorAlert = (
+        message: string,
+        type: 'error' | 'success',
+    ): void => {
         setErrorMessage(message)
         setAlert(true)
+        setAlertType(type)
     }
 
     const closeAlert = (): void => {
@@ -277,6 +285,7 @@ const HomePageContent: React.FC = () => {
                 <AlertComponent
                     alertMessage={errorMessage}
                     closeAlert={closeAlert}
+                    type={alertType}
                 />
             )}
         </ThemeProvider>
