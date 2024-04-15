@@ -129,6 +129,15 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     {pool.users.map((user: PoolUser) => (
                                          <Tooltip title={user.user.display_name} 
                                          key={user.user.display_name} 
+                                         arrow
+                                         componentsProps={{tooltip: {style:{
+                                            backgroundColor: theme.palette.primary.main,
+                                            fontSize: '14px',
+                                            color: theme.palette.common.white,
+                                            boxShadow: '1px 1px 1px',
+                                         }}, 
+                                         arrow: {style: {color: theme.palette.primary.main}}
+                                        }}
                                          >
                                         <Avatar
                                             alt={user.user.display_name}
@@ -146,7 +155,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                          componentsProps={{tooltip: {style:{
                                             backgroundColor: theme.palette.primary.main,
                                             fontSize: '14px',
-                                            color: theme.palette.common.white
+                                            color: theme.palette.common.white,
+                                            boxShadow: '1px 1px 1px',
                                          }}, 
                                          arrow: {style: {color: theme.palette.primary.main}}
                                         }}
