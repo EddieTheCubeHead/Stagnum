@@ -50,7 +50,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
-                copyToClipboard()
+                copyToClipboard(response.data)
             })
             .catch((error) => {
                 setErrorAlert(
@@ -60,10 +60,12 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             })
     }
 
-    const copyToClipboard = (): void => {
+    const copyToClipboard = (pool: Pool): void => {
         if (pool.share_code !== null) {
             navigator.clipboard.writeText(pool.share_code)
             setErrorAlert('Code copied to clipboard', 'success')
+        } else {
+            setErrorAlert('Unable to copy code to clipboard', 'error')
         }
     }
 
@@ -118,10 +120,27 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         {pool.share_code === null ? (
                             <DefaultButton text="share" action={handleShare} />
                         ) : (
-                            <Header2
-                                text={pool.share_code}
-                                color={'secondary.light'}
-                            />
+                            <Box display={'flex'} marginRight={2}>
+                                <Header2
+                                    text={pool.share_code}
+                                    color={'secondary.light'}
+                                />
+                                <IconButton
+                                    aria-label="copy-icon"
+                                    onClick={() => copyToClipboard(pool)}
+                                    sx={{
+                                        '&:hover': {
+                                            color: 'primary.main',
+                                            transform: 'scale(1.2)',
+                                        },
+                                        color: 'secondary.light',
+                                        marginRight: 1,
+                                        marginLeft: 1,
+                                    }}
+                                >
+                                    <ContentCopyIcon />
+                                </IconButton>
+                            </Box>
                         )}
                     </Box>
                 ) : (
@@ -155,7 +174,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     />
                                     <IconButton
                                         aria-label="copy-icon"
-                                        onClick={copyToClipboard}
+                                        onClick={() => copyToClipboard(pool)}
                                         sx={{
                                             '&:hover': {
                                                 color: 'primary.main',
