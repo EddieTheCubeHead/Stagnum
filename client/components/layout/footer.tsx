@@ -7,6 +7,7 @@ import { Playlist } from '../types'
 import DefaultButton from '../buttons/defaulButton'
 import { useRouter } from 'next/navigation'
 import router from 'next/router'
+import NegativeButton from '../buttons/negativeButton'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
@@ -43,7 +44,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
         >
             <Grid container>
                 <Grid item>
-                    <DefaultButton text={'Log out'} action={setTokenToNull} />
+                    <NegativeButton text={'Log out'} action={setTokenToNull} />
                 </Grid>
                 <Grid
                     item
