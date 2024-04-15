@@ -4,7 +4,7 @@ import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
-import { Pool, PoolUser } from '../types'
+import { Pool, PoolUser, User } from '../types'
 
 interface PoolManagerProps {
     pool: Pool
@@ -13,6 +13,7 @@ interface PoolManagerProps {
     expanded: boolean
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
+    user: User
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -20,6 +21,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     updatePool,
     expanded,
     setErrorAlert,
+    user,
 }) => {
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const handleShare = (): void => {
@@ -45,6 +47,56 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Sharing a pool failed with error: ${error.response.data.detail}`,
+                )
+            })
+    }
+
+    const handleDelete = (): void => {
+        axios
+            .delete(`${backend_uri}/pool`, {
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
+            })
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                updatePool(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Deleting pool failed with error: ${error.response.data.detail}`,
+                )
+            })
+    }
+
+    const handleLeave = (): void => {
+        axios
+            .post(
+                `${backend_uri}/pool/leave`,
+                {},
+                {
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
+                },
+            )
+            .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
+                updatePool(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Leaving pool failed with error: ${error.response.data.detail}`,
                 )
             })
     }
@@ -82,13 +134,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     margin: 1,
                 }}
             >
-                {expanded ? (
-                    <Box
-                        display={'flex'}
-                        justifyContent={'center'}
-                        alignItems={'center'}
-                        gap={1}
-                    >
+                <Grid container>
+                    <Grid item container direction={'row'} xs={6} gap={4}>
                         <Header2
                             text={
                                 pool.users.length > 0
@@ -97,68 +144,65 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             }
                             color={'secondary.light'}
                         />
-                        {pool.share_code === null ? (
-                            <DefaultButton text="share" action={handleShare} />
-                        ) : (
-                            <Header2
-                                text={pool.share_code}
-                                color={'secondary.light'}
+                        {pool.users.length > 0 && (
+                            <>
+                                {pool.share_code === null ? (
+                                    <DefaultButton
+                                        text="share"
+                                        action={handleShare}
+                                    />
+                                ) : (
+                                    <Header2
+                                        text={pool.share_code}
+                                        color={'secondary.light'}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </Grid>
+                    <Grid
+                        item
+                        xs={6}
+                        display={'flex'}
+                        justifyContent={'end'}
+                        alignItems={'end'}
+                        gap={4}
+                    >
+                        {pool.users.length > 0 && (
+                            <DefaultButton
+                                text={
+                                    pool.users[0].user.spotify_id ===
+                                    user.spotify_id
+                                        ? 'Leave Pool'
+                                        : 'Delete Pool'
+                                }
+                                action={
+                                    pool.users[0].user.spotify_id ===
+                                    user.spotify_id
+                                        ? handleLeave
+                                        : handleDelete
+                                }
                             />
                         )}
-                    </Box>
-                ) : (
-                    <Grid
-                        container
-                        display={'flex'}
-                        justifyContent={'center'}
-                        alignItems={'center'}
-                    >
-                        <Grid item xs={9}>
-                            <Header2
-                                text={
-                                    pool.users.length > 0
-                                        ? `${pool.users[0].user.display_name}'s pool`
-                                        : 'Create or join a pool'
-                                }
-                                color={'secondary.light'}
-                            />
-                        </Grid>
-                        <Grid item xs={1}>
-                            {pool.share_code === null ? (
-                                <DefaultButton
-                                    text="share"
-                                    action={handleShare}
-                                />
-                            ) : (
-                                <Header2
-                                    text={pool.share_code}
-                                    color={'secondary.light'}
-                                />
-                            )}
-                        </Grid>
-                        <Grid
-                            item
-                            xs={2}
-                            display={'flex'}
-                            justifyContent={'center'}
-                            alignItems={'center'}
-                        >
-                            {pool.users.length > 3 ? (
-                                <AvatarGroup total={pool.users.length}>
-                                    {pool.users.map((user: PoolUser) =>
-                                        avatar(user),
-                                    )}
-                                </AvatarGroup>
-                            ) : (
-                                <>
-                                    {pool.users.map((user: PoolUser) =>
-                                        avatar(user),
-                                    )}
-                                </>
-                            )}
-                        </Grid>
+                        {!expanded && (
+                            <>
+                                {pool.users.length > 3 ? (
+                                    <AvatarGroup total={pool.users.length}>
+                                        {pool.users.map((user: PoolUser) =>
+                                            avatar(user),
+                                        )}
+                                    </AvatarGroup>
+                                ) : (
+                                    <>
+                                        {pool.users.map((user: PoolUser) =>
+                                            avatar(user),
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
                     </Grid>
-                )}
+                </Grid>
                 {pool?.users?.map((user) => (
                     <>
                         {user.tracks?.map((poolItem: any, key: number) => (

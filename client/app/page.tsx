@@ -18,6 +18,7 @@ import {
     Pool,
     PoolTrack,
     Track,
+    User,
 } from '@/components/types'
 import AlertComponent from '@/components/alertComponent'
 import Image from 'next/image'
@@ -56,6 +57,11 @@ const HomePageContent: React.FC = () => {
         spotify_track_uri: '',
         duration_ms: 0,
     })
+    const [user, setUser] = useState<User>({
+        display_name: '',
+        icon_url: '',
+        spotify_id: '',
+    })
     const router = useRouter()
     const queryParams = useSearchParams()
     const code = queryParams.get('code')
@@ -83,6 +89,7 @@ const HomePageContent: React.FC = () => {
                 const token = localStorage.getItem('token')
                 if (typeof token === 'string') {
                     openPlaybackSocket(token)
+                    getUser(token)
                 }
             })
             .catch((error) => {
@@ -112,6 +119,7 @@ const HomePageContent: React.FC = () => {
                 )
                 localStorage.setItem('token', response.data.access_token)
                 openPlaybackSocket(response.data.access_token)
+                getUser(response.data.access_token)
             })
             .catch((error) => {
                 setErrorAlert(
@@ -140,6 +148,23 @@ const HomePageContent: React.FC = () => {
                 )
             }
         }
+    }
+
+    const getUser = (token: string): void => {
+        axios
+            .get(`${backend_uri}/me`, {
+                headers: {
+                    Authorization: token,
+                },
+            })
+            .then((response) => {
+                setUser(response.data)
+            })
+            .catch((error) => {
+                setErrorAlert(
+                    `Getting user failed with error: ${error.response.data.detail}`,
+                )
+            })
     }
 
     const toggleOngoingSearch = (): void => {
@@ -231,6 +256,7 @@ const HomePageContent: React.FC = () => {
                         updatePool={updatePool}
                         expanded={expanded}
                         setErrorAlert={setErrorAlert}
+                        user={user}
                     />
                 </Grid>
 
