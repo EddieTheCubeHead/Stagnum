@@ -40,8 +40,9 @@ services:
       - internal
     environment:
       DATABASE_CONNECTION_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${DATABASE_PORT}/${POSTGRES_DB}
-      VERBOSE_SQLALCHEMY: false
-      CORS_ORIGINS: "*"
+      VERBOSE_SQLALCHEMY: ${VERBOSE_SQLALCHEMY}
+      ENVIRONMENT: ${ENVIRONMENT}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8080/health/ || exit 1" ]
       interval: 10s
