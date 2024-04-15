@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
 import SkipButton from '../buttons/iconButtons/skipButton'
@@ -20,7 +20,6 @@ const Footer: React.FC<FooterProps> = ({
     pool,
     currentTrack,
 }) => {
-    const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
     const router = useRouter()
 
     const setTokenToNull = (): void => {
@@ -84,7 +83,7 @@ const Footer: React.FC<FooterProps> = ({
 
                     <SkipButton
                         setErrorAlert={setErrorAlert}
-                        disabled={pool.users.length == 0}
+                        disabled={pool.users.length === 0}
                     />
                 </Grid>
                 <Grid
