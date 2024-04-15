@@ -17,7 +17,7 @@ resource "aws_ecs_cluster" "aws-cluster" {
 
 resource "aws_kms_key" "stagnum" {
   description             = "stagnum"
-  deletion_window_in_days = 7
+  deletion_window_in_days = 1
 }
 
 # creating an iam policy document for ecsTaskExecutionRole
