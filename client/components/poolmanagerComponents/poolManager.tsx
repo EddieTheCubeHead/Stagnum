@@ -32,6 +32,10 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 },
             )
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
             })
             .catch((error) => {

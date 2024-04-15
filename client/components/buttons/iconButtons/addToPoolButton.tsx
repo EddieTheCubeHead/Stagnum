@@ -30,6 +30,10 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                 headers: { Authorization: localStorage.getItem('token') },
             })
             .then((response) => {
+                localStorage.setItem(
+                    'token',
+                    response.config.headers.Authorization as string,
+                )
                 updatePool(response.data)
             })
             .catch((error) => {
