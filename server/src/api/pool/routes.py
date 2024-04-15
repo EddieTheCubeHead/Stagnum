@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from fastapi import APIRouter, WebSocket
+from starlette import status
 
 from api.common.dependencies import validated_user, validated_user_from_query_parameters
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, PoolWebsocketUpdater, \
@@ -104,3 +105,10 @@ async def register_for_playback_updates(websocket: WebSocket, user: validated_us
     await websocket.accept()
     playback_pool = pool_database_connection.get_pool(user)
     playback_websocket_updater.add_socket(websocket, playback_pool)
+
+
+@router.delete("/")
+async def delete_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection, 
+                      playback_websocket_updater: PlaybackWebsocketUpdater, status_code=status.HTTP_204_NO_CONTENT):
+    pool_users = pool_database_connection.delete_pool(user)
+    await playback_websocket_updater
