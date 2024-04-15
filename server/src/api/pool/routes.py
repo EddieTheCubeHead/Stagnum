@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from fastapi import APIRouter, WebSocket
+from starlette.websockets import WebSocketDisconnect
 
 from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, \
