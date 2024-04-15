@@ -34,6 +34,12 @@ const HomePageContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
+        currently_playing: {
+            name: '',
+            spotify_icon_uri: '',
+            spotify_track_uri: '',
+            duration_ms: 0,
+        },
     })
     const [alert, setAlert] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
@@ -123,15 +129,10 @@ const HomePageContent: React.FC = () => {
 
         socket.onmessage = function (event) {
             const res = JSON.parse(event.data)
-            console.log(res)
             if (res.type == 'current_track') {
                 setCurrentTrack(res.model)
             } else if (res.type == 'pool') {
-                let currentPool: Pool = {
-                    share_code: res.model.share_code,
-                    users: res.model.users,
-                }
-                updatePool(currentPool)
+                updatePool(res.model)
                 setCurrentTrack(res.model.currently_playing)
             } else if (res.type == 'error') {
                 setErrorAlert(
@@ -155,6 +156,7 @@ const HomePageContent: React.FC = () => {
     }
 
     const updatePool = (pool: Pool): void => {
+        setCurrentTrack(pool.currently_playing)
         setPool(pool)
     }
 
