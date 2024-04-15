@@ -24,7 +24,9 @@ jobs:
         working-directory: './server'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:  
+        ref: ${{ github.head_ref}}
 
     - name: Set up Python ${{matrix.python-version}}
       uses: actions/setup-python@v3
@@ -39,3 +41,9 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+
+    - name: Commit automatic cleans
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with: 
+        commit_message: Apply formatting changes
+        branch: ${{ github.head_ref }}
