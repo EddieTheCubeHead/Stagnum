@@ -4,7 +4,6 @@ import theme from '@/components/theme'
 import SkipButton from '../buttons/skipButton'
 import { Text } from '../textComponents'
 import { Playlist, Pool, Track } from '../types'
-import useWebSocket from 'react-use-websocket'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
@@ -22,15 +21,21 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
         album: {} as any,
         duration_ms: 0,
     })
-    const WS_URI = `${backend_uri?.replace('http', 'ws')}/pool/playback/register_listener?Authorization=${localStorage.getItem('token')}`
-    const { lastJsonMessage } = useWebSocket(WS_URI, {
-        share: false,
-        shouldReconnect: () => true,
-    })
 
     useEffect(() => {
-        console.log(`Got a new message: ${lastJsonMessage}`)
-    }, [lastJsonMessage])
+        if (localStorage.getItem('token')) {
+            const WS_URI = `${backend_uri?.replace('http', 'ws')}/pool/playback/register_listener?Authorization=${localStorage.getItem('token')}`
+            const socket = new WebSocket(WS_URI)
+
+            socket.onopen = (event) => {
+                console.log(event)
+            }
+
+            socket.onmessage = function (event) {
+                console.log(event)
+            }
+        }
+    }, [])
 
     return (
         <Box
