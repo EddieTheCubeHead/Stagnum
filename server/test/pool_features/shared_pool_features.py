@@ -16,6 +16,14 @@ def should_return_pool_code_from_share_route(existing_playback, test_client, val
     assert type(result["share_code"]) == str
 
 
+def should_return_not_found_from_share_route_if_user_has_no_pool(test_client, valid_token_header, validate_response,
+                                                                 logged_in_user):
+    response = test_client.post("/pool/share", headers=valid_token_header)
+
+    json_data = validate_response(response, 404)
+    assert json_data["detail"] == f"Could not find pool for user {logged_in_user.spotify_username}"
+
+
 def should_have_only_uppercase_letters_and_digits_in_share_code(existing_playback, test_client, validate_response,
                                                                 valid_token_header):
     response = test_client.post("/pool/share", headers=valid_token_header)
@@ -210,3 +218,30 @@ async def should_delete_joined_users_pools_on_playback_stop(existing_playback, i
     with db_connection.session() as session:
         assert session.scalar(select(PlaybackSession)) is None
         assert session.scalar(select(Pool)) is None
+
+
+def should_be_able_to_join_another_pool_after_creating_one(shared_pool_code, test_client, build_success_response,
+                                                           create_pool_creation_data_json, validate_response,
+                                                           create_mock_track_search_result, requests_client_get_queue,
+                                                           another_logged_in_user_header):
+    my_track = create_mock_track_search_result()
+    data_json = create_pool_creation_data_json(my_track["uri"])
+    requests_client_get_queue.append(build_success_response(my_track))
+    test_client.post("/pool", json=data_json, headers=another_logged_in_user_header)
+
+    response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    pool_response = validate_response(response)
+    assert len(pool_response["users"]) == 2
+
+def should_be_able_to_create_another_pool_after_joining_one(shared_pool_code, test_client, build_success_response,
+                                                            create_pool_creation_data_json, validate_response,
+                                                            create_mock_track_search_result, requests_client_get_queue,
+                                                            another_logged_in_user_header):
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+
+    my_track = create_mock_track_search_result()
+    data_json = create_pool_creation_data_json(my_track["uri"])
+    requests_client_get_queue.append(build_success_response(my_track))
+    response = test_client.post("/pool", json=data_json, headers=another_logged_in_user_header)
+    pool_response = validate_response(response)
+    assert pool_response["users"][0]["tracks"][0]["name"] == my_track["name"]

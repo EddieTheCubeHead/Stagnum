@@ -10,7 +10,7 @@ interface ShowMoreIconButtonProps {
     updatePool: (pool: Pool) => void
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
@@ -42,7 +42,11 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool`, requestData, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 updatePool(response.data)
@@ -51,21 +55,23 @@ const ShowMoreIconButton: React.FC<ShowMoreIconButtonProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Creating a pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
 
     return (
         <>
-            <Tooltip title="Show more">
+            <Tooltip title="Show more" arrow>
                 <IconButton
                     aria-label=""
                     onClick={handleClick}
                     sx={{
                         '&:hover': {
-                            color: 'white',
+                            color: 'primary.main',
+                            transform: 'scale(1.2)',
                         },
-                        color: 'black',
+                        color: 'secondary.light',
                         margin: 1,
                     }}
                 >

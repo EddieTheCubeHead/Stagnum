@@ -9,7 +9,7 @@ interface AddToPoolButtonProps {
     updatePool: (pool: Pool) => void
     disabled: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
@@ -27,7 +27,11 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
 
         axios
             .post(`${backend_uri}/pool/content`, requestData, {
-                headers: { Authorization: localStorage.getItem('token') },
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
+                },
             })
             .then((response) => {
                 localStorage.setItem(
@@ -35,24 +39,27 @@ const AddToPoolButton: React.FC<AddToPoolButtonProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
+                setErrorAlert('Added item to pool successfully', 'success')
             })
             .catch((error) => {
                 setErrorAlert(
                     `Adding to pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
 
     return (
-        <Tooltip title="Add to pool">
+        <Tooltip title="Add to pool" arrow>
             <IconButton
                 aria-label=""
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
-                        color: 'white',
+                        color: 'primary.main',
+                        transform: 'scale(1.2)',
                     },
-                    color: 'black',
+                    color: 'secondary.light',
                     margin: 1,
                 }}
                 disabled={disabled}

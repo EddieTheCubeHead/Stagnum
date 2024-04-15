@@ -16,7 +16,7 @@ interface ExpandedSearchContentProps {
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
     ongoingSearch: boolean
 }
 
@@ -31,8 +31,52 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
     setErrorAlert,
     ongoingSearch,
 }) => {
+    const track = (key: number, track: Track): JSX.Element => (
+        <TrackCard
+            key={key}
+            track={track}
+            updatePool={updatePool}
+            disabled={disabled}
+            enableAddButton={enableAddButton}
+            setErrorAlert={setErrorAlert}
+        />
+    )
+
+    const album = (key: number, album: Album): JSX.Element => (
+        <AlbumCard
+            key={key}
+            album={album}
+            updatePool={updatePool}
+            disabled={disabled}
+            enableAddButton={enableAddButton}
+            setErrorAlert={setErrorAlert}
+        />
+    )
+
+    const playlist = (key: number, playlis: Playlist): JSX.Element => (
+        <PlaylistCard
+            key={key}
+            playlist={playlis}
+            updatePool={updatePool}
+            disabled={disabled}
+            enableAddButton={enableAddButton}
+            setErrorAlert={setErrorAlert}
+        />
+    )
+
+    const artist = (key: number, artist: Artist): JSX.Element => (
+        <ArtistCard
+            key={key}
+            artist={artist}
+            updatePool={updatePool}
+            disabled={disabled}
+            enableAddButton={enableAddButton}
+            setErrorAlert={setErrorAlert}
+        />
+    )
+
     return (
-        <Box sx={{ width: 1 }}>
+        <Box sx={{ width: 1, boxShadow: '3px 3px 3px' }}>
             {ongoingSearch ? (
                 <Box sx={{ width: '100%', padding: 2 }}>
                     <LinearProgress
@@ -53,16 +97,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {trackList.slice(0, 2).map((track, key) => (
-                            <TrackCard
-                                key={key}
-                                track={track}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {trackList
+                            .slice(0, 2)
+                            .map((trackItem, key) => track(key, trackItem))}
                     </Box>
                     <Box
                         sx={{
@@ -75,16 +112,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {trackList.slice(2, 4).map((track, key) => (
-                            <TrackCard
-                                key={key}
-                                track={track}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {trackList
+                            .slice(2, 4)
+                            .map((trackItem, key) => track(key, trackItem))}
                     </Box>
                     <Header2 text={'Albums'} sx={{ color: 'white' }} />
                     <Box
@@ -97,16 +127,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {albumList.slice(0, 2).map((album, key) => (
-                            <AlbumCard
-                                key={key}
-                                album={album}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {albumList
+                            .slice(0, 2)
+                            .map((albumItem, key) => album(key, albumItem))}
                     </Box>
                     <Box
                         sx={{
@@ -118,16 +141,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {albumList.slice(2, 4).map((album, key) => (
-                            <AlbumCard
-                                key={key}
-                                album={album}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {albumList
+                            .slice(2, 4)
+                            .map((albumItem, key) => album(key, albumItem))}
                     </Box>
                     <Header2 text={'Playlists'} sx={{ color: 'white' }} />
                     <Box
@@ -140,16 +156,11 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {playlistList.slice(0, 2).map((playlist, key) => (
-                            <PlaylistCard
-                                key={key}
-                                playlist={playlist}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {playlistList
+                            .slice(0, 2)
+                            .map((playlistItem, key) =>
+                                playlist(key, playlistItem),
+                            )}
                     </Box>
                     <Box
                         sx={{
@@ -161,16 +172,11 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {playlistList.slice(2, 4).map((playlist, key) => (
-                            <PlaylistCard
-                                key={key}
-                                playlist={playlist}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {playlistList
+                            .slice(2, 4)
+                            .map((playlistItem, key) =>
+                                playlist(key, playlistItem),
+                            )}
                     </Box>
                     <Header2 text={'Artists'} sx={{ color: 'white' }} />
                     <Box
@@ -183,16 +189,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {artistList.slice(0, 2).map((artist, key) => (
-                            <ArtistCard
-                                key={key}
-                                artist={artist}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {artistList
+                            .slice(0, 2)
+                            .map((artistItem, key) => artist(key, artistItem))}
                     </Box>
                     <Box
                         sx={{
@@ -204,16 +203,9 @@ const ExpandedSearchContent: React.FC<ExpandedSearchContentProps> = ({
                             },
                         }}
                     >
-                        {artistList.slice(2, 4).map((artist, key) => (
-                            <ArtistCard
-                                key={key}
-                                artist={artist}
-                                updatePool={updatePool}
-                                disabled={disabled}
-                                enableAddButton={enableAddButton}
-                                setErrorAlert={setErrorAlert}
-                            />
-                        ))}
+                        {artistList
+                            .slice(2, 4)
+                            .map((artistItem, key) => artist(key, artistItem))}
                     </Box>
                 </Stack>
             )}

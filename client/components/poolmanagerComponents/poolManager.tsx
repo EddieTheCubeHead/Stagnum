@@ -1,10 +1,19 @@
-import { Box, Stack, Grid, Avatar, AvatarGroup } from '@mui/material'
+import {
+    Box,
+    Stack,
+    Grid,
+    Avatar,
+    AvatarGroup,
+    Tooltip,
+    IconButton,
+} from '@mui/material'
 import PoolTrackCard from './poolCollectionCard'
 import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 
 interface PoolManagerProps {
     pool: Pool
@@ -12,7 +21,7 @@ interface PoolManagerProps {
     updatePool: (pool: Pool) => void
     expanded: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -28,7 +37,11 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
@@ -37,13 +50,39 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                     response.config.headers.Authorization as string,
                 )
                 updatePool(response.data)
+                copyToClipboard(response.data)
             })
             .catch((error) => {
                 setErrorAlert(
                     `Sharing a pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
+
+    const copyToClipboard = (pool: Pool): void => {
+        if (pool.share_code !== null) {
+            navigator.clipboard.writeText(pool.share_code)
+            setErrorAlert('Code copied to clipboard', 'success')
+        } else {
+            setErrorAlert('Unable to copy code to clipboard', 'error')
+        }
+    }
+
+    const avatar = (user: PoolUser): JSX.Element => (
+        <Tooltip
+            title={user.user.display_name}
+            key={user.user.display_name}
+            sx={{
+                boxShadow: '3px 3px 3px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                    transform: 'scale(1.1)',
+                },
+            }}
+        >
+            <Avatar alt={user.user.display_name} src={user.user.icon_url} />
+        </Tooltip>
+    )
 
     return (
         <Box
@@ -52,7 +91,8 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 display: 'flex',
                 overflow: 'auto',
                 borderRadius: '12px',
-                boxShadow: 2,
+                boxShadow: '3px 3px 3px',
+                px: 1,
             }}
         >
             <Stack
@@ -80,10 +120,27 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         {pool.share_code === null ? (
                             <DefaultButton text="share" action={handleShare} />
                         ) : (
-                            <Header2
-                                text={pool.share_code}
-                                color={'secondary.light'}
-                            />
+                            <Box display={'flex'} marginRight={2}>
+                                <Header2
+                                    text={pool.share_code}
+                                    color={'secondary.light'}
+                                />
+                                <IconButton
+                                    aria-label="copy-icon"
+                                    onClick={() => copyToClipboard(pool)}
+                                    sx={{
+                                        '&:hover': {
+                                            color: 'primary.main',
+                                            transform: 'scale(1.2)',
+                                        },
+                                        color: 'secondary.light',
+                                        marginRight: 1,
+                                        marginLeft: 1,
+                                    }}
+                                >
+                                    <ContentCopyIcon />
+                                </IconButton>
+                            </Box>
                         )}
                     </Box>
                 ) : (
@@ -110,10 +167,27 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                                     action={handleShare}
                                 />
                             ) : (
-                                <Header2
-                                    text={pool.share_code}
-                                    color={'secondary.light'}
-                                />
+                                <Box display={'flex'} marginRight={2}>
+                                    <Header2
+                                        text={pool.share_code}
+                                        color={'secondary.light'}
+                                    />
+                                    <IconButton
+                                        aria-label="copy-icon"
+                                        onClick={() => copyToClipboard(pool)}
+                                        sx={{
+                                            '&:hover': {
+                                                color: 'primary.main',
+                                                transform: 'scale(1.2)',
+                                            },
+                                            color: 'secondary.light',
+                                            marginRight: 1,
+                                            marginLeft: 1,
+                                        }}
+                                    >
+                                        <ContentCopyIcon />
+                                    </IconButton>
+                                </Box>
                             )}
                         </Grid>
                         <Grid
@@ -125,23 +199,15 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         >
                             {pool.users.length > 3 ? (
                                 <AvatarGroup total={pool.users.length}>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Avatar
-                                            key={user.user.display_name}
-                                            alt={user.user.display_name}
-                                            src={user.user.icon_url}
-                                        />
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </AvatarGroup>
                             ) : (
                                 <>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Avatar
-                                            key={user.user.display_name}
-                                            alt={user.user.display_name}
-                                            src={user.user.icon_url}
-                                        />
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </>
                             )}
                         </Grid>

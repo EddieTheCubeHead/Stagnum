@@ -8,6 +8,9 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from api import pool, search, auth, health
+from api.common.dependencies import validated_user
+from api.common.helpers import map_user_entity_to_model
+from api.common.models import UserModel
 
 _logger = getLogger("main.application")
 
@@ -44,6 +47,7 @@ def create_app() -> FastAPI:
     _logger.debug("Adding routers")
     for api_module in (auth, search, pool, health):
         application.include_router(api_module.router)
+    application.include_router(pool.websocket_router)
 
     application.add_middleware(CORSMiddleware,
                                allow_origins=_get_allowed_origins(), allow_credentials=True,
@@ -52,5 +56,10 @@ def create_app() -> FastAPI:
     @application.get("/")
     async def root():
         return {"message": "Hello World!"}
+
+    @application.get("/me")
+    async def get_me(user: validated_user) -> UserModel:
+        return map_user_entity_to_model(user)
+
 
     return application

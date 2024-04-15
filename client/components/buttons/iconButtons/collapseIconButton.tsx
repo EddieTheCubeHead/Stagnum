@@ -12,7 +12,16 @@ const CollapseIconButton: React.FC<CollapseIconButtonProps> = ({
     handleExpandClick,
 }) => {
     return (
-        <IconButton onClick={handleExpandClick}>
+        <IconButton
+            onClick={handleExpandClick}
+            sx={{
+                '&:hover': {
+                    color: 'primary.main',
+                    transform: 'scale(1.2)',
+                },
+                color: 'secondary.light',
+            }}
+        >
             {expanded ? (
                 <ExpandLessIcon color="primary" fontSize="large" />
             ) : (

@@ -127,11 +127,21 @@ def should_propagate_errors_from_spotify_api(test_client, valid_token_header, va
                                    f"Message: {spotify_error_message.message}")
 
 
-def should_include_current_token_in_response_headers(requests_client, build_success_response, test_client,
+def should_include_current_token_in_response_headers(requests_client_get_queue, build_success_response, test_client,
                                                      search_resource_url, valid_token_header, assert_token_in_headers,
                                                      mock_spotify_general_search):
     query = "test query"
     search_result = mock_spotify_general_search(query)
-    requests_client.get = Mock(return_value=build_success_response(search_result))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    requests_client_get_queue.append(build_success_response(search_result))
+    result = test_client.get(f"/search{search_resource_url}?query={query}", headers=valid_token_header)
     assert_token_in_headers(result)
+
+
+def should_return_bad_request_without_calling_spotify_on_empty_query(test_client, valid_token_header, validate_response,
+                                                                     search_resource_url, requests_client):
+    query = ""
+    result = test_client.get(f"/search{search_resource_url}?query={query}", headers=valid_token_header)
+
+    json_data = validate_response(result, 400)
+    assert json_data["detail"] == "Cannot perform a search with an empty string"
+    requests_client.get.assert_not_called()

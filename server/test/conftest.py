@@ -88,7 +88,7 @@ def test_client(application_with_dependencies) -> TestClient:
 def validate_response():
     def wrapper(response, code: int = 200):
         assert response.status_code == code, f"Expected response with status code {code}, got {response.status_code}"
-        return json.loads(response.content.decode("utf-8"))
+        return json.loads(response.content.decode("utf-8")) if response.content else None
 
     return wrapper
 

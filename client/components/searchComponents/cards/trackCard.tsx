@@ -11,7 +11,7 @@ interface TrackCardProps {
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const TrackCard: React.FC<TrackCardProps> = ({
@@ -25,7 +25,13 @@ const TrackCard: React.FC<TrackCardProps> = ({
         track.name.length > 25 ? track.name.slice(0, 25) + '...' : track.name
 
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 1,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',
@@ -45,7 +51,7 @@ const TrackCard: React.FC<TrackCardProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={truncatedName} sx={{ margin: 1 }} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton

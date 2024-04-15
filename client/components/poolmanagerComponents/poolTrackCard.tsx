@@ -8,7 +8,7 @@ interface PoolTrackCardProps {
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
     poolItem,
@@ -21,7 +21,14 @@ const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
             : poolItem.name
 
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 0.6, minHeight: 66 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 0.6,
+                minHeight: 66,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',
@@ -41,7 +48,7 @@ const PoolTrackCard: React.FC<PoolTrackCardProps> = ({
                         }}
                     />
 
-                    <Header3 text={truncatedName} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <DeleteButton

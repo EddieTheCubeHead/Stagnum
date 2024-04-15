@@ -11,7 +11,7 @@ interface AlbumCardProps {
     disabled: boolean
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const AlbumCard: React.FC<AlbumCardProps> = ({
@@ -22,7 +22,13 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
     setErrorAlert,
 }) => {
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 1,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',
@@ -42,7 +48,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                             }}
                         />
                     )}
-                    <Header3 text={album.name} />
+                    <Header3 text={album.name} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <AddToPoolButton
