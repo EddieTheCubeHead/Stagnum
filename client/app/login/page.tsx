@@ -13,6 +13,7 @@ import AlertComponent from '@/components/alertComponent'
 const LoginPage: React.FC = () => {
     const [alert, setAlert] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const [alertType, setAlertType] = useState<'error' | 'success'>('error')
     const router = useRouter()
 
     const handleLoginRequest = (): void => {
@@ -33,13 +34,18 @@ const LoginPage: React.FC = () => {
             .catch((error) => {
                 setErrorAlert(
                     `Login callback failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
 
-    const setErrorAlert = (message: string): void => {
+    const setErrorAlert = (
+        message: string,
+        type: 'error' | 'success',
+    ): void => {
         setErrorMessage(message)
         setAlert(true)
+        setAlertType(type)
     }
 
     const closeAlert = (): void => {
@@ -143,6 +149,7 @@ const LoginPage: React.FC = () => {
                     <AlertComponent
                         alertMessage={`Login failed with error: ${errorMessage}`}
                         closeAlert={closeAlert}
+                        type={alertType}
                     />
                 )}
             </Grid>

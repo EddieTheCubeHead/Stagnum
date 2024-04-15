@@ -5,7 +5,7 @@ import axios from 'axios'
 interface SkipButtonProps {
     disabled?: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
@@ -32,6 +32,7 @@ const SkipButton: React.FC<SkipButtonProps> = ({ disabled, setErrorAlert }) => {
             .catch((error) => {
                 setErrorAlert(
                     `Skipping a song failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
