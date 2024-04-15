@@ -1,4 +1,4 @@
-import { Box, Stack, Grid, Avatar, AvatarGroup, Tooltip } from '@mui/material'
+import { Box, Stack, Grid, Avatar, AvatarGroup } from '@mui/material'
 import PoolTrackCard from './poolCollectionCard'
 import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
@@ -127,25 +127,21 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                             {pool.users.length > 3 ? (
                                 <AvatarGroup total={pool.users.length}>
                                     {pool.users.map((user: PoolUser) => (
-                                        <Tooltip title={user.user.display_name}>
                                         <Avatar
                                             key={user.user.display_name}
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
                                         />
-                                        </Tooltip>
                                     ))}
                                 </AvatarGroup>
                             ) : (
                                 <>
                                     {pool.users.map((user: PoolUser) => (
-                                        <Tooltip title={user.user.display_name}>
                                         <Avatar
                                             key={user.user.display_name}
                                             alt={user.user.display_name}
                                             src={user.user.icon_url}
                                         />
-                                        </Tooltip>
                                     ))}
                                 </>
                             )}
