@@ -14,7 +14,7 @@ interface RootLayoutProps {
 const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
     return (
         <html lang="en">
-            <body>
+            <body style={{ margin: 0, padding: 0 }}>
                 <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
             </body>
         </html>
