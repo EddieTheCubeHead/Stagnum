@@ -53,7 +53,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 overflow: 'auto',
                 borderRadius: '12px',
                 boxShadow: 2,
-                px:2,
+                px:1,
             }}
         >
             <Stack
