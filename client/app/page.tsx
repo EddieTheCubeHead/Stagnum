@@ -3,8 +3,8 @@
 import Footer from '@/components/layout/footer'
 import { Box, CssBaseline, Grid } from '@mui/material'
 import axios from 'axios'
-import { useSearchParams, redirect, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 import { ThemeProvider } from '@emotion/react'
 import theme from '../components/theme'
 import Search from '@/components/searchComponents/search'
@@ -16,6 +16,14 @@ import AlertComponent from '@/components/alertComponent'
 import Image from 'next/image'
 
 const HomePage: React.FC = () => {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <HomePageContent />
+        </Suspense>
+    )
+}
+
+const HomePageContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
