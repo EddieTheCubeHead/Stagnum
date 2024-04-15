@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import select
 
+from api.common.helpers import map_user_entity_to_model
+from api.common.models import UserModel
 from database.database_connection import ConnectionManager
 from database.entities import LoginState, User
 
@@ -34,3 +36,10 @@ def should_return_hello_world_from_server_root(test_client):
     response = test_client.get("/")
     response_message = json.loads(response.content.decode("utf-8"))
     assert response_message.pop("message") == "Hello World!"
+
+
+def should_return_current_user_from_me_route(test_client, valid_token_header, logged_in_user, validate_response):
+    response = test_client.get("/me", headers=valid_token_header)
+
+    result = UserModel.model_validate(validate_response(response))
+    assert result == map_user_entity_to_model(logged_in_user)
