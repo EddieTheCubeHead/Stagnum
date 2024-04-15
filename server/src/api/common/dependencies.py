@@ -229,6 +229,7 @@ class TokenHolderRaw:
     def _ensure_fresh_token(self, user: User):
         user_session: UserSession = user.session
         if self._datetime_wrapper.ensure_utc(user_session.expires_at) <= self._datetime_wrapper.now():
+            _logger.info(f"Refreshing token for user {user.spotify_username}")
             client_id = _get_client_id()
             client_secret = _get_client_secret()
             refreshed_session = self._auth_client.refresh_token(user_session.refresh_token, client_id, client_secret)
