@@ -3,25 +3,24 @@ import { Link, Box, Grid } from '@mui/material'
 import theme from '@/components/theme'
 import SkipButton from '../buttons/iconButtons/skipButton'
 import { Text } from '../textComponents'
-import { Playlist } from '../types'
+import { Pool, PoolTrack } from '../types'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import NegativeButton from '../buttons/negativeButton'
 
 interface FooterProps {
     // eslint-disable-next-line no-unused-vars
     setErrorAlert: (message: string) => void
+    pool: Pool
+    currentTrack: PoolTrack
 }
 
-const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
+const Footer: React.FC<FooterProps> = ({
+    setErrorAlert,
+    pool,
+    currentTrack,
+}) => {
     const router = useRouter()
-
-    const playlist: Playlist = {
-        name: '90s Ambient Techno Mix',
-        uri: 'spotify:playlist:37i9dQZF1EIfMxLinpTxdB',
-        link: '',
-        icon_link:
-            'https://seed-mix-image.spotifycdn.com/v6/img/desc/90s%20Ambient%20Techno/en/large',
-    }
 
     const setTokenToNull = (): void => {
         localStorage.removeItem('token')
@@ -41,7 +40,7 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
             }}
         >
             <Grid container>
-                <Grid item xs={1} sx={{ padding: 1 }}>
+                <Grid item xs={2} sx={{ padding: 1 }}>
                     <NegativeButton text={'Log out'} action={setTokenToNull} />
                 </Grid>
                 <Grid
@@ -50,46 +49,74 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
+                    container
                     gap={2}
                 >
                     {/*Image size fixed only for demo. Change when addressing first comment*/}
-                    <img
-                        src={playlist.icon_link}
-                        style={{ width: 50, height: 50, padding: 0, margin: 0 }}
-                        alt="Track image"
-                    />
+                    {currentTrack.spotify_icon_uri.length > 0 ? (
+                        <Box
+                            sx={{
+                                width: 50,
+                                height: 50,
+                                backgroundImage: `url(${currentTrack.spotify_icon_uri})`,
+                                bgcolor: 'black',
+                                backgroundSize: 'cover',
+                                margin: 1,
+                            }}
+                        />
+                    ) : (
+                        <Image
+                            style={{
+                                width: 50,
+                                height: 50,
+                            }}
+                            src={require('@/public/logo.png')}
+                            alt={'Track image'}
+                        />
+                    )}
+
                     <Text
-                        text={playlist.name}
+                        text={currentTrack.name}
                         fontWeight={'bold'}
                         color={'white'}
                     />
-                    <SkipButton setErrorAlert={setErrorAlert} />
+
+                    <SkipButton
+                        setErrorAlert={setErrorAlert}
+                        disabled={pool.users.length === 0}
+                    />
                 </Grid>
                 <Grid
                     item
-                    xs={3}
+                    xs={2}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
+                    sx={{ padding: 1 }}
+                    container
                 >
-                    <Link
-                        sx={{
-                            color: theme.palette.primary.contrastText,
-                            paddingRight: 2,
-                        }}
-                        href="/about"
-                    >
-                        About Stagnum
-                    </Link>
-                    <Link
-                        sx={{
-                            color: theme.palette.secondary.main,
-                        }}
-                        href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
-                        target="_blank"
-                    >
-                        Contact Us
-                    </Link>
+                    <Grid item xs={6}>
+                        <Link
+                            sx={{
+                                color: theme.palette.primary.contrastText,
+                                paddingRight: 2,
+                            }}
+                            href="/about"
+                        >
+                            About Stagnum
+                        </Link>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Link
+                            sx={{
+                                color: theme.palette.primary.contrastText,
+                            }}
+                            href="https://github.com/EddieTheCubeHead/Stagnum/discussions"
+                            target="_blank"
+                        >
+                            Contact Us
+                        </Link>
+                    </Grid>
                 </Grid>
             </Grid>
         </Box>

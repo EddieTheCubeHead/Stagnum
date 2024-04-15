@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     _logger.debug("Adding routers")
     for api_module in (auth, search, pool, health):
         application.include_router(api_module.router)
+    application.include_router(pool.websocket_router)
 
     application.add_middleware(CORSMiddleware,
                                allow_origins=_get_allowed_origins(), allow_credentials=True,
