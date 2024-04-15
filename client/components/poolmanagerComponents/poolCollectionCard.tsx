@@ -49,7 +49,7 @@ const PoolCollectionCard: React.FC<PoolCollectionCardProps> = ({
                         }}
                     />
 
-                    <Header3 text={truncatedName} />
+                    <Header3 text={truncatedName} color={'secondary.light'} />
                 </Box>
                 <Box>
                     <DeleteButton
