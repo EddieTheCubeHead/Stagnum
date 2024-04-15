@@ -5,7 +5,6 @@ import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
-import theme from '../theme'
 
 interface PoolManagerProps {
     pool: Pool
@@ -13,7 +12,7 @@ interface PoolManagerProps {
     updatePool: (pool: Pool) => void
     expanded: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -46,6 +45,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Sharing a pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }

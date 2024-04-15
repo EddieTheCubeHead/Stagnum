@@ -162,8 +162,8 @@ def _purge_existing_transient_pool(user: UserModel, session: Session):
     session.execute(delete(PoolMemberRandomizationParameters).where(
         PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id)))
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
-    session.execute(delete(PoolJoinedUser).where(
-        PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id))))
+    session.execute(delete(PoolJoinedUser).where(and_(PoolJoinedUser.pool.has(Pool.name == None)),
+                                                 PoolJoinedUser.user_id == user.spotify_id))
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id)))
 
 
@@ -392,6 +392,7 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             pool = session.scalar(select(Pool).where(Pool.share_data.has(PoolShareData.code == code)))
             _validate_pool_join(pool, user, code)
+            _purge_existing_transient_pool(map_user_entity_to_model(user), session)
             pool.joined_users.append(PoolJoinedUser(user_id=user.spotify_id))
         return self.get_pool_data(user)
 

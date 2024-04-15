@@ -16,7 +16,7 @@ interface SearchProps {
     setSearchResults: (data: any) => void
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
     toggleOngoingSearch: () => void
 }
 
@@ -68,6 +68,7 @@ const Search: React.FC<SearchProps> = ({
                 toggleExpanded()
                 setErrorAlert(
                     `Searching failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
             .finally(() => {
@@ -99,6 +100,7 @@ const Search: React.FC<SearchProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Joining a pool failed with error : ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
