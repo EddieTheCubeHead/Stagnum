@@ -22,7 +22,13 @@ const ArtistCard: React.FC<ArtistCordProps> = ({
     setErrorAlert,
 }) => {
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 1,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',
