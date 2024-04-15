@@ -36,7 +36,7 @@ module.exports = {
         // Handle CSS imports (with CSS modules)
         // https://jestjs.io/docs/webpack#mocking-css-modules
         '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
-        "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js",
+
         // Handle CSS imports (without CSS modules)
         '^.+\\.(css|sass|scss)$': '<rootDir>/__mocks__/styleMock.js',
 
@@ -67,7 +67,6 @@ module.exports = {
     transformIgnorePatterns: [
         '/node_modules/',
         '^.+\\.module\\.(css|sass|scss)$',
-        "\\.pnp\\.[^\\\/]+$",
     ],
 }
 

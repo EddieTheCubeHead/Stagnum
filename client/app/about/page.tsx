@@ -119,6 +119,7 @@ const AboutPage: React.FC = () => {
                     <Typography mt={1} textAlign={'center'}>
                         To comply with Spotify’s guidelines, Stagnum can only be
                         used by users with Spotify Premium.
+                        Also, user can not have any private session active while using Stagnum.
                     </Typography>
                 </Grid>
             </Grid>
@@ -171,8 +172,7 @@ const AboutPage: React.FC = () => {
                             2.
                         </Typography>
                         <Typography variant="h5" mb={6} textAlign={'center'}>
-                            Search for your favorite songs and add them to the
-                            pool
+                            Create pool and invite your friends to join
                         </Typography>
                     </Grid>
 
@@ -188,7 +188,8 @@ const AboutPage: React.FC = () => {
                             3.
                         </Typography>
                         <Typography variant="h5" mb={6} textAlign={'center'}>
-                            Create pool and invite your friends to join
+                        Search for your favorite songs and add them to the
+                            pool
                         </Typography>
                     </Grid>
 
