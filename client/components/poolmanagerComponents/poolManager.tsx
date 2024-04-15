@@ -5,7 +5,6 @@ import axios from 'axios'
 import DefaultButton from '../buttons/defaulButton'
 import { Header2 } from '../textComponents'
 import { Pool, PoolUser } from '../types'
-import theme from '../theme'
 
 interface PoolManagerProps {
     pool: Pool

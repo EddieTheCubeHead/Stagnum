@@ -14,7 +14,7 @@ from api.common.dependencies import RequestsClient, SpotifyClientRaw
 from api.common.models import ParsedTokenResponse
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
-    PlaybackWebsocketUpdaterRaw
+    WebsocketUpdaterRaw
 from api.pool.models import PoolCreationData, PoolContent
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
@@ -190,7 +190,7 @@ def pool_spotify_client(requests_client: RequestsClient):
 
 @pytest.fixture
 def playback_updater():
-    return PlaybackWebsocketUpdaterRaw()
+    return WebsocketUpdaterRaw()
 
 
 @pytest.fixture
