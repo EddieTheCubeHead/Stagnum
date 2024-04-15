@@ -40,3 +40,10 @@ def should_return_mix_of_tracks_and_collections_correctly(test_client, valid_tok
 def should_include_token_in_headers(existing_pool, test_client, valid_token_header, assert_token_in_headers):
     response = test_client.get("/pool", headers=valid_token_header)
     assert_token_in_headers(response)
+
+
+def should_return_not_found_if_no_pool_for_user(test_client, valid_token_header, validate_response, logged_in_user):
+    response = test_client.get("/pool", headers=valid_token_header)
+
+    json_data = validate_response(response, 404)
+    assert json_data["detail"] == f"Could not find pool for user {logged_in_user.spotify_username}"

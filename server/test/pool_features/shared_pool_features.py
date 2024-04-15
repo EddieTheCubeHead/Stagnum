@@ -16,6 +16,14 @@ def should_return_pool_code_from_share_route(existing_playback, test_client, val
     assert type(result["share_code"]) == str
 
 
+def should_return_not_found_from_share_route_if_user_has_no_pool(test_client, valid_token_header, validate_response,
+                                                                 logged_in_user):
+    response = test_client.post("/pool/share", headers=valid_token_header)
+
+    json_data = validate_response(response, 404)
+    assert json_data["detail"] == f"Could not find pool for user {logged_in_user.spotify_username}"
+
+
 def should_have_only_uppercase_letters_and_digits_in_share_code(existing_playback, test_client, validate_response,
                                                                 valid_token_header):
     response = test_client.post("/pool/share", headers=valid_token_header)

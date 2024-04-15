@@ -25,7 +25,13 @@ const TrackCard: React.FC<TrackCardProps> = ({
         track.name.length > 25 ? track.name.slice(0, 25) + '...' : track.name
 
     return (
-        <Card sx={{ bgcolor: 'secondary.main', width: 1 }}>
+        <Card
+            sx={{
+                bgcolor: 'secondary.main',
+                width: 1,
+                boxShadow: '3px 3px 3px',
+            }}
+        >
             <Box
                 sx={{
                     display: 'flex',
