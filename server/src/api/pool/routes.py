@@ -102,6 +102,6 @@ async def delete_pool(user: validated_user, pool_database_connection: PoolDataba
 @router.post("/leave", status_code=status.HTTP_204_NO_CONTENT)
 async def leave_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection,
                      websocket_updater: WebsocketUpdater):
-    pool_users = pool_database_connection.leave_pool(user)
-    empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
-    await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool", empty_pool.model_dump())
+    pool = create_pool_return_model(*pool_database_connection.leave_pool(user))
+    await websocket_updater.push_update([user_data.user.spotify_id for user_data in pool.users], "pool",
+                                        pool.model_dump())

@@ -18,7 +18,6 @@ def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, valida
         assert session.scalar(select(PlaybackSession)) is None
 
 
-@pytest.mark.wip
 def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code, another_logged_in_user_header, test_client,
                                                    validate_response, db_connection, create_mock_playlist_fetch_result,
                                                    requests_client_get_queue, build_success_response,
