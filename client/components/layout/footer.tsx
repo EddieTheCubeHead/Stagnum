@@ -43,12 +43,12 @@ const Footer: React.FC<FooterProps> = ({ setErrorAlert }) => {
             }}
         >
             <Grid container>
-                <Grid item>
+                <Grid item xs={1} sx={{ padding: 1 }}>
                     <NegativeButton text={'Log out'} action={setTokenToNull} />
                 </Grid>
                 <Grid
                     item
-                    xs={9}
+                    xs={8}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
