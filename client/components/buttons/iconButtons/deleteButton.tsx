@@ -8,7 +8,7 @@ interface DeleteButtonProps {
     // eslint-disable-next-line no-unused-vars
     updatePool: (pool: Pool) => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({
@@ -32,7 +32,11 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
                     ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`
                     : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
@@ -45,18 +49,20 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Deleting from pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
 
     return (
-        <Tooltip title="Delete from pool">
+        <Tooltip title="Delete from pool" arrow>
             <IconButton
                 aria-label=""
                 onClick={handleClick}
                 sx={{
                     '&:hover': {
                         color: 'primary.main',
+                        transform: 'scale(1.2)',
                     },
                     color: 'secondary.light',
                     margin: 1,

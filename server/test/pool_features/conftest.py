@@ -14,7 +14,7 @@ from api.common.dependencies import RequestsClient, SpotifyClientRaw
 from api.common.models import ParsedTokenResponse
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
-    PlaybackWebsocketUpdaterRaw
+    WebsocketUpdaterRaw
 from api.pool.models import PoolCreationData, PoolContent
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
@@ -33,10 +33,12 @@ def current_playback_data() -> CurrentPlaybackData:
 
 @pytest.fixture
 def create_mock_playlist_fetch_result(create_mock_track_search_result, faker):
-    def wrapper(track_amount: int):
+    def wrapper(track_amount: int, append_none: bool = False):
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
         tracks = [create_mock_track_search_result() for _ in range(track_amount)]
+        if append_none:
+            tracks.append(None)
         playlist_tracks = []
         for track in tracks:
             playlist_tracks.append({
@@ -188,7 +190,7 @@ def pool_spotify_client(requests_client: RequestsClient):
 
 @pytest.fixture
 def playback_updater():
-    return PlaybackWebsocketUpdaterRaw()
+    return WebsocketUpdaterRaw()
 
 
 @pytest.fixture

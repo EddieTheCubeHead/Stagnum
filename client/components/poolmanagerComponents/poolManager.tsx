@@ -1,4 +1,4 @@
-import { Box, Stack, Grid, Avatar, AvatarGroup } from '@mui/material'
+import { Box, Stack, Grid, Avatar, AvatarGroup, Tooltip } from '@mui/material'
 import PoolTrackCard from './poolCollectionCard'
 import PoolCollectionCard from './poolCollectionCard'
 import axios from 'axios'
@@ -12,7 +12,7 @@ interface PoolManagerProps {
     updatePool: (pool: Pool) => void
     expanded: boolean
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
 }
 
 const PoolManager: React.FC<PoolManagerProps> = ({
@@ -28,7 +28,11 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                 `${backend_uri}/pool/share`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
@@ -41,9 +45,25 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Sharing a pool failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }
+
+    const avatar = (user: PoolUser): JSX.Element => (
+        <Tooltip
+            title={user.user.display_name}
+            key={user.user.display_name}
+            sx={{
+                boxShadow: '3px 3px 3px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                    transform: 'scale(1.1)',
+                },
+            }}
+        >
+            <Avatar alt={user.user.display_name} src={user.user.icon_url} />
+        </Tooltip>
+    )
 
     return (
         <Box
@@ -126,23 +146,15 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         >
                             {pool.users.length > 3 ? (
                                 <AvatarGroup total={pool.users.length}>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Avatar
-                                            key={user.user.display_name}
-                                            alt={user.user.display_name}
-                                            src={user.user.icon_url}
-                                        />
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </AvatarGroup>
                             ) : (
                                 <>
-                                    {pool.users.map((user: PoolUser) => (
-                                        <Avatar
-                                            key={user.user.display_name}
-                                            alt={user.user.display_name}
-                                            src={user.user.icon_url}
-                                        />
-                                    ))}
+                                    {pool.users.map((user: PoolUser) =>
+                                        avatar(user),
+                                    )}
                                 </>
                             )}
                         </Grid>

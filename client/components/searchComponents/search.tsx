@@ -16,7 +16,7 @@ interface SearchProps {
     setSearchResults: (data: any) => void
     enableAddButton: () => void
     // eslint-disable-next-line no-unused-vars
-    setErrorAlert: (message: string) => void
+    setErrorAlert: (message: string, type: 'error' | 'success') => void
     toggleOngoingSearch: () => void
 }
 
@@ -39,15 +39,22 @@ const Search: React.FC<SearchProps> = ({
     const backend_uri = process.env.NEXT_PUBLIC_BACKEND_URI
 
     const handleSearchRequest = (): void => {
+        if (!query) {
+            return
+        }
         toggleOngoingSearch()
+
         if (!expanded) {
             toggleExpanded()
         }
+
         axios
             .get(`${backend_uri}/search`, {
                 params: { query },
                 headers: {
-                    Authorization: localStorage.getItem('token'),
+                    Authorization: localStorage.getItem('token')
+                        ? localStorage.getItem('token')
+                        : '',
                 },
             })
             .then((response) => {
@@ -61,6 +68,7 @@ const Search: React.FC<SearchProps> = ({
                 toggleExpanded()
                 setErrorAlert(
                     `Searching failed with error: ${error.response.data.detail}`,
+                    'error',
                 )
             })
             .finally(() => {
@@ -74,7 +82,11 @@ const Search: React.FC<SearchProps> = ({
                 `${backend_uri}/pool/join/${idQuery}`,
                 {},
                 {
-                    headers: { Authorization: localStorage.getItem('token') },
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                            ? localStorage.getItem('token')
+                            : '',
+                    },
                 },
             )
             .then((response) => {
@@ -88,6 +100,7 @@ const Search: React.FC<SearchProps> = ({
             .catch((error) => {
                 setErrorAlert(
                     `Joining a pool failed with error : ${error.response.data.detail}`,
+                    'error',
                 )
             })
     }

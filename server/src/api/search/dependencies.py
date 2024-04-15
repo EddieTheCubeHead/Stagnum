@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 
 from api.common.dependencies import SpotifyClient
 from api.common.helpers import get_sharpest_icon, build_auth_header
@@ -105,6 +105,11 @@ def _build_paginated_playlist_search(result_data):
     )
 
 
+def _validate_query(query: str):
+    if not query:
+        raise HTTPException(status_code=400, detail="Cannot perform a search with an empty string")
+
+
 class SearchSpotifyClientRaw:
     def __init__(self, spotify_client: SpotifyClient):
         self._spotify_client = spotify_client
@@ -120,6 +125,7 @@ class SearchSpotifyClientRaw:
                                    playlists=playlists_result)
 
     def _get_search(self, query: str, user: User, types: list[str], offset: int = 0, limit: int = 20) -> dict:
+        _validate_query(query)
         search_types = ",".join(types)
         headers = build_auth_header(user)
         query_string = f"search?q={query}&type={search_types}&offset={offset}&limit={limit}"
