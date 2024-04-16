@@ -30,9 +30,9 @@ const Footer: React.FC<FooterProps> = ({
 
     const setTokenToNull = (): void => {
         if (pool.owner?.spotify_id === user.spotify_id) {
-            handleDelete
+            handleDelete()
         } else {
-            handleLeave
+            handleLeave()
         }
         localStorage.removeItem('token')
         router.push('/login')

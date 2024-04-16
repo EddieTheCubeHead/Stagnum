@@ -77,38 +77,6 @@ const HomePageContent: React.FC = () => {
     }, [])
 
     const checkIfPoolExists = (): void => {
-        // axios
-        //     .get(`${backend_uri}/pool/`, {
-        //         headers: {
-        //             Authorization: localStorage.getItem('token')
-        //                 ? localStorage.getItem('token')
-        //                 : '',
-        //         },
-        //     })
-        //     .then((response) => {
-        //         setCurrentTrack(response.data.currently_playing)
-        //         updatePool(response.data)
-        //         const token = localStorage.getItem('token')
-        //         if (typeof token === 'string') {
-        //             openPlaybackSocket(token)
-        //             getUser(token)
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         if (error.response.status === 404) {
-        //             setErrorAlert(
-        //                 `Get pool failed with error: ${error.response.data.detail}`,
-        //                 'error',
-        //             )
-        //         } else {
-        //             if (code && state) {
-        //                 handleTokenRequest(code, state)
-        //             } else {
-        //                 router.push('/login')
-        //             }
-        //         }
-        //     })
-
         const headers = {
             Authorization: localStorage.getItem('token') || '',
         }
