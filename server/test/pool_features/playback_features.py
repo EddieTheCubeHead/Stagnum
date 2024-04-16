@@ -361,9 +361,8 @@ async def should_end_playback_on_playback_paused_when_queueing_next_song(increme
 
 
 def should_raise_error_on_playback_paused_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
-                                                             db_connection, valid_token_header, requests_client,
-                                                             mock_playback_paused_response, skip_song,
-                                                             validate_response):
+                                                             valid_token_header, mock_playback_paused_response,
+                                                             skip_song, validate_response):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_playback_paused_response()
 
@@ -371,3 +370,47 @@ def should_raise_error_on_playback_paused_when_skipping_song(existing_playback, 
 
     data_json = validate_response(response, 400)
     assert data_json["detail"] == "Your playback is paused, please resume playback to continue using Stagnum!"
+
+
+@pytest.mark.asyncio
+async def should_end_playback_on_playback_context_changed_when_queueing_next_song(increment_now, run_scheduling_job,
+                                                                                  db_connection, fixed_track_length_ms,
+                                                                                  existing_playback,
+                                                                                  create_spotify_playback):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    context = {
+        "type": "playlist",
+        "href": "https://example.playlist.href",
+        "external_urls": {
+            "spotify": "https://open.spotify.example/playlist/href"
+        },
+        "uri": "spotify:playlist:example_uri"
+    }
+    create_spotify_playback(1000, 0, None, context)
+
+    await run_scheduling_job()
+
+    with db_connection.session() as session:
+        assert session.scalar(select(PlaybackSession)) is None
+        assert session.scalar(select(Pool)) is None
+
+
+def should_raise_error_on_skip_on_playback_context_changed(existing_playback, increment_now, fixed_track_length_ms,
+                                                           valid_token_header, create_spotify_playback, skip_song,
+                                                           validate_response):
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+    context = {
+        "type": "playlist",
+        "href": "https://example.playlist.href",
+        "external_urls": {
+            "spotify": "https://open.spotify.example/playlist/href"
+        },
+        "uri": "spotify:playlist:example_uri"
+    }
+    create_spotify_playback(1000, 0, None, context)
+
+    response = skip_song(valid_token_header)
+
+    data_json = validate_response(response, 400)
+    assert data_json["detail"] == ("Spotify playback moved to another context outside Stagnum control! Please restart "
+                                   "playback from Stagnum by creating another pool.")

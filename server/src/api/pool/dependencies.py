@@ -502,6 +502,9 @@ def _validate_spotify_state(spotify_state: dict[str, Any] | None):
     if not spotify_state["is_playing"]:
         raise HTTPException(status_code=400,
                             detail="Your playback is paused, please resume playback to continue using Stagnum!")
+    if spotify_state["context"] is not None:
+        raise HTTPException(status_code=400, detail="Spotify playback moved to another context outside Stagnum control!"
+                                                    " Please restart playback from Stagnum by creating another pool.")
     return True
 
 
