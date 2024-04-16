@@ -49,6 +49,7 @@ const Footer: React.FC<FooterProps> = ({
 
     if (pool === null || pool.users === undefined) {
         pool = {
+            owner: null,
             users: [],
             share_code: null,
             currently_playing: {
