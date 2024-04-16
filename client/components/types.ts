@@ -59,6 +59,7 @@ export interface Pool {
     currently_playing: PoolTrack
     users: PoolUser[]
     share_code: null
+    owner: User | null
 }
 
 export interface User {

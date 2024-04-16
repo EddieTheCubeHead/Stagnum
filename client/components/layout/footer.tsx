@@ -29,7 +29,7 @@ const Footer: React.FC<FooterProps> = ({
     const router = useRouter()
 
     const setTokenToNull = (): void => {
-        if (pool.users[0].user.spotify_id === user.spotify_id) {
+        if (pool.owner?.spotify_id === user.spotify_id) {
             handleDelete
         } else {
             handleLeave

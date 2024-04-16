@@ -40,6 +40,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
     if (pool === null || pool.users === undefined) {
         pool = {
             users: [],
+            owner: null,
             share_code: null,
             currently_playing: {
                 name: '',
@@ -125,7 +126,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         <Header2
                             text={
                                 pool.users.length > 0
-                                    ? `${pool.users[0].user.display_name}'s pool`
+                                    ? `${pool.owner?.display_name}'s pool`
                                     : 'Create or join a pool'
                             }
                             color={'secondary.light'}
@@ -176,14 +177,12 @@ const PoolManager: React.FC<PoolManagerProps> = ({
                         {pool.users.length > 0 && (
                             <DefaultButton
                                 text={
-                                    pool.users[0].user.spotify_id ===
-                                    user.spotify_id
+                                    pool.owner?.spotify_id === user.spotify_id
                                         ? 'Delete Pool'
                                         : 'Leave Pool'
                                 }
                                 action={
-                                    pool.users[0].user.spotify_id ===
-                                    user.spotify_id
+                                    pool.owner?.spotify_id === user.spotify_id
                                         ? handleDelete
                                         : handleLeave
                                 }

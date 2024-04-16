@@ -35,6 +35,7 @@ const HomePageContent: React.FC = () => {
     const [pool, setPool] = useState<Pool>({
         users: [],
         share_code: null,
+        owner: null,
         currently_playing: {
             name: '',
             spotify_icon_uri: '',
@@ -76,35 +77,55 @@ const HomePageContent: React.FC = () => {
     }, [])
 
     const checkIfPoolExists = (): void => {
+        // axios
+        //     .get(`${backend_uri}/pool/`, {
+        //         headers: {
+        //             Authorization: localStorage.getItem('token')
+        //                 ? localStorage.getItem('token')
+        //                 : '',
+        //         },
+        //     })
+        //     .then((response) => {
+        //         setCurrentTrack(response.data.currently_playing)
+        //         updatePool(response.data)
+        //         const token = localStorage.getItem('token')
+        //         if (typeof token === 'string') {
+        //             openPlaybackSocket(token)
+        //             getUser(token)
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         if (error.response.status === 404) {
+        //             setErrorAlert(
+        //                 `Get pool failed with error: ${error.response.data.detail}`,
+        //                 'error',
+        //             )
+        //         } else {
+        //             if (code && state) {
+        //                 handleTokenRequest(code, state)
+        //             } else {
+        //                 router.push('/login')
+        //             }
+        //         }
+        //     })
+
+        const headers = {
+            Authorization: localStorage.getItem('token') || '',
+        }
+
         axios
-            .get(`${backend_uri}/pool/`, {
-                headers: {
-                    Authorization: localStorage.getItem('token')
-                        ? localStorage.getItem('token')
-                        : '',
-                },
+            .get(`${backend_uri}/me`, {
+                headers: headers,
             })
             .then((response) => {
-                setCurrentTrack(response.data.currently_playing)
-                updatePool(response.data)
-                const token = localStorage.getItem('token')
-                if (typeof token === 'string') {
-                    openPlaybackSocket(token)
-                    getUser(token)
-                }
+                setUser(response.data)
+                silentGetPool(headers)
             })
-            .catch((error) => {
-                if (error.response.status === 404) {
-                    setErrorAlert(
-                        `Get pool failed with error: ${error.response.data.detail}`,
-                        'error',
-                    )
+            .catch(() => {
+                if (code && state) {
+                    handleTokenRequest(code, state)
                 } else {
-                    if (code && state) {
-                        handleTokenRequest(code, state)
-                    } else {
-                        router.push('/login')
-                    }
+                    router.push('/login')
                 }
             })
     }
@@ -122,6 +143,7 @@ const HomePageContent: React.FC = () => {
                 localStorage.setItem('token', response.data.access_token)
                 openPlaybackSocket(response.data.access_token)
                 getUser(response.data.access_token)
+                silentGetPool({ Authorization: response.data.access_token })
             })
             .catch((error) => {
                 setErrorAlert(
@@ -169,6 +191,24 @@ const HomePageContent: React.FC = () => {
                     `Getting user failed with error: ${error.response.data.detail}`,
                     'error',
                 )
+            })
+    }
+
+    const silentGetPool = (headers: { Authorization: string }): void => {
+        axios
+            .get(`${backend_uri}/pool`, {
+                headers: headers,
+            })
+            .then((response) => {
+                setCurrentTrack(response.data.currently_playing)
+                updatePool(response.data)
+                const token = localStorage.getItem('token')
+                if (typeof token === 'string') {
+                    openPlaybackSocket(token)
+                }
+            })
+            .catch(() => {
+                console.log('Error in initial pool fetch')
             })
     }
 
