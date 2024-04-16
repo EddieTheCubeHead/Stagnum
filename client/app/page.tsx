@@ -73,10 +73,10 @@ const HomePageContent: React.FC = () => {
 
     // If this gets deleted 'reactStrictMode: false' can be removed from next.config.js
     useEffect(() => {
-        checkIfPoolExists()
+        validateTokenAndInitializeData()
     }, [])
 
-    const checkIfPoolExists = (): void => {
+    const validateTokenAndInitializeData = (): void => {
         const headers = {
             Authorization: localStorage.getItem('token') || '',
         }
