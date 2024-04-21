@@ -88,8 +88,8 @@ resource "aws_ecs_task_definition" "front-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512                                  # Specifying the memory our task requires
-  cpu                      = 256                                  # Specifying the CPU our task requires
+  memory                   = 512                                   # Specifying the memory our task requires
+  cpu                      = 256                                   # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
@@ -177,8 +177,8 @@ resource "aws_ecs_task_definition" "back-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512                              # Specifying the memory our task requires
-  cpu                      = 256                              # Specifying the CPU our task requires
+  memory                   = 512                                   # Specifying the memory our task requires
+  cpu                      = 256                                   # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
