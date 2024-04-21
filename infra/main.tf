@@ -74,8 +74,6 @@ resource "aws_ecs_task_definition" "front-task" {
         { "name": "NEXT_PUBLIC_FRONTEND_URI", "value": "${local.frontend_url}" },
         { "name": "NEXT_PUBLIC_BACKEND_URI", "value": "${local.backend_url}" }
       ],
-      "memory": 2048,
-      "cpu": 1024,
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -90,8 +88,8 @@ resource "aws_ecs_task_definition" "front-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 2048                                  # Specifying the memory our task requires
-  cpu                      = 1024                                  # Specifying the CPU our task requires
+  memory                   = 512                                  # Specifying the memory our task requires
+  cpu                      = 256                                  # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
@@ -121,8 +119,6 @@ resource "aws_ecs_task_definition" "back-task" {
         { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
         { "name":"PSEUDO_RANDOM_CEILING", "value": "${var.pseudo_random_ceiling}"}
       ],
-      "memory": 2048,
-      "cpu": 1024,
       "healthCheck":{
         "command": ["CMD-SHELL", "curl -f http://${local.backend_url}/health/ || exit 1"],
         "interval": 10,
@@ -160,8 +156,6 @@ resource "aws_ecs_task_definition" "back-task" {
         { "name":"POSTGRES_PASSWORD","value": "${var.postgres_pass}"},
         { "name":"POSTGRES_DB","value": "${var.postgres_db}"}
       ],
-      "memory": 1024,
-      "cpu": 256,
       "healthCheck":{
         "command": ["CMD-SHELL", "pg_isready -d ${var.postgres_db}"],
         "interval": 10,
@@ -183,8 +177,8 @@ resource "aws_ecs_task_definition" "back-task" {
   DEFINITION
   requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
   network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 2048 * 2                              # Specifying the memory our task requires
-  cpu                      = 1024 * 2                              # Specifying the CPU our task requires
+  memory                   = 512                              # Specifying the memory our task requires
+  cpu                      = 256                              # Specifying the CPU our task requires
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
 }
 
