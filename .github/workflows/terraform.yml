@@ -86,6 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
+          path: tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
