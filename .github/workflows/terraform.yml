@@ -5,13 +5,13 @@ on:
     paths:
       - "infra/**"
       - ".github/workflows/terraform.yml"
-    branches: 
+    branches:
       - master
   pull_request:
     paths:
       - "infra/**"
       - ".github/workflows/terraform.yml"
-    branches: 
+    branches:
       - master
 
 permissions:
@@ -20,84 +20,135 @@ permissions:
   pull-requests: write
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  terraform-plan:
+    name: "Terraform Plan"
     runs-on: ubuntu-latest
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
-        working-directory: './infra'
+        working-directory: "./infra"
         shell: bash
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.head_ref }}
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
-#    - uses: terraform-linters/setup-tflint@v3
-#      name: Setup TFLint
-#      with:
-#        tflint_version: latest
-#
-#    - name: Show version
-#      run: tflint --version
-#    
-#    - name: Init TFLint
-#      run: tflint --init
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          terraform_version: 1.4.7
 
-     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
-    - name: Install Terraform
-      run: |
-        wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-        sudo apt update && sudo apt install terraform
-          
-    - name: Terraform Init
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-        AWS_REGION: "eu-north-1"
-      run: terraform init
+      - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          AWS_REGION: "eu-north-1"
+        run: terraform init
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt
-    
-#    - name: Terraform lint
-#      run: tflint 
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        run: terraform fmt -check
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-        AWS_REGION: "eu-north-1"
-      run: terraform plan -var="postgres_user=${{secrets.PROD_DB_USERNAME}}" -var="postgres_pass=${{secrets.PROD_DB_PASSWORD}}" -var="postgres_db=stagnum" -var="aws_access_key=${{secrets.AWS_ACCESS_KEY_ID}}" -var="aws_secret_key=${{secrets.AWS_ACCESS_KEY_SECRET}}" -var="spotify_client_id=${{secrets.SPOTIFY_CLIENT_ID}}" -var="spotify_client_secret=${{secrets.SPOTIFY_CLIENT_SECRET}}"
+      # Generates an execution plan for Terraform
+      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
+      - name: Terraform Plan
+        id: tf-plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          AWS_REGION: "eu-north-1"
+          TF_VAR_postgres_user: ${{secrets.PROD_DB_USERNAME}}
+          TF_VAR_postgres_pass: ${{secrets.PROD_DB_PASSWORD}}
+          TF_VAR_postgres_db: stagnum
+          TF_VAR_aws_access_key: ${{secrets.AWS_ACCESS_KEY_ID}}
+          TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
+          TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
+          TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+        run: |
+          export exitcode=0
+          terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
-    - name: Commit automatic cleans
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with: 
-        commit_message: Apply formatting changes
-        branch: ${{ github.head_ref }}
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/master'
-      env: 
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-        AWS_REGION: "eu-north-1"
-      run: terraform apply -auto-approve -input=false -var="postgres_user=${{secrets.PROD_DB_USERNAME}}" -var="postgres_pass=${{secrets.PROD_DB_PASSWORD}}" -var="postgres_db=stagnum" -var="aws_access_key=${{secrets.AWS_ACCESS_KEY_ID}}" -var="aws_secret_key=${{secrets.AWS_ACCESS_KEY_SECRET}}" -var="spotify_client_id=${{secrets.SPOTIFY_CLIENT_ID}}" -var="spotify_client_secret=${{secrets.SPOTIFY_CLIENT_SECRET}}"
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
 
-#    - name: Terraform destroy
-#      env:
-#        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-#      run: terraform destroy -auto-approve -input=false
+      # Save plan to artifacts
+      - name: Publish Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
 
+      # Create string output of Terraform Plan
+      - name: Create String Output
+        id: tf-plan-string
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API }}
+          TF_VAR_rcon_pass: ${{ secrets.RCON_PASS }}
+        run: |
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+
+          delimiter="$(openssl rand -hex 8)"
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+
+      # Publish Terraform Plan as task summary
+      - name: Publish Terraform Plan to Task Summary
+        env:
+          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      # If this is a PR post the changes
+      - name: Push Terraform Output to PR
+        if: github.ref != 'refs/heads/main'
+        uses: actions/github-script@v6
+        env:
+          SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = `${process.env.SUMMARY}`;
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+            })
+
+        # On push to "main", build or change infrastructure according to Terraform configuration files
+        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/master'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          AWS_REGION: "eu-north-1"
+          TF_VAR_postgres_user: ${{secrets.PROD_DB_USERNAME}}
+          TF_VAR_postgres_pass: ${{secrets.PROD_DB_PASSWORD}}
+          TF_VAR_postgres_db: stagnum
+          TF_VAR_aws_access_key: ${{secrets.AWS_ACCESS_KEY_ID}}
+          TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
+          TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
+          TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+        run: terraform apply -auto-approve -input=false
