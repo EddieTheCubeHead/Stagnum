@@ -34,8 +34,6 @@ jobs:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
 
         # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
       - name: Setup Terraform
@@ -150,8 +148,6 @@ jobs:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
 
         # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
       - name: Setup Terraform
