@@ -1,0 +1,49 @@
+name: Bug Report
+description: File a bug report.
+labels: ["bug"]
+assignees:
+  - EddieTheCubeHead
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use this form to file a bug report if you notice erroneous behaviour! Thank you for your input.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact details
+      description: Please include a way to contact you so the team can be in touch we need more information.
+      placeholder: my.email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: problem
+    attributes:
+      label: Addressed problem
+      description: Please describe the problem you have that this feature would solve.
+      placeholder: I don't have enough money
+    validations:
+      required: true
+  - type: textarea
+    id: short-description
+    attributes:
+      label: Feature description
+      description: Please write a concise description about the feature you are requesting.
+      placeholder: I want Stagnum to print money for me
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative solutions
+      description: Please describe alternative solutions to the problem you presented, if you have thought of any.
+      placeholder: I could get a job
+    validations:
+      required: false
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: If you want to include any additional information you can leave it here
+    validations:
+      required: false
