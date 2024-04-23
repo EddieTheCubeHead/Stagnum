@@ -1,0 +1,61 @@
+name: Bug Report
+description: File a bug report.
+labels: ["bug"]
+assignees:
+  - EddieTheCubeHead
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use this form to file a bug report if you notice erroneous behaviour! Thank you for your input.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact details
+      description: Please include a way to contact you so the team can be in touch we need more information.
+      placeholder: my.email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: short-description
+    attributes:
+      label: Short description
+      description: Please write a concise description of the bug.
+      placeholder: Short description here
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Please include the steps that can be taken to reproduce the bug. Bugs with unclear reproduction steps will most likely be closed outright.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Observe UI element '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: Expected behaviour
+      description: What would you expect to happen here?
+      placeholder: Stagnum does '...'
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behaviour
+    attributes:
+      label: Actual behaviour
+      description: What actually happened here?
+      placeholder: Stagnum incorrectly does '...'
+    validations:
+      required: true
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: If you want to include any additional information you can leave it here
+    validations:
+      required: false
