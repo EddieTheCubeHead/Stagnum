@@ -1,7 +1,7 @@
-name: Bug Report
-description: File a bug report.
+name: Feature request
+description: Request a new feature for Stagnum.
 title: "[Feature]: "
-labels: ["bug"]
+labels: ["feature"]
 assignees:
   - EddieTheCubeHead
 body:
