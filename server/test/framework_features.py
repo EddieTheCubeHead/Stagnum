@@ -1,10 +1,11 @@
 import datetime
 
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
 from api.common.helpers import map_user_entity_to_model
 from api.common.models import UserModel
-from conftest import ApproxDatetime
+from conftest import ApproxDatetime, MockDateTimeWrapper, validate_model_callable
 from database.database_connection import ConnectionManager
 from database.entities import LoginState, User
 
@@ -21,7 +22,8 @@ def should_have_functioning_database_connection(db_connection: ConnectionManager
     assert actual_object.spotify_username == "Test User"
 
 
-def should_have_automatic_insert_timestamp(db_connection: ConnectionManager, mock_datetime_wrapper):
+def should_have_automatic_insert_timestamp(db_connection: ConnectionManager,
+                                           mock_datetime_wrapper: MockDateTimeWrapper):
     with db_connection.session() as session:
         my_object = LoginState(state_string="12345678abcdefgh")
         session.add(my_object)
@@ -34,8 +36,9 @@ def should_have_automatic_insert_timestamp(db_connection: ConnectionManager, moc
     assert actual_timestamp == expected_timestamp
 
 
-def should_return_current_user_from_me_route(test_client, valid_token_header, logged_in_user, validate_response):
+def should_return_current_user_from_me_route(test_client: TestClient, valid_token_header: dict[str, str],
+                                             logged_in_user: User, validate_model: validate_model_callable):
     response = test_client.get("/me", headers=valid_token_header)
 
-    result = UserModel.model_validate(validate_response(response))
+    result = validate_model(UserModel, response)
     assert result == map_user_entity_to_model(logged_in_user)

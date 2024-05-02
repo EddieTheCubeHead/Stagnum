@@ -2,7 +2,7 @@ import datetime
 import json
 import random
 from dataclasses import dataclass
-from typing import Callable, Any, Protocol, Awaitable
+from typing import Callable, Any, Protocol, Awaitable, Union, Tuple
 from unittest.mock import Mock
 
 import httpx
@@ -37,7 +37,7 @@ def current_playback_data() -> CurrentPlaybackData:
 
 
 class _MockPlaylistFetchResultProtocol(Protocol):
-    def __call__(self, track_amount: int, append_none: bool = ...) -> dict[str, Any] | ([dict[str, Any]], ...):
+    def __call__(self, track_amount: int, append_none: bool = ...) -> Union[dict[str, Any], Tuple[dict[str, Any], ...]]:
         ...
 
 
@@ -47,7 +47,7 @@ mock_playlist_fetch_result_callable = _MockPlaylistFetchResultProtocol
 @pytest.fixture
 def create_mock_playlist_fetch_result(create_mock_track_search_result: mock_track_search_result_callable,
                                       faker: Faker) -> mock_playlist_fetch_result_callable:
-    def wrapper(track_amount: int, append_none: bool = False) -> dict[str, Any] | ([dict[str, Any]], ...):
+    def wrapper(track_amount: int, append_none: bool = False) -> Union[dict[str, Any], Tuple[dict[str, Any], ...]]:
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
         tracks: list[dict[str, Any] | None] = [create_mock_track_search_result() for _ in range(track_amount)]

@@ -4,7 +4,7 @@ import random
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, override, TypeVar, Protocol, Any
+from typing import Callable, override, TypeVar, Protocol, Any, Generic
 from unittest.mock import Mock
 
 import httpx
@@ -600,20 +600,17 @@ def correct_env_variables(monkeypatch: MonkeyPatch) -> (str, str):
     return client_id, client_secret
 
 
-StagnumType = TypeVar("StagnumType", bound=BaseModel)
-
-
-class _ValidateModelProtocol(Protocol):
-    def __call__(self, expected_type: StagnumType, response: httpx.Response) -> StagnumType:
+class _ValidateModelCallableProtocol(Protocol):
+    def __call__[T: type(BaseModel)](self, expected_type: T, response: httpx.Response) -> T:
         ...
 
 
-validate_model_callable = _ValidateModelProtocol
+validate_model_callable = _ValidateModelCallableProtocol
 
 
 @pytest.fixture
 def validate_model(validate_response) -> validate_model_callable:
-    def wrapper(expected_type: StagnumType, response: httpx.Response) -> StagnumType:
+    def wrapper[T: type(BaseModel)](expected_type: T, response: httpx.Response) -> T:
         return expected_type.model_validate(validate_response(response))
 
     return wrapper
