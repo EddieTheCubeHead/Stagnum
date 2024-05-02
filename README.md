@@ -67,3 +67,8 @@ functional, the return value should look something like follows:
 
 For developing and running server and client locally without docker compose see `client/README.md` and 
 `server/README.md`.
+
+# Contributing
+
+Please see our [contribution guidelines](https://github.com/EddieTheCubeHead/Stagnum/blob/master/contributing.md)
+if you are interested in contributing to the project.
