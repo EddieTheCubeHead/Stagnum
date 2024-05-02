@@ -50,10 +50,6 @@ def create_app() -> FastAPI:
                                allow_origins=_get_allowed_origins(), allow_credentials=True,
                                allow_methods=_ALLOWED_METHODS, allow_headers=_ALLOWED_HEADERS)
 
-    @application.get("/")
-    async def root():
-        return {"message": "Hello World!"}
-
     @application.get("/me")
     async def get_me(user: validated_user) -> UserModel:
         return map_user_entity_to_model(user)

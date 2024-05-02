@@ -66,3 +66,11 @@ def create_valid_state_string(db_connection) -> Callable[[], str]:
 @pytest.fixture
 def primary_valid_state_string(create_valid_state_string):
     return create_valid_state_string()
+
+
+@pytest.fixture
+def requests_client_with_auth_mock(requests_client_post_queue, requests_client_get_queue, default_token_return,
+                                   default_me_return):
+    requests_client_post_queue.append(default_token_return)
+    requests_client_get_queue.append(default_me_return)
+    return default_token_return.content

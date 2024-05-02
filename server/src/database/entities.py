@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import datetime
 
 from sqlalchemy import String, DateTime, Integer, ForeignKey, Boolean, Float
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
@@ -12,7 +12,8 @@ class EntityBase(DeclarativeBase):
     def __tablename__(self):
         return self.__name__
 
-    insert_time_stamp: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now(timezone.utc))
+    insert_time_stamp: Mapped[datetime.datetime] \
+        = mapped_column(DateTime, insert_default=datetime.datetime.now(datetime.timezone.utc))
 
 
 class User(EntityBase):
@@ -31,7 +32,7 @@ class UserSession(EntityBase):
     user_token: Mapped[str] = mapped_column(String(512), nullable=False)
     refresh_token: Mapped[str] = mapped_column(String(512), nullable=False)
     last_login_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
 
     user: Mapped["User"] = relationship(lazy="joined", back_populates="session")
 
@@ -99,9 +100,9 @@ class PoolJoinedUser(EntityBase):
 class PlaybackSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     current_track_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
-                                                  nullable=True)
+                                                         nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
-    next_song_change_timestamp: Mapped[datetime] = mapped_column(DateTime)
+    next_song_change_timestamp: Mapped[datetime.datetime] = mapped_column(DateTime)
 
     # We cache these here, as deleting the active pool member and using a relationship to get its data causes issues
     current_track_uri: Mapped[str | None] = mapped_column(String(128), nullable=True)
