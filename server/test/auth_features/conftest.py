@@ -9,6 +9,7 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from requests import Response
+from starlette.testclient import TestClient
 
 from conftest import mock_token_return_callable
 from database.database_connection import ConnectionManager
@@ -19,7 +20,7 @@ base_auth_login_callable = Callable[[], httpx.Response]
 
 
 @pytest.fixture
-def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: httpx.Client) -> base_auth_login_callable:
+def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: TestClient) -> base_auth_login_callable:
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
     def wrapper():
         return test_client.get("/auth/login?client_redirect_uri=test")
@@ -57,7 +58,7 @@ base_auth_callback_callable = Callable[[], httpx.Response]
 
 
 @pytest.fixture
-def base_auth_callback_call(correct_env_variables: (str, str), test_client: httpx.Client, 
+def base_auth_callback_call(correct_env_variables: (str, str), test_client: TestClient, 
                             primary_valid_state_string: str) -> base_auth_callback_callable:
     def wrapper(state: str = None):
         state_string = state if state is not None else primary_valid_state_string

@@ -13,7 +13,7 @@ from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from _pytest.python_api import ApproxBase
-from faker.proxy import Faker
+from faker import Faker
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -513,7 +513,7 @@ def create_pool_creation_data_json() -> create_pool_creation_data_json_callable:
 def existing_pool(request: FixtureRequest, create_mock_track_search_result: mock_track_search_result_callable,
                   build_success_response: build_success_response_callable, valid_token_header: dict[str, str],
                   requests_client_get_queue: list[httpx.Response], validate_response: validate_response_callable,
-                  create_pool_creation_data_json: create_pool_creation_data_json_callable, test_client: httpx.Client,
+                  create_pool_creation_data_json: create_pool_creation_data_json_callable, test_client: TestClient,
                   db_connection: ConnectionManager, logged_in_user_id: str) -> list[PoolMember]:
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
