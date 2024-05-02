@@ -1,28 +1,39 @@
 import json
 import random
 import string
-from typing import Callable
+from typing import Callable, Any
 from unittest.mock import Mock
 
+import httpx
 import pytest
+from _pytest.fixtures import FixtureRequest
+from _pytest.monkeypatch import MonkeyPatch
 from requests import Response
 
+from conftest import mock_token_return_callable
+from database.database_connection import ConnectionManager
 from database.entities import LoginState
 
 
+base_auth_login_callable = Callable[[], httpx.Response]
+
+
 @pytest.fixture
-def base_auth_login_call(monkeypatch, test_client):
+def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: httpx.Client) -> base_auth_login_callable:
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
-    return lambda: test_client.get("/auth/login?client_redirect_uri=test")
+    def wrapper():
+        return test_client.get("/auth/login?client_redirect_uri=test")
+    
+    return wrapper
 
 
 @pytest.fixture
-def default_token_return(mock_token_return) -> Response:
+def default_token_return(mock_token_return: mock_token_return_callable) -> httpx.Response:
     return mock_token_return()
 
 
 @pytest.fixture
-def default_me_return(request):
+def default_me_return(request: FixtureRequest) -> httpx.Response:
     return_json = {
         "country": "Finland",
         "display_name": "Test User",
@@ -42,8 +53,12 @@ def default_me_return(request):
     return response
 
 
+base_auth_callback_callable = Callable[[], httpx.Response]
+
+
 @pytest.fixture
-def base_auth_callback_call(correct_env_variables, test_client, primary_valid_state_string):
+def base_auth_callback_call(correct_env_variables: (str, str), test_client: httpx.Client, 
+                            primary_valid_state_string: str) -> base_auth_callback_callable:
     def wrapper(state: str = None):
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
@@ -52,8 +67,11 @@ def base_auth_callback_call(correct_env_variables, test_client, primary_valid_st
     return wrapper
 
 
+create_valid_state_string_callable = Callable[[], str]
+
+
 @pytest.fixture
-def create_valid_state_string(db_connection) -> Callable[[], str]:
+def create_valid_state_string(db_connection: ConnectionManager) -> create_valid_state_string_callable:
     def wrapper():
         state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
         with db_connection.session() as session:
@@ -64,13 +82,13 @@ def create_valid_state_string(db_connection) -> Callable[[], str]:
 
 
 @pytest.fixture
-def primary_valid_state_string(create_valid_state_string):
+def primary_valid_state_string(create_valid_state_string: create_valid_state_string_callable) -> str:
     return create_valid_state_string()
 
 
 @pytest.fixture
-def requests_client_with_auth_mock(requests_client_post_queue, requests_client_get_queue, default_token_return,
-                                   default_me_return):
+def mock_token(requests_client_post_queue: list[Response], requests_client_get_queue: list[Response],
+               default_me_return: httpx.Response, default_token_return: httpx.Response) -> str:
     requests_client_post_queue.append(default_token_return)
     requests_client_get_queue.append(default_me_return)
-    return default_token_return.content
+    return json.loads(default_token_return.content.decode("utf-8"))["access_token"]
