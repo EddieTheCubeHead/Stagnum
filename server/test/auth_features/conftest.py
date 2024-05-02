@@ -1,7 +1,7 @@
 import json
 import random
 import string
-from typing import Callable, Any
+from typing import Callable, Any, Protocol
 from unittest.mock import Mock
 
 import httpx
@@ -54,7 +54,12 @@ def default_me_return(request: FixtureRequest) -> httpx.Response:
     return response
 
 
-base_auth_callback_callable = Callable[[], httpx.Response]
+class _BaseAuthCallbackProtocol(Protocol):
+    def __call__(self, state: str = ...) -> httpx.Response:
+        ...
+
+
+base_auth_callback_callable = _BaseAuthCallbackProtocol
 
 
 @pytest.fixture

@@ -448,11 +448,11 @@ def create_mock_playlist_search_result(faker) -> mock_playlist_search_result_cal
     return wrapper
 
 
-get_query_parameters_callable = Callable[[str, str], str]
+get_query_parameter_callable = Callable[[str, str], str]
 
 
 @pytest.fixture
-def get_query_parameter() -> get_query_parameters_callable:
+def get_query_parameter() -> get_query_parameter_callable:
     restricted_characters = r"&"
 
     def wrapper(query_string: str, parameter_name: str) -> str:
