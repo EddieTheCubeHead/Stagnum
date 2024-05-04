@@ -36,7 +36,7 @@ def should_have_automatic_insert_timestamp(db_connection: ConnectionManager,
     assert actual_timestamp == expected_timestamp
 
 
-def should_return_current_user_from_me_route(test_client: TestClient, valid_token_header: dict[str, str],
+def should_return_current_user_from_me_route(test_client: TestClient, valid_token_header: Headers,
                                              logged_in_user: User, validate_model: validate_model_callable):
     response = test_client.get("/me", headers=valid_token_header)
 

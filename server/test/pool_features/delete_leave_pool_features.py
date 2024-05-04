@@ -1,12 +1,22 @@
+from typing import Any
+from unittest.mock import Mock
+
+import httpx
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent, PoolFullContents
-from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession
+from conftest import validate_response_callable, build_success_response_callable
+from database.database_connection import ConnectionManager
+from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User
+from pool_features.conftest import mock_playlist_fetch_result_callable
 
 
-def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, validate_response, db_connection,
-                                          valid_token_header):
+def should_wipe_whole_pool_on_delete_pool(existing_playback: list[dict[str, Any]], test_client: TestClient,
+                                          validate_response: validate_response_callable,
+                                          db_connection: ConnectionManager,
+                                          valid_token_header: Headers):
     response = test_client.delete("/pool", headers=valid_token_header)
 
     response_model = PoolFullContents.model_validate(validate_response(response))
@@ -21,8 +31,8 @@ def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, valida
         assert session.scalar(select(PlaybackSession)) is None
 
 
-def should_send_playback_pause_on_pool_delete(existing_playback, test_client, requests_client,
-                                              valid_token_header):
+def should_send_playback_pause_on_pool_delete(existing_playback: list[dict[str, Any]], test_client: TestClient,
+                                              requests_client: Mock, valid_token_header: Headers):
     requests_client.put.reset_mock()
 
     test_client.delete("/pool", headers=valid_token_header)
@@ -31,10 +41,12 @@ def should_send_playback_pause_on_pool_delete(existing_playback, test_client, re
     assert actual_call.args[0] == "https://api.spotify.com/v1/me/player/pause"
 
 
-def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code, another_logged_in_user_header, test_client,
-                                                   validate_response, db_connection, create_mock_playlist_fetch_result,
-                                                   requests_client_get_queue, build_success_response,
-                                                   another_logged_in_user):
+def should_wipe_leavers_pool_members_on_leave_pool(
+        shared_pool_code: str, another_logged_in_user_header: Headers, test_client: TestClient,
+        validate_response: validate_response_callable, db_connection: ConnectionManager,
+        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
+        requests_client_get_queue: MockResponseQueue, build_success_response: build_success_response_callable,
+        another_logged_in_user: User):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     playlist = create_mock_playlist_fetch_result(35)

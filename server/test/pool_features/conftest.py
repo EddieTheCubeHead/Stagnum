@@ -10,7 +10,6 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from faker import Faker
-from starlette.responses import Response
 from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
@@ -20,15 +19,17 @@ from api.pool import queue_next_songs
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
     WebsocketUpdaterRaw
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
-from conftest import mock_track_search_result_callable, build_success_response_callable, \
-    create_pool_creation_data_json_callable, validate_response_callable, MockDateTimeWrapper
 from database.database_connection import ConnectionManager
 from database.entities import User
-
-
-@dataclass
-class CurrentPlaybackData:
-    current_track: dict | None = None
+from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData
+from types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, PlaylistData
+from types.aliases import MockResponseQueue
+from types.callables import mock_track_search_result_callable, build_success_response_callable, \
+    create_pool_creation_data_json_callable, validate_response_callable, create_spotify_playback_state_callable, \
+    mock_no_player_state_response_callable, mock_playback_paused_response_callable, skip_song_callable, \
+    create_spotify_playback_callable, run_scheduling_job_awaitable, mock_playlist_fetch_result_callable, \
+    share_pool_and_get_code_callable, BuildQueue, BuildQueue, \
+    BuildQueue, mock_filled_queue_get_callable
 
 
 @pytest.fixture
@@ -36,18 +37,10 @@ def current_playback_data() -> CurrentPlaybackData:
     return CurrentPlaybackData()
 
 
-class _MockPlaylistFetchResultProtocol(Protocol):
-    def __call__(self, track_amount: int, append_none: bool = ...) -> Union[dict[str, Any], Tuple[dict[str, Any], ...]]:
-        ...
-
-
-mock_playlist_fetch_result_callable = _MockPlaylistFetchResultProtocol
-
-
 @pytest.fixture
 def create_mock_playlist_fetch_result(create_mock_track_search_result: mock_track_search_result_callable,
                                       faker: Faker) -> mock_playlist_fetch_result_callable:
-    def wrapper(track_amount: int, append_none: bool = False) -> Union[dict[str, Any], Tuple[dict[str, Any], ...]]:
+    def wrapper(track_amount: int, append_none: bool = False) -> Union[PlaylistData, Tuple[PlaylistData, ...]]:
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
         tracks: list[dict[str, Any] | None] = [create_mock_track_search_result() for _ in range(track_amount)]
@@ -150,11 +143,11 @@ def fixed_track_length_ms(minutes: int = 3, seconds: int = 30) -> int:
 def existing_playback(db_connection: ConnectionManager,
                       create_mock_track_search_result: mock_track_search_result_callable,
                       build_success_response: build_success_response_callable,
-                      requests_client_get_queue: list[httpx.Response],
+                      requests_client_get_queue: MockResponseQueue,
                       create_pool_creation_data_json: create_pool_creation_data_json_callable,
-                      test_client: TestClient, valid_token_header: dict[str, str], fixed_track_length_ms: int,
+                      test_client: TestClient, valid_token_header: Headers, fixed_track_length_ms: int,
                       request: FixtureRequest, current_playback_data: CurrentPlaybackData,
-                      validate_response: validate_response_callable) -> list[dict[str, Any]]:
+                      validate_response: validate_response_callable) -> list[TrackData]:
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
     for track in tracks:
@@ -172,7 +165,7 @@ def existing_playback(db_connection: ConnectionManager,
 
 
 @pytest.fixture
-def another_logged_in_user_header(another_logged_in_user_token: str) -> dict[str, str]:
+def another_logged_in_user_header(another_logged_in_user_token: str) -> Headers:
     return {"Authorization": another_logged_in_user_token}
 
 
@@ -191,11 +184,8 @@ def another_logged_in_user_token(another_logged_in_user: User, db_connection: Co
     return token_data.token
 
 
-share_pool_and_get_code_callable = Callable[[], str]
-
-
 @pytest.fixture
-def share_pool_and_get_code(test_client: TestClient, valid_token_header: dict[str, str],
+def share_pool_and_get_code(test_client: TestClient, valid_token_header: Headers,
                             validate_response: validate_response_callable) -> share_pool_and_get_code_callable:
     def wrapper() -> str:
         response = test_client.post("/pool/share", headers=valid_token_header)
@@ -231,7 +221,7 @@ def playback_service(pool_db_connection: PoolDatabaseConnectionRaw, pool_spotify
 
 
 @pytest.fixture
-def shared_pool_code(existing_playback: list[dict[str, Any]],
+def shared_pool_code(existing_playback: list[TrackData],
                      share_pool_and_get_code: share_pool_and_get_code_callable) -> str:
     return share_pool_and_get_code()
 
@@ -251,13 +241,10 @@ def weighted_parameters(monkeypatch: MonkeyPatch) -> RandomizationParameters:
     return parameters
 
 
-build_empty_queue_callable = Callable[[], dict[str, Any]]
-
-
 @pytest.fixture
 def build_empty_queue(create_mock_track_search_result: mock_track_search_result_callable,
-                      current_playback_data: CurrentPlaybackData) -> build_empty_queue_callable:
-    def wrapper() -> dict[str, Any]:
+                      current_playback_data: CurrentPlaybackData) -> BuildQueue:
+    def wrapper() -> QueueData:
         currently_playing = create_mock_track_search_result()
         queue_tail = [current_playback_data.current_track] * 50
         return {
@@ -268,14 +255,11 @@ def build_empty_queue(create_mock_track_search_result: mock_track_search_result_
     return wrapper
 
 
-mock_empty_queue_get_callable = Callable[[], dict[str, Any]]
-
-
 @pytest.fixture
-def mock_empty_queue_get(requests_client_get_queue: list[httpx.Response],
+def mock_empty_queue_get(requests_client_get_queue: MockResponseQueue,
                          build_success_response: build_success_response_callable,
-                         build_empty_queue: build_empty_queue_callable) -> mock_empty_queue_get_callable:
-    def wrapper() -> dict[str, Any]:
+                         build_empty_queue: BuildQueue) -> BuildQueue:
+    def wrapper() -> QueueData:
         queue_data = build_empty_queue()
         requests_client_get_queue.append(build_success_response(queue_data))
         return queue_data
@@ -284,17 +268,14 @@ def mock_empty_queue_get(requests_client_get_queue: list[httpx.Response],
 
 
 @pytest.fixture
-def empty_queue(mock_empty_queue_get: mock_empty_queue_get_callable) -> dict:
+def empty_queue(mock_empty_queue_get: BuildQueue) -> QueueData:
     return mock_empty_queue_get()
-
-
-build_queue_with_song_callable = Callable[[], dict[str, Any]]
 
 
 @pytest.fixture
 def build_queue_with_song(create_mock_track_search_result: mock_track_search_result_callable,
-                          current_playback_data: CurrentPlaybackData) -> build_queue_with_song_callable:
-    def wrapper() -> dict[str, Any]:
+                          current_playback_data: CurrentPlaybackData) -> BuildQueue:
+    def wrapper() -> QueueData:
         currently_playing = create_mock_track_search_result()
         next_song = create_mock_track_search_result()
         queue_tail = [current_playback_data.current_track] * 50
@@ -306,14 +287,11 @@ def build_queue_with_song(create_mock_track_search_result: mock_track_search_res
     return wrapper
 
 
-mock_filled_queue_get_callable = Callable[[], dict[str, Any]]
-
-
 @pytest.fixture
-def mock_filled_queue_get(requests_client_get_queue: list[httpx.Response],
+def mock_filled_queue_get(requests_client_get_queue: MockResponseQueue,
                           build_success_response: build_success_response_callable,
-                          build_queue_with_song: build_queue_with_song_callable) -> mock_filled_queue_get_callable:
-    def wrapper() -> dict[str, Any]:
+                          build_queue_with_song: BuildQueue) -> mock_filled_queue_get_callable:
+    def wrapper() -> QueueData:
         queue_data = build_queue_with_song()
         requests_client_get_queue.append(build_success_response(queue_data))
         return queue_data
@@ -323,26 +301,17 @@ def mock_filled_queue_get(requests_client_get_queue: list[httpx.Response],
 
 @pytest.fixture
 def song_in_queue(mock_filled_queue_get: mock_filled_queue_get_callable,
-                  mock_empty_queue_get: mock_empty_queue_get_callable) -> dict:
+                  mock_empty_queue_get: BuildQueue) -> QueueData:
     queue_data = mock_filled_queue_get()
     mock_empty_queue_get()
     return queue_data
 
 
-class _CreateSpotifyPlaybackStateProtocol(Protocol):
-    def __call__(self, song_data: dict[str, Any], playback_left: int = ..., is_playing: bool = ...,
-                 context: dict | None = ...) -> dict[str, Any]:
-        ...
-
-
-create_spotify_playback_state_callable = _CreateSpotifyPlaybackStateProtocol
-
-
 @pytest.fixture
 def create_spotify_playback_state(faker: Faker, create_mock_track_search_result: mock_track_search_result_callable,
                                   mock_datetime_wrapper: MockDateTimeWrapper) -> create_spotify_playback_state_callable:
-    def wrapper(song_data: dict[str, Any], playback_left: int = 1000, is_playing: bool = True,
-                context: dict = None) -> dict[str, Any]:
+    def wrapper(song_data: TrackData, playback_left: int = 1000, is_playing: bool = True,
+                context: PlaybackContextData = None) -> PlaybackStateData:
         return {
             "device": {
                 "id": faker.uuid4(),
@@ -356,7 +325,7 @@ def create_spotify_playback_state(faker: Faker, create_mock_track_search_result:
             "repeat_state": "track",
             "shuffle_state": False,
             "context": context,
-            "timestamp": mock_datetime_wrapper.now().timestamp() * 1000,  # Spotify sends timestamps in milliseconds
+            "timestamp": int(mock_datetime_wrapper.now().timestamp() * 1000),  # Spotify sends timestamps in milliseconds
             "progress_ms": song_data["duration_ms"] - playback_left,
             "is_playing": is_playing,
             "item": song_data,
@@ -378,24 +347,15 @@ def create_spotify_playback_state(faker: Faker, create_mock_track_search_result:
     return wrapper
 
 
-class _CreateSpotifyPlaybackProtocol(Protocol):
-    def __call__(self, playback_left_ms: int = ..., songs_in_queue: int = ..., song_data: dict | None = ...,
-                 context: dict | None = ...) -> datetime.datetime:
-        ...
-
-
-create_spotify_playback_callable = _CreateSpotifyPlaybackProtocol
-
-
 @pytest.fixture
-def create_spotify_playback(requests_client_get_queue: list[httpx.Response],
+def create_spotify_playback(requests_client_get_queue: MockResponseQueue,
                             create_spotify_playback_state: create_spotify_playback_state_callable,
                             build_success_response: build_success_response_callable,
                             create_mock_track_search_result: mock_track_search_result_callable,
                             current_playback_data: CurrentPlaybackData, mock_datetime_wrapper: MockDateTimeWrapper) \
         -> create_spotify_playback_callable:
-    def wrapper(playback_left_ms: int = 500, songs_in_queue: int = 0, song_data: dict = None, context: dict = None) \
-            -> datetime.datetime:
+    def wrapper(playback_left_ms: int = 500, songs_in_queue: int | None = 0, song_data: TrackData = None,
+                context: PlaybackContextData = None) -> datetime.datetime:
         song_data = song_data if song_data is not None else current_playback_data.current_track
         playback_state = create_spotify_playback_state(song_data, playback_left_ms, True, context)
         song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=playback_left_ms)
@@ -413,9 +373,6 @@ def create_spotify_playback(requests_client_get_queue: list[httpx.Response],
     return wrapper
 
 
-run_scheduling_job_awaitable = Callable[[], Awaitable[None]]
-
-
 @pytest.fixture
 def run_scheduling_job(playback_service: PoolPlaybackServiceRaw,
                        create_spotify_playback: create_spotify_playback_callable) -> run_scheduling_job_awaitable:
@@ -424,9 +381,6 @@ def run_scheduling_job(playback_service: PoolPlaybackServiceRaw,
         await queue_next_songs(playback_service)
 
     return wrapper
-
-
-skip_song_callable = Callable[[dict], httpx.Response]
 
 
 @pytest.fixture
@@ -438,11 +392,8 @@ def skip_song(test_client: TestClient, create_spotify_playback: create_spotify_p
     return wrapper
 
 
-mock_no_player_state_response_callable = Callable[[], None]
-
-
 @pytest.fixture
-def mock_no_player_playback_state_response(requests_client_get_queue: list[httpx.Response]) \
+def mock_no_player_playback_state_response(requests_client_get_queue: MockResponseQueue) \
         -> mock_no_player_state_response_callable:
     def wrapper() -> None:
         response = Mock()
@@ -453,14 +404,11 @@ def mock_no_player_playback_state_response(requests_client_get_queue: list[httpx
     return wrapper
 
 
-mock_playback_paused_response_callable = Callable[[], None]
-
-
 @pytest.fixture
-def mock_playback_paused_response(requests_client_get_queue: list[httpx.Response],
+def mock_playback_paused_response(requests_client_get_queue: MockResponseQueue,
                                   create_spotify_playback_state: create_spotify_playback_state_callable,
                                   current_playback_data: CurrentPlaybackData,
-                                  mock_empty_queue_get: mock_empty_queue_get_callable) \
+                                  mock_empty_queue_get: BuildQueue) \
         -> mock_playback_paused_response_callable:
     def wrapper() -> None:
         response = Mock()

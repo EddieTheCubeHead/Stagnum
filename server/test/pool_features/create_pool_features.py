@@ -6,13 +6,21 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 
-from conftest import ErrorData
 from database.database_connection import ConnectionManager
-from database.entities import PoolMember
+from database.entities import PoolMember, User
+from helpers.classes import ErrorData
+from pool_features.conftest import mock_playlist_fetch_result_callable
+from types.typed_dictionaries import Headers
+from types.aliases import MockResponseQueue
+from types.callables import validate_response_callable, mock_track_search_result_callable, \
+    build_success_response_callable, create_pool_creation_data_json_callable, mock_album_search_result_callable, \
+    mock_artist_search_result_callable
+
+mock_put_response_callable = Callable[[], None]
 
 
 @pytest.fixture
-def mock_put_response(requests_client_put_queue) -> Callable[[], None]:
+def mock_put_response(requests_client_put_queue: MockResponseQueue) -> mock_put_response_callable:
     def wrapper():
         response = Mock()
         response.status_code = 200
@@ -23,17 +31,15 @@ def mock_put_response(requests_client_put_queue) -> Callable[[], None]:
 
 
 @pytest.fixture(autouse=True)
-def auto_mock_put_response(mock_put_response):
+def auto_mock_put_response(mock_put_response) -> None:
     mock_put_response()
 
 
-def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(test_client: TestClient,
-                                                                             valid_token_header,
-                                                                             validate_response,
-                                                                             create_mock_track_search_result,
-                                                                             build_success_response,
-                                                                             requests_client_get_queue,
-                                                                             create_pool_creation_data_json):
+def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(
+        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
+        create_mock_track_search_result: mock_track_search_result_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
     requests_client_get_queue.append(build_success_response(my_track))
@@ -42,45 +48,50 @@ def should_create_pool_of_one_song_when_post_pool_called_with_single_song_id(tes
     assert pool_response["users"][0]["tracks"][0]["name"] == my_track["name"]
 
 
-def should_return_track_data_in_currently_playing_field_on_pool_creation(test_client: TestClient, valid_token_header,
-                                                                         validate_response, build_success_response,
-                                                                         create_mock_track_search_result,
-                                                                         requests_client,
-                                                                         create_pool_creation_data_json):
+def should_return_track_data_in_currently_playing_field_on_pool_creation(
+        test_client: TestClient, valid_token_header, validate_response: validate_response_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_mock_track_search_result: mock_track_search_result_callable,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client.get = Mock(return_value=build_success_response(my_track))
+    requests_client_get_queue.append(build_success_response(my_track))
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
     pool_response = validate_response(response)
     assert pool_response["currently_playing"]["name"] == my_track["name"]
 
 
-def should_return_self_as_pool_owner_on_pool_creation(test_client: TestClient, valid_token_header, validate_response,
-                                                      build_success_response, create_mock_track_search_result,
-                                                      requests_client, create_pool_creation_data_json, logged_in_user):
+def should_return_self_as_pool_owner_on_pool_creation(
+        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_mock_track_search_result: mock_track_search_result_callable, logged_in_user: User,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client.get = Mock(return_value=build_success_response(my_track))
+    requests_client_get_queue.append(build_success_response(my_track))
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
     pool_response = validate_response(response)
     assert pool_response["owner"]["spotify_id"] == logged_in_user.spotify_id
 
 
-def should_save_pool_in_database_with_user_id_when_created(test_client: TestClient, db_connection: ConnectionManager,
-                                                           valid_token_header, create_mock_track_search_result,
-                                                           build_success_response, requests_client, logged_in_user_id,
-                                                           create_pool_creation_data_json):
+def should_save_pool_in_database_with_user_id_when_created(
+        test_client: TestClient, db_connection: ConnectionManager, valid_token_header: Headers,
+        create_mock_track_search_result: mock_track_search_result_callable, logged_in_user_id: str,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client.get = Mock(return_value=build_success_response(my_track))
+    requests_client_get_queue.append(build_success_response(my_track))
     test_client.post("/pool", json=data_json, headers=valid_token_header)
     with db_connection.session() as session:
         actual_pool_content = session.scalar(select(PoolMember).where(PoolMember.user_id == logged_in_user_id))
     assert actual_pool_content.duration_ms == my_track["duration_ms"]
 
 
-def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header, validate_response,
-                                             create_mock_track_search_result, create_pool_creation_data_json,
+def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header: Headers,
+                                             validate_response: validate_response_callable,
+                                             create_mock_track_search_result: mock_track_search_result_callable,
+                                             create_pool_creation_data_json: create_pool_creation_data_json_callable,
                                              spotify_error_message: ErrorData):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
@@ -90,14 +101,18 @@ def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_toke
                                    f"Message: {spotify_error_message.message}")
 
 
-def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header,
-                                             create_mock_album_search_result, validate_response,
-                                             create_mock_track_search_result, create_mock_artist_search_result,
-                                             build_success_response, requests_client, create_pool_creation_data_json):
+def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_token_header: Headers,
+                                             create_mock_album_search_result: mock_album_search_result_callable,
+                                             validate_response: validate_response_callable,
+                                             create_mock_track_search_result: mock_track_search_result_callable,
+                                             create_mock_artist_search_result: mock_artist_search_result_callable,
+                                             build_success_response: build_success_response_callable,
+                                             requests_client_get_queue: MockResponseQueue, requests_client: Mock,
+                                             create_pool_creation_data_json: create_pool_creation_data_json_callable):
     artist = create_mock_artist_search_result()
     tracks = [create_mock_track_search_result(artist) for _ in range(12)]
     album = create_mock_album_search_result(artist, tracks)
-    requests_client.get = Mock(return_value=build_success_response(album))
+    requests_client_get_queue.append(build_success_response(album))
     data_json = create_pool_creation_data_json(album["uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -112,14 +127,19 @@ def should_be_able_to_create_pool_from_album(test_client: TestClient, valid_toke
         assert actual_track["name"] == expected_track["name"]
 
 
-def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
-                                                create_mock_album_search_result, create_mock_track_search_result,
-                                                create_mock_artist_search_result, build_success_response,
-                                                requests_client, create_pool_creation_data_json, logged_in_user_id):
+def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_token_header: Headers,
+                                                db_connection: ConnectionManager,
+                                                create_mock_album_search_result: mock_album_search_result_callable,
+                                                create_mock_track_search_result: mock_track_search_result_callable,
+                                                create_mock_artist_search_result: mock_artist_search_result_callable,
+                                                build_success_response: build_success_response_callable,
+                                                requests_client_get_queue: MockResponseQueue,
+                                                create_pool_creation_data_json: create_pool_creation_data_json_callable,
+                                                logged_in_user_id: str):
     artist = create_mock_artist_search_result()
     tracks = [create_mock_track_search_result(artist) for _ in range(12)]
     album = create_mock_album_search_result(artist, tracks)
-    requests_client.get = Mock(return_value=build_success_response(album))
+    requests_client_get_queue.append(build_success_response(album))
     data_json = create_pool_creation_data_json(album["uri"])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -135,10 +155,13 @@ def should_save_whole_album_as_pool_in_database(test_client: TestClient, valid_t
         assert actual_track.name == expected_track["name"]
 
 
-def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_token_header, validate_response,
-                                              create_mock_track_search_result, create_mock_artist_search_result,
-                                              build_success_response, requests_client, create_pool_creation_data_json,
-                                              requests_client_get_queue):
+def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_token_header: Headers,
+                                              validate_response: validate_response_callable, requests_client: Mock,
+                                              create_mock_track_search_result: mock_track_search_result_callable,
+                                              create_mock_artist_search_result: mock_artist_search_result_callable,
+                                              build_success_response: build_success_response_callable,
+                                              create_pool_creation_data_json: create_pool_creation_data_json_callable,
+                                              requests_client_get_queue: MockResponseQueue):
     artist = create_mock_artist_search_result()
     tracks = {
         "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
@@ -161,10 +184,12 @@ def should_be_able_to_create_pool_from_artist(test_client: TestClient, valid_tok
         assert actual_track["name"] == expected_track["name"]
 
 
-def should_save_artist_top_ten_tracks_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
-                                                          create_mock_artist_search_result, requests_client_get_queue,
-                                                          create_mock_track_search_result, build_success_response,
-                                                          create_pool_creation_data_json, logged_in_user_id):
+def should_save_artist_top_ten_tracks_as_pool_in_database(
+        test_client: TestClient, valid_token_header: Headers, db_connection: ConnectionManager,
+        create_mock_artist_search_result: mock_artist_search_result_callable, logged_in_user_id: str,
+        create_mock_track_search_result: mock_track_search_result_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     artist = create_mock_artist_search_result()
     tracks = {
         "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
@@ -186,12 +211,13 @@ def should_save_artist_top_ten_tracks_as_pool_in_database(test_client: TestClien
         assert actual_track.name == expected_track["name"]
 
 
-def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_token_header,
-                                                create_mock_playlist_fetch_result, validate_response,
-                                                create_mock_track_search_result, build_success_response,
-                                                requests_client, create_pool_creation_data_json):
+def should_be_able_to_create_pool_from_playlist(
+        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
+        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable, requests_client: Mock,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     playlist = create_mock_playlist_fetch_result(30)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
+    requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -207,15 +233,14 @@ def should_be_able_to_create_pool_from_playlist(test_client: TestClient, valid_t
         assert actual_track["name"] == expected_track["name"]
 
 
-def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(test_client: TestClient,
-                                                                                valid_token_header, validate_response,
-                                                                                create_mock_playlist_fetch_result,
-                                                                                create_mock_track_search_result,
-                                                                                build_success_response,
-                                                                                requests_client,
-                                                                                create_pool_creation_data_json):
+def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
+        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
+        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable, requests_client: Mock,
+        create_mock_track_search_result: mock_track_search_result_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     playlist = create_mock_playlist_fetch_result(30, True)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
+    requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -231,11 +256,13 @@ def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
         assert actual_track["name"] == expected_track["name"]
 
 
-def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, valid_token_header, db_connection,
-                                                   create_mock_playlist_fetch_result, build_success_response,
-                                                   requests_client, create_pool_creation_data_json, logged_in_user_id):
+def should_save_whole_playlist_as_pool_in_database(
+        test_client: TestClient, valid_token_header: Headers, db_connection: ConnectionManager,
+        logged_in_user_id: str, create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable):
     playlist = create_mock_playlist_fetch_result(30)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
+    requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
     test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -252,11 +279,14 @@ def should_save_whole_playlist_as_pool_in_database(test_client: TestClient, vali
         assert actual_track.duration_ms == expected_track["duration_ms"]
 
 
-def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid_token_header, db_connection,
-                                                  create_mock_album_search_result, create_mock_track_search_result,
-                                                  create_mock_artist_search_result, build_success_response,
-                                                  requests_client_get_queue, create_pool_creation_data_json,
-                                                  logged_in_user_id, mock_put_response):
+def should_delete_previous_pool_on_post_pool_call(
+        test_client: TestClient, valid_token_header: Headers, db_connection: ConnectionManager,
+        create_mock_album_search_result: mock_album_search_result_callable, logged_in_user_id: str,
+        create_mock_track_search_result: mock_track_search_result_callable,
+        create_mock_artist_search_result: mock_artist_search_result_callable,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable,
+        mock_put_response: mock_put_response_callable):
     old_artist = create_mock_artist_search_result()
     old_tracks = [create_mock_track_search_result(old_artist) for _ in range(12)]
     old_album = create_mock_album_search_result(old_artist, old_tracks)
@@ -280,13 +310,14 @@ def should_delete_previous_pool_on_post_pool_call(test_client: TestClient, valid
     assert len(actual_results) == 1
 
 
-def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestClient, valid_token_header,
-                                                             validate_response, create_mock_track_search_result,
-                                                             build_success_response, requests_client_get_queue,
-                                                             create_pool_creation_data_json, db_connection,
-                                                             create_mock_artist_search_result,
-                                                             create_mock_album_search_result, logged_in_user_id,
-                                                             create_mock_playlist_fetch_result):
+def should_be_able_to_post_multiple_pool_members_on_creation(
+        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
+        create_mock_track_search_result: mock_track_search_result_callable, logged_in_user_id: str,
+        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable, db_connection: ConnectionManager,
+        create_mock_artist_search_result: mock_artist_search_result_callable,
+        create_mock_album_search_result: mock_album_search_result_callable,
+        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable):
     tracks = [create_mock_track_search_result() for _ in range(10)]
     artist = create_mock_artist_search_result()
     artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
@@ -314,12 +345,13 @@ def should_be_able_to_post_multiple_pool_members_on_creation(test_client: TestCl
 
 
 @pytest.mark.slow
-def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_client: TestClient, valid_token_header,
-                                                                           db_connection, requests_client_get_queue,
-                                                                           create_mock_playlist_fetch_result,
-                                                                           build_success_response, logged_in_user_id,
-                                                                           create_pool_creation_data_json,
-                                                                           requests_client):
+def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(
+        test_client: TestClient, valid_token_header: Headers, db_connection: ConnectionManager,
+        requests_client_get_queue: MockResponseQueue, logged_in_user_id: str,
+        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
+        build_success_response: build_success_response_callable,
+        create_pool_creation_data_json: create_pool_creation_data_json_callable,
+        requests_client: Mock):
     playlist_length = 320
     playlist_fetches = create_mock_playlist_fetch_result(playlist_length)
     playlist = playlist_fetches[0]
@@ -338,11 +370,14 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(test_
     assert requests_client.get.call_args.kwargs["headers"] == valid_token_header
 
 
-def should_include_token_in_headers(test_client: TestClient, valid_token_header, requests_client,
-                                    create_mock_track_search_result,  build_success_response, assert_token_in_headers,
-                                    create_pool_creation_data_json):
+def should_include_token_in_headers(test_client: TestClient, valid_token_header: Headers,
+                                    requests_client_get_queue: MockResponseQueue,
+                                    create_mock_track_search_result: mock_track_search_result_callable,
+                                    build_success_response: build_success_response_callable,
+                                    assert_token_in_headers: assert_token_in_headers_callable,
+                                    create_pool_creation_data_json: create_pool_creation_data_json_callable):
     my_track = create_mock_track_search_result()
     data_json = create_pool_creation_data_json(my_track["uri"])
-    requests_client.get = Mock(return_value=build_success_response(my_track))
+    requests_client_get_queue.append(build_success_response(my_track))
     response = test_client.post("/pool", json=data_json, headers=valid_token_header)
     assert_token_in_headers(response)

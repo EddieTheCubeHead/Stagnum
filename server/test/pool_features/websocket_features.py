@@ -1,16 +1,23 @@
 import datetime
 import random
 
+import httpx
 import pytest
+from starlette.testclient import TestClient
 
 from api.pool import queue_next_songs
 from api.pool.models import PoolContent
+from conftest import build_success_response_callable
+from pool_features.conftest import mock_playlist_fetch_result_callable
 
 
-def should_get_update_when_pool_contents_added(test_client, valid_token_header, shared_pool_code, logged_in_user_id,
-                                               another_logged_in_user_header, build_success_response,
-                                               create_mock_playlist_fetch_result, requests_client_get_queue,
-                                               another_logged_in_user_token):
+def should_get_update_when_pool_contents_added(test_client: TestClient, valid_token_header: Headers,
+                                               shared_pool_code: str, logged_in_user_id: str,
+                                               another_logged_in_user_header: Headers,
+                                               build_success_response: build_success_response_callable,
+                                               create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
+                                               requests_client_get_queue: MockResponseQueue,
+                                               another_logged_in_user_token: Headers):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={another_logged_in_user_token}") as websocket:
         playlist = create_mock_playlist_fetch_result(15)

@@ -14,9 +14,8 @@ from starlette.testclient import TestClient
 from conftest import mock_token_return_callable
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
-
-
-base_auth_login_callable = Callable[[], httpx.Response]
+from types.aliases import SpotifySecrets
+from types.callables import create_valid_state_string_callable, base_auth_login_callable, base_auth_callback_callable
 
 
 @pytest.fixture
@@ -54,16 +53,8 @@ def default_me_return(request: FixtureRequest) -> httpx.Response:
     return response
 
 
-class _BaseAuthCallbackProtocol(Protocol):
-    def __call__(self, state: str = ...) -> httpx.Response:
-        ...
-
-
-base_auth_callback_callable = _BaseAuthCallbackProtocol
-
-
 @pytest.fixture
-def base_auth_callback_call(correct_env_variables: (str, str), test_client: TestClient, 
+def base_auth_callback_call(correct_env_variables: SpotifySecrets, test_client: TestClient, 
                             primary_valid_state_string: str) -> base_auth_callback_callable:
     def wrapper(state: str = None):
         state_string = state if state is not None else primary_valid_state_string
@@ -71,9 +62,6 @@ def base_auth_callback_call(correct_env_variables: (str, str), test_client: Test
             f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url")
 
     return wrapper
-
-
-create_valid_state_string_callable = Callable[[], str]
 
 
 @pytest.fixture

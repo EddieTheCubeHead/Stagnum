@@ -4,11 +4,11 @@ from sqlalchemy import select
 
 from api.auth.dependencies import AuthDatabaseConnectionRaw
 from api.auth.tasks import cleanup_state_strings
-from auth_features.conftest import base_auth_login_callable
-from conftest import increment_now_callable, validate_response_callable, get_query_parameter_callable, \
-    MockDateTimeWrapper
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
+from helpers.classes import MockDateTimeWrapper
+from types.callables import increment_now_callable, base_auth_login_callable, validate_response_callable, \
+    get_query_parameter_callable
 
 
 def should_cleanup_expired_states_from_database_on_cleanup_job(increment_now: increment_now_callable,

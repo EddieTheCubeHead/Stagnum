@@ -98,8 +98,8 @@ def create_member_post_data() -> Callable[[PoolMember], dict[str, Any]]:
 
 @pytest.fixture
 def add_track_to_pool(mock_pool_member_spotify_fetch, create_member_post_data, test_client) \
-        -> Callable[[PoolMember, dict[str, str]], None]:
-    def wrapper(track: PoolMember, headers: dict[str, str]):
+        -> Callable[[PoolMember, Headers], None]:
+    def wrapper(track: PoolMember, headers: Headers):
         mock_pool_member_spotify_fetch(track)
         post_data = create_member_post_data(track)
         test_client.post("/pool/content", json=post_data, headers=headers)

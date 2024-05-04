@@ -6,9 +6,8 @@ from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.common.dependencies import DatabaseConnection
-from auth_features.conftest import base_auth_login_callable
-from conftest import validate_response_callable, get_query_parameter_callable
 from database.entities import LoginState
+from types.callables import base_auth_login_callable, validate_response_callable, get_query_parameter_callable
 
 
 @pytest.fixture
