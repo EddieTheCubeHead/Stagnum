@@ -98,6 +98,12 @@ class CreateGeneralSearch(Protocol):
         ...
 
 
+class RunSearchCall(Protocol):
+    def __call__(self, query_addition: str | None, search_call: CreateSearchResponse, query: str,
+                 limit: int = 20) -> httpx.Response:
+        ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]

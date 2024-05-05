@@ -7,6 +7,7 @@ from test_types.callables import ValidateResponse, MockTrackSearchResult, \
     BuildSuccessResponse, MockArtistSearchResult, MockAlbumSearchResult, \
     AssertTokenInHeaders
 from test_types.typed_dictionaries import Headers
+from test_types.aliases import MockResponseQueue
 
 
 def should_get_all_existing_tracks(existing_pool, test_client, valid_token_header, validate_response):
