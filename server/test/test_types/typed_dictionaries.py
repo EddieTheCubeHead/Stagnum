@@ -68,14 +68,14 @@ class SimplifiedTrackData(SpotifyResourceData):
     is_local: bool
 
 
-class TrackList[TrackType](TypedDict):
+class PaginatedSearchResultData[ResultType: SpotifyResourceData](TypedDict):
     href: str
     limit: int
     next: str
     offset: int
-    previous: str
+    previous: str | None
     total: int
-    items: list[TrackType]
+    items: list[ResultType]
 
 
 class AlbumData(SpotifyResourceWithImagesData):
@@ -87,7 +87,7 @@ class AlbumData(SpotifyResourceWithImagesData):
     restrictions: RestrictionData
     type: Literal["album"]
     artists: list[ArtistData]
-    tracks: TrackList[SimplifiedTrackData]
+    tracks: PaginatedSearchResultData[SimplifiedTrackData]
 
 
 class TrackData(SpotifyResourceData):
@@ -128,7 +128,7 @@ class PlaylistData(SpotifyResourceWithImagesData):
     owner: UserData
     public: bool
     snapshot_id: str
-    tracks: TrackList[PlaylistTrackData]
+    tracks: PaginatedSearchResultData[PlaylistTrackData]
     type: Literal["playlist"]
 
 
@@ -186,3 +186,10 @@ class PoolContentData(TypedDict):
 
 class PoolCreationDataDict(TypedDict):
     spotify_uris: list[PoolContentData]
+
+
+class GeneralSearchResultData(TypedDict):
+    tracks: PaginatedSearchResultData[TrackData]
+    albums: PaginatedSearchResultData[AlbumData]
+    artists: PaginatedSearchResultData[ArtistData]
+    playlists: PaginatedSearchResultData[PlaylistData]

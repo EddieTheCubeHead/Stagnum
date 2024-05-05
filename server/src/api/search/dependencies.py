@@ -37,7 +37,7 @@ def _build_paginated_track_search(result_data):
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        results=[_build_track(track) for track in result_data["items"]],
+        items=[_build_track(track) for track in result_data["items"]],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"]
     )
@@ -57,7 +57,7 @@ def _build_paginated_artist_search(result_data):
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        results=[_build_artist(artist) for artist in result_data["items"]],
+        items=[_build_artist(artist) for artist in result_data["items"]],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"]
     )
@@ -79,7 +79,7 @@ def _build_paginated_album_search(result_data):
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        results=[_build_album(album) for album in result_data["items"]],
+        items=[_build_album(album) for album in result_data["items"]],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"]
     )
@@ -99,7 +99,7 @@ def _build_paginated_playlist_search(result_data):
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        results=[_build_playlist(playlist) for playlist in result_data["items"]],
+        items=[_build_playlist(playlist) for playlist in result_data["items"]],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"]
     )

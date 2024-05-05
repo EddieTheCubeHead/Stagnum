@@ -7,14 +7,14 @@ from api.auth.tasks import cleanup_state_strings
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
 from helpers.classes import MockDateTimeWrapper
-from types.callables import increment_now_callable, base_auth_login_callable, validate_response_callable, \
-    get_query_parameter_callable
+from test_types.callables import IncrementNow, BaseAuthLogin, ValidateResponse, \
+    GetQueryParameter
 
 
-def should_cleanup_expired_states_from_database_on_cleanup_job(increment_now: increment_now_callable,
-                                                               base_auth_login_call: base_auth_login_callable,
-                                                               validate_response: validate_response_callable,
-                                                               get_query_parameter: get_query_parameter_callable,
+def should_cleanup_expired_states_from_database_on_cleanup_job(increment_now: IncrementNow,
+                                                               base_auth_login_call: BaseAuthLogin,
+                                                               validate_response: ValidateResponse,
+                                                               get_query_parameter: GetQueryParameter,
                                                                db_connection: ConnectionManager,
                                                                mock_datetime_wrapper: MockDateTimeWrapper):
     response = base_auth_login_call()
@@ -28,8 +28,8 @@ def should_cleanup_expired_states_from_database_on_cleanup_job(increment_now: in
 
 
 def should_not_cleanup_non_expired_states_from_database_on_cleanup_job(
-        increment_now: increment_now_callable, base_auth_login_call: base_auth_login_callable,
-        validate_response: validate_response_callable, get_query_parameter: get_query_parameter_callable,
+        increment_now: IncrementNow, base_auth_login_call: BaseAuthLogin,
+        validate_response: ValidateResponse, get_query_parameter: GetQueryParameter,
         db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper):
     response = base_auth_login_call()
     data_json = validate_response(response)

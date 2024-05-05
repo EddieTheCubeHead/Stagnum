@@ -5,7 +5,7 @@ from starlette.testclient import TestClient
 
 from api.common.helpers import map_user_entity_to_model
 from api.common.models import UserModel
-from conftest import ApproxDatetime, MockDateTimeWrapper, validate_model_callable
+from conftest import ApproxDatetime, MockDateTimeWrapper, ValidateModel
 from database.database_connection import ConnectionManager
 from database.entities import LoginState, User
 
@@ -37,7 +37,7 @@ def should_have_automatic_insert_timestamp(db_connection: ConnectionManager,
 
 
 def should_return_current_user_from_me_route(test_client: TestClient, valid_token_header: Headers,
-                                             logged_in_user: User, validate_model: validate_model_callable):
+                                             logged_in_user: User, validate_model: ValidateModel):
     response = test_client.get("/me", headers=valid_token_header)
 
     result = validate_model(UserModel, response)

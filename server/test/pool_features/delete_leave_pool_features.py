@@ -7,14 +7,14 @@ from starlette.testclient import TestClient
 from api.pool.models import PoolContent, PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User
-from pool_features.conftest import mock_playlist_fetch_result_callable
-from types.typed_dictionaries import Headers
-from types.callables import validate_response_callable, build_success_response_callable
-from types.aliases import MockResponseQueue
+from pool_features.conftest import MockPlaylistFetchResult
+from test_types.typed_dictionaries import Headers
+from test_types.callables import ValidateResponse, BuildSuccessResponse
+from test_types.aliases import MockResponseQueue
 
 
 def should_wipe_whole_pool_on_delete_pool(existing_playback: list[dict[str, Any]], test_client: TestClient,
-                                          validate_response: validate_response_callable,
+                                          validate_response: ValidateResponse,
                                           db_connection: ConnectionManager,
                                           valid_token_header: Headers):
     response = test_client.delete("/pool", headers=valid_token_header)
@@ -43,9 +43,9 @@ def should_send_playback_pause_on_pool_delete(existing_playback: list[dict[str, 
 
 def should_wipe_leavers_pool_members_on_leave_pool(
         shared_pool_code: str, another_logged_in_user_header: Headers, test_client: TestClient,
-        validate_response: validate_response_callable, db_connection: ConnectionManager,
-        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
-        requests_client_get_queue: MockResponseQueue, build_success_response: build_success_response_callable,
+        validate_response: ValidateResponse, db_connection: ConnectionManager,
+        create_mock_playlist_fetch_result: MockPlaylistFetchResult,
+        requests_client_get_queue: MockResponseQueue, build_success_response: BuildSuccessResponse,
         another_logged_in_user: User):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 

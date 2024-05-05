@@ -2,11 +2,11 @@ from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent
 from database.entities import PoolMember, User
-from pool_features.conftest import mock_playlist_fetch_result_callable
-from types.callables import validate_response_callable, mock_track_search_result_callable, \
-    build_success_response_callable, mock_artist_search_result_callable, mock_album_search_result_callable, \
-    assert_token_in_headers_callable
-from types.typed_dictionaries import Headers
+from pool_features.conftest import MockPlaylistFetchResult
+from test_types.callables import ValidateResponse, MockTrackSearchResult, \
+    BuildSuccessResponse, MockArtistSearchResult, MockAlbumSearchResult, \
+    AssertTokenInHeaders
+from test_types.typed_dictionaries import Headers
 
 
 def should_get_all_existing_tracks(existing_pool, test_client, valid_token_header, validate_response):
@@ -17,12 +17,12 @@ def should_get_all_existing_tracks(existing_pool, test_client, valid_token_heade
 
 
 def should_return_mix_of_tracks_and_collections_correctly(
-        test_client: TestClient, valid_token_header: Headers, validate_response: validate_response_callable,
-        create_mock_track_search_result: mock_track_search_result_callable,
-        build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
-        create_mock_artist_search_result: mock_artist_search_result_callable,
-        create_mock_album_search_result: mock_album_search_result_callable, existing_pool: list[PoolMember],
-        create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable):
+        test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse,
+        create_mock_track_search_result: MockTrackSearchResult,
+        build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
+        create_mock_artist_search_result: MockArtistSearchResult,
+        create_mock_album_search_result: MockAlbumSearchResult, existing_pool: list[PoolMember],
+        create_mock_playlist_fetch_result: MockPlaylistFetchResult):
     artist = create_mock_artist_search_result()
     artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
     album = create_mock_album_search_result(artist, [create_mock_track_search_result(artist) for _ in range(12)])
@@ -47,13 +47,13 @@ def should_return_mix_of_tracks_and_collections_correctly(
 
 def should_include_token_in_headers(existing_pool: list[PoolMember], test_client: TestClient,
                                     valid_token_header: Headers,
-                                    assert_token_in_headers: assert_token_in_headers_callable):
+                                    assert_token_in_headers: AssertTokenInHeaders):
     response = test_client.get("/pool", headers=valid_token_header)
     assert_token_in_headers(response)
 
 
 def should_return_not_found_if_no_pool_for_user(test_client: TestClient, valid_token_header: Headers,
-                                                validate_response: validate_response_callable, logged_in_user: User):
+                                                validate_response: ValidateResponse, logged_in_user: User):
     response = test_client.get("/pool", headers=valid_token_header)
 
     json_data = validate_response(response, 404)
@@ -61,7 +61,7 @@ def should_return_not_found_if_no_pool_for_user(test_client: TestClient, valid_t
 
 
 def should_return_self_as_owner(existing_pool: list[PoolMember], test_client: TestClient, logged_in_user: User,
-                                valid_token_header: Headers, validate_response: validate_response_callable):
+                                valid_token_header: Headers, validate_response: ValidateResponse):
     response = test_client.get("/pool", headers=valid_token_header)
 
     pool_response = validate_response(response)

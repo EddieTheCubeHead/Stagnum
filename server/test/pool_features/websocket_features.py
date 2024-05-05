@@ -7,18 +7,18 @@ from starlette.testclient import TestClient
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolPlaybackServiceRaw
 from api.pool.models import PoolContent
-from types.callables import build_success_response_callable, mock_playlist_fetch_result_callable, \
-    increment_now_callable, run_scheduling_job_awaitable, validate_response_callable, skip_song_callable, \
-    create_spotify_playback_callable, BuildQueue, mock_track_search_result_callable
-from types.typed_dictionaries import Headers, TrackData
-from types.aliases import MockResponseQueue
+from test_types.callables import BuildSuccessResponse, MockPlaylistFetchResult, \
+    IncrementNow, RunSchedulingJob, ValidateResponse, SkipSong, \
+    CreateSpotifyPlayback, BuildQueue, MockTrackSearchResult
+from test_types.typed_dictionaries import Headers, TrackData
+from test_types.aliases import MockResponseQueue
 
 
 def should_get_update_when_pool_contents_added(test_client: TestClient, valid_token_header: Headers,
                                                shared_pool_code: str, logged_in_user_id: str,
                                                another_logged_in_user_header: Headers,
-                                               build_success_response: build_success_response_callable,
-                                               create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
+                                               build_success_response: BuildSuccessResponse,
+                                               create_mock_playlist_fetch_result: MockPlaylistFetchResult,
                                                requests_client_get_queue: MockResponseQueue,
                                                another_logged_in_user_token: Headers):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
@@ -58,7 +58,7 @@ def should_get_update_when_user_joins_pool(test_client: TestClient, valid_token:
 @pytest.mark.asyncio
 async def should_send_update_when_scheduled_queue_job_updates_playback(
         test_client: TestClient, existing_playback: list[TrackData], fixed_track_length_ms: int, valid_token: str,
-        increment_now: increment_now_callable, run_scheduling_job: run_scheduling_job_awaitable):
+        increment_now: IncrementNow, run_scheduling_job: RunSchedulingJob):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         await run_scheduling_job()
@@ -72,8 +72,8 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(
 
 def should_send_update_when_other_user_in_pool_skips(test_client: TestClient, existing_playback: list[TrackData],
                                                      another_logged_in_user_header: Headers, valid_token: str,
-                                                     shared_pool_code: str, skip_song: skip_song_callable,
-                                                     validate_response: validate_response_callable):
+                                                     shared_pool_code: str, skip_song: SkipSong,
+                                                     validate_response: ValidateResponse):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         response = skip_song(another_logged_in_user_header)
@@ -89,8 +89,8 @@ async def should_send_next_song_data_even_after_fixing_queue(test_client: TestCl
                                                              playback_service: PoolPlaybackServiceRaw,
                                                              fixed_track_length_ms: int,
                                                              another_logged_in_user_header: Headers,
-                                                             create_spotify_playback: create_spotify_playback_callable,
-                                                             increment_now: increment_now_callable,
+                                                             create_spotify_playback: CreateSpotifyPlayback,
+                                                             increment_now: IncrementNow,
                                                              mock_empty_queue_get: BuildQueue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
@@ -105,10 +105,10 @@ async def should_send_next_song_data_even_after_fixing_queue(test_client: TestCl
 
 @pytest.mark.asyncio
 async def should_notify_socket_if_playback_fix_occurs(
-        run_scheduling_job: run_scheduling_job_awaitable, fixed_track_length_ms: int,
-        increment_now: increment_now_callable, existing_playback: list[TrackData], test_client: TestClient,
-        create_spotify_playback: create_spotify_playback_callable, valid_token: str,
-        create_mock_track_search_result: mock_track_search_result_callable):
+        run_scheduling_job: RunSchedulingJob, fixed_track_length_ms: int,
+        increment_now: IncrementNow, existing_playback: list[TrackData], test_client: TestClient,
+        create_spotify_playback: CreateSpotifyPlayback, valid_token: str,
+        create_mock_track_search_result: MockTrackSearchResult):
     new_track_data = create_mock_track_search_result()
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(20000, 0, new_track_data)
@@ -135,8 +135,8 @@ def should_wipe_pool_for_listeners_on_pool_delete(test_client: TestClient, exist
 def should_wipe_leavers_songs_on_pool_leave(test_client: TestClient, existing_playback: list[TrackData],
                                             shared_pool_code: str, requests_client_get_queue: MockResponseQueue,
                                             another_logged_in_user_header: Headers, valid_token: str,
-                                            build_success_response: build_success_response_callable,
-                                            create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable):
+                                            build_success_response: BuildSuccessResponse,
+                                            create_mock_playlist_fetch_result: MockPlaylistFetchResult):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(35)
     requests_client_get_queue.append(build_success_response(playlist))

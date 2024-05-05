@@ -12,13 +12,13 @@ from starlette.testclient import TestClient
 
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
-from types.aliases import SpotifySecrets
-from types.callables import create_valid_state_string_callable, base_auth_login_callable, base_auth_callback_callable, \
-    mock_token_return_callable
+from test_types.aliases import SpotifySecrets
+from test_types.callables import CreateValidStateString, BaseAuthLogin, BaseAuthCallback, \
+    MockTokenReturn
 
 
 @pytest.fixture
-def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: TestClient) -> base_auth_login_callable:
+def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: TestClient) -> BaseAuthLogin:
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
     def wrapper():
         return test_client.get("/auth/login?client_redirect_uri=test")
@@ -27,7 +27,7 @@ def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: TestClient) -> b
 
 
 @pytest.fixture
-def default_token_return(mock_token_return: mock_token_return_callable) -> httpx.Response:
+def default_token_return(mock_token_return: MockTokenReturn) -> httpx.Response:
     return mock_token_return()
 
 
@@ -54,7 +54,7 @@ def default_me_return(request: FixtureRequest) -> httpx.Response:
 
 @pytest.fixture
 def base_auth_callback_call(correct_env_variables: SpotifySecrets, test_client: TestClient, 
-                            primary_valid_state_string: str) -> base_auth_callback_callable:
+                            primary_valid_state_string: str) -> BaseAuthCallback:
     def wrapper(state: str = None):
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
@@ -64,7 +64,7 @@ def base_auth_callback_call(correct_env_variables: SpotifySecrets, test_client: 
 
 
 @pytest.fixture
-def create_valid_state_string(db_connection: ConnectionManager) -> create_valid_state_string_callable:
+def create_valid_state_string(db_connection: ConnectionManager) -> CreateValidStateString:
     def wrapper():
         state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
         with db_connection.session() as session:
@@ -75,7 +75,7 @@ def create_valid_state_string(db_connection: ConnectionManager) -> create_valid_
 
 
 @pytest.fixture
-def primary_valid_state_string(create_valid_state_string: create_valid_state_string_callable) -> str:
+def primary_valid_state_string(create_valid_state_string: CreateValidStateString) -> str:
     return create_valid_state_string()
 
 

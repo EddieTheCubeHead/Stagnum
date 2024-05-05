@@ -46,7 +46,7 @@ class PaginatedSearchResult(BaseModel, Generic[PlayableType]):
     total: int
     self_page_link: str  # You can get paginated result from general search, this is useful in those cases
     next_page_link: str | None
-    results: list[PlayableType]
+    items: list[PlayableType]
 
 
 class TrackSearchResult(PaginatedSearchResult[Track]):

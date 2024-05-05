@@ -6,7 +6,7 @@ from typing import override
 from _pytest.python_api import ApproxBase
 
 from api.common.dependencies import DateTimeWrapperRaw
-from types.typed_dictionaries import TrackData
+from test_types.typed_dictionaries import TrackData
 
 
 @dataclass

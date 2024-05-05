@@ -27,13 +27,13 @@ from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
 from database.entities import User, PoolMember
 from helpers.classes import MockDateTimeWrapper, ErrorData
-from types.aliases import MockResponseQueue, SpotifySecrets
-from types.callables import validate_response_callable, create_token_callable, log_user_in_callable, \
-    create_header_from_token_response_callable, mock_artist_search_result_callable, build_success_response_callable, \
-    mock_album_search_result_callable, mock_track_search_result_callable, mock_playlist_search_result_callable, \
-    get_query_parameter_callable, create_pool_creation_data_json_callable, increment_now_callable, \
-    mock_token_return_callable, validate_model_callable
-from types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData, PoolCreationDataDict
+from test_types.aliases import MockResponseQueue, SpotifySecrets
+from test_types.callables import ValidateResponse, CreateToken, LogUserIn, \
+    CreateHeaderFromTokenResponse, MockArtistSearchResult, BuildSuccessResponse, \
+    MockAlbumSearchResult, MockTrackSearchResult, MockPlaylistSearchResult, \
+    GetQueryParameter, CreatePoolCreationDataJson, IncrementNow, \
+    MockTokenReturn, ValidateModel, AssertTokenInHeaders
+from test_types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData, PoolCreationDataDict
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ def test_client(application_with_dependencies: FastAPI) -> TestClient:
 
 
 @pytest.fixture
-def validate_response() -> validate_response_callable:
+def validate_response() -> ValidateResponse:
     def wrapper(response: httpx.Response, code: int = 200):
         assert response.status_code == code, f"Expected response with status code {code}, got {response.status_code}"
         return json.loads(response.content.decode("utf-8")) if response.content else None
@@ -127,7 +127,7 @@ def mock_token_holder(db_connection: ConnectionManager, auth_spotify_client: Aut
 
 
 @pytest.fixture
-def create_token(faker: Faker) -> create_token_callable:
+def create_token(faker: Faker) -> CreateToken:
     def wrapper() -> ParsedTokenResponse:
         token = faker.uuid4()
         return ParsedTokenResponse(token=f"Bearer {token}", refresh_token=f"Refresh {token}", expires_in=3600)
@@ -136,7 +136,7 @@ def create_token(faker: Faker) -> create_token_callable:
 
 
 @pytest.fixture
-def primary_user_token(create_token: create_token_callable) -> ParsedTokenResponse:
+def primary_user_token(create_token: CreateToken) -> ParsedTokenResponse:
     return create_token()
 
 
@@ -153,7 +153,7 @@ def auth_database_connection(db_connection: ConnectionManager,
 
 
 @pytest.fixture
-def log_user_in(auth_database_connection: AuthDatabaseConnection) -> log_user_in_callable:
+def log_user_in(auth_database_connection: AuthDatabaseConnection) -> LogUserIn:
     def wrapper(user: User, token: ParsedTokenResponse):
         auth_database_connection.update_logged_in_user(user, token)
 
@@ -161,7 +161,7 @@ def log_user_in(auth_database_connection: AuthDatabaseConnection) -> log_user_in
 
 
 @pytest.fixture
-def create_header_from_token_response() -> create_header_from_token_response_callable:
+def create_header_from_token_response() -> CreateHeaderFromTokenResponse:
     def wrapper(token_response: ParsedTokenResponse) -> Headers:
         return {"Authorization": token_response.token}
 
@@ -169,15 +169,15 @@ def create_header_from_token_response() -> create_header_from_token_response_cal
 
 
 @pytest.fixture
-def valid_token_header(log_user_in: log_user_in_callable, logged_in_user: User, primary_user_token: ParsedTokenResponse,
-                       create_header_from_token_response: create_header_from_token_response_callable) -> Headers:
+def valid_token_header(log_user_in: LogUserIn, logged_in_user: User, primary_user_token: ParsedTokenResponse,
+                       create_header_from_token_response: CreateHeaderFromTokenResponse) -> Headers:
     log_user_in(logged_in_user, primary_user_token)
     return create_header_from_token_response(primary_user_token)
 
 
 @pytest.fixture
-def valid_token(log_user_in: log_user_in_callable, logged_in_user: User, primary_user_token: ParsedTokenResponse,
-                create_header_from_token_response: create_header_from_token_response_callable) -> str:
+def valid_token(log_user_in: LogUserIn, logged_in_user: User, primary_user_token: ParsedTokenResponse,
+                create_header_from_token_response: CreateHeaderFromTokenResponse) -> str:
     log_user_in(logged_in_user, primary_user_token)
     return primary_user_token.token
 
@@ -189,7 +189,7 @@ def logged_in_user_id(faker: Faker) -> str:
 
 
 @pytest.fixture
-def build_success_response() -> build_success_response_callable:
+def build_success_response() -> BuildSuccessResponse:
     def wrapper(data: dict):
         response = Mock()
         response.status_code = 200
@@ -203,7 +203,7 @@ _DATE_PATTERN = "%Y-%m"
 
 
 @pytest.fixture
-def create_mock_artist_search_result(faker: Faker) -> mock_artist_search_result_callable:
+def create_mock_artist_search_result(faker: Faker) -> MockArtistSearchResult:
     def wrapper() -> ArtistData:
         artist_name: str = faker.name()
         artist_id: str = faker.uuid4()
@@ -235,7 +235,7 @@ def create_mock_artist_search_result(faker: Faker) -> mock_artist_search_result_
 
 
 @pytest.fixture
-def create_mock_album_search_result(faker: Faker) -> mock_album_search_result_callable:
+def create_mock_album_search_result(faker: Faker) -> MockAlbumSearchResult:
     def wrapper(artist: ArtistData, tracks: list[dict[str, Any]] | None = None) -> AlbumData:
         album_name = faker.text(max_nb_chars=25)[:-1]
         album_id = faker.uuid4()
@@ -293,7 +293,7 @@ def create_mock_album_search_result(faker: Faker) -> mock_album_search_result_ca
 
 @pytest.fixture
 def create_mock_track_search_result(faker, create_mock_artist_search_result,
-                                    create_mock_album_search_result) -> mock_track_search_result_callable:
+                                    create_mock_album_search_result) -> MockTrackSearchResult:
     def wrapper(artist_in: ArtistData | None = None) -> TrackData:
         track_name = faker.text(max_nb_chars=25)[:-1]
         track_id = faker.uuid4()
@@ -334,7 +334,7 @@ def create_mock_track_search_result(faker, create_mock_artist_search_result,
 
 
 @pytest.fixture
-def create_mock_playlist_search_result(faker) -> mock_playlist_search_result_callable:
+def create_mock_playlist_search_result(faker) -> MockPlaylistSearchResult:
     def wrapper(tracks: list[TrackData] | None = None) -> PlaylistData:
         playlist_id = faker.uuid4()
         playlist_name = faker.text(max_nb_chars=25)[:-1]
@@ -395,7 +395,7 @@ def create_mock_playlist_search_result(faker) -> mock_playlist_search_result_cal
 
 
 @pytest.fixture
-def get_query_parameter() -> get_query_parameter_callable:
+def get_query_parameter() -> GetQueryParameter:
     restricted_characters = r"&"
 
     def wrapper(query_string: str, parameter_name: str) -> str:
@@ -419,7 +419,7 @@ def spotify_error_message(request: FixtureRequest, requests_client: RequestsClie
 
 
 @pytest.fixture
-def assert_token_in_headers(validate_response: validate_response_callable) -> assert_token_in_headers_callable:
+def assert_token_in_headers(validate_response: ValidateResponse) -> AssertTokenInHeaders:
     def wrapper(response: Response) -> str:
         validate_response(response)
         header_token = response.headers["Authorization"]
@@ -431,7 +431,7 @@ def assert_token_in_headers(validate_response: validate_response_callable) -> as
 
 
 @pytest.fixture
-def create_pool_creation_data_json() -> create_pool_creation_data_json_callable:
+def create_pool_creation_data_json() -> CreatePoolCreationDataJson:
     def wrapper(*uris: str) -> PoolCreationDataDict:
         return PoolCreationData(
             spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
@@ -441,10 +441,10 @@ def create_pool_creation_data_json() -> create_pool_creation_data_json_callable:
 
 
 @pytest.fixture
-def existing_pool(request: FixtureRequest, create_mock_track_search_result: mock_track_search_result_callable,
-                  build_success_response: build_success_response_callable, valid_token_header: Headers,
-                  requests_client_get_queue: MockResponseQueue, validate_response: validate_response_callable,
-                  create_pool_creation_data_json: create_pool_creation_data_json_callable, test_client: TestClient,
+def existing_pool(request: FixtureRequest, create_mock_track_search_result: MockTrackSearchResult,
+                  build_success_response: BuildSuccessResponse, valid_token_header: Headers,
+                  requests_client_get_queue: MockResponseQueue, validate_response: ValidateResponse,
+                  create_pool_creation_data_json: CreatePoolCreationDataJson, test_client: TestClient,
                   db_connection: ConnectionManager, logged_in_user_id: str) -> list[PoolMember]:
     track_amount = request.param if hasattr(request, "param") else random.randint(10, 20)
     tracks = [create_mock_track_search_result() for _ in range(track_amount)]
@@ -465,7 +465,7 @@ def mock_datetime_wrapper() -> MockDateTimeWrapper:
 
 
 @pytest.fixture
-def increment_now(mock_datetime_wrapper) -> increment_now_callable:
+def increment_now(mock_datetime_wrapper) -> IncrementNow:
     def wrapper(increment: datetime.timedelta) -> None:
         mock_datetime_wrapper.increment_now(increment)
 
@@ -473,7 +473,7 @@ def increment_now(mock_datetime_wrapper) -> increment_now_callable:
 
 
 @pytest.fixture
-def mock_token_return() -> mock_token_return_callable:
+def mock_token_return() -> MockTokenReturn:
     def wrapper(token: str = "my access_token", expires_in: int = 800,
                 refresh_token: str = "my refresh token") -> httpx.Response:
         return_json = {
@@ -501,7 +501,7 @@ def correct_env_variables(monkeypatch: MonkeyPatch) -> SpotifySecrets:
 
 
 @pytest.fixture
-def validate_model(validate_response) -> validate_model_callable:
+def validate_model(validate_response) -> ValidateModel:
     def wrapper[T: type(BaseModel)](expected_type: T, response: httpx.Response) -> T:
         return expected_type.model_validate(validate_response(response))
 
