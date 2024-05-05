@@ -1,7 +1,6 @@
 import json
 import random
 import string
-from typing import Callable, Any, Protocol
 from unittest.mock import Mock
 
 import httpx
@@ -11,11 +10,11 @@ from _pytest.monkeypatch import MonkeyPatch
 from requests import Response
 from starlette.testclient import TestClient
 
-from conftest import mock_token_return_callable
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
 from types.aliases import SpotifySecrets
-from types.callables import create_valid_state_string_callable, base_auth_login_callable, base_auth_callback_callable
+from types.callables import create_valid_state_string_callable, base_auth_login_callable, base_auth_callback_callable, \
+    mock_token_return_callable
 
 
 @pytest.fixture

@@ -2,13 +2,13 @@ from sqlalchemy import select, and_
 from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent
-from conftest import assert_token_in_headers_callable
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 from helpers.classes import ErrorData
 from pool_features.conftest import mock_playlist_fetch_result_callable
 from types.callables import mock_track_search_result_callable, build_success_response_callable, \
-    validate_response_callable, mock_artist_search_result_callable, mock_album_search_result_callable
+    validate_response_callable, mock_artist_search_result_callable, mock_album_search_result_callable, \
+    assert_token_in_headers_callable
 from types.aliases import MockResponseQueue
 from types.typed_dictionaries import Headers
 

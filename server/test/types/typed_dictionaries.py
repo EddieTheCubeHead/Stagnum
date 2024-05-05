@@ -176,5 +176,13 @@ class PlaybackStateData(TypedDict):
 
 
 class QueueData(TypedDict):
-     currently_playing: TrackData
-     queue: list[TrackData]
+    currently_playing: TrackData
+    queue: list[TrackData]
+
+
+class PoolContentData(TypedDict):
+    spotify_uri: str
+
+
+class PoolCreationDataDict(TypedDict):
+    spotify_uris: list[PoolContentData]

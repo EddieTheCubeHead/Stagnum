@@ -1,14 +1,13 @@
-from unittest.mock import Mock
-
-import httpx
 from sqlalchemy import select, and_
 from starlette.testclient import TestClient
 
-from conftest import validate_response_callable, mock_track_search_result_callable, \
-    create_pool_creation_data_json_callable, build_success_response_callable, assert_token_in_headers_callable
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 from pool_features.conftest import mock_playlist_fetch_result_callable
+from types.typed_dictionaries import Headers, PlaylistData
+from types.callables import validate_response_callable, build_success_response_callable, \
+    create_pool_creation_data_json_callable, assert_token_in_headers_callable
+from types.aliases import MockResponseQueue
 
 
 def should_delete_track_and_return_remaining_pool_if_given_track_id(existing_pool: list[PoolMember],
@@ -46,7 +45,7 @@ def should_be_able_to_delete_separate_child_from_collection(
         create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
         create_pool_creation_data_json: create_pool_creation_data_json_callable,
         build_success_response: build_success_response_callable):
-    playlist = create_mock_playlist_fetch_result(15)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(15)
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     requests_client_get_queue.append(build_success_response(playlist))
     test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)

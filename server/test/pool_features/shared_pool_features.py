@@ -2,20 +2,20 @@ import datetime
 from typing import Any
 from unittest.mock import Mock
 
-import httpx
 import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent
 from api.pool.randomization_algorithms import RandomizationParameters
-from conftest import validate_response_callable, build_success_response_callable, get_query_parameter_callable, \
-    assert_token_in_headers_callable, increment_now_callable, mock_track_search_result_callable, \
-    create_pool_creation_data_json_callable
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, User, PoolMember
-from pool_features.conftest import mock_playlist_fetch_result_callable, skip_song_callable, \
-    run_scheduling_job_awaitable, mock_no_player_state_response_callable
+from types.callables import validate_response_callable, mock_playlist_fetch_result_callable, \
+    build_success_response_callable, get_query_parameter_callable, skip_song_callable, assert_token_in_headers_callable, \
+    increment_now_callable, run_scheduling_job_awaitable, mock_no_player_state_response_callable, \
+    mock_track_search_result_callable, create_pool_creation_data_json_callable
+from types.typed_dictionaries import Headers
+from types.aliases import MockResponseQueue
 
 
 def should_return_pool_code_from_share_route(existing_playback: list[dict[str, Any]], test_client: TestClient,

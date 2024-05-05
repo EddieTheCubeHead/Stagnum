@@ -1,8 +1,7 @@
 import datetime
 import json
 import random
-from dataclasses import dataclass
-from typing import Callable, Any, Protocol, Awaitable, Union, Tuple
+from typing import Any, Union, Tuple
 from unittest.mock import Mock
 
 import httpx
@@ -28,8 +27,7 @@ from types.callables import mock_track_search_result_callable, build_success_res
     create_pool_creation_data_json_callable, validate_response_callable, create_spotify_playback_state_callable, \
     mock_no_player_state_response_callable, mock_playback_paused_response_callable, skip_song_callable, \
     create_spotify_playback_callable, run_scheduling_job_awaitable, mock_playlist_fetch_result_callable, \
-    share_pool_and_get_code_callable, BuildQueue, BuildQueue, \
-    BuildQueue, mock_filled_queue_get_callable
+    share_pool_and_get_code_callable, BuildQueue
 
 
 @pytest.fixture
@@ -290,7 +288,7 @@ def build_queue_with_song(create_mock_track_search_result: mock_track_search_res
 @pytest.fixture
 def mock_filled_queue_get(requests_client_get_queue: MockResponseQueue,
                           build_success_response: build_success_response_callable,
-                          build_queue_with_song: BuildQueue) -> mock_filled_queue_get_callable:
+                          build_queue_with_song: BuildQueue) -> BuildQueue:
     def wrapper() -> QueueData:
         queue_data = build_queue_with_song()
         requests_client_get_queue.append(build_success_response(queue_data))
@@ -300,7 +298,7 @@ def mock_filled_queue_get(requests_client_get_queue: MockResponseQueue,
 
 
 @pytest.fixture
-def song_in_queue(mock_filled_queue_get: mock_filled_queue_get_callable,
+def song_in_queue(mock_filled_queue_get: BuildQueue,
                   mock_empty_queue_get: BuildQueue) -> QueueData:
     queue_data = mock_filled_queue_get()
     mock_empty_queue_get()
@@ -385,7 +383,7 @@ def run_scheduling_job(playback_service: PoolPlaybackServiceRaw,
 
 @pytest.fixture
 def skip_song(test_client: TestClient, create_spotify_playback: create_spotify_playback_callable) -> skip_song_callable:
-    def wrapper(headers: dict) -> httpx.Response:
+    def wrapper(headers: Headers) -> httpx.Response:
         create_spotify_playback(50000, 0)
         return test_client.post("/pool/playback/skip", headers=headers)
 

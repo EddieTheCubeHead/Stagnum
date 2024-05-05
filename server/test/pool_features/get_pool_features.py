@@ -1,13 +1,12 @@
-from unittest.mock import Mock
-
-import httpx
 from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent
-from conftest import validate_response_callable, mock_track_search_result_callable, build_success_response_callable, \
-    mock_artist_search_result_callable, mock_album_search_result_callable, assert_token_in_headers_callable
 from database.entities import PoolMember, User
 from pool_features.conftest import mock_playlist_fetch_result_callable
+from types.callables import validate_response_callable, mock_track_search_result_callable, \
+    build_success_response_callable, mock_artist_search_result_callable, mock_album_search_result_callable, \
+    assert_token_in_headers_callable
+from types.typed_dictionaries import Headers
 
 
 def should_get_all_existing_tracks(existing_pool, test_client, valid_token_header, validate_response):

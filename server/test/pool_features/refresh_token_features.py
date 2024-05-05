@@ -1,17 +1,18 @@
 import datetime
 from typing import Any
 
-import httpx
 import pytest
 from faker import Faker
 from sqlalchemy import select
 from starlette.testclient import TestClient
 
-from conftest import mock_token_return_callable, assert_token_in_headers_callable, increment_now_callable, \
-    build_success_response_callable
 from database.database_connection import ConnectionManager
 from database.entities import UserSession, PoolMember
 from pool_features.conftest import run_scheduling_job_awaitable, create_spotify_playback_callable
+from types.callables import mock_token_return_callable, assert_token_in_headers_callable, increment_now_callable, \
+    build_success_response_callable
+from types.aliases import MockResponseQueue, SpotifySecrets
+from types.typed_dictionaries import Headers
 
 
 @pytest.fixture

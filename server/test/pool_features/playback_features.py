@@ -2,7 +2,6 @@ import datetime
 from typing import Any
 from unittest.mock import Mock
 
-import httpx
 import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
@@ -12,14 +11,16 @@ from api.common.dependencies import TokenHolder
 from api.common.models import ParsedTokenResponse
 from api.pool.dependencies import PoolPlaybackServiceRaw
 from api.pool.tasks import queue_next_songs
-from conftest import ApproxDatetime, mock_track_search_result_callable, build_success_response_callable, \
-    create_pool_creation_data_json_callable, MockDateTimeWrapper, increment_now_callable, get_query_parameter_callable, \
-    validate_response_callable, assert_token_in_headers_callable
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, User
-from pool_features.conftest import mock_playlist_fetch_result_callable, run_scheduling_job_awaitable, \
-    skip_song_callable, create_spotify_playback_callable, BuildQueue, mock_filled_queue_get_callable, \
+from helpers.classes import MockDateTimeWrapper, ApproxDatetime
+from types.callables import mock_track_search_result_callable, build_success_response_callable, \
+    create_pool_creation_data_json_callable, mock_playlist_fetch_result_callable, increment_now_callable, \
+    get_query_parameter_callable, run_scheduling_job_awaitable, skip_song_callable, validate_response_callable, \
+    create_spotify_playback_callable, BuildQueue, assert_token_in_headers_callable, \
     mock_no_player_state_response_callable, mock_playback_paused_response_callable
+from types.typed_dictionaries import Headers, PlaylistData
+from types.aliases import MockResponseQueue
 
 
 def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(
@@ -46,7 +47,7 @@ def should_start_pool_playback_from_collection_tracks_when_posting_collection(
         create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable, valid_token_header: Headers,
         requests_client_get_queue: MockResponseQueue, build_success_response: build_success_response_callable,
         create_pool_creation_data_json: create_pool_creation_data_json_callable, requests_client: Mock):
-    playlist = create_mock_playlist_fetch_result(25)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(25)
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -64,7 +65,7 @@ def should_start_pool_playback_from_playlist_fetch_data_correctly(
         build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: create_pool_creation_data_json_callable, test_client: TestClient,
         valid_token_header: Headers):
-    playlist = create_mock_playlist_fetch_result(30)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -84,7 +85,7 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(
         build_success_response: build_success_response_callable, valid_token_header: Headers,
         create_pool_creation_data_json: create_pool_creation_data_json_callable, repeat: int):
     # use only one track so test fails with repeats if main collection is ever used
-    playlist = create_mock_playlist_fetch_result(1)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(1)
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -331,7 +332,7 @@ async def should_handle_songs_added_to_queue_during_queue_fix(requests_client: M
                                                               increment_now: increment_now_callable,
                                                               create_spotify_playback: create_spotify_playback_callable,
                                                               mock_empty_queue_get: BuildQueue,
-                                                              mock_filled_queue_get: mock_filled_queue_get_callable):
+                                                              mock_filled_queue_get: BuildQueue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(500, 3)
     mock_filled_queue_get()

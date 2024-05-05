@@ -33,7 +33,7 @@ from types.callables import validate_response_callable, create_token_callable, l
     mock_album_search_result_callable, mock_track_search_result_callable, mock_playlist_search_result_callable, \
     get_query_parameter_callable, create_pool_creation_data_json_callable, increment_now_callable, \
     mock_token_return_callable, validate_model_callable
-from types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData
+from types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData, PoolCreationDataDict
 
 
 @pytest.fixture
@@ -418,9 +418,6 @@ def spotify_error_message(request: FixtureRequest, requests_client: RequestsClie
     return ErrorData(expected_error_message, code)
 
 
-assert_token_in_headers_callable = Callable[[Response], str]
-
-
 @pytest.fixture
 def assert_token_in_headers(validate_response: validate_response_callable) -> assert_token_in_headers_callable:
     def wrapper(response: Response) -> str:
@@ -435,7 +432,7 @@ def assert_token_in_headers(validate_response: validate_response_callable) -> as
 
 @pytest.fixture
 def create_pool_creation_data_json() -> create_pool_creation_data_json_callable:
-    def wrapper(*uris: str):
+    def wrapper(*uris: str) -> PoolCreationDataDict:
         return PoolCreationData(
             spotify_uris=[PoolContent(spotify_uri=uri) for uri in uris]
         ).model_dump()

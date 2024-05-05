@@ -1,6 +1,5 @@
 import base64
 import json
-from enum import Enum
 from typing import Callable
 from unittest.mock import Mock
 
@@ -12,12 +11,11 @@ from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.common.dependencies import validated_user_raw, TokenHolder
-from conftest import validate_response_callable
 from database.database_connection import ConnectionManager
 from database.entities import LoginState, User
 from helpers.classes import ErrorData, SubscriptionType
 from types.aliases import SpotifySecrets, MockResponseQueue
-from types.callables import base_auth_callback_callable, create_valid_state_string_callable
+from types.callables import base_auth_callback_callable, create_valid_state_string_callable, validate_response_callable
 
 auth_test_callable = Callable[[str], User]
 

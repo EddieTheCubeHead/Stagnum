@@ -1,14 +1,17 @@
 import datetime
 import random
 
-import httpx
 import pytest
 from starlette.testclient import TestClient
 
 from api.pool import queue_next_songs
+from api.pool.dependencies import PoolPlaybackServiceRaw
 from api.pool.models import PoolContent
-from conftest import build_success_response_callable
-from pool_features.conftest import mock_playlist_fetch_result_callable
+from types.callables import build_success_response_callable, mock_playlist_fetch_result_callable, \
+    increment_now_callable, run_scheduling_job_awaitable, validate_response_callable, skip_song_callable, \
+    create_spotify_playback_callable, BuildQueue, mock_track_search_result_callable
+from types.typed_dictionaries import Headers, TrackData
+from types.aliases import MockResponseQueue
 
 
 def should_get_update_when_pool_contents_added(test_client: TestClient, valid_token_header: Headers,
@@ -30,9 +33,10 @@ def should_get_update_when_pool_contents_added(test_client: TestClient, valid_to
                 assert len(user_data["collections"]) == 1
 
 
-def should_get_update_when_pool_contents_deleted(test_client, valid_token_header, shared_pool_code,
-                                                 another_logged_in_user_header, logged_in_user_id, existing_playback,
-                                                 another_logged_in_user_token):
+def should_get_update_when_pool_contents_deleted(test_client: TestClient, valid_token_header: Headers,
+                                                 shared_pool_code: str, another_logged_in_user_header: Headers,
+                                                 logged_in_user_id: str, existing_playback: list[TrackData],
+                                                 another_logged_in_user_token: str):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={another_logged_in_user_token}") as websocket:
         deleted_song = random.choice(existing_playback)
@@ -43,8 +47,8 @@ def should_get_update_when_pool_contents_deleted(test_client, valid_token_header
                 assert len(user_data["tracks"]) == len(existing_playback) - 1
 
 
-def should_get_update_when_user_joins_pool(test_client, valid_token, shared_pool_code, existing_playback,
-                                           another_logged_in_user_header):
+def should_get_update_when_user_joins_pool(test_client: TestClient, valid_token: str, shared_pool_code: str,
+                                           existing_playback: list[TrackData], another_logged_in_user_header: Headers):
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
         data = websocket.receive_json()
@@ -52,10 +56,9 @@ def should_get_update_when_user_joins_pool(test_client, valid_token, shared_pool
 
 
 @pytest.mark.asyncio
-async def should_send_update_when_scheduled_queue_job_updates_playback(test_client, existing_playback,
-                                                                       fixed_track_length_ms,
-                                                                       increment_now, run_scheduling_job,
-                                                                       valid_token):
+async def should_send_update_when_scheduled_queue_job_updates_playback(
+        test_client: TestClient, existing_playback: list[TrackData], fixed_track_length_ms: int, valid_token: str,
+        increment_now: increment_now_callable, run_scheduling_job: run_scheduling_job_awaitable):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         await run_scheduling_job()
@@ -67,8 +70,10 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(test_clie
         assert model_data["duration_ms"] == fixed_track_length_ms
 
 
-def should_send_update_when_other_user_in_pool_skips(test_client, existing_playback, another_logged_in_user_header,
-                                                     valid_token, shared_pool_code, validate_response, skip_song):
+def should_send_update_when_other_user_in_pool_skips(test_client: TestClient, existing_playback: list[TrackData],
+                                                     another_logged_in_user_header: Headers, valid_token: str,
+                                                     shared_pool_code: str, skip_song: skip_song_callable,
+                                                     validate_response: validate_response_callable):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         response = skip_song(another_logged_in_user_header)
@@ -79,10 +84,14 @@ def should_send_update_when_other_user_in_pool_skips(test_client, existing_playb
 
 
 @pytest.mark.asyncio
-async def should_send_next_song_data_even_after_fixing_queue(test_client, existing_playback, valid_token,
-                                                             shared_pool_code, playback_service, fixed_track_length_ms,
-                                                             another_logged_in_user_header, create_spotify_playback,
-                                                             increment_now, mock_empty_queue_get):
+async def should_send_next_song_data_even_after_fixing_queue(test_client: TestClient, shared_pool_code: str,
+                                                             existing_playback: list[TrackData], valid_token: str,
+                                                             playback_service: PoolPlaybackServiceRaw,
+                                                             fixed_track_length_ms: int,
+                                                             another_logged_in_user_header: Headers,
+                                                             create_spotify_playback: create_spotify_playback_callable,
+                                                             increment_now: increment_now_callable,
+                                                             mock_empty_queue_get: BuildQueue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     create_spotify_playback(500, 1)
@@ -95,9 +104,11 @@ async def should_send_next_song_data_even_after_fixing_queue(test_client, existi
 
 
 @pytest.mark.asyncio
-async def should_notify_socket_if_playback_fix_occurs(run_scheduling_job, fixed_track_length_ms, increment_now,
-                                                      existing_playback, create_spotify_playback, test_client,
-                                                      create_mock_track_search_result, valid_token):
+async def should_notify_socket_if_playback_fix_occurs(
+        run_scheduling_job: run_scheduling_job_awaitable, fixed_track_length_ms: int,
+        increment_now: increment_now_callable, existing_playback: list[TrackData], test_client: TestClient,
+        create_spotify_playback: create_spotify_playback_callable, valid_token: str,
+        create_mock_track_search_result: mock_track_search_result_callable):
     new_track_data = create_mock_track_search_result()
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(20000, 0, new_track_data)
@@ -108,8 +119,9 @@ async def should_notify_socket_if_playback_fix_occurs(run_scheduling_job, fixed_
         assert data["model"]["spotify_track_uri"] == new_track_data["uri"]
 
 
-def should_wipe_pool_for_listeners_on_pool_delete(test_client, existing_playback, valid_token_header, shared_pool_code,
-                                                  another_logged_in_user_token, another_logged_in_user_header):
+def should_wipe_pool_for_listeners_on_pool_delete(test_client: TestClient, existing_playback: list[TrackData],
+                                                  another_logged_in_user_token: str, valid_token_header: Headers,
+                                                  another_logged_in_user_header: Headers, shared_pool_code: str):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={another_logged_in_user_token}") as websocket:
         test_client.delete("/pool", headers=valid_token_header)
@@ -120,9 +132,11 @@ def should_wipe_pool_for_listeners_on_pool_delete(test_client, existing_playback
         assert data["model"]["share_code"] is None
 
 
-def should_wipe_leavers_songs_on_pool_leave(test_client, existing_playback, shared_pool_code, requests_client_get_queue,
-                                            another_logged_in_user_header, valid_token, build_success_response,
-                                            create_mock_playlist_fetch_result):
+def should_wipe_leavers_songs_on_pool_leave(test_client: TestClient, existing_playback: list[TrackData],
+                                            shared_pool_code: str, requests_client_get_queue: MockResponseQueue,
+                                            another_logged_in_user_header: Headers, valid_token: str,
+                                            build_success_response: build_success_response_callable,
+                                            create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     playlist = create_mock_playlist_fetch_result(35)
     requests_client_get_queue.append(build_success_response(playlist))

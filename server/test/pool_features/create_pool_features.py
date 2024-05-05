@@ -10,11 +10,11 @@ from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 from helpers.classes import ErrorData
 from pool_features.conftest import mock_playlist_fetch_result_callable
-from types.typed_dictionaries import Headers
+from types.typed_dictionaries import Headers, PlaylistData
 from types.aliases import MockResponseQueue
 from types.callables import validate_response_callable, mock_track_search_result_callable, \
     build_success_response_callable, create_pool_creation_data_json_callable, mock_album_search_result_callable, \
-    mock_artist_search_result_callable
+    mock_artist_search_result_callable, assert_token_in_headers_callable
 
 mock_put_response_callable = Callable[[], None]
 
@@ -216,7 +216,7 @@ def should_be_able_to_create_pool_from_playlist(
         create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable, requests_client: Mock,
         build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: create_pool_creation_data_json_callable):
-    playlist = create_mock_playlist_fetch_result(30)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -239,7 +239,7 @@ def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
         create_mock_track_search_result: mock_track_search_result_callable,
         build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: create_pool_creation_data_json_callable):
-    playlist = create_mock_playlist_fetch_result(30, True)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(30, True)
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -261,7 +261,7 @@ def should_save_whole_playlist_as_pool_in_database(
         logged_in_user_id: str, create_mock_playlist_fetch_result: mock_playlist_fetch_result_callable,
         build_success_response: build_success_response_callable, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: create_pool_creation_data_json_callable):
-    playlist = create_mock_playlist_fetch_result(30)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -353,7 +353,7 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(
         create_pool_creation_data_json: create_pool_creation_data_json_callable,
         requests_client: Mock):
     playlist_length = 320
-    playlist_fetches = create_mock_playlist_fetch_result(playlist_length)
+    playlist_fetches: tuple[PlaylistData, ...] = create_mock_playlist_fetch_result(playlist_length)
     playlist = playlist_fetches[0]
     responses = [build_success_response(data_point) for data_point in playlist_fetches]
     requests_client_get_queue.extend(responses)
