@@ -7,7 +7,7 @@ from starlette.testclient import TestClient
 
 from helpers.classes import ErrorData
 from test_types.callables import CreateSearchResponse, ValidatePaginatedResultLength, ValidateResponse, \
-    BuildSuccessResponse, AssertTokenInHeaders, RunSearchCall
+    BuildSuccessResponse, AssertTokenInHeaders, RunSearchCall, RunSearch
 from test_types.typed_dictionaries import Headers
 from test_types.aliases import MockResponseQueue
 
@@ -20,7 +20,7 @@ def search_item_type(request) -> str:
 @pytest.fixture()
 def run_search_resource_call(request: FixtureRequest, test_client: TestClient, valid_token_header: Headers,
                              requests_client_get_queue: MockResponseQueue, search_item_type,
-                             run_search_call: RunSearchCall) -> CreateSearchResponse:
+                             run_search_call: RunSearchCall) -> RunSearch:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         item_query_part: str = f"{search_item_type}s"
         mocker_name = f"create_{search_item_type}_paginated_search"
@@ -43,7 +43,7 @@ def should_include_current_token_in_response_headers(requests_client_get_queue: 
                                                      build_success_response: BuildSuccessResponse, test_client,
                                                      valid_token_header: Headers,
                                                      assert_token_in_headers: AssertTokenInHeaders,
-                                                     run_search_resource_call):
+                                                     run_search_resource_call: RunSearch):
     query = "test query"
     result = run_search_resource_call(query)
     assert_token_in_headers(result)
@@ -64,14 +64,14 @@ def should_return_bad_request_without_calling_spotify_on_empty_query(test_client
 
 def should_get_twenty_items_by_default(validate_response: ValidateResponse,
                                        validate_paginated_result_length: ValidatePaginatedResultLength,
-                                       run_search_resource_call: CreateSearchResponse):
+                                       run_search_resource_call: RunSearch):
     query = "my query"
     result = run_search_resource_call(query)
     search_result = validate_response(result)
     validate_paginated_result_length(search_result)
 
 
-def should_query_spotify_for_items_with_provided_query_string(run_search_resource_call: CreateSearchResponse,
+def should_query_spotify_for_items_with_provided_query_string(run_search_resource_call: RunSearch,
                                                               test_client: TestClient, valid_token_header: Headers,
                                                               requests_client: Mock, search_item_type: str
                                                               ):
@@ -83,7 +83,7 @@ def should_query_spotify_for_items_with_provided_query_string(run_search_resourc
 
 def should_return_less_results_if_twenty_not_found(test_client: TestClient, validate_response: ValidateResponse,
                                                    validate_paginated_result_length: ValidatePaginatedResultLength,
-                                                   run_search_resource_call: CreateSearchResponse):
+                                                   run_search_resource_call: RunSearch):
     expected_result_count = 7
     query = "my query"
     result = run_search_resource_call(query, expected_result_count)
@@ -91,11 +91,10 @@ def should_return_less_results_if_twenty_not_found(test_client: TestClient, vali
     validate_paginated_result_length(search_result, expected_result_count)
 
 
-def should_use_offset_and_limit_if_provided(test_client: TestClient, valid_token_header: Headers, requests_client: Mock,
-                                            create_album_paginated_search: CreateSearchResponse,
+def should_use_offset_and_limit_if_provided(valid_token_header: Headers, requests_client: Mock,
                                             validate_response: ValidateResponse, search_item_type: str,
                                             validate_paginated_result_length: ValidatePaginatedResultLength,
-                                            run_search_resource_call: CreateSearchResponse):
+                                            run_search_resource_call: RunSearch):
     offset = 20
     limit = 10
     query = "my query"

@@ -7,24 +7,61 @@ from starlette.testclient import TestClient
 from conftest import ErrorData
 from test_types.aliases import MockResponseQueue
 from test_types.callables import CreateGeneralSearch, CreateSearchResponse, \
-    BuildSuccessResponse, ValidateResponse, ValidatePaginatedResultLength, AssertTokenInHeaders, RunSearchCall
-from test_types.typed_dictionaries import Headers
+    BuildSuccessResponse, ValidateResponse, ValidatePaginatedResultLength, AssertTokenInHeaders, RunSearchCall, \
+    CreateSearchResponseFromImages, RunGeneralSearchWithCustomImages, RunSearch
+from test_types.typed_dictionaries import Headers, ImageData
 
 
 @pytest.fixture
 def run_general_search(run_search_call: RunSearchCall,
-                       build_spotify_general_search_response: CreateSearchResponse) -> CreateSearchResponse:
+                       build_spotify_general_search_response: CreateSearchResponse) -> RunSearch:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         return run_search_call(None, build_spotify_general_search_response, query, limit)
 
     return wrapper
 
 
+@pytest.fixture
+def build_general_search_with_custom_images(build_spotify_general_search: CreateGeneralSearch,
+                                            build_success_response: BuildSuccessResponse) \
+        -> CreateSearchResponseFromImages:
+    def wrapper(query: str, limit: int = 20, images: list[ImageData] | None = None) -> httpx.Response:
+        response = build_spotify_general_search(query, limit)
+        if images is not None:
+            response["albums"]["items"][0]["images"] = images
+
+        return build_success_response(response)
+
+    return wrapper
+
+
+@pytest.fixture
+def run_general_search_with_custom_images(build_general_search_with_custom_images: CreateSearchResponseFromImages,
+                                          requests_client_get_queue: MockResponseQueue, test_client: TestClient,
+                                          valid_token_header: Headers) -> RunGeneralSearchWithCustomImages:
+    def wrapper(query: str, limit: int = 20, images: list[ImageData] = None) -> httpx.Response:
+        requests_client_get_queue.append(build_general_search_with_custom_images(query, limit, images))
+        return test_client.get(f"/search?query={query}", headers=valid_token_header)
+
+    return wrapper
+
+
+@pytest.fixture
+def default_image_data() -> list[ImageData]:
+    return [
+        {
+            "url": f"https://pic.spotify.url/image_test_normal_size",
+            "height": 300,
+            "width": 300
+        }
+    ]
+
+
 def should_return_twenty_items_from_search(test_client: TestClient, valid_token_header: Headers,
                                            build_spotify_general_search_response: CreateSearchResponse,
                                            validate_response: ValidateResponse, requests_client: Mock,
                                            validate_paginated_result_length: ValidatePaginatedResultLength,
-                                           run_general_search: CreateSearchResponse):
+                                           run_general_search: RunSearch):
     result = run_general_search("my query")
     search_result = validate_response(result)
     for item_type in ("tracks", "albums", "artists", "playlists"):
@@ -33,7 +70,7 @@ def should_return_twenty_items_from_search(test_client: TestClient, valid_token_
 
 def should_return_less_than_twenty_results_if_spotify_returns_less(
         validate_response: ValidateResponse, validate_paginated_result_length: ValidatePaginatedResultLength,
-        run_general_search: CreateSearchResponse):
+        run_general_search: RunSearch):
     limit = 5
     result = run_general_search("my query", limit)
     search_result = validate_response(result)
@@ -42,7 +79,7 @@ def should_return_less_than_twenty_results_if_spotify_returns_less(
 
 
 def should_call_spotify_with_the_provided_query(valid_token_header: Headers, requests_client: Mock,
-                                                run_general_search: CreateSearchResponse):
+                                                run_general_search: RunSearch):
     query = "test query please ignore"
     run_general_search(query)
     types = ",".join(["track", "album", "artist", "playlist"])
@@ -50,48 +87,27 @@ def should_call_spotify_with_the_provided_query(valid_token_header: Headers, req
     requests_client.get.assert_called_with(full_query, headers=valid_token_header)
 
 
-def should_return_largest_image(test_client: TestClient, valid_token_header: Headers,
-                                requests_client_get_queue: MockResponseQueue,
-                                build_spotify_general_search: CreateGeneralSearch, validate_response: ValidateResponse,
-                                build_success_response: BuildSuccessResponse):
-    query = "test query"
-    search_result = build_spotify_general_search(query)
-    search_result["albums"]["items"][0]["images"].append(
-        {"url": "my_expected_image_url", "height": 500, "width": 600})
-    requests_client_get_queue.append(build_success_response(search_result))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+def should_return_largest_image(validate_response: ValidateResponse, default_image_data: list[ImageData],
+                                run_general_search_with_custom_images: RunGeneralSearchWithCustomImages):
+    default_image_data.append({"url": "my_expected_image_url", "height": 500, "width": 600})
+    result = run_general_search_with_custom_images("query", images=default_image_data)
     search_result = validate_response(result)
     assert search_result["albums"]["items"][0]["icon_link"] == "my_expected_image_url"
 
 
-def should_treat_none_size_as_zero(test_client: TestClient, valid_token_header: Headers,
-                                   requests_client_get_queue: MockResponseQueue,
-                                   build_spotify_general_search: CreateGeneralSearch,
-                                   validate_response: ValidateResponse, build_success_response: BuildSuccessResponse):
-    query = "test query"
-    search_result = build_spotify_general_search(query)
-    images = search_result["albums"]["items"][0]["images"]
-    expected_url = images[0]["url"]
-    images.append({"url": "my_invalid_image_url", "height": None, "width": None})
-    requests_client_get_queue.append(build_success_response(search_result))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+def should_treat_none_size_as_zero(default_image_data: list[ImageData], validate_response: ValidateResponse,
+                                   run_general_search_with_custom_images: RunGeneralSearchWithCustomImages):
+    default_image_data.append({"url": "my_expected_image_url", "height": None, "width": None})
+    result = run_general_search_with_custom_images("query", images=default_image_data)
     search_result = validate_response(result)
-    assert search_result["albums"]["items"][0]["icon_link"] == expected_url
+    assert search_result["albums"]["items"][0]["icon_link"] == default_image_data[0]["url"]
 
 
-def should_return_none_size_if_only_image(test_client: TestClient, valid_token_header: Headers,
-                                          requests_client_get_queue: Mock,
-                                          build_spotify_general_search: CreateGeneralSearch,
-                                          validate_response: ValidateResponse,
-                                          build_success_response: BuildSuccessResponse):
-    query = "test query"
+def should_return_none_size_if_only_image(run_general_search_with_custom_images: RunGeneralSearchWithCustomImages,
+                                          validate_response: ValidateResponse):
     expected_image_url = "my_expected_image_url"
-    search_result = build_spotify_general_search(query)
-    images = search_result["albums"]["items"][0]["images"]
-    images.clear()
-    images.append({"url": ("%s" % expected_image_url), "height": None, "width": None})
-    requests_client_get_queue.append(build_success_response(search_result))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    images: list[ImageData] = [{"url": expected_image_url, "height": None, "width": None}]
+    result = run_general_search_with_custom_images("query", images=images)
     search_result = validate_response(result)
     assert search_result["albums"]["items"][0]["icon_link"] == expected_image_url
 

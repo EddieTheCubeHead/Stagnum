@@ -8,7 +8,7 @@ from api.common.models import ParsedTokenResponse
 from database.entities import User, PoolMember
 from test_types.typed_dictionaries import Headers, TrackData, ArtistData, AlbumData, PlaylistData, PlaybackContextData, \
     PlaybackStateData, QueueData, PoolCreationDataDict, PoolContentData, PaginatedSearchResultData, \
-    GeneralSearchResultData
+    GeneralSearchResultData, ImageData
 
 
 class ValidateResponse(Protocol):
@@ -93,6 +93,11 @@ class CreateSearchResponse(Protocol):
         ...
 
 
+class RunSearch(Protocol):
+    def __call__(self, query: str, limit: int = 20) -> httpx.Response:
+        ...
+
+
 class CreateGeneralSearch(Protocol):
     def __call__(self, query: str, limit: int = 20) -> GeneralSearchResultData:
         ...
@@ -101,6 +106,16 @@ class CreateGeneralSearch(Protocol):
 class RunSearchCall(Protocol):
     def __call__(self, query_addition: str | None, search_call: CreateSearchResponse, query: str,
                  limit: int = 20) -> httpx.Response:
+        ...
+
+
+class CreateSearchResponseFromImages(Protocol):
+    def __call__(self, query: str, limit: int = 20, images: list[ImageData] | None = ...) -> httpx.Response:
+        ...
+
+
+class RunGeneralSearchWithCustomImages(Protocol):
+    def __call__(self, query: str, limit: int = 20, images: list[ImageData] | None = ...) -> httpx.Response:
         ...
 
 
