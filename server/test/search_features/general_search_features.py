@@ -1,46 +1,50 @@
 from unittest.mock import Mock
 
+import httpx
 import pytest
 from starlette.testclient import TestClient
 
 from conftest import ErrorData
 from test_types.aliases import MockResponseQueue
 from test_types.callables import CreateGeneralSearch, CreateSearchResponse, \
-    BuildSuccessResponse, ValidateResponse, ValidatePaginatedResultLength, AssertTokenInHeaders
+    BuildSuccessResponse, ValidateResponse, ValidatePaginatedResultLength, AssertTokenInHeaders, RunSearchCall
 from test_types.typed_dictionaries import Headers
+
+
+@pytest.fixture
+def run_general_search(run_search_call: RunSearchCall,
+                       build_spotify_general_search_response: CreateSearchResponse) -> CreateSearchResponse:
+    def wrapper(query: str, limit: int = 20) -> httpx.Response:
+        return run_search_call(None, build_spotify_general_search_response, query, limit)
+
+    return wrapper
 
 
 def should_return_twenty_items_from_search(test_client: TestClient, valid_token_header: Headers,
                                            build_spotify_general_search_response: CreateSearchResponse,
                                            validate_response: ValidateResponse, requests_client: Mock,
-                                           validate_paginated_result_length: ValidatePaginatedResultLength):
-    query = "my query"
-    requests_client.get = Mock(return_value=build_spotify_general_search_response(query))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+                                           validate_paginated_result_length: ValidatePaginatedResultLength,
+                                           run_general_search: CreateSearchResponse):
+    result = run_general_search("my query")
     search_result = validate_response(result)
     for item_type in ("tracks", "albums", "artists", "playlists"):
         validate_paginated_result_length(search_result[item_type])
 
 
 def should_return_less_than_twenty_results_if_spotify_returns_less(
-        test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse,
-        build_spotify_general_search_response: CreateSearchResponse, requests_client: Mock,
-        validate_paginated_result_length: ValidatePaginatedResultLength):
-    query = "my query"
+        validate_response: ValidateResponse, validate_paginated_result_length: ValidatePaginatedResultLength,
+        run_general_search: CreateSearchResponse):
     limit = 5
-    requests_client.get = Mock(return_value=build_spotify_general_search_response(query, limit))
-    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+    result = run_general_search("my query", limit)
     search_result = validate_response(result)
     for item_type in ("tracks", "albums", "artists", "playlists"):
         validate_paginated_result_length(search_result[item_type], limit)
 
 
-def should_call_spotify_with_the_provided_query(test_client: TestClient, valid_token_header: Headers,
-                                                build_spotify_general_search_response: CreateSearchResponse,
-                                                requests_client: Mock):
+def should_call_spotify_with_the_provided_query(valid_token_header: Headers, requests_client: Mock,
+                                                run_general_search: CreateSearchResponse):
     query = "test query please ignore"
-    requests_client.get = Mock(return_value=build_spotify_general_search_response(query))
-    test_client.get(f"/search?query={query}", headers=valid_token_header)
+    run_general_search(query)
     types = ",".join(["track", "album", "artist", "playlist"])
     full_query = f"https://api.spotify.com/v1/search?q={query}&type={types}&offset=0&limit=20"
     requests_client.get.assert_called_with(full_query, headers=valid_token_header)
@@ -105,3 +109,34 @@ def should_accept_any_date_starting_with_year(test_client: TestClient, valid_tok
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
     search_result = validate_response(result)
     assert search_result["albums"]["items"][0]["year"] == 2021
+
+
+def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header: Headers,
+                                             validate_response: ValidateResponse,
+                                             spotify_error_message: ErrorData):
+    response = test_client.get(f"/search?query=test", headers=valid_token_header)
+    json_data = validate_response(response, 502)
+    assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
+                                   f"Message: {spotify_error_message.message}")
+
+
+def should_include_current_token_in_response_headers(requests_client_get_queue: MockResponseQueue,
+                                                     build_success_response: BuildSuccessResponse, test_client,
+                                                     valid_token_header: Headers,
+                                                     assert_token_in_headers: AssertTokenInHeaders,
+                                                     run_general_search):
+    query = "test query"
+    result = run_general_search(query)
+    assert_token_in_headers(result)
+
+
+def should_return_bad_request_without_calling_spotify_on_empty_query(test_client: TestClient,
+                                                                     valid_token_header: Headers,
+                                                                     validate_response: ValidateResponse,
+                                                                     requests_client: Mock):
+    query = ""
+    result = test_client.get(f"/search?query={query}", headers=valid_token_header)
+
+    json_data = validate_response(result, 400)
+    assert json_data["detail"] == "Cannot perform a search with an empty string"
+    requests_client.get.assert_not_called()

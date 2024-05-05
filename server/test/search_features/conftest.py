@@ -123,3 +123,15 @@ def build_spotify_general_search_response(build_spotify_general_search: CreateGe
         return build_success_response(build_spotify_general_search(query, limit))
 
     return wrapper
+
+
+@pytest.fixture
+def run_search_call(request: FixtureRequest, test_client: TestClient, valid_token_header: Headers,
+                    requests_client_get_queue: MockResponseQueue) -> RunSearchCall:
+    def wrapper(query_addition: str | None, response_mocker: CreateSearchResponse, query: str,
+                limit: int = 20) -> httpx.Response:
+        query_addition = f"/{query_addition}" if query_addition is not None else ""
+        requests_client_get_queue.append(response_mocker(query, limit))
+        return test_client.get(f"/search{query_addition}?query={query}", headers=valid_token_header)
+
+    return wrapper

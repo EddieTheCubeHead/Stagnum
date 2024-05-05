@@ -12,18 +12,6 @@ from test_types.typed_dictionaries import Headers
 from test_types.aliases import MockResponseQueue
 
 
-@pytest.fixture
-def run_search_call(request: FixtureRequest, test_client: TestClient, valid_token_header: Headers,
-                    requests_client_get_queue: MockResponseQueue) -> RunSearchCall:
-    def wrapper(query_addition: str, response_mocker: CreateSearchResponse, query: str,
-                limit: int = 20) -> httpx.Response:
-        query_addition = f"/{query_addition}" if query_addition is not None else ""
-        requests_client_get_queue.append(response_mocker(query, limit))
-        return test_client.get(f"/search{query_addition}?query={query}", headers=valid_token_header)
-
-    return wrapper
-
-
 @pytest.fixture(params=["album", "artist", "track", "playlist"])
 def search_item_type(request) -> str:
     return request.param
