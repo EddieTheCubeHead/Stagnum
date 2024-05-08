@@ -8,7 +8,7 @@ from api.common.models import ParsedTokenResponse
 from database.entities import User, PoolMember
 from test_types.typed_dictionaries import Headers, TrackData, ArtistData, AlbumData, PlaylistData, PlaybackContextData, \
     PlaybackStateData, QueueData, PoolCreationDataDict, PoolContentData, PaginatedSearchResultData, \
-    GeneralSearchResultData, ImageData
+    GeneralSearchResultData, ImageData, SpotifyFetchMeData
 
 
 class ValidateResponse(Protocol):
@@ -119,6 +119,18 @@ class RunGeneralSearchWithCustomImages(Protocol):
         ...
 
 
+class CreateSpotifyFetchMeData(Protocol):
+    def __call__(self, country: str = ..., display_name: str = ..., user_id: str = ...,
+                 images: list[ImageData] | None = ..., product: str = ...) -> SpotifyFetchMeData:
+        ...
+
+
+class MockSpotifyUserDataFetch(Protocol):
+    def __call__(self, country: str = ..., display_name: str = ..., user_id: str = ...,
+                 images: list[ImageData] | None = ..., product: str = ...) -> httpx.Response:
+        ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
@@ -138,4 +150,6 @@ type BuildQueue = Callable[[], QueueData]
 type AssertTokenInHeaders = Callable[[httpx.Response], str]
 type MockNoPlayerStateResponse = Callable[[], None]
 type MockPlaybackPausedResponse = Callable[[], None]
+type MockDefaultMeReturn = Callable[[], None]
 type RunSchedulingJob = Callable[[], Awaitable[None]]
+type ValidateErrorResponse = Callable[[httpx.Response, int, str], None]

@@ -193,3 +193,11 @@ class GeneralSearchResultData(TypedDict):
     albums: PaginatedSearchResultData[AlbumData]
     artists: PaginatedSearchResultData[ArtistData]
     playlists: PaginatedSearchResultData[PlaylistData]
+
+
+class SpotifyFetchMeData(TypedDict):
+    country: str
+    display_name: str
+    id: str
+    images: list[ImageData]
+    product: str

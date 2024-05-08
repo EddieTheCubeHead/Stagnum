@@ -4,6 +4,7 @@ from enum import Enum
 from typing import override
 
 from _pytest.python_api import ApproxBase
+from pydantic import BaseModel
 
 from api.common.dependencies import DateTimeWrapperRaw
 from test_types.typed_dictionaries import TrackData
@@ -24,6 +25,10 @@ class SubscriptionType(Enum):
     Premium = "premium"
     Open = "open"
     Free = "free"
+
+
+class ErrorResponse(BaseModel):
+    detail: str
 
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395

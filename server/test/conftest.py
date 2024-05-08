@@ -26,13 +26,13 @@ from api.common.models import ParsedTokenResponse
 from api.pool.models import PoolCreationData, PoolContent
 from database.database_connection import ConnectionManager
 from database.entities import User, PoolMember
-from helpers.classes import MockDateTimeWrapper, ErrorData
+from helpers.classes import MockDateTimeWrapper, ErrorData, ErrorResponse
 from test_types.aliases import MockResponseQueue, SpotifySecrets
 from test_types.callables import ValidateResponse, CreateToken, LogUserIn, \
     CreateHeaderFromTokenResponse, MockArtistSearchResult, BuildSuccessResponse, \
     MockAlbumSearchResult, MockTrackSearchResult, MockPlaylistSearchResult, \
     GetQueryParameter, CreatePoolCreationDataJson, IncrementNow, \
-    MockTokenReturn, ValidateModel, AssertTokenInHeaders
+    MockTokenReturn, ValidateModel, AssertTokenInHeaders, ValidateErrorResponse
 from test_types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData, PoolCreationDataDict
 
 
@@ -504,5 +504,14 @@ def correct_env_variables(monkeypatch: MonkeyPatch) -> SpotifySecrets:
 def validate_model(validate_response) -> ValidateModel:
     def wrapper[T: type(BaseModel)](expected_type: T, response: httpx.Response) -> T:
         return expected_type.model_validate(validate_response(response))
+
+    return wrapper
+
+
+@pytest.fixture
+def validate_error_response(validate_response: ValidateResponse) -> ValidateErrorResponse:
+    def wrapper(response: httpx.Response, code: int, message: str) -> None:
+        exception = ErrorResponse.model_validate(validate_response(response, code))
+        assert message == exception.detail
 
     return wrapper
