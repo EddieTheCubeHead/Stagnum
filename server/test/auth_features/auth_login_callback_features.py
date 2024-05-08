@@ -1,5 +1,4 @@
 import base64
-import json
 from typing import Callable
 from unittest.mock import Mock
 
@@ -16,9 +15,7 @@ from database.entities import LoginState, User
 from helpers.classes import ErrorData, SubscriptionType
 from test_types.aliases import SpotifySecrets, MockResponseQueue
 from test_types.callables import BaseAuthCallback, CreateValidStateString, ValidateResponse, ValidateErrorResponse, \
-    MockSpotifyUserDataFetch, MockDefaultMeReturn
-
-auth_test_callable = Callable[[str], User]
+    MockSpotifyUserDataFetch, MockDefaultMeReturn, AuthTestCallable
 
 
 @pytest.fixture
@@ -35,7 +32,7 @@ def existing_login(mocked_default_me_return: None, base_auth_callback_call: Base
 
 
 @pytest.fixture
-def auth_test(test_client: TestClient, mock_token_holder: TokenHolder) -> auth_test_callable:
+def auth_test(test_client: TestClient, mock_token_holder: TokenHolder) -> AuthTestCallable:
     def auth_test_wrapper(token):
         return validated_user_raw(token, mock_token_holder)
 
@@ -140,14 +137,14 @@ def should_update_user_data_on_token_receive_if_it_exists(correct_env_variables:
     assert user_data.spotify_avatar_url == "https://image.example.com"
 
 
-def should_throw_exception_on_token_auth_if_not_logged_in(auth_test: auth_test_callable):
+def should_throw_exception_on_token_auth_if_not_logged_in(auth_test: AuthTestCallable):
     with pytest.raises(HTTPException) as exception_info:
         auth_test("my token")
     assert exception_info.value.status_code == 403
     assert exception_info.value.detail == "Invalid bearer token!"
 
 
-def should_save_token_on_success_and_auth_with_token_afterwards(auth_test: auth_test_callable, mock_token: str,
+def should_save_token_on_success_and_auth_with_token_afterwards(auth_test: AuthTestCallable, mock_token: str,
                                                                 correct_env_variables: SpotifySecrets,
                                                                 validate_response: ValidateResponse,
                                                                 base_auth_callback_call: BaseAuthCallback):
