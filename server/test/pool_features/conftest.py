@@ -463,7 +463,7 @@ def mock_album_fetch(create_mock_album_search_result: MockAlbumSearchResult,
         album = create_mock_album_search_result(artist, tracks)
         mocked_pool_contents.albums.append(album)
         requests_client_get_queue.append(build_success_response(album))
-        return PoolContent(spotify_uri=artist["uri"]).model_dump()
+        return PoolContent(spotify_uri=album["uri"]).model_dump()
 
     return wrapper
 
