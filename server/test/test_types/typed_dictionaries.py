@@ -71,7 +71,7 @@ class SimplifiedTrackData(SpotifyResourceData):
 class PaginatedSearchResultData[ResultType: SpotifyResourceData](TypedDict):
     href: str
     limit: int
-    next: str
+    next: str | None
     offset: int
     previous: str | None
     total: int
@@ -119,7 +119,7 @@ class PlaylistTrackData(TypedDict):
     added_at: str
     added_by: UserData
     is_local: bool
-    track: TrackData
+    track: TrackData | None
 
 
 class PlaylistData(SpotifyResourceWithImagesData):

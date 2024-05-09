@@ -1,5 +1,5 @@
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import override
 
@@ -7,7 +7,7 @@ from _pytest.python_api import ApproxBase
 from pydantic import BaseModel
 
 from api.common.dependencies import DateTimeWrapperRaw
-from test_types.typed_dictionaries import TrackData
+from test_types.typed_dictionaries import TrackData, ArtistData, AlbumData, PlaylistData, PaginatedSearchResultData
 
 
 @dataclass
@@ -29,6 +29,26 @@ class SubscriptionType(Enum):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+@dataclass
+class MockedArtistPoolContent:
+    artist: ArtistData
+    tracks: list[TrackData] = field(default_factory=list)
+
+
+@dataclass
+class MockedPlaylistPoolContent:
+    first_fetch: PlaylistData
+    further_fetches: list[PaginatedSearchResultData]
+
+
+@dataclass
+class MockedPoolContents:
+    tracks: list[TrackData] = field(default_factory=list)
+    artists: list[MockedArtistPoolContent] = field(default_factory=list)
+    albums: list[AlbumData] = field(default_factory=list)
+    playlists: list[MockedPlaylistPoolContent] = field(default_factory=list)
 
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395

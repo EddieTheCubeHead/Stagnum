@@ -27,7 +27,7 @@ def should_return_mix_of_tracks_and_collections_correctly(
     artist = create_mock_artist_search_result()
     artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
     album = create_mock_album_search_result(artist, [create_mock_track_search_result(artist) for _ in range(12)])
-    playlist = create_mock_playlist_fetch_result(23)
+    playlist = create_mock_playlist_fetch_result(23).first_fetch
     responses = [build_success_response(artist), build_success_response(artist_tracks), build_success_response(album),
                  build_success_response(playlist)]
     requests_client_get_queue.extend(responses)

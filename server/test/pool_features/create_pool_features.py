@@ -8,13 +8,13 @@ from starlette.testclient import TestClient
 
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
-from helpers.classes import ErrorData
+from helpers.classes import ErrorData, MockedPoolContents
 from pool_features.conftest import MockPlaylistFetchResult
 from test_types.typed_dictionaries import Headers, PlaylistData
 from test_types.aliases import MockResponseQueue
 from test_types.callables import ValidateResponse, MockTrackSearchResult, \
     BuildSuccessResponse, CreatePoolCreationDataJson, MockAlbumSearchResult, \
-    MockArtistSearchResult, AssertTokenInHeaders
+    MockArtistSearchResult, AssertTokenInHeaders, MockPoolContentFetches, MockPlaylistFetch
 
 mock_put_response_callable = Callable[[], None]
 
@@ -213,15 +213,13 @@ def should_save_artist_top_ten_tracks_as_pool_in_database(
 
 def should_be_able_to_create_pool_from_playlist(
         test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse,
-        create_mock_playlist_fetch_result: MockPlaylistFetchResult, requests_client: Mock,
-        build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
-        create_pool_creation_data_json: CreatePoolCreationDataJson):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
-    requests_client_get_queue.append(build_success_response(playlist))
-    data_json = create_pool_creation_data_json(playlist["uri"])
+        mock_pool_content_fetches: MockPoolContentFetches, requests_client: Mock,
+        build_success_response: BuildSuccessResponse, mocked_pool_contents: MockedPoolContents):
+    data_json = mock_pool_content_fetches(playlists=[30])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
+    playlist = mocked_pool_contents.playlists[0].first_fetch
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
                                            headers=valid_token_header)
     pool_response = validate_response(result)
@@ -235,16 +233,13 @@ def should_be_able_to_create_pool_from_playlist(
 
 def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
         test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse,
-        create_mock_playlist_fetch_result: MockPlaylistFetchResult, requests_client: Mock,
-        create_mock_track_search_result: MockTrackSearchResult,
-        build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
-        create_pool_creation_data_json: CreatePoolCreationDataJson):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(30, True)
-    requests_client_get_queue.append(build_success_response(playlist))
-    data_json = create_pool_creation_data_json(playlist["uri"])
+        requests_client: Mock, mock_playlist_fetch: MockPlaylistFetch,
+        mocked_pool_contents: MockedPoolContents, create_pool_creation_data_json: CreatePoolCreationDataJson):
+    data_json = create_pool_creation_data_json(mock_playlist_fetch(30, True)["spotify_uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
+    playlist = mocked_pool_contents.playlists[0].first_fetch
     requests_client.get.assert_called_with(f"https://api.spotify.com/v1/playlists/{playlist['id']}",
                                            headers=valid_token_header)
     pool_response = validate_response(result)
@@ -261,7 +256,7 @@ def should_save_whole_playlist_as_pool_in_database(
         logged_in_user_id: str, create_mock_playlist_fetch_result: MockPlaylistFetchResult,
         build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: CreatePoolCreationDataJson):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
+    playlist = create_mock_playlist_fetch_result(30).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -322,7 +317,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(
     artist = create_mock_artist_search_result()
     artist_tracks = {"tracks": [create_mock_track_search_result(artist) for _ in range(10)]}
     album = create_mock_album_search_result(artist, [create_mock_track_search_result(artist) for _ in range(12)])
-    playlist = create_mock_playlist_fetch_result(23)
+    playlist = create_mock_playlist_fetch_result(23).first_fetch
     responses = [build_success_response(track) for track in tracks]
     responses.extend([build_success_response(artist), build_success_response(artist_tracks),
                       build_success_response(album), build_success_response(playlist)])
@@ -353,9 +348,10 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(
         create_pool_creation_data_json: CreatePoolCreationDataJson,
         requests_client: Mock):
     playlist_length = 320
-    playlist_fetches: tuple[PlaylistData, ...] = create_mock_playlist_fetch_result(playlist_length)
-    playlist = playlist_fetches[0]
-    responses = [build_success_response(data_point) for data_point in playlist_fetches]
+    playlist_fetches = create_mock_playlist_fetch_result(playlist_length)
+    playlist = playlist_fetches.first_fetch
+    responses = [build_success_response(playlist)]
+    responses.extend([build_success_response(data_point) for data_point in playlist_fetches.further_fetches])
     requests_client_get_queue.extend(responses)
     data_json = create_pool_creation_data_json(playlist["uri"])
 

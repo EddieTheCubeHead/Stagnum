@@ -1,7 +1,7 @@
 import datetime
 import json
 import random
-from typing import Any, Union, Tuple
+from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -17,17 +17,22 @@ from api.common.models import ParsedTokenResponse
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
     WebsocketUpdaterRaw
+from api.pool.models import PoolContent, PoolCreationData
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
+from api.search.models import PaginatedSearchResult
 from database.database_connection import ConnectionManager
 from database.entities import User
-from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData
-from test_types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, PlaylistData
+from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData, MockedPoolContents, MockedArtistPoolContent, \
+    MockedPlaylistPoolContent
 from test_types.aliases import MockResponseQueue
 from test_types.callables import MockTrackSearchResult, BuildSuccessResponse, \
     CreatePoolCreationDataJson, ValidateResponse, CreateSpotifyPlaybackState, \
     MockNoPlayerStateResponse, MockPlaybackPausedResponse, SkipSong, \
     CreateSpotifyPlayback, RunSchedulingJob, MockPlaylistFetchResult, \
-    SharePoolAndGetCode, BuildQueue
+    SharePoolAndGetCode, BuildQueue, MockPoolContentFetches, MockArtistSearchResult, MockAlbumSearchResult, \
+    MockTrackFetch, MockArtistFetch, MockAlbumFetch, MockPlaylistFetch
+from test_types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, \
+    PlaylistData, PoolContentData, PoolCreationDataDict, ArtistData, PaginatedSearchResultData, PlaylistTrackData
 
 
 @pytest.fixture
@@ -38,13 +43,13 @@ def current_playback_data() -> CurrentPlaybackData:
 @pytest.fixture
 def create_mock_playlist_fetch_result(create_mock_track_search_result: MockTrackSearchResult,
                                       faker: Faker) -> MockPlaylistFetchResult:
-    def wrapper(track_amount: int, append_none: bool = False) -> Union[PlaylistData, Tuple[PlaylistData, ...]]:
+    def wrapper(track_amount: int, append_none: bool = False) -> MockedPlaylistPoolContent:
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
-        tracks: list[dict[str, Any] | None] = [create_mock_track_search_result() for _ in range(track_amount)]
+        tracks: list[TrackData | None] = [create_mock_track_search_result() for _ in range(track_amount)]
         if append_none:
             tracks.append(None)
-        playlist_tracks = []
+        playlist_tracks: list[PlaylistTrackData] = []
         for track in tracks:
             playlist_tracks.append({
                 "added_at": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%dT%H:%M:%SZ"),
@@ -106,11 +111,7 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result: MockTrack
             "type": "playlist",
             "uri": f"spotify:playlist:{playlist_id}"
         }
-
-        if track_amount <= batch:
-            return playlist_data
-
-        further_fetches = []
+        further_fetches: list[PaginatedSearchResultData] = []
         batch_walker = batch
         while batch_walker <= track_amount:
             further_fetches.append({
@@ -127,7 +128,7 @@ def create_mock_playlist_fetch_result(create_mock_track_search_result: MockTrack
                 "items": playlist_tracks[batch_walker:batch_walker + batch]
             })
             batch_walker += batch
-        return playlist_data, *further_fetches
+        return MockedPlaylistPoolContent(first_fetch=playlist_data, further_fetches=further_fetches)
 
     return wrapper
 
@@ -323,7 +324,8 @@ def create_spotify_playback_state(faker: Faker, create_mock_track_search_result:
             "repeat_state": "track",
             "shuffle_state": False,
             "context": context,
-            "timestamp": int(mock_datetime_wrapper.now().timestamp() * 1000),  # Spotify sends timestamps in milliseconds
+            "timestamp": int(mock_datetime_wrapper.now().timestamp() * 1000),
+            # Spotify sends timestamps in milliseconds
             "progress_ms": song_data["duration_ms"] - playback_left,
             "is_playing": is_playing,
             "item": song_data,
@@ -415,5 +417,93 @@ def mock_playback_paused_response(requests_client_get_queue: MockResponseQueue,
         response.content = json.dumps(response_data).encode("utf-8")
         requests_client_get_queue.append(response)
         mock_empty_queue_get()
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_track_fetch(create_mock_track_search_result: MockTrackSearchResult,
+                     requests_client_get_queue: MockResponseQueue, mocked_pool_contents: MockedPoolContents,
+                     build_success_response: BuildSuccessResponse) -> MockTrackFetch:
+    def wrapper(artist_in: ArtistData = None) -> PoolContentData:
+        track = create_mock_track_search_result(artist_in)
+        mocked_pool_contents.tracks.append(track)
+        requests_client_get_queue.append(build_success_response(track))
+        return PoolContent(spotify_uri=track["uri"]).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_artist_fetch(create_mock_artist_search_result: MockArtistSearchResult,
+                      create_mock_track_search_result: MockTrackSearchResult,
+                      requests_client_get_queue: MockResponseQueue, mocked_pool_contents: MockedPoolContents,
+                      build_success_response: BuildSuccessResponse) -> MockArtistFetch:
+    def wrapper() -> PoolContentData:
+        artist = create_mock_artist_search_result()
+        tracks = {
+            "tracks": [create_mock_track_search_result(artist) for _ in range(10)]
+        }
+        mocked_pool_contents.artists.append(MockedArtistPoolContent(artist=artist, tracks=tracks["tracks"]))
+        requests_client_get_queue.extend([build_success_response(artist), build_success_response(tracks)])
+        return PoolContent(spotify_uri=artist["uri"]).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_album_fetch(create_mock_album_search_result: MockAlbumSearchResult,
+                     create_mock_artist_search_result: MockArtistSearchResult,
+                     create_mock_track_search_result: MockTrackSearchResult,
+                     requests_client_get_queue: MockResponseQueue, mocked_pool_contents: MockedPoolContents,
+                     build_success_response: BuildSuccessResponse) -> MockAlbumFetch:
+    def wrapper(album_length: int = 12) -> PoolContentData:
+        artist = create_mock_artist_search_result()
+        tracks = [create_mock_track_search_result(artist) for _ in range(album_length)]
+        album = create_mock_album_search_result(artist, tracks)
+        mocked_pool_contents.albums.append(album)
+        requests_client_get_queue.append(build_success_response(album))
+        return PoolContent(spotify_uri=artist["uri"]).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_playlist_fetch(create_mock_playlist_fetch_result: MockPlaylistFetchResult,
+                        requests_client_get_queue: MockResponseQueue, mocked_pool_contents: MockedPoolContents,
+                        build_success_response: BuildSuccessResponse) -> MockPlaylistFetch:
+    def wrapper(playlist_length: int = 30, append_none: bool = False) -> PoolContentData:
+        playlist_fetch_data = create_mock_playlist_fetch_result(playlist_length, append_none)
+        requests_client_get_queue.append(build_success_response(playlist_fetch_data.first_fetch))
+        for further_fetch in playlist_fetch_data.further_fetches:
+            requests_client_get_queue.append(build_success_response(further_fetch))
+        mocked_pool_contents.playlists.append(playlist_fetch_data)
+        return PoolContent(spotify_uri=playlist_fetch_data.first_fetch["uri"]).model_dump()
+
+    return wrapper
+
+
+@pytest.fixture
+def mocked_pool_contents() -> MockedPoolContents:
+    return MockedPoolContents()
+
+
+@pytest.fixture
+def mock_pool_content_fetches(mock_track_fetch: MockTrackFetch, mock_artist_fetch: MockArtistFetch,
+                              mock_album_fetch: MockAlbumFetch, mock_playlist_fetch: MockPlaylistFetch,
+                              requests_client_get_queue: MockResponseQueue,
+                              build_success_response: BuildSuccessResponse) -> MockPoolContentFetches:
+    def wrapper(tracks: int = 0, artists: int = 0, albums: list[int] = None,
+                playlists: list[int] = None) -> PoolCreationDataDict:
+        content_models: list[PoolContentData] = []
+        for _ in range(tracks):
+            content_models.append(mock_track_fetch())
+        for _ in range(artists):
+            content_models.append(mock_artist_fetch())
+        for album_length in (albums if albums is not None else []):
+            content_models.append(mock_album_fetch(album_length))
+        for playlist_length in (playlists if playlists is not None else []):
+            content_models.append(mock_playlist_fetch(playlist_length))
+        return PoolCreationData(spotify_uris=content_models).model_dump()
 
     return wrapper

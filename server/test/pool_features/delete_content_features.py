@@ -45,7 +45,7 @@ def should_be_able_to_delete_separate_child_from_collection(
         create_mock_playlist_fetch_result: MockPlaylistFetchResult,
         create_pool_creation_data_json: CreatePoolCreationDataJson,
         build_success_response: BuildSuccessResponse):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(15)
+    playlist = create_mock_playlist_fetch_result(15).first_fetch
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     requests_client_get_queue.append(build_success_response(playlist))
     test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)
@@ -69,7 +69,7 @@ def should_delete_all_children_on_parent_deletion(
         valid_token_header: Headers, create_pool_creation_data_json: CreatePoolCreationDataJson,
         requests_client_get_queue: MockResponseQueue, logged_in_user_id: str,
         build_success_response: BuildSuccessResponse):
-    playlist = create_mock_playlist_fetch_result(15)
+    playlist = create_mock_playlist_fetch_result(15).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)
 

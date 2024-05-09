@@ -86,7 +86,7 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code: str, test_client
                                               create_mock_playlist_fetch_result: MockPlaylistFetchResult,
                                               build_success_response: BuildSuccessResponse):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    playlist = create_mock_playlist_fetch_result(35)
+    playlist = create_mock_playlist_fetch_result(35).first_fetch
     requests_client.get = Mock(return_value=build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
@@ -110,7 +110,7 @@ def should_use_all_users_pools_in_shared_pool_playback(
         weighted_parameters: RandomizationParameters, skip_song: SkipSong,
         requests_client_get_queue: MockResponseQueue):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    playlist = create_mock_playlist_fetch_result(15)
+    playlist = create_mock_playlist_fetch_result(15).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)

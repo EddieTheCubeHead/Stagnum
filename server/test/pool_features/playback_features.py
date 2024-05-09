@@ -47,7 +47,7 @@ def should_start_pool_playback_from_collection_tracks_when_posting_collection(
         create_mock_playlist_fetch_result: MockPlaylistFetchResult, valid_token_header: Headers,
         requests_client_get_queue: MockResponseQueue, build_success_response: BuildSuccessResponse,
         create_pool_creation_data_json: CreatePoolCreationDataJson, requests_client: Mock):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(25)
+    playlist = create_mock_playlist_fetch_result(25).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -65,7 +65,7 @@ def should_start_pool_playback_from_playlist_fetch_data_correctly(
         build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
         create_pool_creation_data_json: CreatePoolCreationDataJson, test_client: TestClient,
         valid_token_header: Headers):
-    playlist: PlaylistData = create_mock_playlist_fetch_result(30)
+    playlist = create_mock_playlist_fetch_result(30).first_fetch
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 
@@ -85,7 +85,7 @@ def should_not_start_pool_playback_from_collection_uri_when_posting_collection(
         build_success_response: BuildSuccessResponse, valid_token_header: Headers,
         create_pool_creation_data_json: CreatePoolCreationDataJson, repeat: int):
     # use only one track so test fails with repeats if main collection is ever used
-    playlist: PlaylistData = create_mock_playlist_fetch_result(1)
+    playlist: PlaylistData = create_mock_playlist_fetch_result(1).first_fetch
     requests_client.get = Mock(return_value=build_success_response(playlist))
     data_json = create_pool_creation_data_json(playlist["uri"])
 

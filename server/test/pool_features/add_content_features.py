@@ -78,7 +78,7 @@ def should_correctly_construct_pool_after_collection_addition(
         test_client: TestClient, valid_token_header: Headers, db_connection: ConnectionManager,
         logged_in_user_id: str, existing_pool: list[PoolMember], validate_response: ValidateResponse,
         create_mock_playlist_fetch_result: MockPlaylistFetchResult):
-    playlist = create_mock_playlist_fetch_result(35)
+    playlist = create_mock_playlist_fetch_result(35).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
 

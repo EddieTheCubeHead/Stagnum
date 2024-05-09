@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from api.common.models import ParsedTokenResponse
 from database.entities import User, PoolMember
+from helpers.classes import MockedPlaylistPoolContent
 from test_types.typed_dictionaries import Headers, TrackData, ArtistData, AlbumData, PlaylistData, PlaybackContextData, \
     PlaybackStateData, QueueData, PoolCreationDataDict, PoolContentData, PaginatedSearchResultData, \
     GeneralSearchResultData, ImageData, SpotifyFetchMeData
@@ -64,7 +65,7 @@ class CreateSpotifyPlayback(Protocol):
 
 
 class MockPlaylistFetchResult(Protocol):
-    def __call__(self, track_amount: int, append_none: bool = ...) -> Union[PlaylistData, Tuple[PlaylistData, ...]]:
+    def __call__(self, track_amount: int, append_none: bool = ...) -> MockedPlaylistPoolContent:
         ...
 
 
@@ -131,6 +132,27 @@ class MockSpotifyUserDataFetch(Protocol):
         ...
 
 
+class MockTrackFetch(Protocol):
+    def __call__(self, artist_in: ArtistData | None = ...) -> PoolContentData:
+        ...
+
+
+class MockAlbumFetch(Protocol):
+    def __call__(self, album_length: int = ...) -> PoolContentData:
+        ...
+
+
+class MockPlaylistFetch(Protocol):
+    def __call__(self, playlist_length: int = ..., append_none: bool = ...) -> PoolContentData:
+        ...
+
+
+class MockPoolContentFetches(Protocol):
+    def __call__(self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ...,
+                 playlists: list[int] | None = ...) -> PoolCreationDataDict:
+        ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
@@ -154,3 +176,4 @@ type MockDefaultMeReturn = Callable[[], None]
 type RunSchedulingJob = Callable[[], Awaitable[None]]
 type ValidateErrorResponse = Callable[[httpx.Response, int, str], None]
 type AuthTestCallable = Callable[[str], User]
+type MockArtistFetch = Callable[[], PoolContentData]

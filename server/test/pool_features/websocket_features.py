@@ -23,7 +23,7 @@ def should_get_update_when_pool_contents_added(test_client: TestClient, valid_to
                                                another_logged_in_user_token: Headers):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={another_logged_in_user_token}") as websocket:
-        playlist = create_mock_playlist_fetch_result(15)
+        playlist = create_mock_playlist_fetch_result(15).first_fetch
         requests_client_get_queue.append(build_success_response(playlist))
         pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
         test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
@@ -138,7 +138,7 @@ def should_wipe_leavers_songs_on_pool_leave(test_client: TestClient, existing_pl
                                             build_success_response: BuildSuccessResponse,
                                             create_mock_playlist_fetch_result: MockPlaylistFetchResult):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    playlist = create_mock_playlist_fetch_result(35)
+    playlist = create_mock_playlist_fetch_result(35).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)

@@ -49,7 +49,7 @@ def should_wipe_leavers_pool_members_on_leave_pool(
         another_logged_in_user: User):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
-    playlist = create_mock_playlist_fetch_result(35)
+    playlist = create_mock_playlist_fetch_result(35).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
 
