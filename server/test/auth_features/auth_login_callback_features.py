@@ -1,5 +1,4 @@
 import base64
-from typing import Callable
 from unittest.mock import Mock
 
 import httpx
@@ -41,8 +40,8 @@ def auth_test(test_client: TestClient, mock_token_holder: TokenHolder) -> AuthTe
 
 def should_return_exception_if_state_is_not_in_database_on_auth_callback(
         correct_env_variables: SpotifySecrets, test_client: TestClient, validate_error_response: ValidateErrorResponse):
-    response = test_client.get(f"/auth/login/callback?state=my_invalid_state&code=12345abcde"
-                               f"&client_redirect_uri=test_url")
+    response = test_client.get("/auth/login/callback?state=my_invalid_state&code=12345abcde"
+                               "&client_redirect_uri=test_url")
     message = "Login state is invalid or expired. Please restart the login flow to ensure a fresh and valid state."
     validate_error_response(response, 403, message)
 

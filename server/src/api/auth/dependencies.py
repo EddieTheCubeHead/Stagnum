@@ -1,6 +1,4 @@
-import base64
 import datetime
-import os
 from logging import getLogger
 from typing import Annotated
 
@@ -8,8 +6,8 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import delete, select
 
 from api.auth.models import LoginRedirect, LoginSuccess
-from api.common.dependencies import DatabaseConnection, SpotifyClient, TokenHolder, AuthSpotifyClient, DateTimeWrapper
-from api.common.helpers import create_random_string, raise_internal_server_error, _get_client_id, _get_client_secret
+from api.common.dependencies import DatabaseConnection, TokenHolder, AuthSpotifyClient, DateTimeWrapper
+from api.common.helpers import create_random_string, _get_client_id, _get_client_secret
 from api.common.models import ParsedTokenResponse
 from database.entities import LoginState, User, UserSession
 
@@ -95,14 +93,14 @@ class AuthServiceRaw:
     def _fetch_token(self, client_redirect_uri, code) -> ParsedTokenResponse:
         client_id = _get_client_id()
         client_secret = _get_client_secret()
-        _logger.debug(f"Fetching oauth auth token from spotify")
+        _logger.debug("Fetching oauth auth token from spotify")
         token_result = self._spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
         token = f"{token_result.token_type} {token_result.access_token}"
         return ParsedTokenResponse(token=token, refresh_token=token_result.refresh_token,
                                    expires_in=token_result.expires_in)
 
     def _fetch_current_user(self, token) -> User:
-        _logger.debug(f"Fetching user data from spotify")
+        _logger.debug("Fetching user data from spotify")
         me_result = self._spotify_client.get_me(token)
         return me_result
 

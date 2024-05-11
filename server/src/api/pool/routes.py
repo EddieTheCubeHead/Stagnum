@@ -1,7 +1,6 @@
 from logging import getLogger
 
 from fastapi import APIRouter
-from starlette import status
 
 from api.common.dependencies import validated_user
 from api.common.helpers import map_user_entity_to_model

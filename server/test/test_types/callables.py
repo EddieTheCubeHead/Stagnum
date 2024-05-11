@@ -1,5 +1,5 @@
 import datetime
-from typing import Protocol, Any, Callable, Awaitable, Union, Tuple
+from typing import Protocol, Any, Callable, Awaitable
 
 import httpx
 from pydantic import BaseModel

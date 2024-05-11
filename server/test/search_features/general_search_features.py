@@ -50,7 +50,7 @@ def run_general_search_with_custom_images(build_general_search_with_custom_image
 def default_image_data() -> list[ImageData]:
     return [
         {
-            "url": f"https://pic.spotify.url/image_test_normal_size",
+            "url": "https://pic.spotify.url/image_test_normal_size",
             "height": 300,
             "width": 300
         }
@@ -130,7 +130,7 @@ def should_accept_any_date_starting_with_year(test_client: TestClient, valid_tok
 def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header: Headers,
                                              validate_response: ValidateResponse,
                                              spotify_error_message: ErrorData):
-    response = test_client.get(f"/search?query=test", headers=valid_token_header)
+    response = test_client.get("/search?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
     assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
                                    f"Message: {spotify_error_message.message}")

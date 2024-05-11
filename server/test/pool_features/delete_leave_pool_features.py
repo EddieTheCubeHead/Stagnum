@@ -7,7 +7,7 @@ from starlette.testclient import TestClient
 
 from api.pool.models import PoolFullContents
 from database.database_connection import ConnectionManager
-from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User, EntityBase
+from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User
 from test_types.callables import ValidateResponse, ValidateModel, MockPlaylistFetch, \
     AssertEmptyPoolModel, AssertEmptyTables
 from test_types.typed_dictionaries import Headers, TrackData

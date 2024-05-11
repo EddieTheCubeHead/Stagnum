@@ -5,7 +5,6 @@ from fastapi import Depends
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from database.entities import PoolMember
 from api.common.dependencies import DateTimeWrapper, DatabaseConnection
 
 

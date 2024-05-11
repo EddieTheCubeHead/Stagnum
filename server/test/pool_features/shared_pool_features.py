@@ -192,7 +192,7 @@ def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(
 def should_return_error_response_when_attempting_to_share_own_pool_with_existing_share_code(
         shared_pool_code: str, test_client: TestClient, valid_token_header: Headers,
         validate_error_response: ValidateErrorResponse):
-    response = test_client.post(f"/pool/share", headers=valid_token_header)
+    response = test_client.post("/pool/share", headers=valid_token_header)
 
     validate_error_response(response, 400, "Pool already shared!")
 

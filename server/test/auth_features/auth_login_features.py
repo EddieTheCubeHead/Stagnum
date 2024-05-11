@@ -85,7 +85,7 @@ def should_get_spotify_client_id_from_env_and_include_in_response(test_client: T
                                                                   get_query_parameter: GetQueryParameter):
     expected_client_id = "test_client_id"
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", expected_client_id)
-    response = test_client.get(f"/auth/login?client_redirect_uri=test")
+    response = test_client.get("/auth/login?client_redirect_uri=test")
     data_json = validate_response(response)
     assert expected_client_id == get_query_parameter(data_json["redirect_uri"], "client_id")
 

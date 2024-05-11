@@ -145,7 +145,7 @@ def primary_user_token(create_token: CreateToken) -> ParsedTokenResponse:
 @pytest.fixture
 def logged_in_user(logged_in_user_id: str) -> User:
     return User(spotify_id=logged_in_user_id, spotify_username=logged_in_user_id,
-                spotify_avatar_url=f"user.icon.example")
+                spotify_avatar_url="user.icon.example")
 
 
 @pytest.fixture

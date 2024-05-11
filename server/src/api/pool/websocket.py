@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from api.common.dependencies import validated_user_from_query_parameters
-from api.pool.dependencies import PoolDatabaseConnection, WebsocketUpdater
+from api.pool.dependencies import WebsocketUpdater
 
 websocket_router = APIRouter(
     prefix="/websocket",

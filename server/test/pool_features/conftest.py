@@ -172,7 +172,7 @@ def another_logged_in_user_header(another_logged_in_user_token: str) -> Headers:
 @pytest.fixture
 def another_logged_in_user(faker: Faker) -> User:
     user_id = faker.uuid4()
-    return User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url=f"user.icon.example")
+    return User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url="user.icon.example")
 
 
 @pytest.fixture

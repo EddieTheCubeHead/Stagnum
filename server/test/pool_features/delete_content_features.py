@@ -81,7 +81,7 @@ def should_delete_all_children_on_parent_deletion(test_client: TestClient, valid
 def should_return_error_if_member_does_not_exist_in_pool(test_client: TestClient, existing_pool: list[PoolMember],
                                                          valid_token_header: Headers,
                                                          validate_response: ValidateResponse):
-    response = test_client.delete(f"/pool/content/invalid_content_uri", headers=valid_token_header)
+    response = test_client.delete("/pool/content/invalid_content_uri", headers=valid_token_header)
 
     json_data = validate_response(response, 404)
     assert json_data["detail"] == "Can't delete a pool member that does not exist."
