@@ -6,24 +6,16 @@ from starlette.testclient import TestClient
 
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolPlaybackServiceRaw
-from api.pool.models import PoolContent
-from test_types.callables import BuildSuccessResponse, MockPlaylistFetchResult, \
-    IncrementNow, RunSchedulingJob, ValidateResponse, SkipSong, \
-    CreateSpotifyPlayback, BuildQueue, MockTrackSearchResult
+from test_types.callables import IncrementNow, RunSchedulingJob, ValidateResponse, SkipSong, CreateSpotifyPlayback, \
+    BuildQueue, MockTrackSearchResult, MockPlaylistFetch
 from test_types.typed_dictionaries import Headers, TrackData
-from test_types.aliases import MockResponseQueue
 
 
 def should_get_update_when_pool_contents_added(test_client: TestClient, valid_token_header: Headers,
                                                shared_pool_code: str, logged_in_user_id: str,
-                                               build_success_response: BuildSuccessResponse,
-                                               create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-                                               requests_client_get_queue: MockResponseQueue,
-                                               joined_user_token: str):
+                                               joined_user_token: str, mock_playlist_fetch: MockPlaylistFetch):
     with test_client.websocket_connect(f"/websocket/connect?Authorization={joined_user_token}") as websocket:
-        playlist = create_mock_playlist_fetch_result(15).first_fetch
-        requests_client_get_queue.append(build_success_response(playlist))
-        pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
+        pool_content_data = mock_playlist_fetch(15)
         test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
         data = websocket.receive_json()
         for user_data in data["model"]["users"]:
@@ -126,13 +118,9 @@ def should_wipe_pool_for_listeners_on_pool_delete(test_client: TestClient, exist
 
 
 def should_wipe_leavers_songs_on_pool_leave(test_client: TestClient, existing_playback: list[TrackData],
-                                            shared_pool_code: str, requests_client_get_queue: MockResponseQueue,
-                                            joined_user_header: Headers, valid_token: str,
-                                            build_success_response: BuildSuccessResponse,
-                                            create_mock_playlist_fetch_result: MockPlaylistFetchResult):
-    playlist = create_mock_playlist_fetch_result(35).first_fetch
-    requests_client_get_queue.append(build_success_response(playlist))
-    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
+                                            shared_pool_code: str, joined_user_header: Headers, valid_token: str,
+                                            mock_playlist_fetch: MockPlaylistFetch):
+    pool_content_data = mock_playlist_fetch(35)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         test_client.post("/pool/leave", headers=joined_user_header)
