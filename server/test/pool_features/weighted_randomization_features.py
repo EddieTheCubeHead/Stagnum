@@ -18,7 +18,7 @@ from test_types.callables import CreateTestUsers, CreatePoolFromUsers, \
     CreateToken, LogUserIn, CreateHeaderFromTokenResponse, \
     SharePoolAndGetCode, ImplementPoolFromMembers, SkipSong, \
     GetQueryParameter, CreatePlayback
-from test_types.typed_dictionaries import PoolContentData, Headers, TrackData
+from test_types.typed_dictionaries import PoolContentData, Headers
 from test_types.aliases import SpotifySecrets
 
 

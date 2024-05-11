@@ -3,7 +3,6 @@ from typing import Any
 from unittest.mock import Mock
 
 import pytest
-from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.pool.models import PoolFullContents

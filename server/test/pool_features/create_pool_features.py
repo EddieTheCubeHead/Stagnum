@@ -8,7 +8,6 @@ from starlette.testclient import TestClient
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 from helpers.classes import ErrorData, MockedPoolContents
-from pool_features.conftest import MockPlaylistFetchResult
 from test_types.aliases import MockResponseQueue
 from test_types.callables import ValidateResponse, MockTrackSearchResult, \
     BuildSuccessResponse, CreatePoolCreationDataJson, AssertTokenInHeaders, MockPoolContentFetches, MockPlaylistFetch, \
