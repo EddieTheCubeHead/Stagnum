@@ -52,7 +52,6 @@ async def should_refresh_token_in_queue_job(existing_playback: list[dict[str, An
 
     with db_connection.session() as session:
         user_session: UserSession = session.scalar(select(UserSession))
-
     assert user_session.user_token == f"Bearer {refresh_token_return}"
 
 
@@ -66,7 +65,6 @@ async def should_accept_old_token_login_after_scheduler_refresh_and_return_new_t
     increment_now(datetime.timedelta(seconds=3600))
     create_spotify_playback()
     requests_client_post_queue.append(build_success_response({}))
-
     await run_scheduling_job()
 
     response = test_client.delete(f"/pool/content/{existing_playback[0]["uri"]}", headers=valid_token_header)
