@@ -50,6 +50,26 @@ class MockedPoolContents:
     albums: list[AlbumData] = field(default_factory=list)
     playlists: list[MockedPlaylistPoolContent] = field(default_factory=list)
 
+    @property
+    def track(self) -> TrackData:
+        assert len(self.tracks) > 0, "Did not find a mocked track"
+        return self.tracks[0]
+
+    @property
+    def artist(self) -> MockedArtistPoolContent:
+        assert len(self.artists) > 0, "Did not find a mocked artist"
+        return self.artists[0]
+
+    @property
+    def album(self) -> AlbumData:
+        assert len(self.albums) > 0, "Did not find a mocked album"
+        return self.albums[0]
+
+    @property
+    def playlist(self) -> MockedPlaylistPoolContent:
+        assert len(self.playlists) > 0, "Did not find a mocked playlist"
+        return self.playlists[0]
+
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
 class ApproxDatetime(ApproxBase):
