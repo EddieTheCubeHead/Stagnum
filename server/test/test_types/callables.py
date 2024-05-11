@@ -5,7 +5,7 @@ import httpx
 from pydantic import BaseModel
 
 from api.common.models import ParsedTokenResponse
-from database.entities import User, PoolMember
+from database.entities import User, PoolMember, EntityBase
 from helpers.classes import MockedPlaylistPoolContent
 from test_types.typed_dictionaries import Headers, TrackData, ArtistData, AlbumData, PlaylistData, PlaybackContextData, \
     PlaybackStateData, QueueData, PoolCreationDataDict, PoolContentData, PaginatedSearchResultData, \
@@ -164,6 +164,11 @@ class CreatePlayback(Protocol):
         ...
 
 
+class AssertEmptyTables(Protocol):
+    def __call__(self, *tables: type(EntityBase)) -> None:
+        ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
@@ -189,3 +194,4 @@ type ValidateErrorResponse = Callable[[httpx.Response, int, str], None]
 type AuthTestCallable = Callable[[str], User]
 type MockArtistFetch = Callable[[], PoolContentData]
 type MockPutResponse = Callable[[], None]
+type AssertEmptyPoolModel = Callable[[httpx.Response], None]
