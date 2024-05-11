@@ -1,117 +1,114 @@
 import datetime
-import json
-from typing import Callable
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
+from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import TokenHolder
+from api.common.models import ParsedTokenResponse
+from api.pool.dependencies import PoolPlaybackServiceRaw
 from api.pool.tasks import queue_next_songs
-from database.entities import PlaybackSession, Pool
+from database.database_connection import ConnectionManager
+from database.entities import PlaybackSession, Pool, User
+from helpers.classes import MockDateTimeWrapper, ApproxDatetime, MockedPoolContents
+from test_types.aliases import MockResponseQueue
+from test_types.callables import MockTrackSearchResult, BuildSuccessResponse, \
+    CreatePoolCreationDataJson, IncrementNow, \
+    GetQueryParameter, RunSchedulingJob, SkipSong, ValidateResponse, \
+    CreateSpotifyPlayback, BuildQueue, AssertTokenInHeaders, \
+    MockNoPlayerStateResponse, MockPlaybackPausedResponse, AssertPlaybackStarted, CreatePool, AssertEmptyTables, \
+    ValidateErrorResponse
+from test_types.typed_dictionaries import Headers, TrackData, PlaybackContextData
 
 
-def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(create_mock_track_search_result,
-                                                                             requests_client, build_success_response,
-                                                                             create_pool_creation_data_json,
-                                                                             test_client, valid_token_header,
-                                                                             requests_client_get_queue):
-    tracks = [create_mock_track_search_result() for _ in range(15)]
-    responses = [build_success_response(track) for track in tracks]
-    requests_client_get_queue.extend(responses)
-    track_uris = [track["uri"] for track in tracks]
-    data_json = create_pool_creation_data_json(*track_uris)
+@pytest.fixture
+def assert_playback_started(requests_client: Mock) -> AssertPlaybackStarted:
+    def wrapper(uris: list[str]) -> None:
+        actual_call = requests_client.put.call_args
+        assert actual_call.kwargs["json"]["position_ms"] == 0
+        call_uri = actual_call.kwargs["json"]["uris"][0]
+        assert call_uri in uris
 
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
-
-    actual_call = requests_client.put.call_args
-    assert actual_call.kwargs["json"]["position_ms"] == 0
-    call_uri = actual_call.kwargs["json"]["uris"][0]
-    assert call_uri in track_uris
+    return wrapper
 
 
-def should_start_pool_playback_from_collection_tracks_when_posting_collection(create_mock_track_search_result,
-                                                                              create_mock_playlist_fetch_result,
-                                                                              requests_client, build_success_response,
-                                                                              create_pool_creation_data_json,
-                                                                              test_client, valid_token_header):
-    playlist = create_mock_playlist_fetch_result(25)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
-    data_json = create_pool_creation_data_json(playlist["uri"])
-
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
-
-    actual_call = requests_client.put.call_args
-    assert actual_call.kwargs["json"]["position_ms"] == 0
-    call_uri = actual_call.kwargs["json"]["uris"][0]
-    expected_track_uris = [track["track"]["uri"] for track in playlist["tracks"]["items"]]
-    assert call_uri in expected_track_uris
+@pytest.fixture
+def invalid_playback_context() -> PlaybackContextData:
+    return {
+        "type": "playlist",
+        "href": "https://example.playlist.href",
+        "external_urls": {
+            "spotify": "https://open.spotify.example/playlist/href"
+        },
+        "uri": "spotify:playlist:example_uri"
+    }
 
 
-def should_start_pool_playback_from_playlist_fetch_data_correctly(create_mock_playlist_fetch_result,
-                                                                  requests_client, build_success_response,
-                                                                  create_pool_creation_data_json,
-                                                                  test_client, valid_token_header):
-    playlist = create_mock_playlist_fetch_result(30)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
-    data_json = create_pool_creation_data_json(playlist["uri"])
+def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(
+        requests_client: Mock, test_client: TestClient, mocked_pool_contents: MockedPoolContents,
+        create_pool: CreatePool, valid_token_header: Headers,
+        assert_playback_started: AssertPlaybackStarted):
+    create_pool(tracks=15)
 
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    track_uris = [track["uri"] for track in mocked_pool_contents.tracks]
+    assert_playback_started(track_uris)
 
-    actual_call = requests_client.put.call_args
-    assert actual_call.kwargs["json"]["position_ms"] == 0
-    call_uri = actual_call.kwargs["json"]["uris"][0]
-    assert call_uri in [track["track"]["uri"] for track in playlist["tracks"]["items"]]
+
+def should_start_pool_playback_from_collection_tracks_when_posting_collection(
+        valid_token_header: Headers, requests_client: Mock, test_client: TestClient,
+        create_pool: CreatePool, mocked_pool_contents: MockedPoolContents,
+        assert_playback_started: AssertPlaybackStarted):
+    create_pool(playlists=[25])
+
+    playlist = mocked_pool_contents.playlist.first_fetch
+    # Forced to do it like this because of type checking...
+    tracks: list[TrackData] = [track["track"] for track in playlist["tracks"]["items"] if track["track"] is not None]
+    expected_track_uris = [track["uri"] for track in tracks]
+    assert_playback_started(expected_track_uris)
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("repeat", range(15))
-def should_not_start_pool_playback_from_collection_uri_when_posting_collection(create_mock_track_search_result,
-                                                                               create_mock_playlist_fetch_result,
-                                                                               requests_client, build_success_response,
-                                                                               create_pool_creation_data_json,
-                                                                               test_client, valid_token_header, repeat):
+def should_not_start_pool_playback_from_collection_uri_when_posting_collection(
+        test_client: TestClient, create_pool: CreatePool, mocked_pool_contents: MockedPoolContents,
+        assert_playback_started: AssertPlaybackStarted, repeat: int):
     # use only one track so test fails with repeats if main collection is ever used
-    playlist = create_mock_playlist_fetch_result(1)
-    requests_client.get = Mock(return_value=build_success_response(playlist))
-    data_json = create_pool_creation_data_json(playlist["uri"])
+    create_pool(playlists=[1])
 
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
-
-    actual_call = requests_client.put.call_args
-    assert actual_call.kwargs["json"]["position_ms"] == 0
-    call_uri = actual_call.kwargs["json"]["uris"][0]
-    assert call_uri == playlist["tracks"]["items"][0]["track"]["uri"]
+    track = mocked_pool_contents.playlist.first_fetch["tracks"]["items"][0]["track"]
+    assert track is not None
+    assert_playback_started([track["uri"]])
 
 
-def should_save_next_track_change_time_on_playback_start(create_mock_track_search_result, requests_client_get_queue,
-                                                         build_success_response, create_pool_creation_data_json,
-                                                         test_client, valid_token_header, db_connection,
-                                                         logged_in_user_id, approx_datetime, mock_datetime_wrapper):
-    tracks = [create_mock_track_search_result() for _ in range(1)]
-    responses = [build_success_response(track) for track in tracks]
-    requests_client_get_queue.extend(responses)
-    track_uris = [track["uri"] for track in tracks]
-    data_json = create_pool_creation_data_json(*track_uris)
+def should_save_next_track_change_time_on_playback_start(valid_token_header: Headers, logged_in_user_id: str,
+                                                         test_client: TestClient, db_connection: ConnectionManager,
+                                                         mock_datetime_wrapper: MockDateTimeWrapper,
+                                                         create_pool: CreatePool,
+                                                         mocked_pool_contents: MockedPoolContents):
     start_time = mock_datetime_wrapper.now()
 
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    create_pool(tracks=1)
 
+    track = mocked_pool_contents.track
     with db_connection.session() as session:
         playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
-    expected_end_time = start_time + datetime.timedelta(milliseconds=tracks[0]["duration_ms"])
+    expected_end_time = start_time + datetime.timedelta(milliseconds=track["duration_ms"])
     actual_end_time = mock_datetime_wrapper.ensure_utc(playback_session.next_song_change_timestamp)
-    assert actual_end_time == approx_datetime(expected_end_time, datetime.timedelta(milliseconds=500))
+    assert actual_end_time == ApproxDatetime(expected_end_time, datetime.timedelta(milliseconds=500))
 
 
 @pytest.mark.asyncio
-async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(existing_playback, increment_now,
-                                                                                   fixed_track_length_ms,
-                                                                                   valid_token_header, requests_client,
-                                                                                   get_query_parameter,
-                                                                                   run_scheduling_job):
+async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_away(
+        existing_playback: list[TrackData], increment_now: IncrementNow, fixed_track_length_ms: int,
+        valid_token_header: Headers, requests_client: Mock, get_query_parameter: GetQueryParameter,
+        run_scheduling_job: RunSchedulingJob):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+
     await run_scheduling_job()
+
     actual_call = requests_client.post.call_args
     assert actual_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
     called_uri = get_query_parameter(actual_call.args[0], "uri")
@@ -120,62 +117,63 @@ async def should_add_song_to_playback_if_state_next_song_is_under_two_seconds_aw
 
 
 @pytest.mark.asyncio
-async def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(existing_playback, increment_now,
-                                                                                      fixed_track_length_ms,
-                                                                                      playback_service,
-                                                                                      requests_client):
+async def should_not_add_song_to_playback_if_state_next_song_is_over_two_seconds_away(
+        existing_playback: list[dict[str, Any]], increment_now: IncrementNow, fixed_track_length_ms: int,
+        playback_service: PoolPlaybackServiceRaw, requests_client: Mock):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 3500)))
+
     await queue_next_songs(playback_service)
+
     actual_call = requests_client.post.call_args
     assert actual_call is None
 
 
 @pytest.mark.asyncio
-async def should_inactivate_sessions_for_logged_out_users(db_connection, playback_service, existing_playback,
-                                                          valid_token_header, mock_token_holder: TokenHolder,
-                                                          logged_in_user_id, fixed_track_length_ms, increment_now):
+async def should_inactivate_sessions_for_logged_out_users(db_connection: ConnectionManager, logged_in_user_id: str,
+                                                          playback_service: PoolPlaybackServiceRaw,
+                                                          existing_playback: list[dict[str, Any]],
+                                                          valid_token_header: Headers,
+                                                          mock_token_holder: TokenHolder,
+                                                          fixed_track_length_ms: int,
+                                                          increment_now: IncrementNow):
     mock_token_holder.log_out(valid_token_header["Authorization"])
-
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+
     await queue_next_songs(playback_service)
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
             select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id))
-
     assert not playback_state.is_active
 
 
 @pytest.mark.asyncio
-async def should_reactivate_inactive_playback_on_post_pool(db_connection, playback_service, requests_client_get_queue,
-                                                           valid_token_header, mock_token_holder: TokenHolder,
-                                                           logged_in_user, fixed_track_length_ms, increment_now,
-                                                           create_mock_track_search_result, build_success_response,
-                                                           existing_playback, create_pool_creation_data_json,
-                                                           test_client, primary_user_token, auth_database_connection):
+async def should_reactivate_inactive_playback_on_post_pool(
+        db_connection: ConnectionManager, logged_in_user: User, playback_service: PoolPlaybackServiceRaw,
+        requests_client_get_queue: MockResponseQueue, valid_token_header: Headers,
+        mock_token_holder: TokenHolder, fixed_track_length_ms: int, increment_now: IncrementNow,
+        create_mock_track_search_result: MockTrackSearchResult, existing_playback: list[dict[str, Any]],
+        build_success_response: BuildSuccessResponse, auth_database_connection: AuthDatabaseConnection,
+        create_pool_creation_data_json: CreatePoolCreationDataJson, test_client: TestClient,
+        primary_user_token: ParsedTokenResponse, create_pool: CreatePool):
     mock_token_holder.log_out(valid_token_header["Authorization"])
-
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     await queue_next_songs(playback_service)
     auth_database_connection.update_logged_in_user(logged_in_user, primary_user_token)
 
-    tracks = [create_mock_track_search_result() for _ in range(1)]
-    responses = [build_success_response(track) for track in tracks]
-    requests_client_get_queue.extend(responses)
-    track_uris = [track["uri"] for track in tracks]
-    data_json = create_pool_creation_data_json(*track_uris)
-
-    test_client.post("/pool", json=data_json, headers=valid_token_header)
+    create_pool(tracks=1)
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
             select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user.spotify_id))
-
     assert playback_state.is_active
 
 
-def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
-                                                get_query_parameter):
+def should_be_able_to_skip_song_with_skip_route(existing_playback: list[dict[str, Any]],
+                                                valid_token_header: Headers,
+                                                requests_client: Mock,
+                                                skip_song: SkipSong,
+                                                get_query_parameter: GetQueryParameter):
     skip_song(valid_token_header)
 
     actual_queue_call = requests_client.post.call_args_list[0]
@@ -188,11 +186,15 @@ def should_be_able_to_skip_song_with_skip_route(existing_playback, valid_token_h
     assert actual_skip_call.kwargs["headers"] == valid_token_header
 
 
-def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_token_header, test_client,
-                                                      requests_client, validate_response, create_spotify_playback,
-                                                      get_query_parameter, mock_empty_queue_get):
+def should_ensure_queue_is_empty_before_skipping_song(existing_playback: list[dict[str, Any]], requests_client: Mock,
+                                                      valid_token_header: Headers, test_client: TestClient,
+                                                      validate_response: ValidateResponse,
+                                                      create_spotify_playback: CreateSpotifyPlayback,
+                                                      get_query_parameter: GetQueryParameter,
+                                                      mock_empty_queue_get: BuildQueue):
     create_spotify_playback(50000, 1)
     mock_empty_queue_get()
+
     response = test_client.post("/pool/playback/skip", headers=valid_token_header)
 
     validate_response(response)
@@ -207,210 +209,217 @@ def should_ensure_queue_is_empty_before_skipping_song(existing_playback, valid_t
     assert actual_skip_call.kwargs["headers"] == valid_token_header
 
 
-def should_return_token_in_headers_for_skip_route(existing_playback, valid_token_header, requests_client, skip_song,
-                                                  assert_token_in_headers):
+def should_return_token_in_headers_for_skip_route(existing_playback: list[dict[str, Any]],
+                                                  valid_token_header: Headers,
+                                                  skip_song: SkipSong,
+                                                  assert_token_in_headers: AssertTokenInHeaders):
     response = skip_song(valid_token_header)
     assert_token_in_headers(response)
 
 
 @pytest.mark.asyncio
-async def should_defer_skip_if_spotify_not_close_to_song_end(requests_client, run_scheduling_job, fixed_track_length_ms,
-                                                             existing_playback, increment_now, create_spotify_playback):
+async def should_defer_skip_if_spotify_not_close_to_song_end(requests_client: Mock, fixed_track_length_ms: int,
+                                                             run_scheduling_job: RunSchedulingJob,
+                                                             existing_playback: list[dict[str, Any]],
+                                                             increment_now: IncrementNow,
+                                                             create_spotify_playback: CreateSpotifyPlayback):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(5000)
+
     await run_scheduling_job()
+
     assert len(requests_client.post.call_args_list) == 0
 
 
 @pytest.mark.asyncio
-async def should_update_playback_end_time_in_db_after_defer(run_scheduling_job, fixed_track_length_ms, increment_now,
-                                                            existing_playback, db_connection, create_spotify_playback,
-                                                            mock_datetime_wrapper, approx_datetime):
+async def should_update_playback_end_time_in_db_after_defer(run_scheduling_job: RunSchedulingJob,
+                                                            fixed_track_length_ms: int,
+                                                            increment_now: IncrementNow,
+                                                            existing_playback: list[dict[str, Any]],
+                                                            db_connection: ConnectionManager,
+                                                            create_spotify_playback: CreateSpotifyPlayback,
+                                                            mock_datetime_wrapper: MockDateTimeWrapper):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     expected_end_time = create_spotify_playback(5000)
+
     await run_scheduling_job()
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
-
     actual_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
-    assert actual_timestamp == approx_datetime(expected_end_time)
+    assert actual_timestamp == ApproxDatetime(expected_end_time)
 
 
 @pytest.mark.asyncio
-async def should_correct_playback_time_based_on_spotify_status(requests_client, run_scheduling_job, existing_playback,
-                                                               fixed_track_length_ms, mock_datetime_wrapper,
-                                                               increment_now, db_connection, approx_datetime,
-                                                               create_spotify_playback):
+async def should_correct_playback_time_based_on_spotify_status(
+        run_scheduling_job: RunSchedulingJob, create_spotify_playback: CreateSpotifyPlayback,
+        existing_playback: list[dict[str, Any]], mock_datetime_wrapper: MockDateTimeWrapper, requests_client: Mock,
+        increment_now: IncrementNow, db_connection: ConnectionManager, fixed_track_length_ms: int):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 50)))
     expected_end_time = create_spotify_playback(1950) + datetime.timedelta(milliseconds=fixed_track_length_ms)
+
     await run_scheduling_job()
 
     assert len(requests_client.post.call_args_list) == 1
-
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
-
     actual_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
-    assert actual_timestamp == approx_datetime(expected_end_time)
+    assert actual_timestamp == ApproxDatetime(expected_end_time)
 
 
 @pytest.mark.asyncio
-async def should_fix_playback_data_if_playing_song_has_changed(run_scheduling_job, fixed_track_length_ms, increment_now,
-                                                               existing_playback, db_connection, mock_datetime_wrapper,
-                                                               create_spotify_playback, approx_datetime,
-                                                               create_mock_track_search_result, requests_client):
+async def should_fix_playback_data_if_playing_song_has_changed(
+        run_scheduling_job: RunSchedulingJob, fixed_track_length_ms: int, db_connection: ConnectionManager,
+        increment_now: IncrementNow, existing_playback: list[dict[str, Any]],
+        mock_datetime_wrapper: MockDateTimeWrapper, create_spotify_playback: CreateSpotifyPlayback,
+        create_mock_track_search_result: MockTrackSearchResult, requests_client: Mock):
     new_track_data = create_mock_track_search_result()
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     expected_end_time = create_spotify_playback(20000, 0, new_track_data)
-    await run_scheduling_job()
-    assert len(requests_client.post.call_args_list) == 0
 
+    await run_scheduling_job()
+
+    assert len(requests_client.post.call_args_list) == 0
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(select(PlaybackSession))
-
     assert playback_state.current_track_uri == new_track_data["uri"]
     actual_change_timestamp = mock_datetime_wrapper.ensure_utc(playback_state.next_song_change_timestamp)
-    assert actual_change_timestamp == approx_datetime(expected_end_time)
+    assert actual_change_timestamp == ApproxDatetime(expected_end_time)
 
 
 @pytest.mark.asyncio
-async def should_empty_queue_if_songs_in_queue_on_song_change(requests_client, run_scheduling_job,
-                                                              fixed_track_length_ms, existing_playback, increment_now,
-                                                              create_spotify_playback, mock_empty_queue_get):
+async def should_empty_queue_if_songs_in_queue_on_song_change(requests_client: Mock,
+                                                              run_scheduling_job: RunSchedulingJob,
+                                                              fixed_track_length_ms: int,
+                                                              existing_playback: list[dict[str, Any]],
+                                                              increment_now: IncrementNow,
+                                                              create_spotify_playback: CreateSpotifyPlayback,
+                                                              mock_empty_queue_get: BuildQueue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(500, 5)
     mock_empty_queue_get()
+
     await run_scheduling_job()
+
     # 5 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
     assert len(requests_client.post.call_args_list) == 7
 
 
 @pytest.mark.asyncio
-async def should_handle_songs_added_to_queue_during_queue_fix(requests_client, run_scheduling_job,
-                                                              fixed_track_length_ms, existing_playback, increment_now,
-                                                              create_spotify_playback, mock_empty_queue_get,
-                                                              mock_filled_queue_get):
+async def should_handle_songs_added_to_queue_during_queue_fix(requests_client: Mock,
+                                                              run_scheduling_job: RunSchedulingJob,
+                                                              fixed_track_length_ms: int,
+                                                              existing_playback: list[dict[str, Any]],
+                                                              increment_now: IncrementNow,
+                                                              create_spotify_playback: CreateSpotifyPlayback,
+                                                              mock_empty_queue_get: BuildQueue,
+                                                              mock_filled_queue_get: BuildQueue):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(500, 3)
     mock_filled_queue_get()
     mock_empty_queue_get()
+
     await run_scheduling_job()
+
     # 4 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
     assert len(requests_client.post.call_args_list) == 6
 
 
 @pytest.mark.asyncio
-async def should_correctly_skip_next_song_after_user_changes_song(run_scheduling_job, create_mock_track_search_result,
-                                                                  increment_now, fixed_track_length_ms, requests_client,
-                                                                  create_spotify_playback, existing_playback):
+async def should_correctly_skip_next_song_after_user_changes_song(
+        run_scheduling_job: RunSchedulingJob, increment_now: IncrementNow, requests_client: Mock,
+        create_mock_track_search_result: MockTrackSearchResult, fixed_track_length_ms: int,
+        create_spotify_playback: CreateSpotifyPlayback, existing_playback: list[dict[str, Any]]):
     new_track_data = create_mock_track_search_result()
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(20000, None, new_track_data)
     await run_scheduling_job()
-
     increment_now(datetime.timedelta(milliseconds=20000))
     create_spotify_playback(1000, 0, new_track_data)
+
     await run_scheduling_job()
+
     assert len(requests_client.post.call_args_list) == 1
 
 
 @pytest.mark.asyncio
-async def should_end_playback_on_no_active_player_when_queueing_next_song(existing_playback, increment_now,
-                                                                          fixed_track_length_ms, db_connection,
-                                                                          valid_token_header, requests_client,
-                                                                          mock_no_player_playback_state_response,
-                                                                          run_scheduling_job):
+async def should_end_playback_on_no_active_player_when_queueing_next_song(
+        existing_playback: list[dict[str, Any]], increment_now: IncrementNow, fixed_track_length_ms: int,
+        db_connection: ConnectionManager, valid_token_header: Headers, requests_client: Mock,
+        mock_no_player_playback_state_response: MockNoPlayerStateResponse, assert_empty_tables: AssertEmptyTables,
+        run_scheduling_job: RunSchedulingJob):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_no_player_playback_state_response()
 
     await run_scheduling_job()
 
-    with db_connection.session() as session:
-        assert session.scalar(select(PlaybackSession)) is None
-        assert session.scalar(select(Pool)) is None
+    assert_empty_tables(PlaybackSession, Pool)
 
 
-def should_raise_error_on_no_active_player_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
-                                                              db_connection, valid_token_header, requests_client,
-                                                              mock_no_player_playback_state_response, skip_song,
-                                                              validate_response):
+def should_raise_error_on_no_active_player_when_skipping_song(
+        existing_playback: list[dict[str, Any]], increment_now: IncrementNow, fixed_track_length_ms: int,
+        db_connection: ConnectionManager, valid_token_header: Headers, requests_client: Mock,
+        mock_no_player_playback_state_response: MockNoPlayerStateResponse, skip_song: SkipSong,
+        validate_error_response: ValidateErrorResponse):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_no_player_playback_state_response()
 
     response = skip_song(valid_token_header)
 
-    data_json = validate_response(response, 400)
-    assert data_json["detail"] == "Could not find active playback"
+    validate_error_response(response, 400, "Could not find active playback")
 
 
 @pytest.mark.asyncio
-async def should_end_playback_on_playback_paused_when_queueing_next_song(increment_now, valid_token_header,
-                                                                         db_connection, fixed_track_length_ms,
-                                                                         existing_playback, requests_client,
-                                                                         run_scheduling_job,
-                                                                         mock_playback_paused_response):
+async def should_end_playback_on_playback_paused_when_queueing_next_song(
+        increment_now: IncrementNow, valid_token_header: Headers, db_connection: ConnectionManager,
+        fixed_track_length_ms: int, requests_client: Mock, run_scheduling_job: RunSchedulingJob,
+        existing_playback: list[dict[str, Any]], mock_playback_paused_response: MockPlaybackPausedResponse,
+        assert_empty_tables: AssertEmptyTables):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_playback_paused_response()
 
     await run_scheduling_job()
 
-    with db_connection.session() as session:
-        assert session.scalar(select(PlaybackSession)) is None
-        assert session.scalar(select(Pool)) is None
+    assert_empty_tables(PlaybackSession, Pool)
 
 
-def should_raise_error_on_playback_paused_when_skipping_song(existing_playback, increment_now, fixed_track_length_ms,
-                                                             valid_token_header, mock_playback_paused_response,
-                                                             skip_song, validate_response):
+def should_raise_error_on_playback_paused_when_skipping_song(
+        existing_playback: list[dict[str, Any]], increment_now: IncrementNow, fixed_track_length_ms: int,
+        valid_token_header: Headers, mock_playback_paused_response: MockPlaybackPausedResponse,
+        skip_song: SkipSong, validate_error_response: ValidateErrorResponse):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_playback_paused_response()
 
     response = skip_song(valid_token_header)
 
-    data_json = validate_response(response, 400)
-    assert data_json["detail"] == "Your playback is paused, please resume playback to continue using Stagnum!"
+    validate_error_response(response, 400, "Your playback is paused, please resume playback to continue using Stagnum!")
 
 
 @pytest.mark.asyncio
-async def should_end_playback_on_playback_context_changed_when_queueing_next_song(increment_now, run_scheduling_job,
-                                                                                  db_connection, fixed_track_length_ms,
-                                                                                  existing_playback,
-                                                                                  create_spotify_playback):
+async def should_end_playback_on_playback_context_changed_when_queueing_next_song(
+        increment_now: IncrementNow, run_scheduling_job: RunSchedulingJob, assert_empty_tables: AssertEmptyTables,
+        db_connection: ConnectionManager, fixed_track_length_ms: int, existing_playback: list[dict[str, Any]],
+        create_spotify_playback: CreateSpotifyPlayback, invalid_playback_context: PlaybackContextData):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    context = {
-        "type": "playlist",
-        "href": "https://example.playlist.href",
-        "external_urls": {
-            "spotify": "https://open.spotify.example/playlist/href"
-        },
-        "uri": "spotify:playlist:example_uri"
-    }
-    create_spotify_playback(1000, 0, None, context)
+    create_spotify_playback(1000, 0, None, invalid_playback_context)
 
     await run_scheduling_job()
 
-    with db_connection.session() as session:
-        assert session.scalar(select(PlaybackSession)) is None
-        assert session.scalar(select(Pool)) is None
+    assert_empty_tables(PlaybackSession, Pool)
 
 
-def should_raise_error_on_skip_on_playback_context_changed(existing_playback, increment_now, fixed_track_length_ms,
-                                                           valid_token_header, create_spotify_playback, skip_song,
-                                                           validate_response):
+def should_raise_error_on_skip_on_playback_context_changed(existing_playback: list[dict[str, Any]],
+                                                           increment_now: IncrementNow,
+                                                           fixed_track_length_ms: int, skip_song: SkipSong,
+                                                           valid_token_header: Headers,
+                                                           invalid_playback_context: PlaybackContextData,
+                                                           create_spotify_playback: CreateSpotifyPlayback,
+                                                           validate_error_response: ValidateErrorResponse):
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    context = {
-        "type": "playlist",
-        "href": "https://example.playlist.href",
-        "external_urls": {
-            "spotify": "https://open.spotify.example/playlist/href"
-        },
-        "uri": "spotify:playlist:example_uri"
-    }
-    create_spotify_playback(1000, 0, None, context)
+    create_spotify_playback(1000, 0, None, invalid_playback_context)
 
     response = skip_song(valid_token_header)
 
-    data_json = validate_response(response, 400)
-    assert data_json["detail"] == ("Spotify playback moved to another context outside Stagnum control! Please restart "
-                                   "playback from Stagnum by creating another pool.")
+    expected_error_message = ("Spotify playback moved to another context outside Stagnum control! Please restart "
+                              "playback from Stagnum by creating another pool.")
+    validate_error_response(response, 400, expected_error_message)

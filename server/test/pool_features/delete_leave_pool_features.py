@@ -1,28 +1,41 @@
+from unittest.mock import Mock
+
+import httpx
 import pytest
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
-from api.pool.models import PoolContent, PoolFullContents
-from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession
+from api.pool.models import PoolFullContents
+from database.database_connection import ConnectionManager
+from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User, EntityBase
+from test_types.callables import ValidateResponse, ValidateModel, MockPlaylistFetch, \
+    AssertEmptyPoolModel, AssertEmptyTables
+from test_types.typed_dictionaries import Headers, TrackData
 
 
-def should_wipe_whole_pool_on_delete_pool(existing_playback, test_client, validate_response, db_connection,
-                                          valid_token_header):
+@pytest.fixture
+def assert_empty_pool_model(validate_model: ValidateModel) -> AssertEmptyPoolModel:
+    def wrapper(response: httpx.Response) -> None:
+        response_model = validate_model(PoolFullContents, response)
+        assert response_model.users == []
+        assert response_model.currently_playing is None
+        assert response_model.share_code is None
+
+    return wrapper
+
+
+def should_wipe_whole_pool_on_delete_pool(existing_playback: list[TrackData], test_client: TestClient,
+                                          validate_model: ValidateModel, assert_empty_pool_model: AssertEmptyPoolModel,
+                                          db_connection: ConnectionManager, assert_empty_tables: AssertEmptyTables,
+                                          valid_token_header: Headers):
     response = test_client.delete("/pool", headers=valid_token_header)
 
-    response_model = PoolFullContents.model_validate(validate_response(response))
-    assert response_model.users == []
-    assert response_model.currently_playing is None
-    assert response_model.share_code is None
-
-    with db_connection.session() as session:
-        assert session.scalar(select(Pool)) is None
-        assert session.scalar(select(PoolMember)) is None
-        assert session.scalar(select(PoolJoinedUser)) is None
-        assert session.scalar(select(PlaybackSession)) is None
+    assert_empty_pool_model(response)
+    assert_empty_tables(Pool, PoolMember, PoolJoinedUser, PlaybackSession)
 
 
-def should_send_playback_pause_on_pool_delete(existing_playback, test_client, requests_client,
-                                              valid_token_header):
+def should_send_playback_pause_on_pool_delete(existing_playback: list[TrackData], test_client: TestClient,
+                                              requests_client: Mock, valid_token_header: Headers):
     requests_client.put.reset_mock()
 
     test_client.delete("/pool", headers=valid_token_header)
@@ -31,24 +44,17 @@ def should_send_playback_pause_on_pool_delete(existing_playback, test_client, re
     assert actual_call.args[0] == "https://api.spotify.com/v1/me/player/pause"
 
 
-def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code, another_logged_in_user_header, test_client,
-                                                   validate_response, db_connection, create_mock_playlist_fetch_result,
-                                                   requests_client_get_queue, build_success_response,
-                                                   another_logged_in_user):
-    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code: str, joined_user_header: Headers,
+                                                   test_client: TestClient, validate_response: ValidateResponse,
+                                                   db_connection: ConnectionManager, another_logged_in_user: User,
+                                                   assert_empty_pool_model: AssertEmptyPoolModel,
+                                                   mock_playlist_fetch: MockPlaylistFetch):
+    pool_content_data = mock_playlist_fetch(35)
+    test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 
-    playlist = create_mock_playlist_fetch_result(35)
-    requests_client_get_queue.append(build_success_response(playlist))
-    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
+    response = test_client.post("/pool/leave", headers=joined_user_header)
 
-    test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
-
-    response = test_client.post("/pool/leave", headers=another_logged_in_user_header)
-
-    response_model = PoolFullContents.model_validate(validate_response(response))
-    assert response_model.users == []
-    assert response_model.currently_playing is None
-    assert response_model.share_code is None
+    assert_empty_pool_model(response)
 
     user_id = another_logged_in_user.spotify_id
     with db_connection.session() as session:

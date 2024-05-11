@@ -1,17 +1,29 @@
 import random
-from typing import Callable, Any
 from unittest.mock import Mock
 
 import pytest
+from _pytest.fixtures import FixtureRequest
+from _pytest.monkeypatch import MonkeyPatch
+from faker import Faker
 from sqlalchemy import select
+from starlette.testclient import TestClient
 
 from api.pool.models import PoolContent, PoolCreationData
-from api.pool.randomization_algorithms import RandomizationParameters
+from api.pool.randomization_algorithms import RandomizationParameters, NextSongProvider
+from database.database_connection import ConnectionManager
 from database.entities import User, PoolMember, PoolMemberRandomizationParameters, PoolJoinedUser
+from helpers.classes import CurrentPlaybackData
+from test_types.callables import CreateTestUsers, CreatePoolFromUsers, \
+    MockPoolMemberSpotifyFetch, CreateMemberPostData, AddTrackToPool, \
+    CreateToken, LogUserIn, CreateHeaderFromTokenResponse, \
+    SharePoolAndGetCode, ImplementPoolFromMembers, SkipSong, \
+    GetQueryParameter, CreatePlayback
+from test_types.typed_dictionaries import PoolContentData, Headers
+from test_types.aliases import SpotifySecrets
 
 
 @pytest.fixture(params=[RandomizationParameters(5, 5, 60, 90), RandomizationParameters(10, 3, 50, 75)])
-def variable_weighted_parameters(request, monkeypatch) -> RandomizationParameters:
+def variable_weighted_parameters(request: FixtureRequest, monkeypatch: MonkeyPatch) -> RandomizationParameters:
     parameters: RandomizationParameters = request.param
     monkeypatch.setenv("CUSTOM_WEIGHT_SCALE", str(parameters.custom_weight_scale))
     monkeypatch.setenv("PSEUDO_RANDOM_FLOOR", str(parameters.pseudo_random_floor))
@@ -20,7 +32,7 @@ def variable_weighted_parameters(request, monkeypatch) -> RandomizationParameter
 
 
 @pytest.fixture
-def create_test_users(faker, logged_in_user) -> Callable[[int], list[User]]:
+def create_test_users(faker: Faker, logged_in_user: User) -> CreateTestUsers:
     def wrapper(amount: int) -> list[User]:
         users = [logged_in_user]
         for num in range(1, amount):
@@ -33,8 +45,8 @@ def create_test_users(faker, logged_in_user) -> Callable[[int], list[User]]:
 
 
 @pytest.fixture
-def create_pool_from_users(faker) -> Callable[[tuple[tuple[User, int], ...]], dict[str, list[PoolMember]]]:
-    def wrapper(*user_size_pairs: tuple[User, int]) -> dict[str, list[PoolMember]]:
+def create_pool_from_users(faker: Faker) -> CreatePoolFromUsers:
+    def wrapper(*user_size_pairs: (User, int)) -> dict[str, list[PoolMember]]:
         pool_id = random.randint(0, 999999)
         pool_members: dict[str, list[PoolMember]] = {}
         rolling_id = 0
@@ -64,8 +76,9 @@ def create_pool_from_users(faker) -> Callable[[tuple[tuple[User, int], ...]], di
 
 
 @pytest.fixture
-def mock_pool_member_spotify_fetch(requests_client_get_queue, build_success_response) -> Callable[[PoolMember], None]:
-    def wrapper(pool_member: PoolMember):
+def mock_pool_member_spotify_fetch(requests_client_get_queue, build_success_response) \
+        -> MockPoolMemberSpotifyFetch:
+    def wrapper(pool_member: PoolMember) -> None:
         response = {
             "duration_ms": pool_member.duration_ms,
             "is_playable": True,
@@ -89,8 +102,8 @@ def mock_pool_member_spotify_fetch(requests_client_get_queue, build_success_resp
 
 
 @pytest.fixture
-def create_member_post_data() -> Callable[[PoolMember], dict[str, Any]]:
-    def wrapper(pool_member: PoolMember):
+def create_member_post_data() -> CreateMemberPostData:
+    def wrapper(pool_member: PoolMember) -> PoolContentData:
         return PoolContent(spotify_uri=pool_member.content_uri).model_dump()
 
     return wrapper
@@ -98,8 +111,8 @@ def create_member_post_data() -> Callable[[PoolMember], dict[str, Any]]:
 
 @pytest.fixture
 def add_track_to_pool(mock_pool_member_spotify_fetch, create_member_post_data, test_client) \
-        -> Callable[[PoolMember, dict[str, str]], None]:
-    def wrapper(track: PoolMember, headers: dict[str, str]):
+        -> AddTrackToPool:
+    def wrapper(track: PoolMember, headers: Headers) -> None:
         mock_pool_member_spotify_fetch(track)
         post_data = create_member_post_data(track)
         test_client.post("/pool/content", json=post_data, headers=headers)
@@ -108,11 +121,15 @@ def add_track_to_pool(mock_pool_member_spotify_fetch, create_member_post_data, t
 
 
 @pytest.fixture
-def implement_pool_from_members(test_client, create_token, log_user_in, create_header_from_token_response,
-                                valid_token_header, create_member_post_data, add_track_to_pool,
-                                share_pool_and_get_code, mock_pool_member_spotify_fetch,
-                                current_playback_data)  -> Callable[[list[User], dict[str, list[PoolMember]]], None]:
-    def wrapper(users: list[User], pool_members: dict[str, list[PoolMember]]):
+def implement_pool_from_members(test_client: TestClient, create_token: CreateToken,
+                                log_user_in: LogUserIn,
+                                create_header_from_token_response: CreateHeaderFromTokenResponse,
+                                valid_token_header: Headers, create_member_post_data: CreateMemberPostData,
+                                add_track_to_pool: AddTrackToPool,
+                                share_pool_and_get_code: SharePoolAndGetCode,
+                                mock_pool_member_spotify_fetch: MockPoolMemberSpotifyFetch,
+                                current_playback_data: CurrentPlaybackData) -> ImplementPoolFromMembers:
+    def wrapper(users: list[User], pool_members: dict[str, list[PoolMember]]) -> None:
         main_user = users[0]
         main_user_pool = pool_members[main_user.spotify_id]
         creation_data = PoolCreationData(spotify_uris=[create_member_post_data(main_user_pool[0])]).model_dump()
@@ -138,10 +155,11 @@ def implement_pool_from_members(test_client, create_token, log_user_in, create_h
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("existing_playback", [2], indirect=True)
-def should_always_alternate_songs_in_two_song_queue(existing_playback, valid_token_header, skip_song, requests_client,
-                                                    get_query_parameter, weighted_parameters):
-    assert len(existing_playback) == 2
+def should_always_alternate_songs_in_two_song_queue(create_playback: CreatePlayback, valid_token_header: Headers,
+                                                    skip_song: SkipSong, requests_client: Mock,
+                                                    get_query_parameter: GetQueryParameter,
+                                                    weighted_parameters: SpotifySecrets):
+    create_playback(2)
     last_call_uri = None
     for _ in range(20):
         skip_song(valid_token_header)
@@ -152,8 +170,9 @@ def should_always_alternate_songs_in_two_song_queue(existing_playback, valid_tok
 
 
 @pytest.mark.slow
-def should_respect_custom_weight(next_song_provider, create_test_users, create_pool_from_users,
-                                 variable_weighted_parameters):
+def should_respect_custom_weight(next_song_provider: NextSongProvider, create_test_users: CreateTestUsers,
+                                 create_pool_from_users: CreatePoolFromUsers,
+                                 variable_weighted_parameters: RandomizationParameters):
     users = create_test_users(1)
     users[0].joined_pool = PoolJoinedUser(playback_time_ms=0)
     song_1_plays = 0
@@ -170,8 +189,11 @@ def should_respect_custom_weight(next_song_provider, create_test_users, create_p
 
 
 @pytest.mark.slow
-def should_balance_users_by_playtime(create_test_users, create_pool_from_users, weighted_parameters, skip_song,
-                                     valid_token_header, db_connection, implement_pool_from_members):
+def should_balance_users_by_playtime(create_test_users: CreateTestUsers,
+                                     create_pool_from_users: CreatePoolFromUsers,
+                                     weighted_parameters: RandomizationParameters, skip_song: SkipSong,
+                                     valid_token_header: Headers, db_connection: ConnectionManager,
+                                     implement_pool_from_members: ImplementPoolFromMembers):
     users = create_test_users(4)
     pool = create_pool_from_users(*[(user, 50) for user in users])
     implement_pool_from_members(users, pool)

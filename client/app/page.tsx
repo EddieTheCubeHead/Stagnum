@@ -264,10 +264,10 @@ const HomePageContent: React.FC = () => {
     }
 
     const setSearchResults = (data: any): void => {
-        setTrackList(data.tracks.results)
-        setAlbumList(data.albums.results)
-        setArtistList(data.artists.results)
-        setPlaylistList(data.playlists.results)
+        setTrackList(data.tracks.items)
+        setAlbumList(data.albums.items)
+        setArtistList(data.artists.items)
+        setPlaylistList(data.playlists.items)
     }
 
     return (
