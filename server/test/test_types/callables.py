@@ -153,6 +153,17 @@ class MockPoolContentFetches(Protocol):
         ...
 
 
+class CreatePool(Protocol):
+    def __call__(self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ...,
+                 playlists: list[int] | None = ...) -> list[PoolMember]:
+        ...
+
+
+class CreatePlayback(Protocol):
+    def __call__(self, track_amount: int = ...) -> list[TrackData]:
+        ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]

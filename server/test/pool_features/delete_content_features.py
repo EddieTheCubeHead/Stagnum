@@ -3,11 +3,9 @@ from starlette.testclient import TestClient
 
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
-from pool_features.conftest import MockPlaylistFetchResult
-from test_types.typed_dictionaries import Headers, PlaylistData
-from test_types.callables import ValidateResponse, BuildSuccessResponse, \
-    CreatePoolCreationDataJson, AssertTokenInHeaders
-from test_types.aliases import MockResponseQueue
+from helpers.classes import MockedPoolContents
+from test_types.callables import ValidateResponse, AssertTokenInHeaders, CreatePool
+from test_types.typed_dictionaries import Headers
 
 
 def should_delete_track_and_return_remaining_pool_if_given_track_id(existing_pool: list[PoolMember],
@@ -39,18 +37,17 @@ def should_not_have_track_in_database_after_deletion(existing_pool: list[PoolMem
     assert len(all_tracks) == len(existing_pool) - 1
 
 
-def should_be_able_to_delete_separate_child_from_collection(
-        logged_in_user_id: str, db_connection: ConnectionManager, requests_client_get_queue: MockResponseQueue,
-        validate_response: ValidateResponse, valid_token_header: Headers, test_client: TestClient,
-        create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-        create_pool_creation_data_json: CreatePoolCreationDataJson,
-        build_success_response: BuildSuccessResponse):
-    playlist = create_mock_playlist_fetch_result(15).first_fetch
+def should_be_able_to_delete_separate_child_from_collection(create_pool: CreatePool,
+                                                            mocked_pool_contents: MockedPoolContents,
+                                                            logged_in_user_id: str, db_connection: ConnectionManager,
+                                                            validate_response: ValidateResponse,
+                                                            valid_token_header: Headers, test_client: TestClient):
+    create_pool(playlists=[15])
+    playlist = mocked_pool_contents.playlist.first_fetch
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
-    requests_client_get_queue.append(build_success_response(playlist))
-    test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)
 
     response = test_client.delete(f"/pool/content/{expected_tracks[5]["uri"]}", headers=valid_token_header)
+
     pool_response = validate_response(response)
     user_pool = pool_response["users"][0]
     assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks) - 1
@@ -63,15 +60,12 @@ def should_be_able_to_delete_separate_child_from_collection(
     assert parent is not None
 
 
-def should_delete_all_children_on_parent_deletion(
-        test_client: TestClient, create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-        validate_response: ValidateResponse, db_connection: ConnectionManager,
-        valid_token_header: Headers, create_pool_creation_data_json: CreatePoolCreationDataJson,
-        requests_client_get_queue: MockResponseQueue, logged_in_user_id: str,
-        build_success_response: BuildSuccessResponse):
-    playlist = create_mock_playlist_fetch_result(15).first_fetch
-    requests_client_get_queue.append(build_success_response(playlist))
-    test_client.post("/pool", json=create_pool_creation_data_json(playlist["uri"]), headers=valid_token_header)
+def should_delete_all_children_on_parent_deletion(test_client: TestClient, validate_response: ValidateResponse,
+                                                  db_connection: ConnectionManager, valid_token_header: Headers,
+                                                  logged_in_user_id: str, create_pool: CreatePool,
+                                                  mocked_pool_contents: MockedPoolContents):
+    create_pool(playlists=[15])
+    playlist = mocked_pool_contents.playlist.first_fetch
 
     response = test_client.delete(f"/pool/content/{playlist["uri"]}", headers=valid_token_header)
 

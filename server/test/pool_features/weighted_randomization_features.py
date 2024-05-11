@@ -17,7 +17,7 @@ from test_types.callables import CreateTestUsers, CreatePoolFromUsers, \
     MockPoolMemberSpotifyFetch, CreateMemberPostData, AddTrackToPool, \
     CreateToken, LogUserIn, CreateHeaderFromTokenResponse, \
     SharePoolAndGetCode, ImplementPoolFromMembers, SkipSong, \
-    GetQueryParameter
+    GetQueryParameter, CreatePlayback
 from test_types.typed_dictionaries import PoolContentData, Headers, TrackData
 from test_types.aliases import SpotifySecrets
 
@@ -155,12 +155,11 @@ def implement_pool_from_members(test_client: TestClient, create_token: CreateTok
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("existing_playback", [2], indirect=True)
-def should_always_alternate_songs_in_two_song_queue(existing_playback: list[TrackData], valid_token_header: Headers,
+def should_always_alternate_songs_in_two_song_queue(create_playback: CreatePlayback, valid_token_header: Headers,
                                                     skip_song: SkipSong, requests_client: Mock,
                                                     get_query_parameter: GetQueryParameter,
                                                     weighted_parameters: SpotifySecrets):
-    assert len(existing_playback) == 2
+    create_playback(2)
     last_call_uri = None
     for _ in range(20):
         skip_song(valid_token_header)

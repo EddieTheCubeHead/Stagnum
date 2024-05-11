@@ -10,12 +10,13 @@ from api.pool.models import PoolContent
 from api.pool.randomization_algorithms import RandomizationParameters
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, User, PoolMember
+from helpers.classes import MockedPoolContents
+from test_types.aliases import MockResponseQueue
 from test_types.callables import ValidateResponse, MockPlaylistFetchResult, \
     BuildSuccessResponse, GetQueryParameter, SkipSong, AssertTokenInHeaders, \
     IncrementNow, RunSchedulingJob, MockNoPlayerStateResponse, \
-    MockTrackSearchResult, CreatePoolCreationDataJson
+    MockTrackSearchResult, CreatePoolCreationDataJson, MockPlaylistFetch
 from test_types.typed_dictionaries import Headers
-from test_types.aliases import MockResponseQueue
 
 
 def should_return_pool_code_from_share_route(existing_playback: list[dict[str, Any]], test_client: TestClient,
@@ -100,19 +101,16 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code: str, test_client
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("existing_pool", [15], indirect=True)
-def should_use_all_users_pools_in_shared_pool_playback(
-        shared_pool_code: str, test_client: TestClient, another_logged_in_user_header: Headers,
-        validate_response: ValidateResponse, valid_token_header: Headers,
-        existing_pool: list[PoolMember], logged_in_user_id: str, requests_client: Mock,
-        create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-        build_success_response: BuildSuccessResponse, get_query_parameter: GetQueryParameter,
-        weighted_parameters: RandomizationParameters, skip_song: SkipSong,
-        requests_client_get_queue: MockResponseQueue):
+def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code: str, test_client: TestClient,
+                                                       another_logged_in_user_header: Headers,
+                                                       validate_response: ValidateResponse, valid_token_header: Headers,
+                                                       get_query_parameter: GetQueryParameter,
+                                                       existing_pool: list[PoolMember], logged_in_user_id: str,
+                                                       requests_client: Mock, mocked_pool_contents: MockedPoolContents,
+                                                       weighted_parameters: RandomizationParameters,
+                                                       skip_song: SkipSong, mock_playlist_fetch: MockPlaylistFetch):
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
-    playlist = create_mock_playlist_fetch_result(15).first_fetch
-    requests_client_get_queue.append(build_success_response(playlist))
-    pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
+    pool_content_data = mock_playlist_fetch(15)
     test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
 
     original_user_played_uris = set()
@@ -128,6 +126,7 @@ def should_use_all_users_pools_in_shared_pool_playback(
         joined_user_played_uris.add(get_query_parameter(actual_queue_call.args[0], "uri"))
 
     original_user_track_uris = [track.content_uri for track in existing_pool]
+    playlist = mocked_pool_contents.playlist.first_fetch
     joined_user_track_uris = [track["track"]["uri"] for track in playlist["tracks"]["items"]]
 
     original_played_original = False
@@ -284,6 +283,7 @@ def should_be_able_to_join_another_pool_after_creating_one(
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     pool_response = validate_response(response)
     assert len(pool_response["users"]) == 2
+
 
 def should_be_able_to_create_another_pool_after_joining_one(
         build_success_response: BuildSuccessResponse, requests_client_get_queue: MockResponseQueue,
