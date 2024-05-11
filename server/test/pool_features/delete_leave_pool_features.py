@@ -24,16 +24,6 @@ def assert_empty_pool_model(validate_model: ValidateModel) -> AssertEmptyPoolMod
     return wrapper
 
 
-@pytest.fixture
-def assert_empty_tables(db_connection: ConnectionManager) -> AssertEmptyTables:
-    def wrapper(*tables: type(EntityBase)) -> None:
-        with db_connection.session() as session:
-            for table in tables:
-                assert session.scalar(select(table)) is None
-
-    return wrapper
-
-
 def should_wipe_whole_pool_on_delete_pool(existing_playback: list[TrackData], test_client: TestClient,
                                           validate_model: ValidateModel, assert_empty_pool_model: AssertEmptyPoolModel,
                                           db_connection: ConnectionManager, assert_empty_tables: AssertEmptyTables,

@@ -155,7 +155,7 @@ class MockPoolContentFetches(Protocol):
 
 class CreatePool(Protocol):
     def __call__(self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ...,
-                 playlists: list[int] | None = ...) -> list[PoolMember]:
+                 playlists: list[int] | None = ...) -> httpx.Response:
         ...
 
 
@@ -195,3 +195,4 @@ type AuthTestCallable = Callable[[str], User]
 type MockArtistFetch = Callable[[], PoolContentData]
 type MockPutResponse = Callable[[], None]
 type AssertEmptyPoolModel = Callable[[httpx.Response], None]
+type AssertPlaybackStarted = Callable[[list[str]], None]

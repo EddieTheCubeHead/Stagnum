@@ -3,7 +3,7 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Callable, Any
+from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -592,17 +592,17 @@ def mock_pool_content_fetches(mock_track_fetch: MockTrackFetch, mock_artist_fetc
 def create_pool(mock_pool_content_fetches: MockPoolContentFetches, test_client: TestClient,
                 valid_token_header: Headers, db_connection: ConnectionManager, logged_in_user_id: str) -> CreatePool:
     def wrapper(tracks: int = 0, artists: int = 0, albums: list[int] = None,
-                playlists: list[int] = None) -> list[PoolMember]:
+                playlists: list[int] = None) -> httpx.Response:
         data_json = mock_pool_content_fetches(tracks, artists, albums, playlists)
-        test_client.post("/pool", json=data_json, headers=valid_token_header)
-        with db_connection.session() as session:
-            members: list[PoolMember] = session.scalars(
-                select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
-        return members
-
+        return test_client.post("/pool", json=data_json, headers=valid_token_header)
     return wrapper
 
 
 @pytest.fixture
-def existing_pool(create_pool: CreatePool) -> list[PoolMember]:
-    return create_pool(tracks=15)
+def existing_pool(create_pool: CreatePool, db_connection: ConnectionManager,
+                  logged_in_user_id: str) -> list[PoolMember]:
+    create_pool(tracks=15)
+    with db_connection.session() as session:
+        members: list[PoolMember] = session.scalars(
+            select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
+    return members

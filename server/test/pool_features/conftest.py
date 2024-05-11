@@ -8,6 +8,7 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from faker import Faker
+from sqlalchemy import select
 from starlette.testclient import TestClient
 
 from api.auth.dependencies import AuthDatabaseConnection
@@ -18,14 +19,14 @@ from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRa
     WebsocketUpdaterRaw
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
-from database.entities import User
+from database.entities import User, EntityBase
 from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData, MockedPlaylistPoolContent
 from test_types.aliases import MockResponseQueue
 from test_types.callables import MockTrackSearchResult, BuildSuccessResponse, \
     CreatePoolCreationDataJson, ValidateResponse, CreateSpotifyPlaybackState, \
     MockNoPlayerStateResponse, MockPlaybackPausedResponse, SkipSong, \
     CreateSpotifyPlayback, RunSchedulingJob, MockPlaylistFetchResult, \
-    SharePoolAndGetCode, BuildQueue, CreatePlayback
+    SharePoolAndGetCode, BuildQueue, CreatePlayback, AssertEmptyTables
 from test_types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, \
     PaginatedSearchResultData, PlaylistTrackData
 
@@ -431,3 +432,13 @@ def joined_user_header(another_logged_in_user_header: Headers, test_client: Test
                        shared_pool_code: str) -> Headers:
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     return another_logged_in_user_header
+
+
+@pytest.fixture
+def assert_empty_tables(db_connection: ConnectionManager) -> AssertEmptyTables:
+    def wrapper(*tables: type(EntityBase)) -> None:
+        with db_connection.session() as session:
+            for table in tables:
+                assert session.scalar(select(table)) is None
+
+    return wrapper
