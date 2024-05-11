@@ -90,11 +90,9 @@ def should_return_error_if_member_does_not_exist_in_pool(test_client: TestClient
 def should_return_error_if_member_is_not_users_own(test_client: TestClient, shared_pool_code: str,
                                                    existing_pool: list[PoolMember],
                                                    validate_response: ValidateResponse,
-                                                   another_logged_in_user_header: Headers):
-    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+                                                   joined_user_header: Headers):
 
-    response = test_client.delete(f"/pool/content/{existing_pool[1].content_uri}",
-                                  headers=another_logged_in_user_header)
+    response = test_client.delete(f"/pool/content/{existing_pool[1].content_uri}", headers=joined_user_header)
 
     json_data = validate_response(response, 400)
     assert json_data["detail"] == "Can't delete a pool member added by another user."

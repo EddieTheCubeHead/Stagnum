@@ -1,7 +1,6 @@
 import datetime
 import json
 import random
-from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -17,22 +16,18 @@ from api.common.models import ParsedTokenResponse
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
     WebsocketUpdaterRaw
-from api.pool.models import PoolContent, PoolCreationData
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
-from api.search.models import PaginatedSearchResult
 from database.database_connection import ConnectionManager
 from database.entities import User
-from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData, MockedPoolContents, MockedArtistPoolContent, \
-    MockedPlaylistPoolContent
+from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData, MockedPlaylistPoolContent
 from test_types.aliases import MockResponseQueue
 from test_types.callables import MockTrackSearchResult, BuildSuccessResponse, \
     CreatePoolCreationDataJson, ValidateResponse, CreateSpotifyPlaybackState, \
     MockNoPlayerStateResponse, MockPlaybackPausedResponse, SkipSong, \
     CreateSpotifyPlayback, RunSchedulingJob, MockPlaylistFetchResult, \
-    SharePoolAndGetCode, BuildQueue, MockPoolContentFetches, MockArtistSearchResult, MockAlbumSearchResult, \
-    MockTrackFetch, MockArtistFetch, MockAlbumFetch, MockPlaylistFetch, CreatePlayback
+    SharePoolAndGetCode, BuildQueue, CreatePlayback
 from test_types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, \
-    PlaylistData, PoolContentData, PoolCreationDataDict, ArtistData, PaginatedSearchResultData, PlaylistTrackData
+    PaginatedSearchResultData, PlaylistTrackData
 
 
 @pytest.fixture
@@ -186,6 +181,11 @@ def another_logged_in_user_token(another_logged_in_user: User, db_connection: Co
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
     authorization_database_connection.update_logged_in_user(another_logged_in_user, token_data)
     return token_data.token
+
+
+@pytest.fixture
+def joined_user_token(another_logged_in_user_token: str, joined_user_header: Headers) -> str:
+    return another_logged_in_user_token
 
 
 @pytest.fixture
@@ -424,3 +424,10 @@ def mock_playback_paused_response(requests_client_get_queue: MockResponseQueue,
         mock_empty_queue_get()
 
     return wrapper
+
+
+@pytest.fixture
+def joined_user_header(another_logged_in_user_header: Headers, test_client: TestClient,
+                       shared_pool_code: str) -> Headers:
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    return another_logged_in_user_header

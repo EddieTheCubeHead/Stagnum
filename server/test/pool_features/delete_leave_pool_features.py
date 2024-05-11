@@ -42,20 +42,19 @@ def should_send_playback_pause_on_pool_delete(existing_playback: list[dict[str, 
 
 
 def should_wipe_leavers_pool_members_on_leave_pool(
-        shared_pool_code: str, another_logged_in_user_header: Headers, test_client: TestClient,
+        shared_pool_code: str, joined_user_header: Headers, test_client: TestClient,
         validate_response: ValidateResponse, db_connection: ConnectionManager,
         create_mock_playlist_fetch_result: MockPlaylistFetchResult,
         requests_client_get_queue: MockResponseQueue, build_success_response: BuildSuccessResponse,
         another_logged_in_user: User):
-    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     playlist = create_mock_playlist_fetch_result(35).first_fetch
     requests_client_get_queue.append(build_success_response(playlist))
     pool_content_data = PoolContent(spotify_uri=playlist["uri"]).model_dump()
 
-    test_client.post("/pool/content", json=pool_content_data, headers=another_logged_in_user_header)
+    test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 
-    response = test_client.post("/pool/leave", headers=another_logged_in_user_header)
+    response = test_client.post("/pool/leave", headers=joined_user_header)
 
     response_model = PoolFullContents.model_validate(validate_response(response))
     assert response_model.users == []
