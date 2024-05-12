@@ -1,3 +1,7 @@
+############################
+# ruff
+############################
+
 [tool.ruff]
 line-length = 120
 fix = true
@@ -74,3 +78,17 @@ mark-parentheses = false
 parametrize-names-type = "tuple"
 parametrize-values-type = "tuple"
 parametrize-values-row-type = "tuple"
+
+############################
+# pytest
+############################
+
+[tool.pytest.ini_options]
+python_files = "*_features.py"
+python_classes = "*Features"
+python_functions = "should_*"
+pythonpath = "src"
+pytest_alembic_enabled = true
+
+[tool.pytest.ini_options.markers]
+slow = "marks tests as slow (deselect with '-m \"not slow\"')"

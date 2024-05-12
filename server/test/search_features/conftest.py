@@ -2,7 +2,6 @@ import random
 
 import httpx
 import pytest
-from _pytest.fixtures import FixtureRequest
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
@@ -17,7 +16,12 @@ from test_types.callables import (
     RunSearchCall,
     ValidatePaginatedResultLength,
 )
-from test_types.typed_dictionaries import Headers, PaginatedSearchResultData, SpotifyResourceData
+from test_types.typed_dictionaries import (
+    GeneralSearchResultData,
+    Headers,
+    PaginatedSearchResultData,
+    SpotifyResourceData,
+)
 
 
 @pytest.fixture
@@ -92,7 +96,9 @@ def create_playlist_paginated_search(
 
 @pytest.fixture
 def create_track_paginated_search(
-    create_mock_track_search_result, create_paginated_search_result, build_success_response
+    create_mock_track_search_result: MockTrackSearchResult,
+    create_paginated_search_result: CreatePaginatedSearchResult,
+    build_success_response: BuildSuccessResponse,
 ) -> CreateSearchResponse:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         tracks = [create_mock_track_search_result() for _ in range(limit)]
@@ -110,7 +116,7 @@ def build_spotify_general_search(
     create_mock_track_search_result: MockTrackSearchResult,
     create_paginated_search_result: CreatePaginatedSearchResult,
 ) -> CreateGeneralSearch:
-    def wrapper(query: str, limit: int = 20):
+    def wrapper(query: str, limit: int = 20) -> GeneralSearchResultData:
         artists = [create_mock_artist_search_result() for _ in range(limit)]
         tracks = [create_mock_track_search_result() for _ in range(limit)]
         albums = [create_mock_album_search_result(artist) for artist in artists]
@@ -137,10 +143,7 @@ def build_spotify_general_search_response(
 
 @pytest.fixture
 def run_search_call(
-    request: FixtureRequest,
-    test_client: TestClient,
-    valid_token_header: Headers,
-    requests_client_get_queue: MockResponseQueue,
+    test_client: TestClient, valid_token_header: Headers, requests_client_get_queue: MockResponseQueue
 ) -> RunSearchCall:
     def wrapper(
         query_addition: str | None, response_mocker: CreateSearchResponse, query: str, limit: int = 20

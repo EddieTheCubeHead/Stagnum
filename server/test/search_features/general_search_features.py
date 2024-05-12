@@ -65,11 +65,7 @@ def default_image_data() -> list[ImageData]:
 
 
 def should_return_twenty_items_from_search(
-    test_client: TestClient,
-    valid_token_header: Headers,
-    build_spotify_general_search_response: CreateSearchResponse,
     validate_response: ValidateResponse,
-    requests_client: Mock,
     validate_paginated_result_length: ValidatePaginatedResultLength,
     run_general_search: RunSearch,
 ) -> None:
@@ -149,7 +145,7 @@ def should_accept_any_date_starting_with_year(
     requests_client_get_queue.append(build_success_response(search_result))
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
     search_result = validate_response(result)
-    assert search_result["albums"]["items"][0]["year"] == 2021
+    assert search_result["albums"]["items"][0]["year"] == int(date_string[:4])
 
 
 def should_propagate_errors_from_spotify_api(
@@ -167,12 +163,7 @@ def should_propagate_errors_from_spotify_api(
 
 
 def should_include_current_token_in_response_headers(
-    requests_client_get_queue: MockResponseQueue,
-    build_success_response: BuildSuccessResponse,
-    test_client,
-    valid_token_header: Headers,
-    assert_token_in_headers: AssertTokenInHeaders,
-    run_general_search,
+    assert_token_in_headers: AssertTokenInHeaders, run_general_search: RunSearch
 ) -> None:
     query = "test query"
     result = run_general_search(query)
