@@ -54,8 +54,10 @@ unfixable = [
     "E711"  # SQLAlchemy doens't support 'is None' checks -> autofixing '== None' to 'is None' breaks code
 ]
 
-[tool.ruff.lint.extend-per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"!test/**.py" = ["PT"]
+"src/alembic/**.py" = ["INP001"]
 
 [tool.ruff.format]
 skip-magic-trailing-comma = false
