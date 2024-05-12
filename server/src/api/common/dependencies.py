@@ -3,7 +3,7 @@ import datetime
 import functools
 import json
 from logging import getLogger
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 import requests
 from database.database_connection import ConnectionManager
@@ -16,6 +16,7 @@ from starlette import status
 
 from api.common.helpers import _get_client_id, _get_client_secret
 from api.common.models import SpotifyTokenResponse
+from api.common.spotify_models import RefreshTokenData, RequestTokenData
 
 _logger = getLogger("main.api.common.dependencies")
 
@@ -26,7 +27,7 @@ class DateTimeWrapperRaw:
     def __init__(self) -> None:
         self._timezone = datetime.timezone.utc
 
-    def now(self):
+    def now(self) -> datetime.datetime:
         return datetime.datetime.now(self._timezone)
 
     def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
@@ -46,7 +47,7 @@ class RequestsClientRaw:
     _LINE_CUTOFF = 256
 
     @functools.wraps(requests.get)
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> requests.Response:  # noqa: ANN002, ANN003 - passed straight into requests
         _logger.debug(f"GET: {args} {kwargs}")
         result = requests.get(*args, **kwargs)
         _logger.info(
@@ -56,7 +57,7 @@ class RequestsClientRaw:
         return result
 
     @functools.wraps(requests.post)
-    def post(self, *args, **kwargs):
+    def post(self, *args, **kwargs) -> requests.Response:  # noqa: ANN002, ANN003 - passed straight into requests
         _logger.debug(f"POST: {args} {kwargs}")
         result = requests.post(*args, **kwargs)
         _logger.info(
@@ -66,12 +67,12 @@ class RequestsClientRaw:
         return result
 
     @functools.wraps(requests.put)
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> requests.Response:  # noqa: ANN002, ANN003 - passed straight into requests
         _logger.debug(f"PUT {args} {kwargs}")
         result = requests.put(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
         )
         return result
 
@@ -79,7 +80,7 @@ class RequestsClientRaw:
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
-def _validate_and_decode(response: RequestsResponse) -> dict:
+def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
     response_string = response.content.decode("utf8")
     parsed_data = json.loads(response_string) if response_string else None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
@@ -94,19 +95,25 @@ class SpotifyClientRaw:
     def __init__(self, request_client: RequestsClient) -> None:
         self._request_client = request_client
 
-    def get(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs) -> dict:
+    def get(
+        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+    ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.get(f"{query}", *args, **kwargs)
         return _validate_and_decode(raw_response)
 
-    def post(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs) -> dict:
+    def post(
+        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+    ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.post(f"{query}", *args, **kwargs)
         return _validate_and_decode(raw_response)
 
-    def put(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs):
+    def put(
+        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+    ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.put(f"{query}", *args, **kwargs)
@@ -132,7 +139,9 @@ class AuthSpotifyClientRaw:
         form = {"grant_type": "refresh_token", "refresh_token": refresh_token}
         return self._get_token_from_form(client_id, client_secret, form)
 
-    def _get_token_from_form(self, client_id, client_secret, form):
+    def _get_token_from_form(
+        self, client_id: str, client_secret: str, form: RequestTokenData | RefreshTokenData
+    ) -> SpotifyTokenResponse:
         token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
         headers = {"Authorization": "Basic " + token, "Content-Type": "application/x-www-form-urlencoded"}
         data = self._spotify_client.post(
@@ -146,7 +155,7 @@ class AuthSpotifyClientRaw:
             refresh_token=refresh_token,
         )
 
-    def get_me(self, token: str):
+    def get_me(self, token: str) -> User:
         headers = {"Authorization": token}
         data = self._spotify_client.get("me", headers=headers)
         if data["product"] not in _ALLOWED_PRODUCT_TYPES:
@@ -229,10 +238,10 @@ class TokenHolderRaw:
     def log_out(self, token: str) -> None:
         self._user_database_connection.log_out(token)
 
-    def is_token_logged_in(self, token: str):
+    def is_token_logged_in(self, token: str) -> bool:
         return self._user_database_connection.get_from_token(token) is not None
 
-    def is_user_logged_in(self, user_id: str):
+    def is_user_logged_in(self, user_id: str) -> bool:
         return self._user_database_connection.get_from_id(user_id).session is not None
 
     def _ensure_fresh_token(self, user: User) -> None:

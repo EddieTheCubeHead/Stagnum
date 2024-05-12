@@ -1,6 +1,6 @@
 import datetime
 from logging import getLogger
-from typing import Annotated, Any, Literal, Optional
+from typing import Annotated, Any, ClassVar, Literal, Optional
 
 from database.entities import (
     PlaybackSession,
@@ -18,9 +18,11 @@ from sqlalchemy.orm import Session, joinedload
 from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
 from api.common.helpers import build_auth_header, create_random_string, get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
+from api.common.spotify_models import PlaylistData
 from api.pool.helpers import map_pool_member_entity_to_model
 from api.pool.models import PoolCollection, PoolContent, PoolFullContents, PoolTrack, PoolUserContents
 from api.pool.randomization_algorithms import NextSongProvider
+from api.pool.spotify_models import PlaybackStateData, QueueData
 
 _logger = getLogger("main.api.pool.dependencies")
 _PLAYBACK_UPDATE_CUTOFF_MS = 3000
@@ -124,13 +126,13 @@ class PoolSpotifyClientRaw:
             spotify_collection_uri=playlist_data["uri"],
         )
 
-    def _fully_fetch_playlist(self, playlist_id: str, user: User):
+    def _fully_fetch_playlist(self, playlist_id: str, user: User) -> PlaylistData:
         playlist_data = self._spotify_client.get(f"playlists/{playlist_id}", headers=build_auth_header(user))
         if playlist_data["tracks"]["next"] is not None:
             self._fetch_large_playlist_tracks(playlist_data, user)
         return playlist_data
 
-    def _fetch_large_playlist_tracks(self, playlist_data, user: User) -> None:
+    def _fetch_large_playlist_tracks(self, playlist_data: PlaylistData, user: User) -> None:
         track_walker = playlist_data["tracks"]
         while track_walker["next"] is not None:
             track_walker = self._spotify_client.get(override_url=track_walker["next"], headers=build_auth_header(user))
@@ -149,15 +151,15 @@ class PoolSpotifyClientRaw:
         header = build_auth_header(user)
         self._spotify_client.post("me/player/next", headers=header)
 
-    def get_user_playback(self, user: User) -> dict:
+    def get_user_playback(self, user: User) -> PlaybackStateData:
         header = build_auth_header(user)
         return self._spotify_client.get("me/player/currently-playing", headers=header)
 
-    def get_user_queue(self, user: User) -> dict:
+    def get_user_queue(self, user: User) -> QueueData:
         header = build_auth_header(user)
         return self._spotify_client.get("me/player/queue", headers=header)
 
-    def stop_playback(self, user: User):
+    def stop_playback(self, user: User) -> None:
         header = build_auth_header(user)
         return self._spotify_client.put("me/player/pause", headers=header)
 
@@ -234,7 +236,14 @@ def _purge_playback_users_pools(users: list[User], session: Session) -> None:
     )
     session.execute(delete(PoolMember).where(PoolMember.user_id.in_(user_ids)))
     session.execute(
-        delete(PoolJoinedUser).where(PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids))))
+        delete(PoolJoinedUser).where(
+            PoolJoinedUser.pool.has(
+                and_(
+                    Pool.name == None,  # noqa: E711
+                    Pool.owner_user_id.in_(user_ids),
+                )
+            )
+        )
     )
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids))))  # noqa: E711
 
@@ -305,7 +314,7 @@ def _delete_pool_member(possible_parent: PoolMember, user: User, session: Sessio
     session.delete(possible_parent)
 
 
-def _create_transient_pool(user: UserModel, session: Session):
+def _create_transient_pool(user: UserModel, session: Session) -> Pool:
     pool = Pool(name=None, owner_user_id=user.spotify_id)
     session.add(pool)
     session.commit()  # force id to the pool
@@ -583,7 +592,7 @@ PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
 
 
 class WebsocketUpdaterRaw:
-    _sockets: dict[str, WebSocket] = {}
+    _sockets: ClassVar[dict[str, WebSocket]] = {}
 
     def add_socket(self, websocket: WebSocket, user: User) -> None:
         self._sockets[user.spotify_id] = websocket

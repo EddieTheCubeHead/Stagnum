@@ -124,3 +124,14 @@ class PlaylistData(SpotifyResourceWithImagesData):
     snapshot_id: str
     tracks: PaginatedSearchResultData[PlaylistTrackData]
     type: Literal["playlist"]
+
+
+class RequestTokenData(TypedDict):
+    grant_type: Literal["authorization_code"]
+    code: str
+    redirect_uri: str
+
+
+class RefreshTokenData(TypedDict):
+    grant_type: Literal["refresh_token"]
+    refresh_token: str
