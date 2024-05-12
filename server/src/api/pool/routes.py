@@ -68,7 +68,7 @@ async def _create_model_and_update_listeners(
     websocket_updater: WebsocketUpdater,
     user: User,
     whole_pool: list[PoolMember],
-):
+) -> PoolFullContents:
     pool_users = database_connection.get_pool_users(user)
     pool = database_connection.get_pool(user)
     code = pool.share_data.code if pool.share_data is not None else None

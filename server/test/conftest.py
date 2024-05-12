@@ -23,6 +23,7 @@ from api.common.dependencies import (
     UserDatabaseConnection,
 )
 from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import AlbumData, ArtistData, PlaylistData, TrackData
 from api.pool.models import PoolContent, PoolCreationData
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
@@ -59,15 +60,7 @@ from test_types.callables import (
     ValidateModel,
     ValidateResponse,
 )
-from test_types.typed_dictionaries import (
-    AlbumData,
-    ArtistData,
-    Headers,
-    PlaylistData,
-    PoolContentData,
-    PoolCreationDataDict,
-    TrackData,
-)
+from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
 
 @pytest.fixture

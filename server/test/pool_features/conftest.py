@@ -9,6 +9,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
 from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import PaginatedSearchResultData, PlaylistTrackData, TrackData
 from api.pool import queue_next_songs
 from api.pool.dependencies import (
     PoolDatabaseConnectionRaw,
@@ -17,6 +18,7 @@ from api.pool.dependencies import (
     WebsocketUpdaterRaw,
 )
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
+from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from database.database_connection import ConnectionManager
 from database.entities import EntityBase, User
 from faker import Faker
@@ -41,15 +43,7 @@ from test_types.callables import (
     SkipSong,
     ValidateResponse,
 )
-from test_types.typed_dictionaries import (
-    Headers,
-    PaginatedSearchResultData,
-    PlaybackContextData,
-    PlaybackStateData,
-    PlaylistTrackData,
-    QueueData,
-    TrackData,
-)
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture

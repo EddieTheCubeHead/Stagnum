@@ -7,25 +7,21 @@ from fastapi import Depends, HTTPException
 from api.common.dependencies import SpotifyClient
 from api.common.helpers import build_auth_header, get_sharpest_icon
 from api.common.models import NamedResource
+from api.common.spotify_models import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
 from api.search.models import (
     Album,
-    AlbumData,
     AlbumSearchResult,
     Artist,
-    ArtistData,
     ArtistSearchResult,
     GeneralSearchResult,
-    GeneralSearchResultData,
     PaginatedSearchResult,
-    PaginatedSearchResultData,
     Playlist,
-    PlaylistData,
     PlaylistSearchResult,
     SpotifyPlayableType,
     Track,
-    TrackData,
     TrackSearchResult,
 )
+from api.search.spotify_models import GeneralSearchResultData
 
 _logger = getLogger("main.api.search.dependencies")
 

@@ -8,6 +8,8 @@ import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
+from api.auth.spotify_models import SpotifyFetchMeData
+from api.common.spotify_models import ImageData
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
 from starlette.testclient import TestClient
@@ -21,7 +23,6 @@ from test_types.callables import (
     MockSpotifyUserDataFetch,
     MockTokenReturn,
 )
-from test_types.typed_dictionaries import ImageData, SpotifyFetchMeData
 
 
 @pytest.fixture

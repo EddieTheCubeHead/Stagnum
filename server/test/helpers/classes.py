@@ -5,8 +5,8 @@ from typing import override
 
 from _pytest.python_api import ApproxBase
 from api.common.dependencies import DateTimeWrapperRaw
+from api.common.spotify_models import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
 from pydantic import BaseModel
-from test_types.typed_dictionaries import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
 
 
 @dataclass

@@ -6,7 +6,9 @@ import pytest
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import TokenHolder
 from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import TrackData
 from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.spotify_models import PlaybackContextData
 from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, User
@@ -30,7 +32,7 @@ from test_types.callables import (
     ValidateErrorResponse,
     ValidateResponse,
 )
-from test_types.typed_dictionaries import Headers, PlaybackContextData, TrackData
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture
