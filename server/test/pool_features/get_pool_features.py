@@ -12,7 +12,7 @@ from test_types.typed_dictionaries import Headers
 
 
 def should_get_all_existing_tracks(
-    existing_pool: list[PoolMember], test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel
+    existing_pool: list[PoolMember], test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel,
 ) -> None:
     response = test_client.get("/pool", headers=valid_token_header)
 
@@ -21,7 +21,7 @@ def should_get_all_existing_tracks(
 
 
 def should_return_mix_of_tracks_and_collections_correctly(
-    create_pool: CreatePool, test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel
+    create_pool: CreatePool, test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel,
 ) -> None:
     track_amount = 25
     create_pool(tracks=track_amount, artists=1, albums=[14], playlists=[123])

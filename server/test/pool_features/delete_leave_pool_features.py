@@ -44,7 +44,7 @@ def should_wipe_whole_pool_on_delete_pool(
 
 
 def should_send_playback_pause_on_pool_delete(
-    existing_playback: list[TrackData], test_client: TestClient, requests_client: Mock, valid_token_header: Headers
+    existing_playback: list[TrackData], test_client: TestClient, requests_client: Mock, valid_token_header: Headers,
 ) -> None:
     requests_client.put.reset_mock()
 

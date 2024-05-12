@@ -212,15 +212,15 @@ def _purge_existing_transient_pool(user: UserModel, session: Session) -> None:
     _logger.info(f"Purging existing pool for user {user.display_name}")
     session.execute(
         delete(PoolMemberRandomizationParameters).where(
-            PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id)
-        )
+            PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id == user.spotify_id),
+        ),
     )
     session.execute(delete(PoolMember).where(PoolMember.user_id == user.spotify_id))
     session.execute(
         delete(PoolJoinedUser).where(
             and_(PoolJoinedUser.pool.has(Pool.name == None)),  # noqa: E711
             PoolJoinedUser.user_id == user.spotify_id,
-        )
+        ),
     )
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id == user.spotify_id)))  # noqa: E711
 
@@ -229,13 +229,13 @@ def _purge_playback_users_pools(users: list[User], session: Session) -> None:
     user_ids = [user.spotify_id for user in users]
     session.execute(
         delete(PoolMemberRandomizationParameters).where(
-            PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id.in_(user_ids))
-        )
+            PoolMemberRandomizationParameters.pool_member.has(PoolMember.user_id.in_(user_ids)),
+        ),
     )
     session.execute(delete(PoolMember).where(PoolMember.user_id.in_(user_ids)))
     session.execute(
-        delete(PoolJoinedUser).where(PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids))))
-    )  # noqa: E711
+        delete(PoolJoinedUser).where(PoolJoinedUser.pool.has(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids)))),
+    )
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids))))  # noqa: E711
 
 
@@ -248,10 +248,10 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
         session.scalars(
             select(PoolMember)
             .where(and_(PoolMember.pool_id == pool.id, PoolMember.parent_id == None))  # noqa: E711
-            .options(joinedload(PoolMember.children))
+            .options(joinedload(PoolMember.children)),
         )
         .unique()
-        .all()
+        .all(),
     )
 
 
@@ -261,11 +261,11 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
     return list(
         session.scalars(
             select(PoolMember).where(
-                and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%"))
-            )
+                and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%")),
+            ),
         )
         .unique()
-        .all()
+        .all(),
     )
 
 
@@ -284,20 +284,20 @@ def _get_and_validate_member_to_delete(content_uri: str, user: User, session: Se
 def _delete_pool_member(possible_parent: PoolMember, user: User, session: Session) -> None:
     _logger.debug(
         f"Deleting pool member with uri {possible_parent.content_uri} and all children "
-        f"from user {user.spotify_username}'s pool"
+        f"from user {user.spotify_username}'s pool",
     )
 
     session.execute(
         delete(PoolMemberRandomizationParameters).where(
             PoolMemberRandomizationParameters.pool_member.has(
-                and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)
-            )
-        )
+                and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id),
+            ),
+        ),
     )
     session.execute(
         delete(PoolMember).where(
-            and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)
-        )
+            and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id),
+        ),
     )
 
     if possible_parent.randomization_parameters is not None:
@@ -316,8 +316,8 @@ def _create_transient_pool(user: UserModel, session: Session):
 def _get_pool_for_user(user: User, session: Session) -> Pool:
     return session.scalar(
         select(Pool).where(
-            or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id))
-        )
+            or_(Pool.owner_user_id == user.spotify_id, Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id)),
+        ),
     )
 
 
@@ -337,9 +337,9 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
             and_(
                 PoolMemberRandomizationParameters.pool_member.has(PoolMember.pool_id == pool.id),
                 PoolMemberRandomizationParameters.skips_since_last_play > 0,
-            )
+            ),
         )
-        .values(skips_since_last_play=(PoolMemberRandomizationParameters.skips_since_last_play + 1))
+        .values(skips_since_last_play=(PoolMemberRandomizationParameters.skips_since_last_play + 1)),
     )
 
     playing_track.randomization_parameters.skips_since_last_play = 1
@@ -391,9 +391,9 @@ class PoolDatabaseConnectionRaw:
                         or_(
                             Pool.owner_user_id == user.spotify_id,
                             Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id),
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
 
     def get_pool_data(self, user: User) -> FullPoolData:
@@ -413,11 +413,11 @@ class PoolDatabaseConnectionRaw:
             return _get_playable_tracks(user, session)
 
     def save_playback_status(
-        self, user: User, playing_track: PoolMember, playback_end_timestamp: Optional[datetime.datetime] = None
+        self, user: User, playing_track: PoolMember, playback_end_timestamp: Optional[datetime.datetime] = None,
     ) -> None:
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
-                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id)
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id),
             )
             if existing_playback is not None and existing_playback.current_track_uri is not None:
                 self._update_user_playback(existing_playback, playing_track, playback_end_timestamp)
@@ -456,7 +456,7 @@ class PoolDatabaseConnectionRaw:
                 current_track_name=playing_track.name,
                 current_track_image_url=playing_track.image_url,
                 current_track_duration_ms=playing_track.duration_ms,
-            )
+            ),
         )
 
     def get_playbacks_to_update(self) -> list[PlaybackSession]:
@@ -466,8 +466,8 @@ class PoolDatabaseConnectionRaw:
             return (
                 session.scalars(
                     select(PlaybackSession).where(
-                        and_(PlaybackSession.is_active, PlaybackSession.next_song_change_timestamp < cutoff_time)
-                    )
+                        and_(PlaybackSession.is_active, PlaybackSession.next_song_change_timestamp < cutoff_time),
+                    ),
                 )
                 .unique()
                 .all()
@@ -485,8 +485,8 @@ class PoolDatabaseConnectionRaw:
                     or_(
                         Pool.owner_user_id == user.spotify_id,
                         Pool.joined_users.any(PoolJoinedUser.user_id == user.spotify_id),
-                    )
-                )
+                    ),
+                ),
             )
             return (
                 session.scalars(
@@ -494,8 +494,8 @@ class PoolDatabaseConnectionRaw:
                         or_(
                             User.spotify_id == pool.owner_user_id,
                             User.joined_pool.has(PoolJoinedUser.pool_id == pool.id),
-                        )
-                    )
+                        ),
+                    ),
                 )
                 .unique()
                 .all()
@@ -528,17 +528,17 @@ class PoolDatabaseConnectionRaw:
     def save_playtime(self, user: User) -> None:
         with self._database_connection.session() as session:
             existing_playback: PlaybackSession = session.scalar(
-                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id)
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id),
             )
             # Track not set by Stagnum, but due to user error - using both Spotify and Stagnum controls
             if existing_playback.current_track is None:
                 return
             played_user: PoolJoinedUser = session.scalar(
-                select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id)
+                select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id),
             )
             existing_end_time_utc = self._datetime_wrapper.ensure_utc(existing_playback.next_song_change_timestamp)
             delta: datetime.timedelta = max(
-                existing_end_time_utc - self._datetime_wrapper.now(), datetime.timedelta(milliseconds=0)
+                existing_end_time_utc - self._datetime_wrapper.now(), datetime.timedelta(milliseconds=0),
             )
             playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
             played_user.playback_time_ms += playtime
@@ -553,7 +553,7 @@ class PoolDatabaseConnectionRaw:
             playback_session.next_song_change_timestamp = new_timestamp
 
     def save_unexpected_track_change(
-        self, playback: PlaybackSession, new_track: PoolMember, end_timestamp: datetime.datetime
+        self, playback: PlaybackSession, new_track: PoolMember, end_timestamp: datetime.datetime,
     ) -> None:
         with self._database_connection.session() as session:
             session.add(playback)
@@ -589,7 +589,7 @@ class WebsocketUpdaterRaw:
         self._sockets[user.spotify_id] = websocket
 
     async def push_update(
-        self, user_ids: list[str], model: Literal["error", "current_track", "pool"], json: dict
+        self, user_ids: list[str], model: Literal["error", "current_track", "pool"], json: dict,
     ) -> None:
         for user_id in user_ids:
             if user_id not in self._sockets:
@@ -622,7 +622,7 @@ def _validate_spotify_state(spotify_state: dict[str, Any] | None) -> bool:
         raise HTTPException(status_code=400, detail="Could not find active playback")
     if not spotify_state["is_playing"]:
         raise HTTPException(
-            status_code=400, detail="Your playback is paused, please resume playback to continue using Stagnum!"
+            status_code=400, detail="Your playback is paused, please resume playback to continue using Stagnum!",
         )
     if spotify_state["context"] is not None:
         raise HTTPException(
@@ -677,7 +677,7 @@ class PoolPlaybackServiceRaw:
                 self._spotify_client.skip_current_song(user)
 
     async def _queue_next_song(
-        self, user: User, playback_end_timestamp: Optional[datetime.datetime] = None
+        self, user: User, playback_end_timestamp: Optional[datetime.datetime] = None,
     ) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         pool_owner = self._database_connection.get_users_pools_main_user(user)
@@ -692,7 +692,7 @@ class PoolPlaybackServiceRaw:
     async def _playback_updated(self, pool_owner: User, new_track: PoolMember) -> None:
         pool_user_ids = [user.spotify_id for user in self._database_connection.get_pool_users(pool_owner)]
         await self._websocket_updater.push_update(
-            pool_user_ids, "current_track", map_pool_member_entity_to_model(new_track).model_dump()
+            pool_user_ids, "current_track", map_pool_member_entity_to_model(new_track).model_dump(),
         )
 
     def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
@@ -719,7 +719,7 @@ class PoolPlaybackServiceRaw:
             pool_users = self._database_connection.stop_and_purge_playback(user)
             empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
             await self._websocket_updater.push_update(
-                [user.spotify_id for user in pool_users], "pool", empty_pool.model_dump()
+                [user.spotify_id for user in pool_users], "pool", empty_pool.model_dump(),
             )
             return None
         fetch_end = self._datetime_wrapper.now()
@@ -743,7 +743,7 @@ class PoolPlaybackServiceRaw:
         return spotify_state
 
     async def _fix_playback_data(
-        self, playback: PlaybackSession, actual_song_data: dict[str, Any], end_timestamp: datetime.datetime
+        self, playback: PlaybackSession, actual_song_data: dict[str, Any], end_timestamp: datetime.datetime,
     ) -> PoolMember:
         new_track = PoolMember(
             name=actual_song_data["name"],

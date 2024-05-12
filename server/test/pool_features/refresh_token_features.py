@@ -16,7 +16,7 @@ from pool_features.conftest import CreateSpotifyPlayback, RunSchedulingJob
 
 @pytest.fixture
 def refresh_token_return(
-    mock_token_return: MockTokenReturn, requests_client_post_queue: MockResponseQueue, faker: Faker
+    mock_token_return: MockTokenReturn, requests_client_post_queue: MockResponseQueue, faker: Faker,
 ) -> str:
     token: str = faker.uuid4()
     refresh_token_response_data = mock_token_return(token)

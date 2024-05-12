@@ -40,7 +40,7 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             token_expiry = self._datetime_wrapper.now() + datetime.timedelta(seconds=token_result.expires_in)
             user.session = UserSession(
-                user_token=token_result.token, refresh_token=token_result.refresh_token, expires_at=token_expiry
+                user_token=token_result.token, refresh_token=token_result.refresh_token, expires_at=token_expiry,
             )
             session.merge(user)
             if state is None:
@@ -57,7 +57,7 @@ _required_scopes = ["user-read-playback-state", "user-modify-playback-state", "u
 
 class AuthServiceRaw:
     def __init__(
-        self, spotify_client: AuthSpotifyClient, database_connection: AuthDatabaseConnection, token_holder: TokenHolder
+        self, spotify_client: AuthSpotifyClient, database_connection: AuthDatabaseConnection, token_holder: TokenHolder,
     ) -> None:
         self._spotify_client = spotify_client
         self._database_connection = database_connection
@@ -71,7 +71,7 @@ class AuthServiceRaw:
         client_id = _get_client_id()
         return LoginRedirect(
             redirect_uri=f"{base_url}scope={scopes_string}&state={state}&response_type=code"
-            f"&redirect_uri={client_redirect_uri}&client_id={client_id}"
+            f"&redirect_uri={client_redirect_uri}&client_id={client_id}",
         )
 
     def get_token(self, state: str, code: str, client_redirect_uri: str) -> LoginSuccess:
@@ -96,7 +96,7 @@ class AuthServiceRaw:
         token_result = self._spotify_client.get_token(code, client_id, client_secret, client_redirect_uri)
         token = f"{token_result.token_type} {token_result.access_token}"
         return ParsedTokenResponse(
-            token=token, refresh_token=token_result.refresh_token, expires_in=token_result.expires_in
+            token=token, refresh_token=token_result.refresh_token, expires_in=token_result.expires_in,
         )
 
     def _fetch_current_user(self, token) -> User:

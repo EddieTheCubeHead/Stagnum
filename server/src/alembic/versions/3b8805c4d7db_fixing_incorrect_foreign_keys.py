@@ -46,6 +46,6 @@ def downgrade() -> None:
     op.create_foreign_key("PoolMember_parent_id_fkey", "PoolMember", "PoolMember", ["parent_id"], ["id"])
     op.drop_constraint("PlaybackSession_current_track_id_fkey", "PlaybackSession", type_="foreignkey")
     op.create_foreign_key(
-        "PlaybackSession_current_track_id_fkey", "PlaybackSession", "PoolMember", ["current_track_id"], ["id"]
+        "PlaybackSession_current_track_id_fkey", "PlaybackSession", "PoolMember", ["current_track_id"], ["id"],
     )
     op.alter_column("PlaybackSession", "current_track_id", existing_type=sa.INTEGER(), nullable=False)

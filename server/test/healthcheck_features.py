@@ -4,7 +4,7 @@ from starlette.testclient import TestClient
 
 
 def should_return_time_taken_and_healthy_status_on_normal_operation(
-    test_client: TestClient, validate_model: ValidateModel
+    test_client: TestClient, validate_model: ValidateModel,
 ) -> None:
     response = test_client.get("/health")
 

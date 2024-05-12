@@ -57,7 +57,7 @@ def upgrade() -> None:
     )
     op.add_column("PoolMember", sa.Column("pool_id", sa.Integer(), nullable=False))
     op.create_foreign_key(
-        "PoolMember_pool_id_fkey", "PoolMember", "Pool", ["pool_id"], ["id"], onupdate="CASCADE", ondelete="CASCADE"
+        "PoolMember_pool_id_fkey", "PoolMember", "Pool", ["pool_id"], ["id"], onupdate="CASCADE", ondelete="CASCADE",
     )
 
 

@@ -181,7 +181,7 @@ async def should_inactivate_sessions_for_logged_out_users(
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
-            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id)
+            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user_id),
         )
     assert not playback_state.is_active
 
@@ -214,7 +214,7 @@ async def should_reactivate_inactive_playback_on_post_pool(
 
     with db_connection.session() as session:
         playback_state: PlaybackSession = session.scalar(
-            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user.spotify_id)
+            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user.spotify_id),
         )
     assert playback_state.is_active
 

@@ -51,7 +51,7 @@ class RequestsClientRaw:
         result = requests.get(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}",
         )
         return result
 
@@ -61,7 +61,7 @@ class RequestsClientRaw:
         result = requests.post(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}",
         )
         return result
 
@@ -71,7 +71,7 @@ class RequestsClientRaw:
         result = requests.put(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}"
+            f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}",
         )
         return result
 
@@ -136,7 +136,7 @@ class AuthSpotifyClientRaw:
         token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
         headers = {"Authorization": "Basic " + token, "Content-Type": "application/x-www-form-urlencoded"}
         data = self._spotify_client.post(
-            override_url="https://accounts.spotify.com/api/token", headers=headers, data=form
+            override_url="https://accounts.spotify.com/api/token", headers=headers, data=form,
         )
         refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
         return SpotifyTokenResponse(
@@ -151,7 +151,7 @@ class AuthSpotifyClientRaw:
         data = self._spotify_client.get("me", headers=headers)
         if data["product"] not in _ALLOWED_PRODUCT_TYPES:
             raise HTTPException(
-                status_code=401, detail="You need to have a Spotify Premium subscription to use Stagnum!"
+                status_code=401, detail="You need to have a Spotify Premium subscription to use Stagnum!",
             )
         user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
         return User(spotify_id=data["id"], spotify_username=data["display_name"], spotify_avatar_url=user_avatar_url)
@@ -169,8 +169,8 @@ class UserDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             user = session.scalar(
                 select(User).where(
-                    User.session.has(or_(UserSession.user_token == token, UserSession.last_login_token == token))
-                )
+                    User.session.has(or_(UserSession.user_token == token, UserSession.last_login_token == token)),
+                ),
             )
             if user is not None:
                 user.session.last_login_token = token
@@ -191,7 +191,7 @@ class UserDatabaseConnectionRaw:
             user_session.user_token = f"{refreshed_session.token_type} {refreshed_session.access_token}"
             user_session.refresh_token = refreshed_session.refresh_token
             user_session.expires_at = self._datetime_wrapper.now() + datetime.timedelta(
-                seconds=refreshed_session.expires_in
+                seconds=refreshed_session.expires_in,
             )
 
         return user_session

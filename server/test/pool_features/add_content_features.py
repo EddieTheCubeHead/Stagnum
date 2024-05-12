@@ -100,11 +100,11 @@ def should_correctly_construct_pool_after_collection_addition(
     with db_connection.session() as session:
         actual_pool_content = (
             session.scalars(
-                select(PoolMember).where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))
+                select(PoolMember).where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None)),  # noqa: E711
             )
             .unique()
             .all()
-        )  # noqa: E711
+        )
     assert len(actual_pool_content) == len(existing_pool) + 1
     pool_response = validate_response(response)
     user_pool = pool_response["users"][0]

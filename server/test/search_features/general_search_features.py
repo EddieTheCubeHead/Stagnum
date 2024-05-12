@@ -23,7 +23,7 @@ from test_types.typed_dictionaries import Headers, ImageData
 
 @pytest.fixture
 def run_general_search(
-    run_search_call: RunSearchCall, build_spotify_general_search_response: CreateSearchResponse
+    run_search_call: RunSearchCall, build_spotify_general_search_response: CreateSearchResponse,
 ) -> RunSearch:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         return run_search_call(None, build_spotify_general_search_response, query, limit)
@@ -33,7 +33,7 @@ def run_general_search(
 
 @pytest.fixture
 def build_general_search_with_custom_images(
-    build_spotify_general_search: CreateGeneralSearch, build_success_response: BuildSuccessResponse
+    build_spotify_general_search: CreateGeneralSearch, build_success_response: BuildSuccessResponse,
 ) -> CreateSearchResponseFromImages:
     def wrapper(query: str, limit: int = 20, images: list[ImageData] | None = None) -> httpx.Response:
         response = build_spotify_general_search(query, limit)
@@ -92,7 +92,7 @@ def should_return_less_than_twenty_results_if_spotify_returns_less(
 
 
 def should_call_spotify_with_the_provided_query(
-    valid_token_header: Headers, requests_client: Mock, run_general_search: RunSearch
+    valid_token_header: Headers, requests_client: Mock, run_general_search: RunSearch,
 ) -> None:
     query = "test query please ignore"
     run_general_search(query)
@@ -124,7 +124,7 @@ def should_treat_none_size_as_zero(
 
 
 def should_return_none_size_if_only_image(
-    run_general_search_with_custom_images: RunGeneralSearchWithCustomImages, validate_response: ValidateResponse
+    run_general_search_with_custom_images: RunGeneralSearchWithCustomImages, validate_response: ValidateResponse,
 ) -> None:
     expected_image_url = "my_expected_image_url"
     images: list[ImageData] = [{"url": expected_image_url, "height": None, "width": None}]
@@ -180,7 +180,7 @@ def should_include_current_token_in_response_headers(
 
 
 def should_return_bad_request_without_calling_spotify_on_empty_query(
-    test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse, requests_client: Mock
+    test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse, requests_client: Mock,
 ) -> None:
     query = ""
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)

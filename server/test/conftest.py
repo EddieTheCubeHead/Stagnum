@@ -155,7 +155,7 @@ def auth_spotify_client(spotify_client: SpotifyClient) -> AuthSpotifyClient:
 
 @pytest.fixture
 def mock_token_holder(
-    db_connection: ConnectionManager, auth_spotify_client: AuthSpotifyClient, mock_datetime_wrapper: MockDateTimeWrapper
+    db_connection: ConnectionManager, auth_spotify_client: AuthSpotifyClient, mock_datetime_wrapper: MockDateTimeWrapper,
 ) -> TokenHolder:
     user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
     return TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
@@ -178,13 +178,13 @@ def primary_user_token(create_token: CreateToken) -> ParsedTokenResponse:
 @pytest.fixture
 def logged_in_user(logged_in_user_id: str) -> User:
     return User(
-        spotify_id=logged_in_user_id, spotify_username=logged_in_user_id, spotify_avatar_url="user.icon.example"
+        spotify_id=logged_in_user_id, spotify_username=logged_in_user_id, spotify_avatar_url="user.icon.example",
     )
 
 
 @pytest.fixture
 def auth_database_connection(
-    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper
+    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper,
 ) -> AuthDatabaseConnection:
     return AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
 
@@ -296,7 +296,7 @@ def create_mock_album_search_result(faker: Faker) -> MockAlbumSearchResult:
                     "name": artist["name"],
                     "type": "artist",
                     "uri": artist["uri"],
-                }
+                },
             ],
         }
         if tracks is not None:
@@ -317,7 +317,7 @@ def create_mock_album_search_result(faker: Faker) -> MockAlbumSearchResult:
 
 @pytest.fixture
 def create_mock_track_search_result(
-    faker, create_mock_artist_search_result, create_mock_album_search_result
+    faker, create_mock_artist_search_result, create_mock_album_search_result,
 ) -> MockTrackSearchResult:
     def wrapper(artist_in: ArtistData | None = None) -> TrackData:
         track_name = faker.text(max_nb_chars=25)[:-1]
@@ -461,7 +461,7 @@ def increment_now(mock_datetime_wrapper) -> IncrementNow:
 @pytest.fixture
 def mock_token_return() -> MockTokenReturn:
     def wrapper(
-        token: str = "my access_token", expires_in: int = 800, refresh_token: str = "my refresh token"
+        token: str = "my access_token", expires_in: int = 800, refresh_token: str = "my refresh token",
     ) -> httpx.Response:
         return_json = {
             "access_token": token,
@@ -591,7 +591,7 @@ def mock_pool_content_fetches(
     build_success_response: BuildSuccessResponse,
 ) -> MockPoolContentFetches:
     def wrapper(
-        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None
+        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None,
     ) -> PoolCreationDataDict:
         content_models: list[PoolContentData] = []
         for _ in range(tracks):
@@ -616,7 +616,7 @@ def create_pool(
     logged_in_user_id: str,
 ) -> CreatePool:
     def wrapper(
-        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None
+        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None,
     ) -> httpx.Response:
         data_json = mock_pool_content_fetches(tracks, artists, albums, playlists)
         return test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -626,7 +626,7 @@ def create_pool(
 
 @pytest.fixture
 def existing_pool(
-    create_pool: CreatePool, db_connection: ConnectionManager, logged_in_user_id: str
+    create_pool: CreatePool, db_connection: ConnectionManager, logged_in_user_id: str,
 ) -> list[PoolMember]:
     create_pool(tracks=15)
     with db_connection.session() as session:

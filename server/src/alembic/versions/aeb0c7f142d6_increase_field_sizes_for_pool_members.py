@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.alter_column(
-        "PoolMember", "name", existing_type=sa.VARCHAR(length=64), type_=sa.String(length=128), existing_nullable=False
+        "PoolMember", "name", existing_type=sa.VARCHAR(length=64), type_=sa.String(length=128), existing_nullable=False,
     )
     op.alter_column(
         "PoolMember",
@@ -54,5 +54,5 @@ def downgrade() -> None:
         existing_nullable=False,
     )
     op.alter_column(
-        "PoolMember", "name", existing_type=sa.String(length=128), type_=sa.VARCHAR(length=64), existing_nullable=False
+        "PoolMember", "name", existing_type=sa.String(length=128), type_=sa.VARCHAR(length=64), existing_nullable=False,
     )

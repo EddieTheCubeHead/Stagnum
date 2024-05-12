@@ -34,7 +34,7 @@ def _get_members_weight(members: list[PoolMember]) -> int:
 # Logic heavy part so here come the comments
 class PoolRandomizer:
     def __init__(
-        self, pool_members: list[PoolMember], users: list[User], randomization_parameters: RandomizationParameters
+        self, pool_members: list[PoolMember], users: list[User], randomization_parameters: RandomizationParameters,
     ) -> None:
         # Custom weight and user playback time based weight both operate on an exponential scale. These two base numbers
         # control the aggressiveness of that exponential scale (base^modifier, modifier [-1,1])
@@ -156,7 +156,7 @@ class NextSongProviderRaw:
         pseudo_random_floor = int(os.getenv("PSEUDO_RANDOM_FLOOR", "60"))
         pseudo_random_ceiling = int(os.getenv("PSEUDO_RANDOM_CEILING", "90"))
         randomization_parameters = RandomizationParameters(
-            custom_weight_scale, user_weight_scale, pseudo_random_floor, pseudo_random_ceiling
+            custom_weight_scale, user_weight_scale, pseudo_random_floor, pseudo_random_ceiling,
         )
         randomizer = PoolRandomizer(pool_members, users, randomization_parameters)
         return randomizer.get_next_song()

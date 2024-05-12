@@ -12,7 +12,7 @@ from test_types.callables import IncrementNow
 
 @pytest.fixture
 def auth_database_connection(
-    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper
+    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper,
 ) -> AuthDatabaseConnectionRaw:
     return AuthDatabaseConnectionRaw(db_connection, mock_datetime_wrapper)
 

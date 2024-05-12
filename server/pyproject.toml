@@ -47,7 +47,8 @@ select = [
     "RUF",    # ruff own rules
 ]
 ignore = [
-    "COM812"  # trailing comma insertion
+    "ANN101", # type annotation for self
+    "ANN102", # type annotation for cls
 ]
 unfixable = [
     "E711"  # SQLAlchemy doens't support 'is None' checks -> autofixing '== None' to 'is None' breaks code

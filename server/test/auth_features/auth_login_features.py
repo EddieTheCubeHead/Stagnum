@@ -28,7 +28,7 @@ def should_have_required_scopes_in_login_redirect_response(
 
 
 def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(
-    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter
+    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter,
 ) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
@@ -39,7 +39,7 @@ def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(
 
 
 def should_have_random_state_in_login_redirect_response(
-    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter
+    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter,
 ) -> None:
     responses = [base_auth_login_call() for _ in range(10)]
     response_contents = [validate_response(response) for response in responses]
@@ -48,7 +48,7 @@ def should_have_random_state_in_login_redirect_response(
 
 
 def should_have_response_type_as_code_in_login_redirect_response(
-    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter
+    base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse, get_query_parameter: GetQueryParameter,
 ) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
@@ -97,7 +97,7 @@ def should_get_spotify_client_id_from_env_and_include_in_response(
 
 
 def should_return_internal_server_error_if_no_client_id_in_env(
-    test_client: TestClient, validate_response: ValidateResponse
+    test_client: TestClient, validate_response: ValidateResponse,
 ) -> None:
     response = test_client.get("/auth/login?client_redirect_uri=test")
     error = validate_response(response, 500)
@@ -105,7 +105,7 @@ def should_return_internal_server_error_if_no_client_id_in_env(
 
 
 def should_detail_internal_server_error_in_non_production_environment(
-    test_client: TestClient, monkeypatch: MonkeyPatch, validate_response: ValidateResponse
+    test_client: TestClient, monkeypatch: MonkeyPatch, validate_response: ValidateResponse,
 ) -> None:
     monkeypatch.setenv("ENVIRONMENT", "development")
     response = test_client.get("/auth/login?client_redirect_uri=test")

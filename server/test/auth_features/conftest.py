@@ -91,7 +91,7 @@ def mock_spotify_user_data_fetch(
 
 @pytest.fixture
 def default_me_return(
-    request: FixtureRequest, default_image: ImageData, create_spotify_me_fetch_data: CreateSpotifyFetchMeData
+    request: FixtureRequest, default_image: ImageData, create_spotify_me_fetch_data: CreateSpotifyFetchMeData,
 ) -> httpx.Response:
     return_json = create_spotify_me_fetch_data(product=request.param.value if hasattr(request, "param") else "premium")
     response = Mock()
@@ -121,12 +121,12 @@ def mocked_default_me_return(mock_default_me_return) -> None:
 
 @pytest.fixture
 def base_auth_callback_call(
-    correct_env_variables: SpotifySecrets, test_client: TestClient, primary_valid_state_string: str
+    correct_env_variables: SpotifySecrets, test_client: TestClient, primary_valid_state_string: str,
 ) -> BaseAuthCallback:
     def wrapper(state: Optional[str] = None):
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
-            f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url"
+            f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url",
         )
 
     return wrapper
