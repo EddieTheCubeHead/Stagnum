@@ -111,7 +111,7 @@ class CreateGeneralSearch(Protocol):
 
 class RunSearchCall(Protocol):
     def __call__(
-        self, query_addition: str | None, search_call: CreateSearchResponse, query: str, limit: int = 20,
+        self, query_addition: str | None, search_call: CreateSearchResponse, query: str, limit: int = 20
     ) -> httpx.Response: ...
 
 
@@ -154,18 +154,18 @@ class MockAlbumFetch(Protocol):
 
 
 class MockPlaylistFetch(Protocol):
-    def __call__(self, playlist_length: int = ..., append_none: bool = ...) -> PoolContentData: ...
+    def __call__(self, playlist_length: int = ..., *, append_none: bool = ...) -> PoolContentData: ...
 
 
 class MockPoolContentFetches(Protocol):
     def __call__(
-        self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ..., playlists: list[int] | None = ...,
+        self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ..., playlists: list[int] | None = ...
     ) -> PoolCreationDataDict: ...
 
 
 class CreatePool(Protocol):
     def __call__(
-        self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ..., playlists: list[int] | None = ...,
+        self, tracks: int = ..., artists: int = ..., albums: list[int] | None = ..., playlists: list[int] | None = ...
     ) -> httpx.Response: ...
 
 

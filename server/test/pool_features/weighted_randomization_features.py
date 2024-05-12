@@ -46,7 +46,7 @@ def create_test_users(faker: Faker, logged_in_user: User) -> CreateTestUsers:
         users = [logged_in_user]
         for num in range(1, amount):
             user = User(
-                spotify_id=faker.uuid4(), spotify_username=faker.name(), spotify_avatar_url=f"example.picture.url{num}",
+                spotify_id=faker.uuid4(), spotify_username=faker.name(), spotify_avatar_url=f"example.picture.url{num}"
             )
             users.append(user)
         return users
@@ -90,7 +90,7 @@ def mock_pool_member_spotify_fetch(requests_client_get_queue, build_success_resp
             "is_playable": True,
             "name": pool_member.name,
             "album": {
-                "images": [{"url": f"https://pic.spotify.url/{pool_member.name}album", "height": 300, "width": 300}],
+                "images": [{"url": f"https://pic.spotify.url/{pool_member.name}album", "height": 300, "width": 300}]
             },
             "preview_url": pool_member.image_url,
             "type": "track",

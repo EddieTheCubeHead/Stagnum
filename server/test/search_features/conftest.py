@@ -92,7 +92,7 @@ def create_playlist_paginated_search(
 
 @pytest.fixture
 def create_track_paginated_search(
-    create_mock_track_search_result, create_paginated_search_result, build_success_response,
+    create_mock_track_search_result, create_paginated_search_result, build_success_response
 ) -> CreateSearchResponse:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         tracks = [create_mock_track_search_result() for _ in range(limit)]
@@ -127,7 +127,7 @@ def build_spotify_general_search(
 
 @pytest.fixture
 def build_spotify_general_search_response(
-    build_spotify_general_search: CreateGeneralSearch, build_success_response: BuildSuccessResponse,
+    build_spotify_general_search: CreateGeneralSearch, build_success_response: BuildSuccessResponse
 ) -> CreateSearchResponse:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         return build_success_response(build_spotify_general_search(query, limit))
@@ -143,7 +143,7 @@ def run_search_call(
     requests_client_get_queue: MockResponseQueue,
 ) -> RunSearchCall:
     def wrapper(
-        query_addition: str | None, response_mocker: CreateSearchResponse, query: str, limit: int = 20,
+        query_addition: str | None, response_mocker: CreateSearchResponse, query: str, limit: int = 20
     ) -> httpx.Response:
         query_addition = f"/{query_addition}" if query_addition is not None else ""
         requests_client_get_queue.append(response_mocker(query, limit))

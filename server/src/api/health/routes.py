@@ -21,8 +21,8 @@ def healthcheck(
     database_status = HEALTHY if healthcheck_database_connection.is_healthy else UNHEALTHY
     database_timer = datetime_wrapper.now() - database_timer_start
     database_result = HealthcheckResourceResult(
-        resource="database", status=database_status, time_elapsed=database_timer,
+        resource="database", status=database_status, time_elapsed=database_timer
     )
     return HealthcheckResult(
-        status=database_result.status, time_elapsed=request_timer.get_elapsed_time(), resources=[database_result],
+        status=database_result.status, time_elapsed=request_timer.get_elapsed_time(), resources=[database_result]
     )

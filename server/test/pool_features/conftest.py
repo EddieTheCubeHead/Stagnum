@@ -60,7 +60,7 @@ def current_playback_data() -> CurrentPlaybackData:
 
 @pytest.fixture
 def create_mock_playlist_fetch_result(
-    create_mock_track_search_result: MockTrackSearchResult, faker: Faker,
+    create_mock_track_search_result: MockTrackSearchResult, faker: Faker
 ) -> MockPlaylistFetchResult:
     def wrapper(track_amount: int, append_none: bool = False) -> MockedPlaylistPoolContent:
         user = faker.name().replace(" ", "")
@@ -91,7 +91,7 @@ def create_mock_playlist_fetch_result(
             "href": f"https://api.spotify.fake/v1/playlists/{playlist_id}?locale=en",
             "id": playlist_id,
             "images": [
-                {"url": f"https://image-cdn-fa.spotifycdn.fake/image/{faker.uuid4()}", "height": None, "width": None},
+                {"url": f"https://image-cdn-fa.spotifycdn.fake/image/{faker.uuid4()}", "height": None, "width": None}
             ],
             "name": faker.text(max_nb_chars=25)[:-1],
             "owner": {
@@ -197,7 +197,7 @@ def another_logged_in_user(faker: Faker) -> User:
 
 @pytest.fixture
 def another_logged_in_user_token(
-    another_logged_in_user: User, db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper,
+    another_logged_in_user: User, db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> str:
     authorization_database_connection = AuthDatabaseConnection(db_connection, mock_datetime_wrapper)
     token_data = ParsedTokenResponse(token="my test token 2", refresh_token="my refresh token 2", expires_in=999999)
@@ -212,7 +212,7 @@ def joined_user_token(another_logged_in_user_token: str, joined_user_header: Hea
 
 @pytest.fixture
 def share_pool_and_get_code(
-    test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse,
+    test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse
 ) -> SharePoolAndGetCode:
     def wrapper() -> str:
         response = test_client.post("/pool/share", headers=valid_token_header)
@@ -224,7 +224,7 @@ def share_pool_and_get_code(
 
 @pytest.fixture
 def pool_db_connection(
-    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper,
+    db_connection: ConnectionManager, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> PoolDatabaseConnectionRaw:
     return PoolDatabaseConnectionRaw(db_connection, mock_datetime_wrapper)
 
@@ -280,7 +280,7 @@ def weighted_parameters(monkeypatch: MonkeyPatch) -> RandomizationParameters:
 
 @pytest.fixture
 def build_empty_queue(
-    create_mock_track_search_result: MockTrackSearchResult, current_playback_data: CurrentPlaybackData,
+    create_mock_track_search_result: MockTrackSearchResult, current_playback_data: CurrentPlaybackData
 ) -> BuildQueue:
     def wrapper() -> QueueData:
         currently_playing = create_mock_track_search_result()
@@ -311,7 +311,7 @@ def empty_queue(mock_empty_queue_get: BuildQueue) -> QueueData:
 
 @pytest.fixture
 def build_queue_with_song(
-    create_mock_track_search_result: MockTrackSearchResult, current_playback_data: CurrentPlaybackData,
+    create_mock_track_search_result: MockTrackSearchResult, current_playback_data: CurrentPlaybackData
 ) -> BuildQueue:
     def wrapper() -> QueueData:
         currently_playing = create_mock_track_search_result()
@@ -345,10 +345,10 @@ def song_in_queue(mock_filled_queue_get: BuildQueue, mock_empty_queue_get: Build
 
 @pytest.fixture
 def create_spotify_playback_state(
-    faker: Faker, create_mock_track_search_result: MockTrackSearchResult, mock_datetime_wrapper: MockDateTimeWrapper,
+    faker: Faker, create_mock_track_search_result: MockTrackSearchResult, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> CreateSpotifyPlaybackState:
     def wrapper(
-        song_data: TrackData, playback_left: int = 1000, is_playing: bool = True, context: PlaybackContextData = None,
+        song_data: TrackData, playback_left: int = 1000, is_playing: bool = True, context: PlaybackContextData = None
     ) -> PlaybackStateData:
         return {
             "device": {
@@ -417,7 +417,7 @@ def create_spotify_playback(
 
 @pytest.fixture
 def run_scheduling_job(
-    playback_service: PoolPlaybackServiceRaw, create_spotify_playback: CreateSpotifyPlayback,
+    playback_service: PoolPlaybackServiceRaw, create_spotify_playback: CreateSpotifyPlayback
 ) -> RunSchedulingJob:
     async def wrapper() -> None:
         create_spotify_playback()
@@ -466,7 +466,7 @@ def mock_playback_paused_response(
 
 @pytest.fixture
 def joined_user_header(
-    another_logged_in_user_header: Headers, test_client: TestClient, shared_pool_code: str,
+    another_logged_in_user_header: Headers, test_client: TestClient, shared_pool_code: str
 ) -> Headers:
     test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     return another_logged_in_user_header

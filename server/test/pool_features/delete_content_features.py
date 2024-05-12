@@ -67,7 +67,7 @@ def should_be_able_to_delete_separate_child_from_collection(
     with db_connection.session() as session:
         all_tracks = (
             session.scalars(
-                select(PoolMember).where(and_(PoolMember.parent_id != None, PoolMember.user_id == logged_in_user_id)),
+                select(PoolMember).where(and_(PoolMember.parent_id != None, PoolMember.user_id == logged_in_user_id))
             )
             .unique()
             .all()
@@ -99,8 +99,8 @@ def should_delete_all_children_on_parent_deletion(
         all_tracks = (
             session.scalars(
                 select(PoolMember).where(
-                    and_(PoolMember.parent_id is not None, PoolMember.user_id == logged_in_user_id),
-                ),
+                    and_(PoolMember.parent_id is not None, PoolMember.user_id == logged_in_user_id)
+                )
             )
             .unique()
             .all()

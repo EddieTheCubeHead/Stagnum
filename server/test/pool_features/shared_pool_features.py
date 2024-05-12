@@ -43,7 +43,7 @@ def should_return_pool_code_from_share_route(
 
 
 def should_return_not_found_from_share_route_if_user_has_no_pool(
-    test_client: TestClient, logged_in_user: User, valid_token_header: Headers, validate_response: ValidateResponse,
+    test_client: TestClient, logged_in_user: User, valid_token_header: Headers, validate_response: ValidateResponse
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
@@ -234,7 +234,7 @@ def should_return_error_response_when_attempting_to_join_already_joined_pool(
 
 
 def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(
-    test_client: TestClient, valid_token_header: Headers, validate_error_response: ValidateErrorResponse,
+    test_client: TestClient, valid_token_header: Headers, validate_error_response: ValidateErrorResponse
 ) -> None:
     invalid_code = "invalid_code_123"
     response = test_client.post(f"/pool/join/{invalid_code}", headers=valid_token_header)

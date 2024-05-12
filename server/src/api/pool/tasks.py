@@ -27,7 +27,7 @@ _token_holder = TokenHolder(_user_db_connection, _auth_spotify_client, _datetime
 _next_song_provider = NextSongProvider()
 _playback_updater = WebsocketUpdater()
 _pool_playback_service = PoolPlaybackService(
-    _pool_db_connection, _pool_spotify_client, _token_holder, _next_song_provider, _datetime_wrapper, _playback_updater,
+    _pool_db_connection, _pool_spotify_client, _token_holder, _next_song_provider, _datetime_wrapper, _playback_updater
 )
 
 

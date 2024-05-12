@@ -126,7 +126,7 @@ def should_be_able_to_create_pool_from_album(
 
     album = mocked_pool_contents.album
     requests_client.get.assert_called_with(
-        f"https://api.spotify.com/v1/albums/{album['id']}", headers=valid_token_header,
+        f"https://api.spotify.com/v1/albums/{album['id']}", headers=valid_token_header
     )
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
@@ -152,12 +152,12 @@ def should_save_whole_album_as_pool_in_database(
         actual_parent = session.scalar(
             select(PoolMember)
             .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-            .options(joinedload(PoolMember.children)),
+            .options(joinedload(PoolMember.children))
         )
     assert actual_parent.name == album["name"]
     assert len(actual_parent.children) == len(album["tracks"]["items"])
     for expected_track, actual_track in zip(
-        album["tracks"]["items"], sorted(actual_parent.children, key=lambda x: x.sort_order),
+        album["tracks"]["items"], sorted(actual_parent.children, key=lambda x: x.sort_order)
     ):
         assert actual_track.duration_ms == expected_track["duration_ms"]
         assert actual_track.name == expected_track["name"]
@@ -176,10 +176,10 @@ def should_be_able_to_create_pool_from_artist(
     artist = mocked_pool_contents.artist.artist
     tracks = mocked_pool_contents.artist.tracks
     assert requests_client.get.call_args_list[0] == call(
-        f"https://api.spotify.com/v1/artists/{artist['id']}", headers=valid_token_header,
+        f"https://api.spotify.com/v1/artists/{artist['id']}", headers=valid_token_header
     )
     assert requests_client.get.call_args_list[1] == call(
-        f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks", headers=valid_token_header,
+        f"https://api.spotify.com/v1/artists/{artist['id']}/top-tracks", headers=valid_token_header
     )
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
@@ -205,7 +205,7 @@ def should_save_artist_top_ten_tracks_as_pool_in_database(
         actual_parent = session.scalar(
             select(PoolMember)
             .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-            .options(joinedload(PoolMember.children)),
+            .options(joinedload(PoolMember.children))
         )
     assert actual_parent.name == artist["name"]
     assert len(actual_parent.children) == len(tracks)
@@ -227,7 +227,7 @@ def should_be_able_to_create_pool_from_playlist(
 
     playlist = mocked_pool_contents.playlist.first_fetch
     requests_client.get.assert_called_with(
-        f"https://api.spotify.com/v1/playlists/{playlist['id']}", headers=valid_token_header,
+        f"https://api.spotify.com/v1/playlists/{playlist['id']}", headers=valid_token_header
     )
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
@@ -248,13 +248,13 @@ def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
     create_pool_creation_data_json: CreatePoolCreationDataJson,
     mock_pool_content_fetches: MockPoolContentFetches,
 ) -> None:
-    data_json = create_pool_creation_data_json(mock_playlist_fetch(30, True)["spotify_uri"])
+    data_json = create_pool_creation_data_json(mock_playlist_fetch(30, append_none=True)["spotify_uri"])
 
     result = test_client.post("/pool", json=data_json, headers=valid_token_header)
 
     playlist = mocked_pool_contents.playlist.first_fetch
     requests_client.get.assert_called_with(
-        f"https://api.spotify.com/v1/playlists/{playlist['id']}", headers=valid_token_header,
+        f"https://api.spotify.com/v1/playlists/{playlist['id']}", headers=valid_token_header
     )
     pool_response = validate_response(result)
     user_pool = pool_response["users"][0]
@@ -280,13 +280,13 @@ def should_save_whole_playlist_as_pool_in_database(
         actual_parent = session.scalar(
             select(PoolMember)
             .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-            .options(joinedload(PoolMember.children)),
+            .options(joinedload(PoolMember.children))
         )
     assert actual_parent.name == playlist["name"]
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     assert len(actual_parent.children) == len(expected_tracks)
     for expected_track, actual_track in zip(
-        expected_tracks, sorted(actual_parent.children, key=lambda x: x.sort_order),
+        expected_tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)
     ):
         assert actual_track.name == expected_track["name"]
         assert actual_track.duration_ms == expected_track["duration_ms"]
@@ -310,7 +310,7 @@ def should_delete_previous_pool_on_post_pool_call(
             session.scalars(
                 select(PoolMember)
                 .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-                .options(joinedload(PoolMember.children)),
+                .options(joinedload(PoolMember.children))
             )
             .unique()
             .all()
@@ -339,7 +339,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(
             session.scalars(
                 select(PoolMember)
                 .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-                .options(joinedload(PoolMember.children)),
+                .options(joinedload(PoolMember.children))
             )
             .unique()
             .all()
@@ -365,7 +365,7 @@ def should_fetch_multiple_times_if_playlist_is_too_long_to_fetch_in_one_go(
         actual_parent = session.scalar(
             select(PoolMember)
             .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
-            .options(joinedload(PoolMember.children)),
+            .options(joinedload(PoolMember.children))
         )
     assert actual_parent.name == playlist["name"]
     assert len(actual_parent.children) == playlist_length

@@ -27,7 +27,7 @@ async def create_pool(
     database_connection.create_pool(pool_user_content)
     current_track = pool_playback_service.start_playback(user)
     return PoolFullContents(
-        users=[pool_user_content], currently_playing=current_track, owner=map_user_entity_to_model(user),
+        users=[pool_user_content], currently_playing=current_track, owner=map_user_entity_to_model(user)
     )
 
 
@@ -121,10 +121,10 @@ async def delete_pool(
 
 @router.post("/leave")
 async def leave_pool(
-    user: validated_user, pool_database_connection: PoolDatabaseConnection, websocket_updater: WebsocketUpdater,
+    user: validated_user, pool_database_connection: PoolDatabaseConnection, websocket_updater: WebsocketUpdater
 ) -> PoolFullContents:
     pool = create_pool_return_model(*pool_database_connection.leave_pool(user))
     await websocket_updater.push_update(
-        [user_data.user.spotify_id for user_data in pool.users], "pool", pool.model_dump(),
+        [user_data.user.spotify_id for user_data in pool.users], "pool", pool.model_dump()
     )
     return PoolFullContents(users=[], share_code=None, currently_playing=None)

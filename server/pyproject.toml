@@ -60,11 +60,11 @@ unfixable = [
 "src/alembic/**.py" = ["INP001"]
 
 [tool.ruff.format]
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true
 preview = true
 
 [tool.ruff.lint.isort]
-split-on-trailing-comma = true
+split-on-trailing-comma = false
 
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
