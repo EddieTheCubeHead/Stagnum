@@ -7,7 +7,7 @@ from database.entities import PoolMember, UserSession
 from faker import Faker
 from sqlalchemy import select
 from starlette.testclient import TestClient
-from test_types.aliases import MockResponseQueue, SpotifySecrets
+from test_types.aliases import MockResponseQueue
 from test_types.callables import AssertTokenInHeaders, BuildSuccessResponse, IncrementNow, MockTokenReturn
 from test_types.typed_dictionaries import Headers
 
@@ -24,9 +24,9 @@ def refresh_token_return(
     return token
 
 
+@pytest.mark.usefixtures("correct_env_variables")
 def should_refresh_token_if_expired_since_passed(
     existing_pool: list[PoolMember],
-    correct_env_variables: SpotifySecrets,
     test_client: TestClient,
     valid_token_header: Headers,
     assert_token_in_headers: AssertTokenInHeaders,
@@ -42,15 +42,14 @@ def should_refresh_token_if_expired_since_passed(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("correct_env_variables", "existing_playback")
 async def should_refresh_token_in_queue_job(
-    existing_playback: list[dict[str, Any]],
     refresh_token_return: str,
     increment_now: IncrementNow,
     db_connection: ConnectionManager,
     run_scheduling_job: RunSchedulingJob,
     create_spotify_playback: CreateSpotifyPlayback,
     requests_client_post_queue: MockResponseQueue,
-    correct_env_variables: SpotifySecrets,
     build_success_response: BuildSuccessResponse,
 ) -> None:
     increment_now(datetime.timedelta(seconds=3600))
@@ -65,15 +64,14 @@ async def should_refresh_token_in_queue_job(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("correct_env_variables")
 async def should_accept_old_token_login_after_scheduler_refresh_and_return_new_token(
     existing_playback: list[dict[str, Any]],
     increment_now: IncrementNow,
     refresh_token_return: str,
-    run_scheduling_job,
-    db_connection,
+    run_scheduling_job: RunSchedulingJob,
     create_spotify_playback: CreateSpotifyPlayback,
     requests_client_post_queue: MockResponseQueue,
-    correct_env_variables: SpotifySecrets,
     build_success_response: BuildSuccessResponse,
     test_client: TestClient,
     valid_token_header: Headers,

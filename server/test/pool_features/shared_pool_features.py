@@ -1,24 +1,19 @@
 import datetime
-from typing import Any
 from unittest.mock import Mock
 
 import pytest
 from api.pool.models import PoolFullContents
-from api.pool.randomization_algorithms import RandomizationParameters
-from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, PoolMember, User
 from helpers.classes import MockedPoolContents
 from starlette.testclient import TestClient
 from test_types.callables import (
     AssertEmptyTables,
     AssertTokenInHeaders,
-    BuildSuccessResponse,
     CreatePool,
     GetQueryParameter,
     IncrementNow,
     MockNoPlayerStateResponse,
     MockPlaylistFetch,
-    MockPlaylistFetchResult,
     MockPoolContentFetches,
     MockTrackFetch,
     RunSchedulingJob,
@@ -27,14 +22,12 @@ from test_types.callables import (
     ValidateModel,
     ValidateResponse,
 )
-from test_types.typed_dictionaries import Headers, TrackData
+from test_types.typed_dictionaries import Headers
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_return_pool_code_from_share_route(
-    existing_playback: list[dict[str, Any]],
-    test_client: TestClient,
-    validate_model: ValidateModel,
-    valid_token_header: Headers,
+    test_client: TestClient, validate_model: ValidateModel, valid_token_header: Headers
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
@@ -51,11 +44,9 @@ def should_return_not_found_from_share_route_if_user_has_no_pool(
     assert json_data["detail"] == f"Could not find pool for user {logged_in_user.spotify_username}"
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_have_only_uppercase_letters_and_digits_in_share_code(
-    existing_playback: list[dict[str, Any]],
-    test_client: TestClient,
-    validate_response: ValidateResponse,
-    valid_token_header: Headers,
+    test_client: TestClient, validate_response: ValidateResponse, valid_token_header: Headers
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
@@ -64,16 +55,14 @@ def should_have_only_uppercase_letters_and_digits_in_share_code(
         assert char.isupper() or char.isdigit()
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_have_eight_characters_in_share_code(
-    existing_playback: list[dict[str, Any]],
-    test_client: TestClient,
-    validate_response: ValidateResponse,
-    valid_token_header: Headers,
+    test_client: TestClient, validate_response: ValidateResponse, valid_token_header: Headers
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     result = validate_response(response)
-    assert len(result["share_code"]) == 8
+    assert len(result["share_code"]) == 8  # noqa: PLR2004
 
 
 def should_be_able_to_join_shared_pool_with_code(
@@ -85,7 +74,7 @@ def should_be_able_to_join_shared_pool_with_code(
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     result = validate_response(response)
-    assert len(result["users"]) == 2
+    assert len(result["users"]) == 2  # noqa: PLR2004
     assert result["share_code"] == shared_pool_code
 
 
@@ -106,16 +95,11 @@ def should_see_pool_existing_songs_when_joining_shared_pool(
 
 
 def should_show_added_songs_to_pool_main_user(
-    shared_pool_code: str,
     test_client: TestClient,
     joined_user_header: Headers,
-    requests_client: Mock,
     validate_response: ValidateResponse,
     logged_in_user_id: str,
     valid_token_header: Headers,
-    existing_pool: list[PoolMember],
-    create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-    build_success_response: BuildSuccessResponse,
     mock_playlist_fetch: MockPlaylistFetch,
 ) -> None:
     pool_content_data = mock_playlist_fetch(35)
@@ -126,22 +110,18 @@ def should_show_added_songs_to_pool_main_user(
     result = validate_response(response)
     for user_content in result["users"]:
         if user_content["user"]["spotify_id"] != logged_in_user_id:
-            assert len(user_content["collections"][0]["tracks"]) == 35
+            assert len(user_content["collections"][0]["tracks"]) == 35  # noqa: PLR2004
 
 
 @pytest.mark.slow
 def should_use_all_users_pools_in_shared_pool_playback(
-    shared_pool_code: str,
     test_client: TestClient,
     joined_user_header: Headers,
-    validate_response: ValidateResponse,
     valid_token_header: Headers,
     get_query_parameter: GetQueryParameter,
     existing_pool: list[PoolMember],
-    logged_in_user_id: str,
     requests_client: Mock,
     mocked_pool_contents: MockedPoolContents,
-    weighted_parameters: RandomizationParameters,
     skip_song: SkipSong,
     mock_playlist_fetch: MockPlaylistFetch,
 ) -> None:
@@ -186,11 +166,9 @@ def should_use_all_users_pools_in_shared_pool_playback(
     assert original_played_joined
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_not_get_pool_share_code_from_get_pool_before_initial_share(
-    existing_playback: list[PoolMember],
-    test_client: TestClient,
-    valid_token_header: Headers,
-    validate_response: ValidateResponse,
+    test_client: TestClient, valid_token_header: Headers, validate_response: ValidateResponse
 ) -> None:
     response = test_client.get("/pool", headers=valid_token_header)
 
@@ -242,22 +220,18 @@ def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(
     validate_error_response(response, 404, f'Could not find pool with code "{invalid_code}"')
 
 
+@pytest.mark.usefixtures("shared_pool_code")
 def should_return_error_response_when_attempting_to_share_own_pool_with_existing_share_code(
-    shared_pool_code: str,
-    test_client: TestClient,
-    valid_token_header: Headers,
-    validate_error_response: ValidateErrorResponse,
+    test_client: TestClient, valid_token_header: Headers, validate_error_response: ValidateErrorResponse
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     validate_error_response(response, 400, "Pool already shared!")
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_return_token_in_headers_for_share_route(
-    existing_playback: list[dict[str, Any]],
-    test_client: TestClient,
-    valid_token_header: Headers,
-    assert_token_in_headers: AssertTokenInHeaders,
+    test_client: TestClient, valid_token_header: Headers, assert_token_in_headers: AssertTokenInHeaders
 ) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
     assert_token_in_headers(response)
@@ -275,11 +249,8 @@ def should_return_token_in_headers_for_join_route(
 
 @pytest.mark.asyncio
 async def should_delete_joined_users_pools_on_playback_stop(
-    existing_playback: list[TrackData],
     increment_now: IncrementNow,
     fixed_track_length_ms: int,
-    shared_pool_code: str,
-    db_connection: ConnectionManager,
     run_scheduling_job: RunSchedulingJob,
     mock_no_player_playback_state_response: MockNoPlayerStateResponse,
     test_client: TestClient,
@@ -326,13 +297,12 @@ def should_be_able_to_join_another_pool_after_creating_one(
 
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     pool_response = validate_response(response)
-    assert len(pool_response["users"]) == 2
+    assert len(pool_response["users"]) == 2  # noqa: PLR2004
 
 
 def should_be_able_to_create_another_pool_after_joining_one(
     test_client: TestClient,
     validate_response: ValidateResponse,
-    shared_pool_code: str,
     mocked_pool_contents: MockedPoolContents,
     joined_user_header: Headers,
     mock_pool_content_fetches: MockPoolContentFetches,

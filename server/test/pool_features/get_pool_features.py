@@ -1,13 +1,8 @@
+import pytest
 from api.pool.models import PoolFullContents
 from database.entities import PoolMember, User
 from starlette.testclient import TestClient
-from test_types.callables import (
-    AssertTokenInHeaders,
-    CreatePool,
-    ValidateErrorResponse,
-    ValidateModel,
-    ValidateResponse,
-)
+from test_types.callables import AssertTokenInHeaders, CreatePool, ValidateErrorResponse, ValidateModel
 from test_types.typed_dictionaries import Headers
 
 
@@ -30,14 +25,12 @@ def should_return_mix_of_tracks_and_collections_correctly(
 
     user_pool = validate_model(PoolFullContents, response).users[0]
     assert len(user_pool.tracks) == track_amount
-    assert len(user_pool.collections) == 3
+    assert len(user_pool.collections) == 3  # noqa: PLR2004
 
 
+@pytest.mark.usefixtures("existing_pool")
 def should_include_token_in_headers(
-    existing_pool: list[PoolMember],
-    test_client: TestClient,
-    valid_token_header: Headers,
-    assert_token_in_headers: AssertTokenInHeaders,
+    test_client: TestClient, valid_token_header: Headers, assert_token_in_headers: AssertTokenInHeaders
 ) -> None:
     response = test_client.get("/pool", headers=valid_token_header)
     assert_token_in_headers(response)
@@ -46,7 +39,6 @@ def should_include_token_in_headers(
 def should_return_not_found_if_no_pool_for_user(
     test_client: TestClient,
     valid_token_header: Headers,
-    validate_response: ValidateResponse,
     logged_in_user: User,
     validate_error_response: ValidateErrorResponse,
 ) -> None:
@@ -55,12 +47,9 @@ def should_return_not_found_if_no_pool_for_user(
     validate_error_response(response, 404, f"Could not find pool for user {logged_in_user.spotify_username}")
 
 
+@pytest.mark.usefixtures("existing_pool")
 def should_return_self_as_owner(
-    existing_pool: list[PoolMember],
-    test_client: TestClient,
-    logged_in_user: User,
-    valid_token_header: Headers,
-    validate_model: ValidateModel,
+    test_client: TestClient, logged_in_user: User, valid_token_header: Headers, validate_model: ValidateModel
 ) -> None:
     response = test_client.get("/pool", headers=valid_token_header)
 

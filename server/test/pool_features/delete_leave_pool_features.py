@@ -7,14 +7,8 @@ from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, PoolJoinedUser, PoolMember, User
 from sqlalchemy import select
 from starlette.testclient import TestClient
-from test_types.callables import (
-    AssertEmptyPoolModel,
-    AssertEmptyTables,
-    MockPlaylistFetch,
-    ValidateModel,
-    ValidateResponse,
-)
-from test_types.typed_dictionaries import Headers, TrackData
+from test_types.callables import AssertEmptyPoolModel, AssertEmptyTables, MockPlaylistFetch, ValidateModel
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture
@@ -28,12 +22,10 @@ def assert_empty_pool_model(validate_model: ValidateModel) -> AssertEmptyPoolMod
     return wrapper
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_wipe_whole_pool_on_delete_pool(
-    existing_playback: list[TrackData],
     test_client: TestClient,
-    validate_model: ValidateModel,
     assert_empty_pool_model: AssertEmptyPoolModel,
-    db_connection: ConnectionManager,
     assert_empty_tables: AssertEmptyTables,
     valid_token_header: Headers,
 ) -> None:
@@ -43,8 +35,9 @@ def should_wipe_whole_pool_on_delete_pool(
     assert_empty_tables(Pool, PoolMember, PoolJoinedUser, PlaybackSession)
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_send_playback_pause_on_pool_delete(
-    existing_playback: list[TrackData], test_client: TestClient, requests_client: Mock, valid_token_header: Headers
+    test_client: TestClient, requests_client: Mock, valid_token_header: Headers
 ) -> None:
     requests_client.put.reset_mock()
 
@@ -55,10 +48,8 @@ def should_send_playback_pause_on_pool_delete(
 
 
 def should_wipe_leavers_pool_members_on_leave_pool(
-    shared_pool_code: str,
     joined_user_header: Headers,
     test_client: TestClient,
-    validate_response: ValidateResponse,
     db_connection: ConnectionManager,
     another_logged_in_user: User,
     assert_empty_pool_model: AssertEmptyPoolModel,

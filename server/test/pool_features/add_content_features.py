@@ -1,3 +1,4 @@
+import pytest
 from api.pool.models import PoolContent
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
@@ -112,11 +113,11 @@ def should_correctly_construct_pool_after_collection_addition(
     assert len(user_pool["collections"][0]["tracks"]) == len(playlist["tracks"]["items"])
 
 
+@pytest.mark.usefixtures("existing_pool")
 def should_use_collection_icon_as_track_icon_on_collection_addition(
     mock_album_fetch: MockAlbumFetch,
     valid_token_header: Headers,
     validate_response: ValidateResponse,
-    existing_pool: list[PoolMember],
     test_client: TestClient,
     mocked_pool_contents: MockedPoolContents,
 ) -> None:

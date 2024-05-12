@@ -5,7 +5,6 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
-from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
@@ -60,9 +59,9 @@ def current_playback_data() -> CurrentPlaybackData:
 
 @pytest.fixture
 def create_mock_playlist_fetch_result(
-    create_mock_track_search_result: MockTrackSearchResult, faker: Faker
+    create_mock_track_search_result: MockTrackSearchResult, faker: Faker, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> MockPlaylistFetchResult:
-    def wrapper(track_amount: int, append_none: bool = False) -> MockedPlaylistPoolContent:
+    def wrapper(track_amount: int, *, append_none: bool = False) -> MockedPlaylistPoolContent:
         user = faker.name().replace(" ", "")
         playlist_id = faker.uuid4()
         tracks: list[TrackData | None] = [create_mock_track_search_result() for _ in range(track_amount)]
@@ -70,8 +69,8 @@ def create_mock_playlist_fetch_result(
             tracks.append(None)
         playlist_tracks: list[PlaylistTrackData] = []
         for track in tracks:
-            playlist_tracks.append({
-                "added_at": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%dT%H:%M:%SZ"),
+            playlist_tracks.append({  # noqa: PERF401 - type checking goes haywire with list comprehension here
+                "added_at": datetime.datetime.strftime(mock_datetime_wrapper.now(), "%Y-%m-%dT%H:%M:%SZ"),
                 "added_by": {
                     "external_urls": {"spotify": f"https://fake.spotify.com/users/{user}"},
                     "href": f"https://api.spotify.fake/v1/users/{user}",
@@ -122,6 +121,7 @@ def create_mock_playlist_fetch_result(
         further_fetches: list[PaginatedSearchResultData] = []
         batch_walker = batch
         while batch_walker <= track_amount:
+            next_batch_start = batch_walker + batch
             further_fetches.append({
                 "href": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
                 f"?offset={batch_walker}&limit={batch}&locale=en",
@@ -134,9 +134,9 @@ def create_mock_playlist_fetch_result(
                 "previous": f"https://api.spotify.fake/v1/playlists/{playlist_id}/tracks"
                 f"?offset={batch_walker - batch}&limit={batch}&locale=en",
                 "total": track_amount,
-                "items": playlist_tracks[batch_walker : batch_walker + batch],
+                "items": playlist_tracks[batch_walker:next_batch_start],
             })
-            batch_walker += batch
+            batch_walker = next_batch_start
         return MockedPlaylistPoolContent(first_fetch=playlist_data, further_fetches=further_fetches)
 
     return wrapper
@@ -149,7 +149,6 @@ def fixed_track_length_ms(minutes: int = 3, seconds: int = 30) -> int:
 
 @pytest.fixture
 def create_playback(
-    db_connection: ConnectionManager,
     create_mock_track_search_result: MockTrackSearchResult,
     build_success_response: BuildSuccessResponse,
     requests_client_get_queue: MockResponseQueue,
@@ -157,7 +156,6 @@ def create_playback(
     test_client: TestClient,
     valid_token_header: Headers,
     fixed_track_length_ms: int,
-    request: FixtureRequest,
     current_playback_data: CurrentPlaybackData,
     validate_response: ValidateResponse,
 ) -> CreatePlayback:
@@ -206,7 +204,10 @@ def another_logged_in_user_token(
 
 
 @pytest.fixture
-def joined_user_token(another_logged_in_user_token: str, joined_user_header: Headers) -> str:
+def joined_user_token(
+    another_logged_in_user_token: str,
+    joined_user_header: Headers,  # noqa: ARG001
+) -> str:
     return another_logged_in_user_token
 
 
@@ -259,7 +260,10 @@ def playback_service(
 
 
 @pytest.fixture
-def shared_pool_code(existing_playback: list[TrackData], share_pool_and_get_code: SharePoolAndGetCode) -> str:
+def shared_pool_code(
+    existing_playback: list[TrackData],  # noqa: ARG001
+    share_pool_and_get_code: SharePoolAndGetCode,
+) -> str:
     return share_pool_and_get_code()
 
 
@@ -345,10 +349,13 @@ def song_in_queue(mock_filled_queue_get: BuildQueue, mock_empty_queue_get: Build
 
 @pytest.fixture
 def create_spotify_playback_state(
-    faker: Faker, create_mock_track_search_result: MockTrackSearchResult, mock_datetime_wrapper: MockDateTimeWrapper
+    faker: Faker, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> CreateSpotifyPlaybackState:
     def wrapper(
-        song_data: TrackData, playback_left: int = 1000, is_playing: bool = True, context: PlaybackContextData = None
+        song_data: TrackData,
+        playback_left: int = 1000,
+        is_playing: bool = True,  # noqa: FBT001, FBT002 - boolean represents internal state, not branching execution
+        context: PlaybackContextData = None,
     ) -> PlaybackStateData:
         return {
             "device": {
@@ -405,8 +412,9 @@ def create_spotify_playback(
         playback_state = create_spotify_playback_state(
             song_data,
             playback_left_ms,
-            True,  # - state component, not behaviour modifying flag
-            context)
+            True,  # noqa: FBT003 - state component, not behaviour modifying flag
+            context,
+        )
         song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=playback_left_ms)
         requests_client_get_queue.append(build_success_response(playback_state))
         if songs_in_queue is not None:
@@ -460,7 +468,7 @@ def mock_playback_paused_response(
     def wrapper() -> None:
         response = Mock()
         response.status_code = 204
-        response_data = create_spotify_playback_state(current_playback_data.current_track, 5000, False)
+        response_data = create_spotify_playback_state(current_playback_data.current_track, 5000, False)  # noqa: FBT003
         response.content = json.dumps(response_data).encode("utf-8")
         requests_client_get_queue.append(response)
         mock_empty_queue_get()
