@@ -72,7 +72,9 @@ class MockedPoolContents:
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
 class ApproxDatetime(ApproxBase):
-    def __init__(self, expected, absolute_tolerance: datetime.timedelta = datetime.timedelta(milliseconds=250)) -> None:
+    def __init__(
+        self, expected: datetime.datetime, absolute_tolerance: datetime.timedelta = datetime.timedelta(milliseconds=250)
+    ) -> None:
         if absolute_tolerance < datetime.timedelta(0):
             msg = f"absolute tolerance can't be negative: {absolute_tolerance}"
             raise ValueError(msg)
@@ -81,7 +83,7 @@ class ApproxDatetime(ApproxBase):
     def __repr__(self) -> str:
         return f"approx_datetime({self.expected!r} \u00b1 {self.abs!r})"
 
-    def __eq__(self, actual):
+    def __eq__(self, actual: datetime.datetime) -> bool:
         return abs(self.expected - actual) <= self.abs
 
 

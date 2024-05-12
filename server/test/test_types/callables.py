@@ -180,7 +180,7 @@ class AssertEmptyTables(Protocol):
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
-type BuildSuccessResponse = Callable[[dict], httpx.Response]
+type BuildSuccessResponse = Callable[[dict[str, Any]], httpx.Response]
 type MockArtistSearchResult = Callable[[], ArtistData]
 type GetQueryParameter = Callable[[str, str], str]
 type CreateValidStateString = Callable[[], str]

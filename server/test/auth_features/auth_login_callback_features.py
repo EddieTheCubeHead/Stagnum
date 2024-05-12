@@ -32,7 +32,7 @@ def existing_user_data(db_connection: ConnectionManager) -> User:
 
 
 @pytest.fixture
-def existing_login(mocked_default_me_return: None, base_auth_callback_call: BaseAuthCallback) -> None:
+def existing_login(_mocked_default_me_return, base_auth_callback_call: BaseAuthCallback) -> None:
     base_auth_callback_call()
 
 

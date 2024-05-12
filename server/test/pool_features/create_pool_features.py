@@ -33,7 +33,7 @@ def mock_put_response(requests_client_put_queue: MockResponseQueue) -> MockPutRe
 
 
 @pytest.fixture(autouse=True)
-def auto_mock_put_response(mock_put_response: MockPutResponse) -> None:
+def _auto_mock_put_response(mock_put_response: MockPutResponse) -> None:
     mock_put_response()
 
 
@@ -301,7 +301,7 @@ def should_be_able_to_post_multiple_pool_members_on_creation(
     pool_response = validate_response(response)
     user_pool = pool_response["users"][0]
     assert len(user_pool["tracks"]) == len(tracks)
-    assert len(user_pool["collections"]) == 3  # noqa: PLR2004
+    assert len(user_pool["collections"]) == 3
     with db_connection.session() as session:
         actual_results = (
             session.scalars(

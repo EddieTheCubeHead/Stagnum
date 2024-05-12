@@ -62,7 +62,7 @@ def should_have_eight_characters_in_share_code(
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     result = validate_response(response)
-    assert len(result["share_code"]) == 8  # noqa: PLR2004
+    assert len(result["share_code"]) == 8
 
 
 def should_be_able_to_join_shared_pool_with_code(
@@ -74,7 +74,7 @@ def should_be_able_to_join_shared_pool_with_code(
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     result = validate_response(response)
-    assert len(result["users"]) == 2  # noqa: PLR2004
+    assert len(result["users"]) == 2
     assert result["share_code"] == shared_pool_code
 
 
@@ -110,7 +110,7 @@ def should_show_added_songs_to_pool_main_user(
     result = validate_response(response)
     for user_content in result["users"]:
         if user_content["user"]["spotify_id"] != logged_in_user_id:
-            assert len(user_content["collections"][0]["tracks"]) == 35  # noqa: PLR2004
+            assert len(user_content["collections"][0]["tracks"]) == 35
 
 
 @pytest.mark.slow
@@ -297,7 +297,7 @@ def should_be_able_to_join_another_pool_after_creating_one(
 
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     pool_response = validate_response(response)
-    assert len(pool_response["users"]) == 2  # noqa: PLR2004
+    assert len(pool_response["users"]) == 2
 
 
 def should_be_able_to_create_another_pool_after_joining_one(

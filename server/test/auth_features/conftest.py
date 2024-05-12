@@ -28,7 +28,7 @@ from test_types.typed_dictionaries import ImageData, SpotifyFetchMeData
 def base_auth_login_call(monkeypatch: MonkeyPatch, test_client: TestClient) -> BaseAuthLogin:
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
 
-    def wrapper():
+    def wrapper() -> httpx.Response:
         return test_client.get("/auth/login?client_redirect_uri=test")
 
     return wrapper
@@ -91,7 +91,7 @@ def mock_spotify_user_data_fetch(
 
 @pytest.fixture
 def default_me_return(
-    request: FixtureRequest, default_image: ImageData, create_spotify_me_fetch_data: CreateSpotifyFetchMeData
+    request: FixtureRequest, create_spotify_me_fetch_data: CreateSpotifyFetchMeData
 ) -> httpx.Response:
     return_json = create_spotify_me_fetch_data(product=request.param.value if hasattr(request, "param") else "premium")
     response = Mock()
@@ -115,15 +115,17 @@ def mock_default_me_return(
 
 
 @pytest.fixture
-def mocked_default_me_return(mock_default_me_return) -> None:
+def _mocked_default_me_return(mock_default_me_return: MockDefaultMeReturn) -> None:
     mock_default_me_return()
 
 
 @pytest.fixture
 def base_auth_callback_call(
-    correct_env_variables: SpotifySecrets, test_client: TestClient, primary_valid_state_string: str
+    correct_env_variables: SpotifySecrets,  # noqa: ARG001
+    test_client: TestClient,
+    primary_valid_state_string: str,
 ) -> BaseAuthCallback:
-    def wrapper(state: Optional[str] = None):
+    def wrapper(state: Optional[str] = None) -> httpx.Response:
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
             f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url"
@@ -134,7 +136,7 @@ def base_auth_callback_call(
 
 @pytest.fixture
 def create_valid_state_string(db_connection: ConnectionManager) -> CreateValidStateString:
-    def wrapper():
+    def wrapper() -> str:
         state_string = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(16))
         with db_connection.session() as session:
             session.add(LoginState(state_string=state_string))

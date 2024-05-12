@@ -1,4 +1,5 @@
 import json
+import locale
 import os
 import sys
 from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, FileHandler, Formatter, Handler, StreamHandler, getLogger
@@ -35,8 +36,8 @@ def _build_configuration_from_config(log_type: str) -> LoggingConfiguration:
     log_file = get_config(f"{log_type}_log_file".upper())
     log_stream = get_config(f"{log_type}_log_stream".upper())
     log_level = get_config(f"{log_type}_log_level".upper())
-    log_file = None if log_file in [None, ""] else f"{log_file}.log"
-    if log_stream in [None, ""]:
+    log_file = None if log_file in {None, ""} else f"{log_file}.log"
+    if log_stream in {None, ""}:
         log_stream = None
     return LoggingConfiguration(log_file, log_stream, log_level)
 
@@ -50,7 +51,7 @@ def _get_formatter(handler: Handler) -> Formatter:
 
 
 def _ensure_file(file_name: str) -> None:
-    with open(file_name, "w") as _:
+    with open(file_name, "w", encoding=locale.getpreferredencoding(False)) as _:
         pass
 
 
@@ -117,7 +118,7 @@ DEALINGS IN THE SOFTWARE.
 
 def is_docker() -> bool:
     path = "/proc/self/cgroup"
-    return os.path.exists("/.dockerenv") or (os.path.isfile(path) and any("docker" in line for line in open(path)))
+    return os.path.exists("/.dockerenv") or (os.path.isfile(path) and any("docker" in line for line in open(path, encoding=locale.getpreferredencoding(False))))
 
 
 def stream_supports_colour(stream: Any) -> bool:

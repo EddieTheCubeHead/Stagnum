@@ -142,7 +142,7 @@ class PoolRandomizer:
         # set it to minimum/maximum accordingly
         if skips_since_last_play <= self._concrete_floor:
             return 0
-        elif skips_since_last_play >= self._concrete_ceiling:
+        if skips_since_last_play >= self._concrete_ceiling:
             return 1
 
         return self._slope * (skips_since_last_play - self._offset)

@@ -25,7 +25,7 @@ def should_return_mix_of_tracks_and_collections_correctly(
 
     user_pool = validate_model(PoolFullContents, response).users[0]
     assert len(user_pool.tracks) == track_amount
-    assert len(user_pool.collections) == 3  # noqa: PLR2004
+    assert len(user_pool.collections) == 3
 
 
 @pytest.mark.usefixtures("existing_pool")

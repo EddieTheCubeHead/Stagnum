@@ -6,6 +6,8 @@ from logging_config import setup_logging
 
 setup_logging()  # out of order because importing uvicorn fires off logger events
 
+import locale
+
 import uvicorn
 
 _logger = getLogger("main.main")
@@ -15,7 +17,7 @@ def _inject_secret(secret_name: str) -> None:
     env_name = secret_name.upper()
     if os.getenv(env_name) is None:
         _logger.debug(f"Environment variable {env_name} not found! Getting from secret file.")
-        with open(f"/run/secrets/{secret_name}") as secret_file:
+        with open(f"/run/secrets/{secret_name}", encoding=locale.getpreferredencoding(False)) as secret_file:
             secret = secret_file.read()
             os.environ[env_name] = secret
             _logger.debug(f"Setting environment variable {env_name} from file {secret_name}")

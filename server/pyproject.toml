@@ -63,6 +63,8 @@ unfixable = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "!test/**.py" = ["PT"]
+"test/**.py" = ["PLR2004"] # tests should be able to assert equals to "magical numbers"
+"test/*.py" = ["INP001"] # do not require tests root to be package
 "src/alembic/**.py" = ["INP001"]
 
 [tool.ruff.format]

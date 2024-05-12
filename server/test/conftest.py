@@ -136,7 +136,7 @@ def test_client(application_with_dependencies: FastAPI) -> TestClient:
 
 @pytest.fixture
 def validate_response() -> ValidateResponse:
-    def wrapper(response: httpx.Response, code: int = 200):
+    def wrapper(response: httpx.Response, code: int = 200) -> dict[str, Any]:
         assert response.status_code == code, f"Expected response with status code {code}, got {response.status_code}"
         return json.loads(response.content.decode("utf-8")) if response.content else None
 
@@ -217,12 +217,7 @@ def valid_token_header(
 
 
 @pytest.fixture
-def valid_token(
-    log_user_in: LogUserIn,
-    logged_in_user: User,
-    primary_user_token: ParsedTokenResponse,
-    create_header_from_token_response: CreateHeaderFromTokenResponse,
-) -> str:
+def valid_token(log_user_in: LogUserIn, logged_in_user: User, primary_user_token: ParsedTokenResponse) -> str:
     log_user_in(logged_in_user, primary_user_token)
     return primary_user_token.token
 
@@ -235,7 +230,7 @@ def logged_in_user_id(faker: Faker) -> str:
 
 @pytest.fixture
 def build_success_response() -> BuildSuccessResponse:
-    def wrapper(data: dict):
+    def wrapper(data: dict[str, Any]) -> Mock:
         response = Mock()
         response.status_code = 200
         response.content = json.dumps(data).encode("utf-8")
@@ -317,7 +312,9 @@ def create_mock_album_search_result(faker: Faker) -> MockAlbumSearchResult:
 
 @pytest.fixture
 def create_mock_track_search_result(
-    faker, create_mock_artist_search_result, create_mock_album_search_result
+    faker: Faker,
+    create_mock_artist_search_result: MockArtistSearchResult,
+    create_mock_album_search_result: MockAlbumSearchResult,
 ) -> MockTrackSearchResult:
     def wrapper(artist_in: ArtistData | None = None) -> TrackData:
         track_name = faker.text(max_nb_chars=25)[:-1]
@@ -351,7 +348,7 @@ def create_mock_track_search_result(
 
 
 @pytest.fixture
-def create_mock_playlist_search_result(faker) -> MockPlaylistSearchResult:
+def create_mock_playlist_search_result(faker: Faker) -> MockPlaylistSearchResult:
     def wrapper(tracks: list[TrackData] | None = None) -> PlaylistData:
         playlist_id = faker.uuid4()
         playlist_name = faker.text(max_nb_chars=25)[:-1]
@@ -431,7 +428,7 @@ def assert_token_in_headers(validate_response: ValidateResponse) -> AssertTokenI
         validate_response(response)
         header_token = response.headers["Authorization"]
         assert len(header_token) > 0
-        assert type(header_token) == str
+        assert isinstance(type(header_token), str)
         return header_token
 
     return wrapper
@@ -451,7 +448,7 @@ def mock_datetime_wrapper() -> MockDateTimeWrapper:
 
 
 @pytest.fixture
-def increment_now(mock_datetime_wrapper) -> IncrementNow:
+def increment_now(mock_datetime_wrapper: MockDateTimeWrapper) -> IncrementNow:
     def wrapper(increment: datetime.timedelta) -> None:
         mock_datetime_wrapper.increment_now(increment)
 
@@ -488,7 +485,7 @@ def correct_env_variables(monkeypatch: MonkeyPatch) -> SpotifySecrets:
 
 
 @pytest.fixture
-def validate_model(validate_response) -> ValidateModel:
+def validate_model(validate_response: ValidateResponse) -> ValidateModel:
     def wrapper[T: type(BaseModel)](expected_type: T, response: httpx.Response) -> T:
         return expected_type.model_validate(validate_response(response))
 
@@ -565,7 +562,7 @@ def mock_playlist_fetch(
     mocked_pool_contents: MockedPoolContents,
     build_success_response: BuildSuccessResponse,
 ) -> MockPlaylistFetch:
-    def wrapper(playlist_length: int = 30, append_none: bool = False) -> PoolContentData:
+    def wrapper(playlist_length: int = 30, *, append_none: bool = False) -> PoolContentData:
         playlist_fetch_data = create_mock_playlist_fetch_result(playlist_length, append_none=append_none)
         requests_client_get_queue.append(build_success_response(playlist_fetch_data.first_fetch))
         for further_fetch in playlist_fetch_data.further_fetches:
@@ -587,21 +584,15 @@ def mock_pool_content_fetches(
     mock_artist_fetch: MockArtistFetch,
     mock_album_fetch: MockAlbumFetch,
     mock_playlist_fetch: MockPlaylistFetch,
-    requests_client_get_queue: MockResponseQueue,
-    build_success_response: BuildSuccessResponse,
 ) -> MockPoolContentFetches:
     def wrapper(
         tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None
     ) -> PoolCreationDataDict:
         content_models: list[PoolContentData] = []
-        for _ in range(tracks):
-            content_models.append(mock_track_fetch())
-        for _ in range(artists):
-            content_models.append(mock_artist_fetch())
-        for album_length in albums if albums is not None else []:
-            content_models.append(mock_album_fetch(album_length))
-        for playlist_length in playlists if playlists is not None else []:
-            content_models.append(mock_playlist_fetch(playlist_length))
+        content_models.extend([mock_track_fetch() for _ in range(tracks)])
+        content_models.extend([mock_artist_fetch() for _ in range(artists)])
+        content_models.extend([mock_album_fetch(length) for length in albums])
+        content_models.extend([mock_playlist_fetch(length) for length in playlists])
         return PoolCreationData(spotify_uris=content_models).model_dump()
 
     return wrapper
@@ -609,11 +600,7 @@ def mock_pool_content_fetches(
 
 @pytest.fixture
 def create_pool(
-    mock_pool_content_fetches: MockPoolContentFetches,
-    test_client: TestClient,
-    valid_token_header: Headers,
-    db_connection: ConnectionManager,
-    logged_in_user_id: str,
+    mock_pool_content_fetches: MockPoolContentFetches, test_client: TestClient, valid_token_header: Headers
 ) -> CreatePool:
     def wrapper(
         tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None

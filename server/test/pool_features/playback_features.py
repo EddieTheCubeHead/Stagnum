@@ -233,7 +233,7 @@ def should_ensure_queue_is_empty_before_skipping_song(
     response = test_client.post("/pool/playback/skip", headers=valid_token_header)
 
     validate_response(response)
-    assert len(requests_client.post.call_args_list) == 3  # noqa: PLR2004
+    assert len(requests_client.post.call_args_list) == 3
     actual_queue_call = requests_client.post.call_args_list[1]
     actual_skip_call = requests_client.post.call_args_list[2]
     assert actual_queue_call.args[0].startswith("https://api.spotify.com/v1/me/player/queue")
@@ -356,7 +356,7 @@ async def should_empty_queue_if_songs_in_queue_on_song_change(
     await run_scheduling_job()
 
     # 5 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
-    assert len(requests_client.post.call_args_list) == 7  # noqa: PLR2004
+    assert len(requests_client.post.call_args_list) == 7
 
 
 @pytest.mark.asyncio
@@ -378,7 +378,7 @@ async def should_handle_songs_added_to_queue_during_queue_fix(
     await run_scheduling_job()
 
     # 4 for skipping queue, 1 for queueing the correct song, 1 for skipping to the queued song
-    assert len(requests_client.post.call_args_list) == 6  # noqa: PLR2004
+    assert len(requests_client.post.call_args_list) == 6
 
 
 @pytest.mark.asyncio

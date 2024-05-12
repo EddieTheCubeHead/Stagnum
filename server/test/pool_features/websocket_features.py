@@ -56,7 +56,7 @@ def should_get_update_when_user_joins_pool(
     with test_client.websocket_connect(f"/websocket/connect?Authorization={valid_token}") as websocket:
         test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
         data = websocket.receive_json()
-        assert len(data["model"]["users"]) == 2  # noqa: PLR2004
+        assert len(data["model"]["users"]) == 2
 
 
 @pytest.mark.asyncio
