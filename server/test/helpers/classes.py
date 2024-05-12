@@ -72,7 +72,6 @@ class MockedPoolContents:
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
 class ApproxDatetime(ApproxBase):
-
     def __init__(self, expected, absolute_tolerance: datetime.timedelta = datetime.timedelta(milliseconds=250)) -> None:
         if absolute_tolerance < datetime.timedelta(0):
             msg = f"absolute tolerance can't be negative: {absolute_tolerance}"
@@ -87,7 +86,6 @@ class ApproxDatetime(ApproxBase):
 
 
 class MockDateTimeWrapper(DateTimeWrapperRaw):
-
     def __init__(self) -> None:
         super().__init__()
         self._add_to_now: datetime.timedelta = datetime.timedelta(milliseconds=0)

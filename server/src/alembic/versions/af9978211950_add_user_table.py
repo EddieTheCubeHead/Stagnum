@@ -5,6 +5,7 @@ Revises:
 Create Date: 2024-01-28 16:36:29.976955
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -23,7 +24,7 @@ def upgrade() -> None:
         sa.Column("spotify_id", sa.String(length=64), nullable=False),
         sa.Column("spotify_username", sa.String(length=64), nullable=False),
         sa.Column("spotify_avatar_url", sa.String(length=256), nullable=False),
-        sa.PrimaryKeyConstraint("spotify_id")
+        sa.PrimaryKeyConstraint("spotify_id"),
     )
 
 

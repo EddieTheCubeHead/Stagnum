@@ -21,12 +21,12 @@ def _inject_secret(secret_name: str) -> None:
             _logger.debug(f"Setting environment variable {env_name} from file {secret_name}")
 
 
-
 def _inject_secrets() -> None:
     secret_files = ["spotify_client_id", "spotify_client_secret"]
     _logger.debug(f"Injecting secrets from the following files: {secret_files}")
     for secret_file in secret_files:
         _inject_secret(secret_file)
+
 
 def _check_cors() -> None:
     all_allowed_cors = _get_allowed_origins()
@@ -36,8 +36,11 @@ def _check_cors() -> None:
 if __name__ == "__main__":
     _inject_secrets()
     _check_cors()
-    uvicorn.run("api.application:create_app",
-                host=os.getenv("HOST", default="127.0.0.1"),
-                port=int(os.getenv("PORT", default="8080")),
-                reload=bool(os.getenv("RELOAD", "True")),
-                factory=True, log_config=None)
+    uvicorn.run(
+        "api.application:create_app",
+        host=os.getenv("HOST", default="127.0.0.1"),
+        port=int(os.getenv("PORT", default="8080")),
+        reload=bool(os.getenv("RELOAD", "True")),
+        factory=True,
+        log_config=None,
+    )

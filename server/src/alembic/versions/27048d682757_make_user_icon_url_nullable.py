@@ -5,6 +5,7 @@ Revises: aeb0c7f142d6
 Create Date: 2024-03-17 21:41:39.600945
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -18,12 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.alter_column("User", "spotify_avatar_url",
-                    existing_type=sa.VARCHAR(length=256),
-                    nullable=True)
+    op.alter_column("User", "spotify_avatar_url", existing_type=sa.VARCHAR(length=256), nullable=True)
 
 
 def downgrade() -> None:
-    op.alter_column("User", "spotify_avatar_url",
-                    existing_type=sa.VARCHAR(length=256),
-                    nullable=False)
+    op.alter_column("User", "spotify_avatar_url", existing_type=sa.VARCHAR(length=256), nullable=False)

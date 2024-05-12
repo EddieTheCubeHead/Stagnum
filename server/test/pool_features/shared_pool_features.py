@@ -30,27 +30,33 @@ from test_types.callables import (
 from test_types.typed_dictionaries import Headers, TrackData
 
 
-def should_return_pool_code_from_share_route(existing_playback: list[dict[str, Any]], test_client: TestClient,
-                                             validate_model: ValidateModel, valid_token_header: Headers) -> None:
+def should_return_pool_code_from_share_route(
+    existing_playback: list[dict[str, Any]],
+    test_client: TestClient,
+    validate_model: ValidateModel,
+    valid_token_header: Headers,
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     model = validate_model(PoolFullContents, response)
     assert model.share_code is not None
 
 
-def should_return_not_found_from_share_route_if_user_has_no_pool(test_client: TestClient, logged_in_user: User,
-                                                                 valid_token_header: Headers,
-                                                                 validate_response: ValidateResponse) -> None:
+def should_return_not_found_from_share_route_if_user_has_no_pool(
+    test_client: TestClient, logged_in_user: User, valid_token_header: Headers, validate_response: ValidateResponse
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     json_data = validate_response(response, 404)
     assert json_data["detail"] == f"Could not find pool for user {logged_in_user.spotify_username}"
 
 
-def should_have_only_uppercase_letters_and_digits_in_share_code(existing_playback: list[dict[str, Any]],
-                                                                test_client: TestClient,
-                                                                validate_response: ValidateResponse,
-                                                                valid_token_header: Headers) -> None:
+def should_have_only_uppercase_letters_and_digits_in_share_code(
+    existing_playback: list[dict[str, Any]],
+    test_client: TestClient,
+    validate_response: ValidateResponse,
+    valid_token_header: Headers,
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     result = validate_response(response)
@@ -58,18 +64,24 @@ def should_have_only_uppercase_letters_and_digits_in_share_code(existing_playbac
         assert char.isupper() or char.isdigit()
 
 
-def should_have_eight_characters_in_share_code(existing_playback: list[dict[str, Any]], test_client: TestClient,
-                                               validate_response: ValidateResponse,
-                                               valid_token_header: Headers) -> None:
+def should_have_eight_characters_in_share_code(
+    existing_playback: list[dict[str, Any]],
+    test_client: TestClient,
+    validate_response: ValidateResponse,
+    valid_token_header: Headers,
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     result = validate_response(response)
     assert len(result["share_code"]) == 8
 
 
-def should_be_able_to_join_shared_pool_with_code(shared_pool_code: str, test_client: TestClient,
-                                                 another_logged_in_user_header: Headers,
-                                                 validate_response: ValidateResponse) -> None:
+def should_be_able_to_join_shared_pool_with_code(
+    shared_pool_code: str,
+    test_client: TestClient,
+    another_logged_in_user_header: Headers,
+    validate_response: ValidateResponse,
+) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     result = validate_response(response)
@@ -77,10 +89,14 @@ def should_be_able_to_join_shared_pool_with_code(shared_pool_code: str, test_cli
     assert result["share_code"] == shared_pool_code
 
 
-def should_see_pool_existing_songs_when_joining_shared_pool(shared_pool_code: str, test_client: TestClient,
-                                                            another_logged_in_user_header: Headers,
-                                                            validate_response: ValidateResponse,
-                                                            logged_in_user_id: str, existing_pool: list[PoolMember]) -> None:
+def should_see_pool_existing_songs_when_joining_shared_pool(
+    shared_pool_code: str,
+    test_client: TestClient,
+    another_logged_in_user_header: Headers,
+    validate_response: ValidateResponse,
+    logged_in_user_id: str,
+    existing_pool: list[PoolMember],
+) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
 
     result = validate_response(response)
@@ -89,13 +105,19 @@ def should_see_pool_existing_songs_when_joining_shared_pool(shared_pool_code: st
             assert len(user_content["tracks"]) == len(existing_pool)
 
 
-def should_show_added_songs_to_pool_main_user(shared_pool_code: str, test_client: TestClient,
-                                              joined_user_header: Headers, requests_client: Mock,
-                                              validate_response: ValidateResponse, logged_in_user_id: str,
-                                              valid_token_header: Headers, existing_pool: list[PoolMember],
-                                              create_mock_playlist_fetch_result: MockPlaylistFetchResult,
-                                              build_success_response: BuildSuccessResponse,
-                                              mock_playlist_fetch: MockPlaylistFetch) -> None:
+def should_show_added_songs_to_pool_main_user(
+    shared_pool_code: str,
+    test_client: TestClient,
+    joined_user_header: Headers,
+    requests_client: Mock,
+    validate_response: ValidateResponse,
+    logged_in_user_id: str,
+    valid_token_header: Headers,
+    existing_pool: list[PoolMember],
+    create_mock_playlist_fetch_result: MockPlaylistFetchResult,
+    build_success_response: BuildSuccessResponse,
+    mock_playlist_fetch: MockPlaylistFetch,
+) -> None:
     pool_content_data = mock_playlist_fetch(35)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 
@@ -108,14 +130,21 @@ def should_show_added_songs_to_pool_main_user(shared_pool_code: str, test_client
 
 
 @pytest.mark.slow
-def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code: str, test_client: TestClient,
-                                                       joined_user_header: Headers,
-                                                       validate_response: ValidateResponse, valid_token_header: Headers,
-                                                       get_query_parameter: GetQueryParameter,
-                                                       existing_pool: list[PoolMember], logged_in_user_id: str,
-                                                       requests_client: Mock, mocked_pool_contents: MockedPoolContents,
-                                                       weighted_parameters: RandomizationParameters,
-                                                       skip_song: SkipSong, mock_playlist_fetch: MockPlaylistFetch) -> None:
+def should_use_all_users_pools_in_shared_pool_playback(
+    shared_pool_code: str,
+    test_client: TestClient,
+    joined_user_header: Headers,
+    validate_response: ValidateResponse,
+    valid_token_header: Headers,
+    get_query_parameter: GetQueryParameter,
+    existing_pool: list[PoolMember],
+    logged_in_user_id: str,
+    requests_client: Mock,
+    mocked_pool_contents: MockedPoolContents,
+    weighted_parameters: RandomizationParameters,
+    skip_song: SkipSong,
+    mock_playlist_fetch: MockPlaylistFetch,
+) -> None:
     pool_content_data = mock_playlist_fetch(15)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 
@@ -157,44 +186,56 @@ def should_use_all_users_pools_in_shared_pool_playback(shared_pool_code: str, te
     assert original_played_joined
 
 
-def should_not_get_pool_share_code_from_get_pool_before_initial_share(existing_playback: list[PoolMember],
-                                                                      test_client: TestClient,
-                                                                      valid_token_header: Headers,
-                                                                      validate_response: ValidateResponse) -> None:
+def should_not_get_pool_share_code_from_get_pool_before_initial_share(
+    existing_playback: list[PoolMember],
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_response: ValidateResponse,
+) -> None:
     response = test_client.get("/pool", headers=valid_token_header)
 
     result = validate_response(response)
     assert result["share_code"] is None
 
 
-def should_get_pool_share_code_from_get_pool_after_initial_share(shared_pool_code: str, test_client: TestClient,
-                                                                 valid_token_header: Headers,
-                                                                 joined_user_header: Headers,
-                                                                 validate_response: ValidateResponse) -> None:
+def should_get_pool_share_code_from_get_pool_after_initial_share(
+    shared_pool_code: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    joined_user_header: Headers,
+    validate_response: ValidateResponse,
+) -> None:
     for header in (valid_token_header, joined_user_header):
         response = test_client.get("/pool", headers=header)
         result = validate_response(response)
         assert result["share_code"] == shared_pool_code
 
 
-def should_return_error_response_when_attempting_to_join_own_pool(shared_pool_code: str, test_client: TestClient,
-                                                                  valid_token_header: Headers,
-                                                                  validate_error_response: ValidateErrorResponse) -> None:
+def should_return_error_response_when_attempting_to_join_own_pool(
+    shared_pool_code: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_error_response: ValidateErrorResponse,
+) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=valid_token_header)
 
     validate_error_response(response, 400, "Attempted to join own pool!")
 
 
 def should_return_error_response_when_attempting_to_join_already_joined_pool(
-        shared_pool_code: str, test_client: TestClient, joined_user_header: Headers,
-        validate_error_response: ValidateErrorResponse) -> None:
+    shared_pool_code: str,
+    test_client: TestClient,
+    joined_user_header: Headers,
+    validate_error_response: ValidateErrorResponse,
+) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=joined_user_header)
 
     validate_error_response(response, 400, "Already a member of that pool!")
 
 
 def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(
-        test_client: TestClient, valid_token_header: Headers, validate_error_response: ValidateErrorResponse) -> None:
+    test_client: TestClient, valid_token_header: Headers, validate_error_response: ValidateErrorResponse
+) -> None:
     invalid_code = "invalid_code_123"
     response = test_client.post(f"/pool/join/{invalid_code}", headers=valid_token_header)
 
@@ -202,33 +243,50 @@ def should_return_error_response_when_attempting_to_join_pool_with_invalid_code(
 
 
 def should_return_error_response_when_attempting_to_share_own_pool_with_existing_share_code(
-        shared_pool_code: str, test_client: TestClient, valid_token_header: Headers,
-        validate_error_response: ValidateErrorResponse) -> None:
+    shared_pool_code: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_error_response: ValidateErrorResponse,
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
 
     validate_error_response(response, 400, "Pool already shared!")
 
 
-def should_return_token_in_headers_for_share_route(existing_playback: list[dict[str, Any]], test_client: TestClient,
-                                                   valid_token_header: Headers,
-                                                   assert_token_in_headers: AssertTokenInHeaders) -> None:
+def should_return_token_in_headers_for_share_route(
+    existing_playback: list[dict[str, Any]],
+    test_client: TestClient,
+    valid_token_header: Headers,
+    assert_token_in_headers: AssertTokenInHeaders,
+) -> None:
     response = test_client.post("/pool/share", headers=valid_token_header)
     assert_token_in_headers(response)
 
 
-def should_return_token_in_headers_for_join_route(shared_pool_code: str, test_client: TestClient,
-                                                  another_logged_in_user_header: Headers,
-                                                  assert_token_in_headers: AssertTokenInHeaders) -> None:
+def should_return_token_in_headers_for_join_route(
+    shared_pool_code: str,
+    test_client: TestClient,
+    another_logged_in_user_header: Headers,
+    assert_token_in_headers: AssertTokenInHeaders,
+) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     assert_token_in_headers(response)
 
 
 @pytest.mark.asyncio
 async def should_delete_joined_users_pools_on_playback_stop(
-        existing_playback: list[TrackData], increment_now: IncrementNow, fixed_track_length_ms: int,
-        shared_pool_code: str, db_connection: ConnectionManager, run_scheduling_job: RunSchedulingJob,
-        mock_no_player_playback_state_response: MockNoPlayerStateResponse, test_client: TestClient,
-        joined_user_header: Headers, mock_track_fetch: MockTrackFetch, assert_empty_tables: AssertEmptyTables) -> None:
+    existing_playback: list[TrackData],
+    increment_now: IncrementNow,
+    fixed_track_length_ms: int,
+    shared_pool_code: str,
+    db_connection: ConnectionManager,
+    run_scheduling_job: RunSchedulingJob,
+    mock_no_player_playback_state_response: MockNoPlayerStateResponse,
+    test_client: TestClient,
+    joined_user_header: Headers,
+    mock_track_fetch: MockTrackFetch,
+    assert_empty_tables: AssertEmptyTables,
+) -> None:
     pool_content_data = mock_track_fetch()
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
@@ -239,9 +297,14 @@ async def should_delete_joined_users_pools_on_playback_stop(
     assert_empty_tables(PlaybackSession, Pool)
 
 
-def should_return_owner_user_data_on_join(shared_pool_code: str, test_client: TestClient, create_pool: CreatePool,
-                                          validate_response: ValidateResponse, another_logged_in_user_header: Headers,
-                                          logged_in_user: User) -> None:
+def should_return_owner_user_data_on_join(
+    shared_pool_code: str,
+    test_client: TestClient,
+    create_pool: CreatePool,
+    validate_response: ValidateResponse,
+    another_logged_in_user_header: Headers,
+    logged_in_user: User,
+) -> None:
     create_pool(tracks=1)
 
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
@@ -250,10 +313,13 @@ def should_return_owner_user_data_on_join(shared_pool_code: str, test_client: Te
     assert result["owner"]["spotify_id"] == logged_in_user.spotify_id
 
 
-def should_be_able_to_join_another_pool_after_creating_one(another_logged_in_user_header: Headers,
-                                                           test_client: TestClient, validate_response: ValidateResponse,
-                                                           shared_pool_code: str,
-                                                           mock_pool_content_fetches: MockPoolContentFetches) -> None:
+def should_be_able_to_join_another_pool_after_creating_one(
+    another_logged_in_user_header: Headers,
+    test_client: TestClient,
+    validate_response: ValidateResponse,
+    shared_pool_code: str,
+    mock_pool_content_fetches: MockPoolContentFetches,
+) -> None:
     data_json = mock_pool_content_fetches(tracks=1)
 
     test_client.post("/pool", json=data_json, headers=another_logged_in_user_header)
@@ -263,11 +329,14 @@ def should_be_able_to_join_another_pool_after_creating_one(another_logged_in_use
     assert len(pool_response["users"]) == 2
 
 
-def should_be_able_to_create_another_pool_after_joining_one(test_client: TestClient,
-                                                            validate_response: ValidateResponse, shared_pool_code: str,
-                                                            mocked_pool_contents: MockedPoolContents,
-                                                            joined_user_header: Headers,
-                                                            mock_pool_content_fetches: MockPoolContentFetches) -> None:
+def should_be_able_to_create_another_pool_after_joining_one(
+    test_client: TestClient,
+    validate_response: ValidateResponse,
+    shared_pool_code: str,
+    mocked_pool_contents: MockedPoolContents,
+    joined_user_header: Headers,
+    mock_pool_content_fetches: MockPoolContentFetches,
+) -> None:
     data_json = mock_pool_content_fetches(tracks=1)
 
     response = test_client.post("/pool", json=data_json, headers=joined_user_header)

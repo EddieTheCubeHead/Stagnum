@@ -5,6 +5,7 @@ Revises: 149e2197ecff
 Create Date: 2024-02-17 19:31:08.955617
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -29,9 +30,9 @@ def upgrade() -> None:
         sa.Column("parent_id", sa.Integer(), nullable=True),
         sa.Column("weight", sa.Integer(), nullable=False),
         sa.Column("insert_time_stamp", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["parent_id"], ["PoolMember.id"] ),
-        sa.ForeignKeyConstraint(["user_id"], ["User.spotify_id"] ),
-        sa.PrimaryKeyConstraint("id")
+        sa.ForeignKeyConstraint(["parent_id"], ["PoolMember.id"]),
+        sa.ForeignKeyConstraint(["user_id"], ["User.spotify_id"]),
+        sa.PrimaryKeyConstraint("id"),
     )
 
 

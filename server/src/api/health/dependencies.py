@@ -9,7 +9,6 @@ from api.common.dependencies import DatabaseConnection, DateTimeWrapper
 
 
 class RequestTimerRaw:
-
     def __init__(self, datetime_wrapper: DateTimeWrapper) -> None:
         self._start_time = datetime_wrapper.now()
         self._datetime_wrapper = datetime_wrapper
@@ -22,7 +21,6 @@ RequestTimer = Annotated[RequestTimerRaw, Depends()]
 
 
 class HealthcheckDatabaseConnectionRaw:
-
     def __init__(self, database_connection: DatabaseConnection) -> None:
         self._database_connection = database_connection
 
@@ -33,5 +31,6 @@ class HealthcheckDatabaseConnectionRaw:
                 return session.scalar(text("SELECT 1")) == 1
         except SQLAlchemyError:
             return False
+
 
 HealthcheckDatabaseConnection = Annotated[HealthcheckDatabaseConnectionRaw, Depends()]

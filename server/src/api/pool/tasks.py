@@ -26,8 +26,9 @@ _auth_spotify_client = AuthSpotifyClient(_spotify_client)
 _token_holder = TokenHolder(_user_db_connection, _auth_spotify_client, _datetime_wrapper, None)
 _next_song_provider = NextSongProvider()
 _playback_updater = WebsocketUpdater()
-_pool_playback_service = PoolPlaybackService(_pool_db_connection, _pool_spotify_client, _token_holder,
-                                             _next_song_provider, _datetime_wrapper, _playback_updater)
+_pool_playback_service = PoolPlaybackService(
+    _pool_db_connection, _pool_spotify_client, _token_holder, _next_song_provider, _datetime_wrapper, _playback_updater
+)
 
 
 async def queue_next_songs(playback_service: PoolPlaybackService = None) -> None:

@@ -7,13 +7,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
 class EntityBase(DeclarativeBase):
-
     @declared_attr
     def __tablename__(self):
         return self.__name__
 
-    insert_time_stamp: Mapped[datetime.datetime] \
-        = mapped_column(DateTime, insert_default=datetime.datetime.now(datetime.timezone.utc))
+    insert_time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, insert_default=datetime.datetime.now(datetime.timezone.utc)
+    )
 
 
 class User(EntityBase):
@@ -50,18 +50,21 @@ class PoolMember(EntityBase):
     content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
-    parent_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
-                                                  default=None, nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"), default=None, nullable=True
+    )
 
     parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")
     children: Mapped[list[PoolMember]] = relationship(lazy="joined", back_populates="parent")
-    randomization_parameters: Mapped[PoolMemberRandomizationParameters] = relationship(lazy="joined",
-                                                                                         back_populates="pool_member")
+    randomization_parameters: Mapped[PoolMemberRandomizationParameters] = relationship(
+        lazy="joined", back_populates="pool_member"
+    )
 
 
 class PoolMemberRandomizationParameters(EntityBase):
-    pool_member_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id", ondelete="CASCADE", onupdate="CASCADE"),
-                                                primary_key=True)
+    pool_member_id: Mapped[int] = mapped_column(
+        ForeignKey("PoolMember.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+    )
 
     weight: Mapped[float] = mapped_column(Float(), default=0, nullable=False)  # [-1, 1]
     skips_since_last_play: Mapped[int] = mapped_column(Integer(), default=0, nullable=False)
@@ -81,8 +84,9 @@ class Pool(EntityBase):
 
 
 class PoolShareData(EntityBase):
-    pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"),
-                                         primary_key=True)
+    pool_id: Mapped[int] = mapped_column(
+        ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), primary_key=True
+    )
     code: Mapped[str] = mapped_column(String(8), nullable=False)
 
     pool: Mapped[Pool] = relationship(lazy="joined", back_populates="share_data")
@@ -99,8 +103,9 @@ class PoolJoinedUser(EntityBase):
 
 class PlaybackSession(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
-    current_track_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", ondelete="SET NULL"),
-                                                         nullable=True)
+    current_track_id: Mapped[int | None] = mapped_column(
+        ForeignKey("PoolMember.id", ondelete="SET NULL"), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
     next_song_change_timestamp: Mapped[datetime.datetime] = mapped_column(DateTime)
 

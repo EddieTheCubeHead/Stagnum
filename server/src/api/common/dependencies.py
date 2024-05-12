@@ -49,24 +49,30 @@ class RequestsClientRaw:
     def get(self, *args, **kwargs):
         _logger.debug(f"GET: {args} {kwargs}")
         result = requests.get(*args, **kwargs)
-        _logger.info(f"Call result: {result.status_code} ; "
-                     f"{result.content[:self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}")
+        _logger.info(
+            f"Call result: {result.status_code} ; "
+            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+        )
         return result
 
     @functools.wraps(requests.post)
     def post(self, *args, **kwargs):
         _logger.debug(f"POST: {args} {kwargs}")
         result = requests.post(*args, **kwargs)
-        _logger.info(f"Call result: {result.status_code} ; "
-                     f"{result.content[:self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}")
+        _logger.info(
+            f"Call result: {result.status_code} ; "
+            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+        )
         return result
 
     @functools.wraps(requests.put)
     def put(self, *args, **kwargs):
         _logger.debug(f"PUT {args} {kwargs}")
         result = requests.put(*args, **kwargs)
-        _logger.info(f"Call result: {result.status_code} ; "
-                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+        _logger.info(
+            f"Call result: {result.status_code} ; "
+            f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}"
+        )
         return result
 
 
@@ -77,8 +83,9 @@ def _validate_and_decode(response: RequestsResponse) -> dict:
     response_string = response.content.decode("utf8")
     parsed_data = json.loads(response_string) if response_string else None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
-        error_message = (f"Error code {response.status_code} received while calling Spotify API. "
-                         f"Message: {parsed_data["error"]}")
+        error_message = (
+            f"Error code {response.status_code} received while calling Spotify API. " f"Message: {parsed_data["error"]}"
+        )
         raise HTTPException(status_code=502, detail=error_message)
     return parsed_data
 
@@ -114,63 +121,57 @@ _ALLOWED_PRODUCT_TYPES = {"premium"}
 
 
 class AuthSpotifyClientRaw:
-
     def __init__(self, spotify_client: SpotifyClient) -> None:
         self._spotify_client = spotify_client
 
     def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str) -> SpotifyTokenResponse:
-        form = {
-            "code": code,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code"
-        }
+        form = {"code": code, "redirect_uri": redirect_uri, "grant_type": "authorization_code"}
         return self._get_token_from_form(client_id, client_secret, form)
 
     def refresh_token(self, refresh_token: str, client_id: str, client_secret: str) -> SpotifyTokenResponse:
-        form = {
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token
-        }
+        form = {"grant_type": "refresh_token", "refresh_token": refresh_token}
         return self._get_token_from_form(client_id, client_secret, form)
 
     def _get_token_from_form(self, client_id, client_secret, form):
         token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
-        headers = {
-            "Authorization": "Basic " + token,
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        data = self._spotify_client.post(override_url="https://accounts.spotify.com/api/token", headers=headers,
-                                         data=form)
+        headers = {"Authorization": "Basic " + token, "Content-Type": "application/x-www-form-urlencoded"}
+        data = self._spotify_client.post(
+            override_url="https://accounts.spotify.com/api/token", headers=headers, data=form
+        )
         refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
-        return SpotifyTokenResponse(access_token=data["access_token"], token_type=data["token_type"],
-                                    expires_in=data["expires_in"], refresh_token=refresh_token)
+        return SpotifyTokenResponse(
+            access_token=data["access_token"],
+            token_type=data["token_type"],
+            expires_in=data["expires_in"],
+            refresh_token=refresh_token,
+        )
 
     def get_me(self, token: str):
-        headers = {
-            "Authorization": token
-        }
+        headers = {"Authorization": token}
         data = self._spotify_client.get("me", headers=headers)
         if data["product"] not in _ALLOWED_PRODUCT_TYPES:
-            raise HTTPException(status_code=401,
-                                detail="You need to have a Spotify Premium subscription to use Stagnum!")
+            raise HTTPException(
+                status_code=401, detail="You need to have a Spotify Premium subscription to use Stagnum!"
+            )
         user_avatar_url = data["images"][0]["url"] if len(data["images"]) > 0 else None
-        return User(spotify_id=data["id"], spotify_username=data["display_name"],
-                    spotify_avatar_url=user_avatar_url)
+        return User(spotify_id=data["id"], spotify_username=data["display_name"], spotify_avatar_url=user_avatar_url)
 
 
 AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
 
 
 class UserDatabaseConnectionRaw:
-
     def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper) -> None:
         self._database_connection = database_connection
         self._datetime_wrapper = datetime_wrapper
 
     def get_from_token(self, token: str) -> User | None:
         with self._database_connection.session() as session:
-            user = session.scalar(select(User).where(
-                User.session.has(or_(UserSession.user_token == token, UserSession.last_login_token == token))))
+            user = session.scalar(
+                select(User).where(
+                    User.session.has(or_(UserSession.user_token == token, UserSession.last_login_token == token))
+                )
+            )
             if user is not None:
                 user.session.last_login_token = token
             return user
@@ -190,7 +191,8 @@ class UserDatabaseConnectionRaw:
             user_session.user_token = f"{refreshed_session.token_type} {refreshed_session.access_token}"
             user_session.refresh_token = refreshed_session.refresh_token
             user_session.expires_at = self._datetime_wrapper.now() + datetime.timedelta(
-                seconds=refreshed_session.expires_in)
+                seconds=refreshed_session.expires_in
+            )
 
         return user_session
 
@@ -199,9 +201,13 @@ UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 
 
 class TokenHolderRaw:
-
-    def __init__(self, user_database_connection: UserDatabaseConnection, auth_client: AuthSpotifyClient,
-                 datetime_wrapper: DateTimeWrapper, response: FastAPIResponse) -> None:
+    def __init__(
+        self,
+        user_database_connection: UserDatabaseConnection,
+        auth_client: AuthSpotifyClient,
+        datetime_wrapper: DateTimeWrapper,
+        response: FastAPIResponse,
+    ) -> None:
         self._user_database_connection = user_database_connection
         self._auth_client = auth_client
         self._datetime_wrapper = datetime_wrapper

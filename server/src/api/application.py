@@ -21,9 +21,7 @@ _ALLOWED_HEADERS = ["Authorization"]
 @asynccontextmanager
 async def setup_scheduler(_: FastAPI):
     _logger.info("Setting up scheduled jobs")
-    job_stores = {
-        "default": MemoryJobStore()
-    }
+    job_stores = {"default": MemoryJobStore()}
     _logger.debug("Creating and starting scheduler")
     scheduler = AsyncIOScheduler(jobstores=job_stores)
     scheduler.start()
@@ -43,13 +41,16 @@ def create_app() -> FastAPI:
         application.include_router(api_module.router)
     application.include_router(pool.websocket_router)
 
-    application.add_middleware(CORSMiddleware,
-                               allow_origins=_get_allowed_origins(), allow_credentials=True,
-                               allow_methods=_ALLOWED_METHODS, allow_headers=_ALLOWED_HEADERS)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=_get_allowed_origins(),
+        allow_credentials=True,
+        allow_methods=_ALLOWED_METHODS,
+        allow_headers=_ALLOWED_HEADERS,
+    )
 
     @application.get("/me")
     async def get_me(user: validated_user) -> UserModel:
         return map_user_entity_to_model(user)
-
 
     return application

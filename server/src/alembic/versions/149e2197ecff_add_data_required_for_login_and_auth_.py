@@ -5,6 +5,7 @@ Revises: af9978211950
 Create Date: 2024-02-04 16:03:08.775667
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -22,7 +23,7 @@ def upgrade() -> None:
         "LoginState",
         sa.Column("state_string", sa.String(length=16), nullable=False),
         sa.Column("insert_time_stamp", sa.DateTime(), nullable=False),
-        sa.PrimaryKeyConstraint("state_string")
+        sa.PrimaryKeyConstraint("state_string"),
     )
     op.add_column("User", sa.Column("insert_time_stamp", sa.DateTime(), nullable=False))
 

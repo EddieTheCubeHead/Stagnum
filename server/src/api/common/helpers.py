@@ -27,14 +27,15 @@ def get_sharpest_icon(icons: list[dict]) -> str | None:
 
 
 def map_user_entity_to_model(user_entity: User) -> UserModel:
-    return UserModel(display_name=user_entity.spotify_username, icon_url=user_entity.spotify_avatar_url,
-                     spotify_id=user_entity.spotify_id)
+    return UserModel(
+        display_name=user_entity.spotify_username,
+        icon_url=user_entity.spotify_avatar_url,
+        spotify_id=user_entity.spotify_id,
+    )
 
 
 def build_auth_header(user: User) -> dict:
-    return {
-        "Authorization": user.session.user_token
-    }
+    return {"Authorization": user.session.user_token}
 
 
 def create_random_string(length: int) -> str:
@@ -62,8 +63,10 @@ def _get_client_secret() -> str:
         raise_internal_server_error("Could not find spotify client secret in environment variables")
     return client_secret
 
+
 def _get_environment() -> str:
     return os.getenv("ENVIRONMENT", default="production").lower()
+
 
 def _get_allowed_origins() -> list[str]:
     raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")

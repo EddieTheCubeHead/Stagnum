@@ -8,18 +8,9 @@ from typing import Any
 # https://github.com/EddieTheCubeHead/ClusterBot/blob/master/services/logging_service.py
 # https://github.com/Rapptz/discord.py/blob/master/discord/utils.py line 1262
 
-_LOG_LEVELS = {
-    "DEBUG": DEBUG,
-    "INFO": INFO,
-    "WARNING": WARNING,
-    "ERROR": ERROR,
-    "CRITICAL": CRITICAL
-}
+_LOG_LEVELS = {"DEBUG": DEBUG, "INFO": INFO, "WARNING": WARNING, "ERROR": ERROR, "CRITICAL": CRITICAL}
 
-_LOG_STREAMS = {
-    "stdout": sys.stdout,
-    "stderr": sys.stderr
-}
+_LOG_STREAMS = {"stdout": sys.stdout, "stderr": sys.stderr}
 
 _FILE_HANDLERS: dict[str, FileHandler] = {}
 
@@ -34,7 +25,6 @@ def get_config(config_name: str) -> str | int:
 
 
 class LoggingConfiguration:
-
     def __init__(self, log_file: str, log_stream: str, log_level: str) -> None:
         self.log_file = log_file
         self.log_stream = _LOG_STREAMS.get(log_stream)
@@ -147,7 +137,6 @@ def stream_supports_colour(stream: Any) -> bool:
 
 
 class _ColourFormatter(Formatter):
-
     # ANSI codes are a bit weird to decipher if you're unfamiliar with them, so here's a refresher
     # It starts off with a format like \x1b[XXXm where XXX is a semicolon separated list of commands
     # The important ones here relate to colour.
@@ -188,5 +177,6 @@ class _ColourFormatter(Formatter):
         # Remove the cache layer
         record.exc_text = None
         return output
+
 
 # Borrowed code ends

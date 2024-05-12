@@ -16,6 +16,5 @@ class HealthcheckResourceResult(HealthcheckBaseModel):
     resource: str
 
 
-
 class HealthcheckResult(HealthcheckBaseModel):
     resources: list[HealthcheckResourceResult]

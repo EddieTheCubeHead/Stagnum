@@ -5,6 +5,7 @@ Revises: 70e02357c5ff
 Create Date: 2024-03-30 14:12:03.885924
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -18,15 +19,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table("PoolMemberRandomizationParameters",
-                    sa.Column("pool_member_id", sa.Integer(), nullable=False),
-                    sa.Column("weight", sa.Float(), nullable=False),
-                    sa.Column("skips_since_last_play", sa.Integer(), nullable=False),
-                    sa.Column("insert_time_stamp", sa.DateTime(), nullable=False),
-                    sa.ForeignKeyConstraint(["pool_member_id"], ["PoolMember.id"], onupdate="CASCADE",
-                                            ondelete="CASCADE"),
-                    sa.PrimaryKeyConstraint("pool_member_id")
-                    )
+    op.create_table(
+        "PoolMemberRandomizationParameters",
+        sa.Column("pool_member_id", sa.Integer(), nullable=False),
+        sa.Column("weight", sa.Float(), nullable=False),
+        sa.Column("skips_since_last_play", sa.Integer(), nullable=False),
+        sa.Column("insert_time_stamp", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(["pool_member_id"], ["PoolMember.id"], onupdate="CASCADE", ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("pool_member_id"),
+    )
     op.add_column("PoolJoinedUser", sa.Column("playback_time_ms", sa.Integer(), nullable=False))
     op.drop_column("PoolMember", "weight")
 

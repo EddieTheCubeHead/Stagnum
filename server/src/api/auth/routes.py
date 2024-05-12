@@ -8,10 +8,7 @@ from api.auth.models import LoginRedirect, LoginSuccess
 _logger = getLogger("main.api.auth.routes")
 
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["auth"]
-)
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/login")
@@ -21,7 +18,6 @@ async def login(client_redirect_uri: str, auth_service: AuthService) -> LoginRed
 
 
 @router.get("/login/callback")
-async def login_callback(state: str, code: str, client_redirect_uri: str,
-                         auth_service: AuthService) -> LoginSuccess:
+async def login_callback(state: str, code: str, client_redirect_uri: str, auth_service: AuthService) -> LoginSuccess:
     _logger.debug(f"GET /login called with state {state}, code {code} and redirect_uri: {client_redirect_uri}")
     return auth_service.get_token(state, code, client_redirect_uri)
