@@ -428,7 +428,7 @@ def assert_token_in_headers(validate_response: ValidateResponse) -> AssertTokenI
         validate_response(response)
         header_token = response.headers["Authorization"]
         assert len(header_token) > 0
-        assert isinstance(type(header_token), str)
+        assert isinstance(header_token, str)
         return header_token
 
     return wrapper
@@ -591,8 +591,8 @@ def mock_pool_content_fetches(
         content_models: list[PoolContentData] = []
         content_models.extend([mock_track_fetch() for _ in range(tracks)])
         content_models.extend([mock_artist_fetch() for _ in range(artists)])
-        content_models.extend([mock_album_fetch(length) for length in albums])
-        content_models.extend([mock_playlist_fetch(length) for length in playlists])
+        content_models.extend([mock_album_fetch(length) for length in (albums if albums is not None else [])])
+        content_models.extend([mock_playlist_fetch(length) for length in (playlists if playlists is not None else [])])
         return PoolCreationData(spotify_uris=content_models).model_dump()
 
     return wrapper

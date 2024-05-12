@@ -151,7 +151,7 @@ def primary_valid_state_string(create_valid_state_string: CreateValidStateString
 
 
 @pytest.fixture
-def mock_token(
+def mocked_token(
     requests_client_post_queue: MockResponseQueue,
     requests_client_get_queue: MockResponseQueue,
     default_me_return: httpx.Response,
