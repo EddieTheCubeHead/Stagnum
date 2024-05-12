@@ -8,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 class EntityBase(DeclarativeBase):
     @declared_attr
-    def __tablename__(self):
+    def __tablename__(self) -> str:
         return self.__name__
 
     insert_time_stamp: Mapped[datetime.datetime] = mapped_column(
