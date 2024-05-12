@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from logging import getLogger
+from typing import AsyncGenerator
 
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -19,7 +20,7 @@ _ALLOWED_HEADERS = ["Authorization"]
 
 
 @asynccontextmanager
-async def setup_scheduler(_: FastAPI):
+async def setup_scheduler(_: FastAPI) -> AsyncGenerator:
     _logger.info("Setting up scheduled jobs")
     job_stores = {"default": MemoryJobStore()}
     _logger.debug("Creating and starting scheduler")

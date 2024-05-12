@@ -81,7 +81,7 @@ class AuthServiceRaw:
         self._database_connection.update_logged_in_user(me_result, token_result, state)
         return LoginSuccess(access_token=token_result.token)
 
-    def _validate_state(self, state) -> None:
+    def _validate_state(self, state: str) -> None:
         if not self._database_connection.is_valid_state(state):
             _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
             error_message = (
@@ -89,7 +89,7 @@ class AuthServiceRaw:
             )
             raise HTTPException(status_code=403, detail=error_message)
 
-    def _fetch_token(self, client_redirect_uri, code) -> ParsedTokenResponse:
+    def _fetch_token(self, client_redirect_uri: str, code: str) -> ParsedTokenResponse:
         client_id = _get_client_id()
         client_secret = _get_client_secret()
         _logger.debug("Fetching oauth auth token from spotify")
@@ -99,7 +99,7 @@ class AuthServiceRaw:
             token=token, refresh_token=token_result.refresh_token, expires_in=token_result.expires_in
         )
 
-    def _fetch_current_user(self, token) -> User:
+    def _fetch_current_user(self, token: str) -> User:
         _logger.debug("Fetching user data from spotify")
         return self._spotify_client.get_me(token)
 

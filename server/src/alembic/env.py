@@ -26,7 +26,7 @@ target_metadata = database.entities.EntityBase.metadata
 # ... etc.
 
 
-def get_database_url():
+def get_database_url() -> str:
     return os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
 
 
