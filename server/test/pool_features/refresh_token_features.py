@@ -2,17 +2,16 @@ import datetime
 from typing import Any
 
 import pytest
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember, UserSession
 from faker import Faker
 from sqlalchemy import select
 from starlette.testclient import TestClient
-
-from database.database_connection import ConnectionManager
-from database.entities import UserSession, PoolMember
-from pool_features.conftest import RunSchedulingJob, CreateSpotifyPlayback
-from test_types.callables import MockTokenReturn, AssertTokenInHeaders, IncrementNow, \
-    BuildSuccessResponse
 from test_types.aliases import MockResponseQueue, SpotifySecrets
+from test_types.callables import AssertTokenInHeaders, BuildSuccessResponse, IncrementNow, MockTokenReturn
 from test_types.typed_dictionaries import Headers
+
+from pool_features.conftest import CreateSpotifyPlayback, RunSchedulingJob
 
 
 @pytest.fixture
@@ -27,7 +26,7 @@ def refresh_token_return(mock_token_return: MockTokenReturn,
 def should_refresh_token_if_expired_since_passed(existing_pool: list[PoolMember], correct_env_variables: SpotifySecrets,
                                                  test_client: TestClient, valid_token_header: Headers,
                                                  assert_token_in_headers: AssertTokenInHeaders,
-                                                 increment_now: IncrementNow, refresh_token_return: str):
+                                                 increment_now: IncrementNow, refresh_token_return: str) -> None:
     increment_now(datetime.timedelta(seconds=3600))
 
     response = test_client.delete(f"/pool/content/{existing_pool[0].content_uri}", headers=valid_token_header)
@@ -43,7 +42,7 @@ async def should_refresh_token_in_queue_job(existing_playback: list[dict[str, An
                                             create_spotify_playback: CreateSpotifyPlayback,
                                             requests_client_post_queue: MockResponseQueue,
                                             correct_env_variables: SpotifySecrets,
-                                            build_success_response: BuildSuccessResponse):
+                                            build_success_response: BuildSuccessResponse) -> None:
     increment_now(datetime.timedelta(seconds=3600))
     create_spotify_playback()
     requests_client_post_queue.append(build_success_response({}))
@@ -61,7 +60,7 @@ async def should_accept_old_token_login_after_scheduler_refresh_and_return_new_t
         run_scheduling_job, db_connection, create_spotify_playback: CreateSpotifyPlayback,
         requests_client_post_queue: MockResponseQueue, correct_env_variables: SpotifySecrets,
         build_success_response: BuildSuccessResponse, test_client: TestClient,
-        valid_token_header: Headers, assert_token_in_headers: AssertTokenInHeaders):
+        valid_token_header: Headers, assert_token_in_headers: AssertTokenInHeaders) -> None:
     increment_now(datetime.timedelta(seconds=3600))
     create_spotify_playback()
     requests_client_post_queue.append(build_success_response({}))

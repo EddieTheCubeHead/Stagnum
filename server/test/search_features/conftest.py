@@ -4,12 +4,20 @@ import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
 from starlette.testclient import TestClient
-
 from test_types.aliases import MockResponseQueue
-from test_types.callables import ValidatePaginatedResultLength, CreatePaginatedSearchResult, MockAlbumSearchResult, \
-    BuildSuccessResponse, MockArtistSearchResult, CreateSearchResponse, MockPlaylistSearchResult, MockTrackSearchResult, \
-    CreateGeneralSearch, RunSearchCall
-from test_types.typed_dictionaries import SpotifyResourceData, PaginatedSearchResultData, Headers
+from test_types.callables import (
+    BuildSuccessResponse,
+    CreateGeneralSearch,
+    CreatePaginatedSearchResult,
+    CreateSearchResponse,
+    MockAlbumSearchResult,
+    MockArtistSearchResult,
+    MockPlaylistSearchResult,
+    MockTrackSearchResult,
+    RunSearchCall,
+    ValidatePaginatedResultLength,
+)
+from test_types.typed_dictionaries import Headers, PaginatedSearchResultData, SpotifyResourceData
 
 
 @pytest.fixture

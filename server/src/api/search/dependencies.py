@@ -1,14 +1,25 @@
 from logging import getLogger
 from typing import Annotated
 
+from database.entities import User
 from fastapi import Depends, HTTPException
 
 from api.common.dependencies import SpotifyClient
-from api.common.helpers import get_sharpest_icon, build_auth_header
+from api.common.helpers import build_auth_header, get_sharpest_icon
 from api.common.models import NamedResource
-from api.search.models import Track, Album, Artist, Playlist, PaginatedSearchResult, GeneralSearchResult, \
-    SpotifyPlayableType, ArtistSearchResult, AlbumSearchResult, TrackSearchResult, PlaylistSearchResult
-from database.entities import User
+from api.search.models import (
+    Album,
+    AlbumSearchResult,
+    Artist,
+    ArtistSearchResult,
+    GeneralSearchResult,
+    PaginatedSearchResult,
+    Playlist,
+    PlaylistSearchResult,
+    SpotifyPlayableType,
+    Track,
+    TrackSearchResult,
+)
 
 _logger = getLogger("main.api.search.dependencies")
 
@@ -105,13 +116,13 @@ def _build_paginated_playlist_search(result_data):
     )
 
 
-def _validate_query(query: str):
+def _validate_query(query: str) -> None:
     if not query:
         raise HTTPException(status_code=400, detail="Cannot perform a search with an empty string")
 
 
 class SearchSpotifyClientRaw:
-    def __init__(self, spotify_client: SpotifyClient):
+    def __init__(self, spotify_client: SpotifyClient) -> None:
         self._spotify_client = spotify_client
 
     def get_general_search(self, query: str, user: User, types: list[str]) \

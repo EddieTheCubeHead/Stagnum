@@ -1,19 +1,26 @@
 import json
 import random
 import string
+from typing import Optional
 from unittest.mock import Mock
 
 import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from starlette.testclient import TestClient
-
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
-from test_types.aliases import SpotifySecrets, MockResponseQueue
-from test_types.callables import CreateValidStateString, BaseAuthLogin, BaseAuthCallback, \
-    MockTokenReturn, MockSpotifyUserDataFetch, CreateSpotifyFetchMeData, MockDefaultMeReturn
+from starlette.testclient import TestClient
+from test_types.aliases import MockResponseQueue, SpotifySecrets
+from test_types.callables import (
+    BaseAuthCallback,
+    BaseAuthLogin,
+    CreateSpotifyFetchMeData,
+    CreateValidStateString,
+    MockDefaultMeReturn,
+    MockSpotifyUserDataFetch,
+    MockTokenReturn,
+)
 from test_types.typed_dictionaries import ImageData, SpotifyFetchMeData
 
 
@@ -44,7 +51,7 @@ def default_image() -> ImageData:
 @pytest.fixture
 def create_spotify_me_fetch_data(default_image: ImageData) -> CreateSpotifyFetchMeData:
     def wrapper(country: str = "Finland", display_name: str = "Test User", user_id: str = "test user",
-                images: list[ImageData] = None, product: str = "premium") -> SpotifyFetchMeData:
+                images: Optional[list[ImageData]] = None, product: str = "premium") -> SpotifyFetchMeData:
         return {
             "country": country,
             "display_name": display_name,
@@ -61,7 +68,7 @@ def mock_spotify_user_data_fetch(requests_client_post_queue: MockResponseQueue, 
                                  requests_client_get_queue: MockResponseQueue,
                                  create_spotify_me_fetch_data: CreateSpotifyFetchMeData) -> MockSpotifyUserDataFetch:
     def wrapper(country: str = "Finland", display_name: str = "Test User", user_id: str = "test user",
-                images: list[ImageData] = None, product: str = "premium") -> httpx.Response:
+                images: Optional[list[ImageData]] = None, product: str = "premium") -> httpx.Response:
         return_json = create_spotify_me_fetch_data(country, display_name, user_id, images, product)
         response = Mock()
         response.status_code = 200
@@ -102,7 +109,7 @@ def mocked_default_me_return(mock_default_me_return) -> None:
 @pytest.fixture
 def base_auth_callback_call(correct_env_variables: SpotifySecrets, test_client: TestClient,
                             primary_valid_state_string: str) -> BaseAuthCallback:
-    def wrapper(state: str = None):
+    def wrapper(state: Optional[str] = None):
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
             f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url")

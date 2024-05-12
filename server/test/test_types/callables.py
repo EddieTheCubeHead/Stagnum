@@ -1,15 +1,28 @@
 import datetime
-from typing import Protocol, Any, Callable, Awaitable
+from typing import Any, Awaitable, Callable, Protocol
 
 import httpx
+from api.common.models import ParsedTokenResponse
+from database.entities import EntityBase, PoolMember, User
+from helpers.classes import MockedPlaylistPoolContent
 from pydantic import BaseModel
 
-from api.common.models import ParsedTokenResponse
-from database.entities import User, PoolMember, EntityBase
-from helpers.classes import MockedPlaylistPoolContent
-from test_types.typed_dictionaries import Headers, TrackData, ArtistData, AlbumData, PlaylistData, PlaybackContextData, \
-    PlaybackStateData, QueueData, PoolCreationDataDict, PoolContentData, PaginatedSearchResultData, \
-    GeneralSearchResultData, ImageData, SpotifyFetchMeData
+from test_types.typed_dictionaries import (
+    AlbumData,
+    ArtistData,
+    GeneralSearchResultData,
+    Headers,
+    ImageData,
+    PaginatedSearchResultData,
+    PlaybackContextData,
+    PlaybackStateData,
+    PlaylistData,
+    PoolContentData,
+    PoolCreationDataDict,
+    QueueData,
+    SpotifyFetchMeData,
+    TrackData,
+)
 
 
 class ValidateResponse(Protocol):

@@ -1,14 +1,13 @@
 from logging import getLogger
 
+from database.entities import PoolMember, User
 from fastapi import APIRouter
 
 from api.common.dependencies import validated_user
 from api.common.helpers import map_user_entity_to_model
-from api.pool.dependencies import PoolSpotifyClient, PoolDatabaseConnection, PoolPlaybackService, \
-    WebsocketUpdater
+from api.pool.dependencies import PoolDatabaseConnection, PoolPlaybackService, PoolSpotifyClient, WebsocketUpdater
 from api.pool.helpers import create_pool_return_model
-from api.pool.models import PoolCreationData, PoolFullContents, PoolContent, PoolTrack
-from database.entities import User, PoolMember
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, PoolTrack
 
 _logger = getLogger("main.api.pool.routes")
 
@@ -43,8 +42,7 @@ async def add_content(to_add: PoolContent, user: validated_user, spotify_client:
     _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
     added_content = spotify_client.get_pool_content(user, to_add)
     whole_pool = database_connection.add_to_pool(added_content, user)
-    data_model = await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
-    return data_model
+    return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
 
 
 @router.delete("/content/{spotify_uri}")
@@ -52,8 +50,7 @@ async def delete_content(spotify_uri: str, user: validated_user, database_connec
                          websocket_updater: WebsocketUpdater) -> PoolFullContents:
     _logger.debug(f"DELETE /pool/content/{spotify_uri} called with token {user.session.user_token}")
     whole_pool = database_connection.delete_from_pool(spotify_uri, user)
-    data_model = await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
-    return data_model
+    return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
 
 
 async def _create_model_and_update_listeners(database_connection: PoolDatabaseConnection,

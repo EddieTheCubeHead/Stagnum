@@ -2,12 +2,11 @@ import re
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from sqlalchemy import select
-from starlette.testclient import TestClient
-
 from api.common.dependencies import DatabaseConnection
 from database.entities import LoginState
-from test_types.callables import BaseAuthLogin, ValidateResponse, GetQueryParameter
+from sqlalchemy import select
+from starlette.testclient import TestClient
+from test_types.callables import BaseAuthLogin, GetQueryParameter, ValidateResponse
 
 
 @pytest.fixture
@@ -23,7 +22,7 @@ def required_headers() -> list[str]:
 def should_have_required_scopes_in_login_redirect_response(base_auth_login_call: BaseAuthLogin,
                                                            validate_response:  ValidateResponse,
                                                            required_headers: list[str],
-                                                           get_query_parameter: GetQueryParameter):
+                                                           get_query_parameter: GetQueryParameter) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
     scopes_strings = get_query_parameter(data_json["redirect_uri"], "scope").split(" ")
@@ -33,7 +32,7 @@ def should_have_required_scopes_in_login_redirect_response(base_auth_login_call:
 
 def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(
         base_auth_login_call: BaseAuthLogin, validate_response: ValidateResponse,
-        get_query_parameter: GetQueryParameter):
+        get_query_parameter: GetQueryParameter) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
     state_string = get_query_parameter(data_json["redirect_uri"], "state")
@@ -43,7 +42,7 @@ def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(
 
 def should_have_random_state_in_login_redirect_response(base_auth_login_call: BaseAuthLogin,
                                                         validate_response: ValidateResponse,
-                                                        get_query_parameter: GetQueryParameter):
+                                                        get_query_parameter: GetQueryParameter) -> None:
     responses = [base_auth_login_call() for _ in range(10)]
     response_contents = [validate_response(response) for response in responses]
     state_strings = [get_query_parameter(data["redirect_uri"], "state") for data in response_contents]
@@ -52,7 +51,7 @@ def should_have_random_state_in_login_redirect_response(base_auth_login_call: Ba
 
 def should_have_response_type_as_code_in_login_redirect_response(base_auth_login_call: BaseAuthLogin,
                                                                  validate_response: ValidateResponse,
-                                                                 get_query_parameter: GetQueryParameter):
+                                                                 get_query_parameter: GetQueryParameter) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
     response_type_string = get_query_parameter(data_json["redirect_uri"], "response_type")
@@ -61,7 +60,7 @@ def should_have_response_type_as_code_in_login_redirect_response(base_auth_login
 
 def should_save_state_in_database(base_auth_login_call: BaseAuthLogin, db_connection: DatabaseConnection,
                                   validate_response: ValidateResponse,
-                                  get_query_parameter: GetQueryParameter):
+                                  get_query_parameter: GetQueryParameter) -> None:
     response = base_auth_login_call()
     data_json = validate_response(response)
     state_string = get_query_parameter(data_json["redirect_uri"], "state")
@@ -72,7 +71,7 @@ def should_save_state_in_database(base_auth_login_call: BaseAuthLogin, db_connec
 
 def should_get_redirect_uri_from_query_and_include_in_response(monkeypatch: MonkeyPatch, test_client: TestClient,
                                                                validate_response: ValidateResponse,
-                                                               get_query_parameter: GetQueryParameter):
+                                                               get_query_parameter: GetQueryParameter) -> None:
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", "test")
     expected_redirect_uri = "https://example.redirect.test"
     response = test_client.get(f"/auth/login?client_redirect_uri={expected_redirect_uri}")
@@ -82,7 +81,7 @@ def should_get_redirect_uri_from_query_and_include_in_response(monkeypatch: Monk
 
 def should_get_spotify_client_id_from_env_and_include_in_response(test_client: TestClient, monkeypatch: MonkeyPatch,
                                                                   validate_response: ValidateResponse,
-                                                                  get_query_parameter: GetQueryParameter):
+                                                                  get_query_parameter: GetQueryParameter) -> None:
     expected_client_id = "test_client_id"
     monkeypatch.setenv("SPOTIFY_CLIENT_ID", expected_client_id)
     response = test_client.get("/auth/login?client_redirect_uri=test")
@@ -91,14 +90,14 @@ def should_get_spotify_client_id_from_env_and_include_in_response(test_client: T
 
 
 def should_return_internal_server_error_if_no_client_id_in_env(test_client: TestClient,
-                                                               validate_response: ValidateResponse):
+                                                               validate_response: ValidateResponse) -> None:
     response = test_client.get("/auth/login?client_redirect_uri=test")
     error = validate_response(response, 500)
     assert error["detail"] == "Internal server error"
 
 
 def should_detail_internal_server_error_in_non_production_environment(test_client: TestClient, monkeypatch: MonkeyPatch,
-                                                                      validate_response: ValidateResponse):
+                                                                      validate_response: ValidateResponse) -> None:
     monkeypatch.setenv("ENVIRONMENT", "development")
     response = test_client.get("/auth/login?client_redirect_uri=test")
     error = validate_response(response, 500)

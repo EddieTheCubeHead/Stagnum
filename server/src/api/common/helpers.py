@@ -4,10 +4,10 @@ import string
 from logging import getLogger
 from typing import Never
 
+from database.entities import User
 from fastapi import HTTPException
 
 from api.common.models import UserModel
-from database.entities import User
 
 _logger = getLogger("main.api.common.helpers")
 
@@ -63,8 +63,7 @@ def _get_client_secret() -> str:
     return client_secret
 
 def _get_environment() -> str:
-    environment = os.getenv("ENVIRONMENT", default="production").lower()
-    return environment
+    return os.getenv("ENVIRONMENT", default="production").lower()
 
 def _get_allowed_origins() -> list[str]:
     raw_environment_value = os.getenv("CORS_ORIGINS", default="http://localhost")

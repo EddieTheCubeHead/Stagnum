@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL, FileHandler, Handler, Formatter, StreamHandler, getLogger
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, FileHandler, Formatter, Handler, StreamHandler, getLogger
 from typing import Any
 
 # Borrowed from ClusterBot by Eddie and discord.py by Rapptz:
@@ -28,16 +28,16 @@ def get_config(config_name: str) -> str | int:
     config = os.getenv(config_name, None)
     if config is None:
         file_path = os.path.join(os.path.dirname(__file__), "./config.json")
-        with open(file_path, "r", encoding="utf-8") as config_file:
+        with open(file_path, encoding="utf-8") as config_file:
             config = json.loads(config_file.read())[config_name]
     return config
 
 
 class LoggingConfiguration:
 
-    def __init__(self, log_file: str, log_stream: str, log_level: str):
+    def __init__(self, log_file: str, log_stream: str, log_level: str) -> None:
         self.log_file = log_file
-        self.log_stream = _LOG_STREAMS.get(log_stream, None)
+        self.log_stream = _LOG_STREAMS.get(log_stream)
         self.log_level = _LOG_LEVELS[log_level]
 
 
@@ -45,10 +45,7 @@ def _build_configuration_from_config(log_type: str) -> LoggingConfiguration:
     log_file = get_config(f"{log_type}_log_file".upper())
     log_stream = get_config(f"{log_type}_log_stream".upper())
     log_level = get_config(f"{log_type}_log_level".upper())
-    if log_file in [None, ""]:
-        log_file = None
-    else:
-        log_file = f"{log_file}.log"
+    log_file = None if log_file in [None, ""] else f"{log_file}.log"
     if log_stream in [None, ""]:
         log_stream = None
     return LoggingConfiguration(log_file, log_stream, log_level)
@@ -62,7 +59,7 @@ def _get_formatter(handler: Handler) -> Formatter:
     return Formatter("{asctime} {levelname:<8} {name:<30} {message}", dt_fmt, style="{")
 
 
-def _ensure_file(file_name: str):
+def _ensure_file(file_name: str) -> None:
     with open(file_name, "w") as _:
         pass
 
@@ -74,7 +71,7 @@ def _get_file_handler(file_name: str) -> FileHandler:
     return _FILE_HANDLERS[file_name]
 
 
-def _build_logger(log_type: str):
+def _build_logger(log_type: str) -> None:
     log_config = _build_configuration_from_config(log_type)
     stream_handler = None
     if log_config.log_stream is not None:
@@ -92,7 +89,7 @@ def _build_logger(log_type: str):
         logger.addHandler(file_handler)
 
 
-def setup_logging():
+def setup_logging() -> None:
     _build_logger("main")
     _build_logger("uvicorn")
     _build_logger("sqlalchemy")
@@ -129,24 +126,24 @@ DEALINGS IN THE SOFTWARE.
 
 
 def is_docker() -> bool:
-    path = '/proc/self/cgroup'
-    return os.path.exists('/.dockerenv') or (os.path.isfile(path) and any('docker' in line for line in open(path)))
+    path = "/proc/self/cgroup"
+    return os.path.exists("/.dockerenv") or (os.path.isfile(path) and any("docker" in line for line in open(path)))
 
 
 def stream_supports_colour(stream: Any) -> bool:
-    is_a_tty = hasattr(stream, 'isatty') and stream.isatty()
+    is_a_tty = hasattr(stream, "isatty") and stream.isatty()
 
     # Pycharm and Vscode support colour in their inbuilt editors
-    if 'PYCHARM_HOSTED' in os.environ or os.environ.get('TERM_PROGRAM') == 'vscode':
+    if "PYCHARM_HOSTED" in os.environ or os.environ.get("TERM_PROGRAM") == "vscode":
         return True
 
-    if sys.platform != 'win32':
+    if sys.platform != "win32":
         # Docker does not consistently have a tty attached to it
         return is_a_tty or is_docker()
 
     # ANSICON checks for things like ConEmu
     # WT_SESSION checks if this is Windows Terminal
-    return is_a_tty and ('ANSICON' in os.environ or 'WT_SESSION' in os.environ)
+    return is_a_tty and ("ANSICON" in os.environ or "WT_SESSION" in os.environ)
 
 
 class _ColourFormatter(Formatter):
@@ -161,17 +158,17 @@ class _ColourFormatter(Formatter):
     # 1 means bold, 2 means dim, 0 means reset, and 4 means underline.
 
     LEVEL_COLOURS = [
-        (DEBUG, '\x1b[37;1m'),
-        (INFO, '\x1b[34;1m'),
-        (WARNING, '\x1b[33;1m'),
-        (ERROR, '\x1b[31m'),
-        (CRITICAL, '\x1b[41m'),
+        (DEBUG, "\x1b[37;1m"),
+        (INFO, "\x1b[34;1m"),
+        (WARNING, "\x1b[33;1m"),
+        (ERROR, "\x1b[31m"),
+        (CRITICAL, "\x1b[41m"),
     ]
 
     FORMATS = {
         level: Formatter(
-            f'\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)-30s\x1b[0m %(message)s',
-            '%Y-%m-%d %H:%M:%S',
+            f"\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)-30s\x1b[0m %(message)s",
+            "%Y-%m-%d %H:%M:%S",
         )
         for level, colour in LEVEL_COLOURS
     }
@@ -184,7 +181,7 @@ class _ColourFormatter(Formatter):
         # Override the traceback to always print in red
         if record.exc_info:
             text = formatter.formatException(record.exc_info)
-            record.exc_text = f'\x1b[31m{text}\x1b[0m'
+            record.exc_text = f"\x1b[31m{text}\x1b[0m"
 
         output = formatter.format(record)
 

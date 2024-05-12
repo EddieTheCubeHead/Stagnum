@@ -1,4 +1,4 @@
-from typing import TypedDict, Literal, Never
+from typing import Literal, Never, TypedDict
 
 
 class Headers(TypedDict):

@@ -3,18 +3,19 @@ import datetime
 import functools
 import json
 from logging import getLogger
-from typing import Annotated
+from typing import Annotated, Optional
 
 import requests
-from fastapi import Depends, HTTPException, Header
+from database.database_connection import ConnectionManager
+from database.entities import User, UserSession
+from fastapi import Depends, Header, HTTPException
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
+from starlette import status
 
 from api.common.helpers import _get_client_id, _get_client_secret
 from api.common.models import SpotifyTokenResponse
-from database.database_connection import ConnectionManager
-from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
 
@@ -22,7 +23,7 @@ _logger = getLogger("main.api.common.dependencies")
 class DateTimeWrapperRaw:
     """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._timezone = datetime.timezone.utc
 
     def now(self):
@@ -42,12 +43,14 @@ class RequestsClientRaw:
     get any test coverage due to always being mocked in tests.
     """
 
+    _LINE_CUTOFF = 256
+
     @functools.wraps(requests.get)
     def get(self, *args, **kwargs):
         _logger.debug(f"GET: {args} {kwargs}")
         result = requests.get(*args, **kwargs)
         _logger.info(f"Call result: {result.status_code} ; "
-                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+                     f"{result.content[:self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}")
         return result
 
     @functools.wraps(requests.post)
@@ -55,7 +58,7 @@ class RequestsClientRaw:
         _logger.debug(f"POST: {args} {kwargs}")
         result = requests.post(*args, **kwargs)
         _logger.info(f"Call result: {result.status_code} ; "
-                     f"{result.content[:256]}{"..." if len(result.content) > 256 else ""}")
+                     f"{result.content[:self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}")
         return result
 
     @functools.wraps(requests.put)
@@ -73,7 +76,7 @@ RequestsClient = Annotated[RequestsClientRaw, Depends()]
 def _validate_and_decode(response: RequestsResponse) -> dict:
     response_string = response.content.decode("utf8")
     parsed_data = json.loads(response_string) if response_string else None
-    if response.status_code >= 400:
+    if response.status_code >= status.HTTP_400_BAD_REQUEST:
         error_message = (f"Error code {response.status_code} received while calling Spotify API. "
                          f"Message: {parsed_data["error"]}")
         raise HTTPException(status_code=502, detail=error_message)
@@ -81,22 +84,22 @@ def _validate_and_decode(response: RequestsResponse) -> dict:
 
 
 class SpotifyClientRaw:
-    def __init__(self, request_client: RequestsClient):
+    def __init__(self, request_client: RequestsClient) -> None:
         self._request_client = request_client
 
-    def get(self, query: str = None, *args, override_url: str = None, **kwargs) -> dict:
+    def get(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs) -> dict:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.get(f"{query}", *args, **kwargs)
         return _validate_and_decode(raw_response)
 
-    def post(self, query: str = None, *args, override_url: str = None, **kwargs) -> dict:
+    def post(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs) -> dict:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.post(f"{query}", *args, **kwargs)
         return _validate_and_decode(raw_response)
 
-    def put(self, query: str = None, *args, override_url: str = None, **kwargs):
+    def put(self, query: Optional[str] = None, *args, override_url: Optional[str] = None, **kwargs):
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.put(f"{query}", *args, **kwargs)
@@ -112,7 +115,7 @@ _ALLOWED_PRODUCT_TYPES = {"premium"}
 
 class AuthSpotifyClientRaw:
 
-    def __init__(self, spotify_client: SpotifyClient):
+    def __init__(self, spotify_client: SpotifyClient) -> None:
         self._spotify_client = spotify_client
 
     def get_token(self, code: str, client_id: str, client_secret: str, redirect_uri: str) -> SpotifyTokenResponse:
@@ -131,7 +134,7 @@ class AuthSpotifyClientRaw:
         return self._get_token_from_form(client_id, client_secret, form)
 
     def _get_token_from_form(self, client_id, client_secret, form):
-        token = base64.b64encode((client_id + ':' + client_secret).encode('ascii')).decode('ascii')
+        token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
         headers = {
             "Authorization": "Basic " + token,
             "Content-Type": "application/x-www-form-urlencoded"
@@ -160,7 +163,7 @@ AuthSpotifyClient = Annotated[AuthSpotifyClientRaw, Depends()]
 
 class UserDatabaseConnectionRaw:
 
-    def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper):
+    def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper) -> None:
         self._database_connection = database_connection
         self._datetime_wrapper = datetime_wrapper
 
@@ -176,7 +179,7 @@ class UserDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(User).where(User.spotify_id == user_id))
 
-    def log_out(self, token: str):
+    def log_out(self, token: str) -> None:
         with self._database_connection.session() as session:
             user = session.scalar(select(User).where(User.session.has(UserSession.user_token == token)))
             session.delete(user.session)
@@ -198,7 +201,7 @@ UserDatabaseConnection = Annotated[UserDatabaseConnectionRaw, Depends()]
 class TokenHolderRaw:
 
     def __init__(self, user_database_connection: UserDatabaseConnection, auth_client: AuthSpotifyClient,
-                 datetime_wrapper: DateTimeWrapper, response: FastAPIResponse):
+                 datetime_wrapper: DateTimeWrapper, response: FastAPIResponse) -> None:
         self._user_database_connection = user_database_connection
         self._auth_client = auth_client
         self._datetime_wrapper = datetime_wrapper
@@ -217,7 +220,7 @@ class TokenHolderRaw:
         self._ensure_fresh_token(user)
         return user
 
-    def log_out(self, token: str):
+    def log_out(self, token: str) -> None:
         self._user_database_connection.log_out(token)
 
     def is_token_logged_in(self, token: str):
@@ -226,7 +229,7 @@ class TokenHolderRaw:
     def is_user_logged_in(self, user_id: str):
         return self._user_database_connection.get_from_id(user_id).session is not None
 
-    def _ensure_fresh_token(self, user: User):
+    def _ensure_fresh_token(self, user: User) -> None:
         user_session: UserSession = user.session
         if self._datetime_wrapper.ensure_utc(user_session.expires_at) <= self._datetime_wrapper.now():
             _logger.info(f"Refreshing token for user {user.spotify_username}")
@@ -243,7 +246,7 @@ TokenHolder = Annotated[TokenHolderRaw, Depends()]
 
 # Authorization is read case-sensitively from headers and needs to be capitalized
 # noinspection PyPep8Naming
-def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:
+def validated_user_raw(Authorization: Annotated[str, Header()], token_holder: TokenHolder) -> User:  # noqa: N803
     return _get_user_from_token(Authorization, token_holder)
 
 
@@ -252,7 +255,7 @@ validated_user = Annotated[User, Depends(validated_user_raw)]
 
 # Authorization is read case-sensitively from headers and needs to be capitalized
 # noinspection PyPep8Naming
-def validated_user_from_query_parameters_raw(Authorization: str, token_holder: TokenHolder) -> User:
+def validated_user_from_query_parameters_raw(Authorization: str, token_holder: TokenHolder) -> User:  # noqa: N803
     return _get_user_from_token(Authorization, token_holder)
 
 
@@ -261,5 +264,4 @@ validated_user_from_query_parameters = Annotated[User, Depends(validated_user_fr
 
 def _get_user_from_token(token: str, token_holder: TokenHolder) -> User:
     _logger.debug(f"Getting user for token {token}")
-    user = token_holder.get_user_from_token(token)
-    return user
+    return token_holder.get_user_from_token(token)

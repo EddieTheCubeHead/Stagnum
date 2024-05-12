@@ -3,8 +3,8 @@ from logging import getLogger
 from fastapi import APIRouter
 
 from api.common.dependencies import DateTimeWrapper
-from api.health.dependencies import RequestTimer, HealthcheckDatabaseConnection
-from api.health.models import HealthcheckResult, HEALTHY, HealthcheckResourceResult, UNHEALTHY
+from api.health.dependencies import HealthcheckDatabaseConnection, RequestTimer
+from api.health.models import HEALTHY, UNHEALTHY, HealthcheckResourceResult, HealthcheckResult
 
 _logger = getLogger("main.api.pool.routes")
 

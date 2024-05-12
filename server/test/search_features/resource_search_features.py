@@ -3,13 +3,19 @@ from unittest.mock import Mock
 import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
-from starlette.testclient import TestClient
-
 from helpers.classes import ErrorData
-from test_types.callables import CreateSearchResponse, ValidatePaginatedResultLength, ValidateResponse, \
-    BuildSuccessResponse, AssertTokenInHeaders, RunSearchCall, RunSearch
-from test_types.typed_dictionaries import Headers
+from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
+from test_types.callables import (
+    AssertTokenInHeaders,
+    BuildSuccessResponse,
+    CreateSearchResponse,
+    RunSearch,
+    RunSearchCall,
+    ValidatePaginatedResultLength,
+    ValidateResponse,
+)
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture(params=["album", "artist", "track", "playlist"])
@@ -17,7 +23,7 @@ def search_item_type(request) -> str:
     return request.param
 
 
-@pytest.fixture()
+@pytest.fixture
 def run_search_resource_call(request: FixtureRequest, test_client: TestClient, valid_token_header: Headers,
                              requests_client_get_queue: MockResponseQueue, search_item_type,
                              run_search_call: RunSearchCall) -> RunSearch:
@@ -32,7 +38,7 @@ def run_search_resource_call(request: FixtureRequest, test_client: TestClient, v
 
 def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header: Headers,
                                              validate_response: ValidateResponse, search_item_type: str,
-                                             spotify_error_message: ErrorData):
+                                             spotify_error_message: ErrorData) -> None:
     response = test_client.get(f"/search/{search_item_type}s?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
     assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
@@ -43,7 +49,7 @@ def should_include_current_token_in_response_headers(requests_client_get_queue: 
                                                      build_success_response: BuildSuccessResponse, test_client,
                                                      valid_token_header: Headers,
                                                      assert_token_in_headers: AssertTokenInHeaders,
-                                                     run_search_resource_call: RunSearch):
+                                                     run_search_resource_call: RunSearch) -> None:
     query = "test query"
     result = run_search_resource_call(query)
     assert_token_in_headers(result)
@@ -53,7 +59,7 @@ def should_return_bad_request_without_calling_spotify_on_empty_query(test_client
                                                                      valid_token_header: Headers,
                                                                      validate_response: ValidateResponse,
                                                                      search_item_type: str,
-                                                                     requests_client: Mock):
+                                                                     requests_client: Mock) -> None:
     query = ""
     result = test_client.get(f"/search/{search_item_type}s?query={query}", headers=valid_token_header)
 
@@ -64,7 +70,7 @@ def should_return_bad_request_without_calling_spotify_on_empty_query(test_client
 
 def should_get_twenty_items_by_default(validate_response: ValidateResponse,
                                        validate_paginated_result_length: ValidatePaginatedResultLength,
-                                       run_search_resource_call: RunSearch):
+                                       run_search_resource_call: RunSearch) -> None:
     query = "my query"
     result = run_search_resource_call(query)
     search_result = validate_response(result)
@@ -74,7 +80,7 @@ def should_get_twenty_items_by_default(validate_response: ValidateResponse,
 def should_query_spotify_for_items_with_provided_query_string(run_search_resource_call: RunSearch,
                                                               test_client: TestClient, valid_token_header: Headers,
                                                               requests_client: Mock, search_item_type: str
-                                                              ):
+                                                              ) -> None:
     query = "my query"
     run_search_resource_call(query)
     full_query = f"https://api.spotify.com/v1/search?q={query}&type={search_item_type}&offset=0&limit=20"
@@ -83,7 +89,7 @@ def should_query_spotify_for_items_with_provided_query_string(run_search_resourc
 
 def should_return_less_results_if_twenty_not_found(test_client: TestClient, validate_response: ValidateResponse,
                                                    validate_paginated_result_length: ValidatePaginatedResultLength,
-                                                   run_search_resource_call: RunSearch):
+                                                   run_search_resource_call: RunSearch) -> None:
     expected_result_count = 7
     query = "my query"
     result = run_search_resource_call(query, expected_result_count)
@@ -94,7 +100,7 @@ def should_return_less_results_if_twenty_not_found(test_client: TestClient, vali
 def should_use_offset_and_limit_if_provided(valid_token_header: Headers, requests_client: Mock,
                                             validate_response: ValidateResponse, search_item_type: str,
                                             validate_paginated_result_length: ValidatePaginatedResultLength,
-                                            run_search_resource_call: RunSearch):
+                                            run_search_resource_call: RunSearch) -> None:
     offset = 20
     limit = 10
     query = "my query"

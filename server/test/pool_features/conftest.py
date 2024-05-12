@@ -7,28 +7,50 @@ import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from faker import Faker
-from sqlalchemy import select
-from starlette.testclient import TestClient
-
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
 from api.common.models import ParsedTokenResponse
 from api.pool import queue_next_songs
-from api.pool.dependencies import PoolDatabaseConnectionRaw, PoolSpotifyClientRaw, PoolPlaybackServiceRaw, \
-    WebsocketUpdaterRaw
+from api.pool.dependencies import (
+    PoolDatabaseConnectionRaw,
+    PoolPlaybackServiceRaw,
+    PoolSpotifyClientRaw,
+    WebsocketUpdaterRaw,
+)
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from database.database_connection import ConnectionManager
-from database.entities import User, EntityBase
-from helpers.classes import MockDateTimeWrapper, CurrentPlaybackData, MockedPlaylistPoolContent
+from database.entities import EntityBase, User
+from faker import Faker
+from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent
+from sqlalchemy import select
+from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
-from test_types.callables import MockTrackSearchResult, BuildSuccessResponse, \
-    CreatePoolCreationDataJson, ValidateResponse, CreateSpotifyPlaybackState, \
-    MockNoPlayerStateResponse, MockPlaybackPausedResponse, SkipSong, \
-    CreateSpotifyPlayback, RunSchedulingJob, MockPlaylistFetchResult, \
-    SharePoolAndGetCode, BuildQueue, CreatePlayback, AssertEmptyTables
-from test_types.typed_dictionaries import TrackData, PlaybackStateData, PlaybackContextData, Headers, QueueData, \
-    PaginatedSearchResultData, PlaylistTrackData
+from test_types.callables import (
+    AssertEmptyTables,
+    BuildQueue,
+    BuildSuccessResponse,
+    CreatePlayback,
+    CreatePoolCreationDataJson,
+    CreateSpotifyPlayback,
+    CreateSpotifyPlaybackState,
+    MockNoPlayerStateResponse,
+    MockPlaybackPausedResponse,
+    MockPlaylistFetchResult,
+    MockTrackSearchResult,
+    RunSchedulingJob,
+    SharePoolAndGetCode,
+    SkipSong,
+    ValidateResponse,
+)
+from test_types.typed_dictionaries import (
+    Headers,
+    PaginatedSearchResultData,
+    PlaybackContextData,
+    PlaybackStateData,
+    PlaylistTrackData,
+    QueueData,
+    TrackData,
+)
 
 
 @pytest.fixture
@@ -286,7 +308,7 @@ def build_queue_with_song(create_mock_track_search_result: MockTrackSearchResult
         queue_tail = [current_playback_data.current_track] * 50
         return {
             "currently_playing": currently_playing,
-            "queue": [next_song] + queue_tail,
+            "queue": [next_song, *queue_tail],
         }
 
     return wrapper

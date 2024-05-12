@@ -5,7 +5,7 @@ from typing import ContextManager
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from database.entities import EntityBase
 
@@ -19,7 +19,7 @@ class ConnectionManager:
     # thus preventing us from dropping data. Not perfect but good enough. We're mostly using Postgre anyway.
     _sqlite_in_memory_engine = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         db_address = os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
         echo = os.getenv("VERBOSE_SQLALCHEMY", default="False").lower() != "false"
         _logger.debug(f"Initializing database connection manager from connection string '{db_address}'")
@@ -34,7 +34,7 @@ class ConnectionManager:
         self._session.configure(bind=self.engine)
         self.init_objects(EntityBase)
 
-    def init_objects(self, base_model):
+    def init_objects(self, base_model) -> None:
         _logger.debug("Initializing database from model metadata")
         base_model.metadata.create_all(self.engine)
 

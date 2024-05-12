@@ -12,7 +12,7 @@ websocket_router = APIRouter(
 
 @websocket_router.websocket("/connect")
 async def register(websocket: WebSocket, user: validated_user_from_query_parameters,
-                   websocket_updater: WebsocketUpdater):
+                   websocket_updater: WebsocketUpdater) -> None:
     await websocket.accept()
     websocket_updater.add_socket(websocket, user)
     try:

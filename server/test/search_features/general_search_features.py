@@ -1,14 +1,23 @@
+from typing import Optional
 from unittest.mock import Mock
 
 import httpx
 import pytest
-from starlette.testclient import TestClient
-
 from conftest import ErrorData
+from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
-from test_types.callables import CreateGeneralSearch, CreateSearchResponse, \
-    BuildSuccessResponse, ValidateResponse, ValidatePaginatedResultLength, AssertTokenInHeaders, RunSearchCall, \
-    CreateSearchResponseFromImages, RunGeneralSearchWithCustomImages, RunSearch
+from test_types.callables import (
+    AssertTokenInHeaders,
+    BuildSuccessResponse,
+    CreateGeneralSearch,
+    CreateSearchResponse,
+    CreateSearchResponseFromImages,
+    RunGeneralSearchWithCustomImages,
+    RunSearch,
+    RunSearchCall,
+    ValidatePaginatedResultLength,
+    ValidateResponse,
+)
 from test_types.typed_dictionaries import Headers, ImageData
 
 
@@ -39,7 +48,7 @@ def build_general_search_with_custom_images(build_spotify_general_search: Create
 def run_general_search_with_custom_images(build_general_search_with_custom_images: CreateSearchResponseFromImages,
                                           requests_client_get_queue: MockResponseQueue, test_client: TestClient,
                                           valid_token_header: Headers) -> RunGeneralSearchWithCustomImages:
-    def wrapper(query: str, limit: int = 20, images: list[ImageData] = None) -> httpx.Response:
+    def wrapper(query: str, limit: int = 20, images: Optional[list[ImageData]] = None) -> httpx.Response:
         requests_client_get_queue.append(build_general_search_with_custom_images(query, limit, images))
         return test_client.get(f"/search?query={query}", headers=valid_token_header)
 
@@ -61,7 +70,7 @@ def should_return_twenty_items_from_search(test_client: TestClient, valid_token_
                                            build_spotify_general_search_response: CreateSearchResponse,
                                            validate_response: ValidateResponse, requests_client: Mock,
                                            validate_paginated_result_length: ValidatePaginatedResultLength,
-                                           run_general_search: RunSearch):
+                                           run_general_search: RunSearch) -> None:
     result = run_general_search("my query")
     search_result = validate_response(result)
     for item_type in ("tracks", "albums", "artists", "playlists"):
@@ -70,7 +79,7 @@ def should_return_twenty_items_from_search(test_client: TestClient, valid_token_
 
 def should_return_less_than_twenty_results_if_spotify_returns_less(
         validate_response: ValidateResponse, validate_paginated_result_length: ValidatePaginatedResultLength,
-        run_general_search: RunSearch):
+        run_general_search: RunSearch) -> None:
     limit = 5
     result = run_general_search("my query", limit)
     search_result = validate_response(result)
@@ -79,7 +88,7 @@ def should_return_less_than_twenty_results_if_spotify_returns_less(
 
 
 def should_call_spotify_with_the_provided_query(valid_token_header: Headers, requests_client: Mock,
-                                                run_general_search: RunSearch):
+                                                run_general_search: RunSearch) -> None:
     query = "test query please ignore"
     run_general_search(query)
     types = ",".join(["track", "album", "artist", "playlist"])
@@ -88,7 +97,7 @@ def should_call_spotify_with_the_provided_query(valid_token_header: Headers, req
 
 
 def should_return_largest_image(validate_response: ValidateResponse, default_image_data: list[ImageData],
-                                run_general_search_with_custom_images: RunGeneralSearchWithCustomImages):
+                                run_general_search_with_custom_images: RunGeneralSearchWithCustomImages) -> None:
     default_image_data.append({"url": "my_expected_image_url", "height": 500, "width": 600})
     result = run_general_search_with_custom_images("query", images=default_image_data)
     search_result = validate_response(result)
@@ -96,7 +105,7 @@ def should_return_largest_image(validate_response: ValidateResponse, default_ima
 
 
 def should_treat_none_size_as_zero(default_image_data: list[ImageData], validate_response: ValidateResponse,
-                                   run_general_search_with_custom_images: RunGeneralSearchWithCustomImages):
+                                   run_general_search_with_custom_images: RunGeneralSearchWithCustomImages) -> None:
     default_image_data.append({"url": "my_expected_image_url", "height": None, "width": None})
     result = run_general_search_with_custom_images("query", images=default_image_data)
     search_result = validate_response(result)
@@ -104,7 +113,7 @@ def should_treat_none_size_as_zero(default_image_data: list[ImageData], validate
 
 
 def should_return_none_size_if_only_image(run_general_search_with_custom_images: RunGeneralSearchWithCustomImages,
-                                          validate_response: ValidateResponse):
+                                          validate_response: ValidateResponse) -> None:
     expected_image_url = "my_expected_image_url"
     images: list[ImageData] = [{"url": expected_image_url, "height": None, "width": None}]
     result = run_general_search_with_custom_images("query", images=images)
@@ -112,12 +121,12 @@ def should_return_none_size_if_only_image(run_general_search_with_custom_images:
     assert search_result["albums"]["items"][0]["icon_link"] == expected_image_url
 
 
-@pytest.mark.parametrize("date_string", ["2021-01-10", "2021-01", "2021"])
+@pytest.mark.parametrize("date_string", ("2021-01-10", "2021-01", "2021"))
 def should_accept_any_date_starting_with_year(test_client: TestClient, valid_token_header: Headers,
                                               build_spotify_general_search: CreateGeneralSearch,
                                               validate_response: ValidateResponse,
                                               requests_client_get_queue: MockResponseQueue,
-                                              build_success_response: BuildSuccessResponse, date_string: str):
+                                              build_success_response: BuildSuccessResponse, date_string: str) -> None:
     query = "test query"
     search_result = build_spotify_general_search(query)
     search_result["albums"]["items"][0]["release_date"] = date_string
@@ -129,7 +138,7 @@ def should_accept_any_date_starting_with_year(test_client: TestClient, valid_tok
 
 def should_propagate_errors_from_spotify_api(test_client: TestClient, valid_token_header: Headers,
                                              validate_response: ValidateResponse,
-                                             spotify_error_message: ErrorData):
+                                             spotify_error_message: ErrorData) -> None:
     response = test_client.get("/search?query=test", headers=valid_token_header)
     json_data = validate_response(response, 502)
     assert json_data["detail"] == (f"Error code {spotify_error_message.code} received while calling Spotify API. "
@@ -140,7 +149,7 @@ def should_include_current_token_in_response_headers(requests_client_get_queue: 
                                                      build_success_response: BuildSuccessResponse, test_client,
                                                      valid_token_header: Headers,
                                                      assert_token_in_headers: AssertTokenInHeaders,
-                                                     run_general_search):
+                                                     run_general_search) -> None:
     query = "test query"
     result = run_general_search(query)
     assert_token_in_headers(result)
@@ -149,7 +158,7 @@ def should_include_current_token_in_response_headers(requests_client_get_queue: 
 def should_return_bad_request_without_calling_spotify_on_empty_query(test_client: TestClient,
                                                                      valid_token_header: Headers,
                                                                      validate_response: ValidateResponse,
-                                                                     requests_client: Mock):
+                                                                     requests_client: Mock) -> None:
     query = ""
     result = test_client.get(f"/search?query={query}", headers=valid_token_header)
 

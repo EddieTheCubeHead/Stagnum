@@ -4,8 +4,14 @@ from fastapi import APIRouter
 
 from api.common.dependencies import validated_user
 from api.search.dependencies import SearchSpotifyClient
-from api.search.models import GeneralSearchResult, SpotifyPlayableType, TrackSearchResult, AlbumSearchResult, \
-    ArtistSearchResult, PlaylistSearchResult
+from api.search.models import (
+    AlbumSearchResult,
+    ArtistSearchResult,
+    GeneralSearchResult,
+    PlaylistSearchResult,
+    SpotifyPlayableType,
+    TrackSearchResult,
+)
 
 _logger = getLogger("main.api.search.routes")
 

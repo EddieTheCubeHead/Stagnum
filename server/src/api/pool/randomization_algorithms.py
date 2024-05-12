@@ -3,9 +3,8 @@ import random
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends
-
 from database.entities import PoolMember, User
+from fastapi import Depends
 
 
 @dataclass
@@ -36,7 +35,7 @@ def _get_members_weight(members: list[PoolMember]) -> int:
 class PoolRandomizer:
 
     def __init__(self, pool_members: list[PoolMember], users: list[User],
-                 randomization_parameters: RandomizationParameters):
+                 randomization_parameters: RandomizationParameters) -> None:
 
         # Custom weight and user playback time based weight both operate on an exponential scale. These two base numbers
         # control the aggressiveness of that exponential scale (base^modifier, modifier [-1,1])
@@ -46,7 +45,7 @@ class PoolRandomizer:
         self._users: dict[str, User] = {user.spotify_id: user for user in users}
         self._user_pools: dict[str, [PoolMember]] = {user.spotify_id: [] for user in users}
         self._pool_length = len(pool_members)
-        self._pool_length_ms = sum((pool_member.duration_ms for pool_member in pool_members))
+        self._pool_length_ms = sum(pool_member.duration_ms for pool_member in pool_members)
 
         # Pseudo random weighting operates on a floor/ceiling principle, where both are integer percentage values of
         # pool length. Floor is the amount of tracks that need to be played before the track can appear again, while
@@ -81,6 +80,7 @@ class PoolRandomizer:
             walker += user_pool_member.weight
             if walker >= track_location:
                 return user_pool_member.pool_member
+        return None
 
     def _get_next_playing_user_id(self) -> str:
         eligible_user_play_times: [(str, int)] = []
@@ -107,6 +107,7 @@ class PoolRandomizer:
             walker += user_weight
             if walker >= user_location:
                 return user_id
+        return None
 
     def _calculate_user_weight(self, total_play_time: int, user_play_time: int) -> float:
         # Always give full weight for users with no play time
@@ -126,8 +127,7 @@ class PoolRandomizer:
         user_weight_power_shifted = user_weight_power_reversed_shifted * -2
 
         # Finally we raise the base weight scale to the power of the user weight modifier
-        user_weight = pow(self._user_weight_scale, user_weight_power_shifted)
-        return user_weight
+        return pow(self._user_weight_scale, user_weight_power_shifted)
 
     def _calculate_pool_member_weight(self, pool_member: PoolMember) -> PoolMemberRandomizationData:
         member_weight = pow(self._custom_weight_scale, pool_member.randomization_parameters.weight)

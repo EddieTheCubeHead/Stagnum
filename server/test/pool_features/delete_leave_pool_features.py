@@ -2,14 +2,18 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
-from sqlalchemy import select
-from starlette.testclient import TestClient
-
 from api.pool.models import PoolFullContents
 from database.database_connection import ConnectionManager
-from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User
-from test_types.callables import ValidateResponse, ValidateModel, MockPlaylistFetch, \
-    AssertEmptyPoolModel, AssertEmptyTables
+from database.entities import PlaybackSession, Pool, PoolJoinedUser, PoolMember, User
+from sqlalchemy import select
+from starlette.testclient import TestClient
+from test_types.callables import (
+    AssertEmptyPoolModel,
+    AssertEmptyTables,
+    MockPlaylistFetch,
+    ValidateModel,
+    ValidateResponse,
+)
 from test_types.typed_dictionaries import Headers, TrackData
 
 
@@ -27,7 +31,7 @@ def assert_empty_pool_model(validate_model: ValidateModel) -> AssertEmptyPoolMod
 def should_wipe_whole_pool_on_delete_pool(existing_playback: list[TrackData], test_client: TestClient,
                                           validate_model: ValidateModel, assert_empty_pool_model: AssertEmptyPoolModel,
                                           db_connection: ConnectionManager, assert_empty_tables: AssertEmptyTables,
-                                          valid_token_header: Headers):
+                                          valid_token_header: Headers) -> None:
     response = test_client.delete("/pool", headers=valid_token_header)
 
     assert_empty_pool_model(response)
@@ -35,7 +39,7 @@ def should_wipe_whole_pool_on_delete_pool(existing_playback: list[TrackData], te
 
 
 def should_send_playback_pause_on_pool_delete(existing_playback: list[TrackData], test_client: TestClient,
-                                              requests_client: Mock, valid_token_header: Headers):
+                                              requests_client: Mock, valid_token_header: Headers) -> None:
     requests_client.put.reset_mock()
 
     test_client.delete("/pool", headers=valid_token_header)
@@ -48,7 +52,7 @@ def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code: str, joined
                                                    test_client: TestClient, validate_response: ValidateResponse,
                                                    db_connection: ConnectionManager, another_logged_in_user: User,
                                                    assert_empty_pool_model: AssertEmptyPoolModel,
-                                                   mock_playlist_fetch: MockPlaylistFetch):
+                                                   mock_playlist_fetch: MockPlaylistFetch) -> None:
     pool_content_data = mock_playlist_fetch(35)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 

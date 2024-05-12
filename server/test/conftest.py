@@ -3,7 +3,7 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from unittest.mock import Mock
 
 import httpx
@@ -11,31 +11,63 @@ import pytest
 from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
+from api.application import create_app
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import (
+    AuthSpotifyClient,
+    DateTimeWrapperRaw,
+    RequestsClient,
+    RequestsClientRaw,
+    SpotifyClient,
+    TokenHolder,
+    UserDatabaseConnection,
+)
+from api.common.models import ParsedTokenResponse
+from api.pool.models import PoolContent, PoolCreationData
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember, User
 from faker import Faker
 from fastapi import FastAPI
+from helpers.classes import ErrorData, ErrorResponse, MockDateTimeWrapper, MockedArtistPoolContent, MockedPoolContents
 from pydantic import BaseModel
 from sqlalchemy import select
 from starlette.responses import Response
 from starlette.testclient import TestClient
-
-from api.application import create_app
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClientRaw, TokenHolder, UserDatabaseConnection, \
-    AuthSpotifyClient, SpotifyClient, DateTimeWrapperRaw, RequestsClient
-from api.common.models import ParsedTokenResponse
-from api.pool.models import PoolCreationData, PoolContent
-from database.database_connection import ConnectionManager
-from database.entities import User, PoolMember
-from helpers.classes import MockDateTimeWrapper, ErrorData, ErrorResponse, MockedPoolContents, MockedArtistPoolContent
 from test_types.aliases import MockResponseQueue, SpotifySecrets
-from test_types.callables import ValidateResponse, CreateToken, LogUserIn, \
-    CreateHeaderFromTokenResponse, MockArtistSearchResult, BuildSuccessResponse, \
-    MockAlbumSearchResult, MockTrackSearchResult, MockPlaylistSearchResult, \
-    GetQueryParameter, CreatePoolCreationDataJson, IncrementNow, \
-    MockTokenReturn, ValidateModel, AssertTokenInHeaders, ValidateErrorResponse, MockPlaylistFetch, \
-    MockPlaylistFetchResult, MockAlbumFetch, MockArtistFetch, MockTrackFetch, MockPoolContentFetches, CreatePool
-from test_types.typed_dictionaries import ArtistData, Headers, TrackData, PlaylistData, AlbumData, PoolCreationDataDict, \
-    PoolContentData
+from test_types.callables import (
+    AssertTokenInHeaders,
+    BuildSuccessResponse,
+    CreateHeaderFromTokenResponse,
+    CreatePool,
+    CreatePoolCreationDataJson,
+    CreateToken,
+    GetQueryParameter,
+    IncrementNow,
+    LogUserIn,
+    MockAlbumFetch,
+    MockAlbumSearchResult,
+    MockArtistFetch,
+    MockArtistSearchResult,
+    MockPlaylistFetch,
+    MockPlaylistFetchResult,
+    MockPlaylistSearchResult,
+    MockPoolContentFetches,
+    MockTokenReturn,
+    MockTrackFetch,
+    MockTrackSearchResult,
+    ValidateErrorResponse,
+    ValidateModel,
+    ValidateResponse,
+)
+from test_types.typed_dictionaries import (
+    AlbumData,
+    ArtistData,
+    Headers,
+    PlaylistData,
+    PoolContentData,
+    PoolCreationDataDict,
+    TrackData,
+)
 
 
 @pytest.fixture
@@ -81,8 +113,7 @@ def db_connection(tmp_path: Path, pytestconfig: Config, monkeypatch: MonkeyPatch
     echo = "-v" in pytestconfig.invocation_params.args
     monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
     monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
-    connection = ConnectionManager()
-    return connection
+    return ConnectionManager()
 
 
 @pytest.fixture
@@ -97,8 +128,7 @@ def application_with_dependencies(application: FastAPI, requests_client: Request
 
 @pytest.fixture
 def test_client(application_with_dependencies: FastAPI) -> TestClient:
-    test_client = TestClient(application_with_dependencies)
-    return test_client
+    return TestClient(application_with_dependencies)
 
 
 @pytest.fixture
@@ -124,8 +154,7 @@ def auth_spotify_client(spotify_client: SpotifyClient) -> AuthSpotifyClient:
 def mock_token_holder(db_connection: ConnectionManager, auth_spotify_client: AuthSpotifyClient,
                       mock_datetime_wrapper: MockDateTimeWrapper) -> TokenHolder:
     user_database_connection = UserDatabaseConnection(db_connection, mock_datetime_wrapper)
-    token_holder = TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
-    return token_holder
+    return TokenHolder(user_database_connection, auth_spotify_client, mock_datetime_wrapper, None)
 
 
 @pytest.fixture
@@ -156,7 +185,7 @@ def auth_database_connection(db_connection: ConnectionManager,
 
 @pytest.fixture
 def log_user_in(auth_database_connection: AuthDatabaseConnection) -> LogUserIn:
-    def wrapper(user: User, token: ParsedTokenResponse):
+    def wrapper(user: User, token: ParsedTokenResponse) -> None:
         auth_database_connection.update_logged_in_user(user, token)
 
     return wrapper
@@ -572,8 +601,8 @@ def mock_pool_content_fetches(mock_track_fetch: MockTrackFetch, mock_artist_fetc
                               mock_album_fetch: MockAlbumFetch, mock_playlist_fetch: MockPlaylistFetch,
                               requests_client_get_queue: MockResponseQueue,
                               build_success_response: BuildSuccessResponse) -> MockPoolContentFetches:
-    def wrapper(tracks: int = 0, artists: int = 0, albums: list[int] = None,
-                playlists: list[int] = None) -> PoolCreationDataDict:
+    def wrapper(tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None,
+                playlists: Optional[list[int]] = None) -> PoolCreationDataDict:
         content_models: list[PoolContentData] = []
         for _ in range(tracks):
             content_models.append(mock_track_fetch())
@@ -591,8 +620,8 @@ def mock_pool_content_fetches(mock_track_fetch: MockTrackFetch, mock_artist_fetc
 @pytest.fixture
 def create_pool(mock_pool_content_fetches: MockPoolContentFetches, test_client: TestClient,
                 valid_token_header: Headers, db_connection: ConnectionManager, logged_in_user_id: str) -> CreatePool:
-    def wrapper(tracks: int = 0, artists: int = 0, albums: list[int] = None,
-                playlists: list[int] = None) -> httpx.Response:
+    def wrapper(tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None,
+                playlists: Optional[list[int]] = None) -> httpx.Response:
         data_json = mock_pool_content_fetches(tracks, artists, albums, playlists)
         return test_client.post("/pool", json=data_json, headers=valid_token_header)
     return wrapper

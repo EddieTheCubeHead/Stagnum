@@ -1,0 +1,67 @@
+[tool.ruff]
+line-length = 120
+fix = true
+unsafe-fixes = true
+
+[tool.ruff.lint]
+select = [
+    "F",      # pyflakes
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "C90",    # mccabe complexity analysis
+    "I",      # isort
+    "N",      # pep8 naming
+    "UP",     # pyupgrade
+    "ANN",    # flake8 annotations
+    "ASYNC",  # flake8 async
+    "BLE",    # flake8 blind expect
+    "FBT",    # flake8 boolean trap
+    "B",      # flake8 bugbear
+    "A",      # flake8 builtins
+    "COM",    # flake8 commas
+    "C4",     # flake8 comprehensions
+    "DTZ",    # flake8 datetimes
+    "T10",    # flake8 debugger
+    "EM",     # flake8 error messages
+    "ICN",    # flake8 import conventions
+    "LOG",    # flake8 logging
+    "INP",    # flake8 implicit namespace package
+    "PIE",    # flake8 pie extension (misc.)
+    "T",      # flake8 print
+    "PT",     # flake8 pytest
+    "Q",      # flake8 quotes
+    "RSE",    # flake8 raise
+    "RET",    # flake8 return
+    "SLF",    # flake8 private members
+    "SIM",    # flake8 simplify
+    "TID253", # absolute imports over relative imports
+    "TCH",    # flake8 type checking
+    "ARG",    # flake8 unused arguments
+    "PTH",    # flake8 use pathlib
+    "ERA",    # commented out code
+    "PGH",    # pygrep hooks
+    "PL",     # pylint
+    "TRY",    # tryceratops
+    "PERF",   # perflint
+    "FURB",   # refurb
+    "RUF",    # ruff own rules
+]
+ignore = [
+    "COM812"  # trailing comma insertion
+]
+unfixable = [
+    "E711"  # SQLAlchemy doens't support 'is None' checks -> autofixing '== None' to 'is None' breaks code
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "tuple"
+parametrize-values-type = "tuple"
+parametrize-values-row-type = "tuple"

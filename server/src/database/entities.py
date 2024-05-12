@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import datetime
 
-from sqlalchemy import String, DateTime, Integer, ForeignKey, Boolean, Float
-from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
 
 
 class EntityBase(DeclarativeBase):
@@ -21,10 +21,10 @@ class User(EntityBase):
     spotify_username: Mapped[str] = mapped_column(String(64))
     spotify_avatar_url: Mapped[str] = mapped_column(String(512), nullable=True)
 
-    session: Mapped["UserSession"] = relationship(lazy="joined", back_populates="user", cascade="all, delete-orphan")
-    joined_pool: Mapped["PoolJoinedUser"] = relationship(lazy="joined", back_populates="user")
+    session: Mapped[UserSession] = relationship(lazy="joined", back_populates="user", cascade="all, delete-orphan")
+    joined_pool: Mapped[PoolJoinedUser] = relationship(lazy="joined", back_populates="user")
 
-    own_transient_pool: Mapped["Pool"] = relationship(back_populates="owner_user")
+    own_transient_pool: Mapped[Pool] = relationship(back_populates="owner_user")
 
 
 class UserSession(EntityBase):
@@ -34,7 +34,7 @@ class UserSession(EntityBase):
     last_login_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
 
-    user: Mapped["User"] = relationship(lazy="joined", back_populates="session")
+    user: Mapped[User] = relationship(lazy="joined", back_populates="session")
 
 
 class LoginState(EntityBase):
@@ -53,9 +53,9 @@ class PoolMember(EntityBase):
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"),
                                                   default=None, nullable=True)
 
-    parent: Mapped["PoolMember"] = relationship(lazy="joined", remote_side=[id], back_populates="children")
-    children: Mapped[list["PoolMember"]] = relationship(lazy="joined", back_populates="parent")
-    randomization_parameters: Mapped["PoolMemberRandomizationParameters"] = relationship(lazy="joined",
+    parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")
+    children: Mapped[list[PoolMember]] = relationship(lazy="joined", back_populates="parent")
+    randomization_parameters: Mapped[PoolMemberRandomizationParameters] = relationship(lazy="joined",
                                                                                          back_populates="pool_member")
 
 
@@ -66,7 +66,7 @@ class PoolMemberRandomizationParameters(EntityBase):
     weight: Mapped[float] = mapped_column(Float(), default=0, nullable=False)  # [-1, 1]
     skips_since_last_play: Mapped[int] = mapped_column(Integer(), default=0, nullable=False)
 
-    pool_member: Mapped["PoolMember"] = relationship(lazy="joined", back_populates="randomization_parameters")
+    pool_member: Mapped[PoolMember] = relationship(lazy="joined", back_populates="randomization_parameters")
 
 
 class Pool(EntityBase):
@@ -74,10 +74,10 @@ class Pool(EntityBase):
     name: Mapped[str | None] = mapped_column(String(32), nullable=True)  # Name null -> user transient pool
     owner_user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), nullable=False)
 
-    joined_users: Mapped[list["PoolJoinedUser"]] = relationship(lazy="joined", back_populates="pool")
-    share_data: Mapped["PoolShareData"] = relationship(lazy="joined", back_populates="pool")
+    joined_users: Mapped[list[PoolJoinedUser]] = relationship(lazy="joined", back_populates="pool")
+    share_data: Mapped[PoolShareData] = relationship(lazy="joined", back_populates="pool")
 
-    owner_user: Mapped["User"] = relationship(back_populates="own_transient_pool")
+    owner_user: Mapped[User] = relationship(back_populates="own_transient_pool")
 
 
 class PoolShareData(EntityBase):
@@ -85,7 +85,7 @@ class PoolShareData(EntityBase):
                                          primary_key=True)
     code: Mapped[str] = mapped_column(String(8), nullable=False)
 
-    pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="share_data")
+    pool: Mapped[Pool] = relationship(lazy="joined", back_populates="share_data")
 
 
 class PoolJoinedUser(EntityBase):
@@ -93,8 +93,8 @@ class PoolJoinedUser(EntityBase):
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     playback_time_ms: Mapped[int] = mapped_column(Integer(), default=0)
 
-    pool: Mapped["Pool"] = relationship(lazy="joined", back_populates="joined_users")
-    user: Mapped["User"] = relationship(lazy="joined", back_populates="joined_pool")
+    pool: Mapped[Pool] = relationship(lazy="joined", back_populates="joined_users")
+    user: Mapped[User] = relationship(lazy="joined", back_populates="joined_pool")
 
 
 class PlaybackSession(EntityBase):
@@ -110,4 +110,4 @@ class PlaybackSession(EntityBase):
     current_track_image_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
     current_track_duration_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
 
-    current_track: Mapped["PoolMember"] = relationship()
+    current_track: Mapped[PoolMember] = relationship()
