@@ -62,7 +62,7 @@ class CreateSpotifyPlaybackState(Protocol):
         self,
         song_data: TrackData,
         playback_left: int = ...,
-        is_playing: bool = ...,
+        is_playing: bool = ...,  # noqa: FBT001 - state component, not behaviour modifying flag
         context: PlaybackContextData | None = ...,
     ) -> PlaybackStateData: ...
 
@@ -78,7 +78,7 @@ class CreateSpotifyPlayback(Protocol):
 
 
 class MockPlaylistFetchResult(Protocol):
-    def __call__(self, track_amount: int, append_none: bool = ...) -> MockedPlaylistPoolContent: ...
+    def __call__(self, track_amount: int, *, append_none: bool = ...) -> MockedPlaylistPoolContent: ...
 
 
 class CreatePoolCreationDataJson(Protocol):

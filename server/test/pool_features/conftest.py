@@ -402,7 +402,11 @@ def create_spotify_playback(
         context: PlaybackContextData = None,
     ) -> datetime.datetime:
         song_data = song_data if song_data is not None else current_playback_data.current_track
-        playback_state = create_spotify_playback_state(song_data, playback_left_ms, True, context)
+        playback_state = create_spotify_playback_state(
+            song_data,
+            playback_left_ms,
+            True,  # - state component, not behaviour modifying flag
+            context)
         song_end_timestamp = mock_datetime_wrapper.now() + datetime.timedelta(milliseconds=playback_left_ms)
         requests_client_get_queue.append(build_success_response(playback_state))
         if songs_in_queue is not None:

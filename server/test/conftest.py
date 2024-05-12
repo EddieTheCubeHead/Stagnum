@@ -566,7 +566,7 @@ def mock_playlist_fetch(
     build_success_response: BuildSuccessResponse,
 ) -> MockPlaylistFetch:
     def wrapper(playlist_length: int = 30, append_none: bool = False) -> PoolContentData:
-        playlist_fetch_data = create_mock_playlist_fetch_result(playlist_length, append_none)
+        playlist_fetch_data = create_mock_playlist_fetch_result(playlist_length, append_none=append_none)
         requests_client_get_queue.append(build_success_response(playlist_fetch_data.first_fetch))
         for further_fetch in playlist_fetch_data.further_fetches:
             requests_client_get_queue.append(build_success_response(further_fetch))
