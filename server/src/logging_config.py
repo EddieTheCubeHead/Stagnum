@@ -2,8 +2,21 @@ import json
 import locale
 import os
 import sys
-from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, FileHandler, Formatter, Handler, StreamHandler, getLogger
-from typing import Any
+from logging import (
+    CRITICAL,
+    DEBUG,
+    ERROR,
+    INFO,
+    WARNING,
+    FileHandler,
+    Formatter,
+    Handler,
+    LogRecord,
+    StreamHandler,
+    getLogger,
+)
+from pathlib import Path
+from typing import Any, ClassVar
 
 # Borrowed from ClusterBot by Eddie and discord.py by Rapptz:
 # https://github.com/EddieTheCubeHead/ClusterBot/blob/master/services/logging_service.py
@@ -19,8 +32,8 @@ _FILE_HANDLERS: dict[str, FileHandler] = {}
 def get_config(config_name: str) -> str | int:
     config = os.getenv(config_name, None)
     if config is None:
-        file_path = os.path.join(os.path.dirname(__file__), "./config.json")
-        with open(file_path, encoding="utf-8") as config_file:
+        file_path = Path(__file__).parent / Path("./config.json")
+        with file_path.open(encoding="utf-8") as config_file:
             config = json.loads(config_file.read())[config_name]
     return config
 
@@ -43,15 +56,18 @@ def _build_configuration_from_config(log_type: str) -> LoggingConfiguration:
 
 
 def _get_formatter(handler: Handler) -> Formatter:
-    if not isinstance(handler, FileHandler):
-        if isinstance(handler, StreamHandler) and stream_supports_colour(handler.stream):
-            return _ColourFormatter()
+    if (
+        not isinstance(handler, FileHandler)
+        and isinstance(handler, StreamHandler)
+        and stream_supports_colour(handler.stream)
+    ):
+        return _ColourFormatter()
     dt_fmt = "%Y-%m-%d %H:%M:%S"
     return Formatter("{asctime} {levelname:<8} {name:<30} {message}", dt_fmt, style="{")
 
 
 def _ensure_file(file_name: str) -> None:
-    with open(file_name, "w", encoding=locale.getpreferredencoding(False)) as _:
+    with Path(file_name).open("w", encoding=locale.getpreferredencoding(do_setlocale=False)) as _:
         pass
 
 
@@ -117,11 +133,14 @@ DEALINGS IN THE SOFTWARE.
 
 
 def is_docker() -> bool:
-    path = "/proc/self/cgroup"
-    return os.path.exists("/.dockerenv") or (os.path.isfile(path) and any("docker" in line for line in open(path, encoding=locale.getpreferredencoding(False))))
+    path = Path("/proc/self/cgroup")
+    return Path("/.dockerenv").exists() or (
+        path.is_file()
+        and any("docker" in line for line in path.open(encoding=locale.getpreferredencoding(do_setlocale=False)))
+    )
 
 
-def stream_supports_colour(stream: Any) -> bool:
+def stream_supports_colour(stream: Any) -> bool:  # noqa: ANN401
     is_a_tty = hasattr(stream, "isatty") and stream.isatty()
 
     # Pycharm and Vscode support colour in their inbuilt editors
@@ -147,7 +166,7 @@ class _ColourFormatter(Formatter):
     # 100-107 are the same as the bright ones but for the background.
     # 1 means bold, 2 means dim, 0 means reset, and 4 means underline.
 
-    LEVEL_COLOURS = [
+    LEVEL_COLOURS: ClassVar = [
         (DEBUG, "\x1b[37;1m"),
         (INFO, "\x1b[34;1m"),
         (WARNING, "\x1b[33;1m"),
@@ -155,7 +174,7 @@ class _ColourFormatter(Formatter):
         (CRITICAL, "\x1b[41m"),
     ]
 
-    FORMATS = {
+    FORMATS: ClassVar = {
         level: Formatter(
             f"\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)-30s\x1b[0m %(message)s",
             "%Y-%m-%d %H:%M:%S",
@@ -163,7 +182,7 @@ class _ColourFormatter(Formatter):
         for level, colour in LEVEL_COLOURS
     }
 
-    def format(self, record):
+    def format(self, record: LogRecord) -> str:
         formatter = self.FORMATS.get(record.levelno)
         if formatter is None:
             formatter = self.FORMATS[DEBUG]

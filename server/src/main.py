@@ -1,14 +1,15 @@
 import os
 from logging import getLogger
+from pathlib import Path
 
 from api.common.helpers import _get_allowed_origins
 from logging_config import setup_logging
 
 setup_logging()  # out of order because importing uvicorn fires off logger events
 
-import locale
+import locale  # noqa: E402 - we need to set up logging before these
 
-import uvicorn
+import uvicorn  # noqa: E402 - we need to set up logging before these
 
 _logger = getLogger("main.main")
 
@@ -17,7 +18,10 @@ def _inject_secret(secret_name: str) -> None:
     env_name = secret_name.upper()
     if os.getenv(env_name) is None:
         _logger.debug(f"Environment variable {env_name} not found! Getting from secret file.")
-        with open(f"/run/secrets/{secret_name}", encoding=locale.getpreferredencoding(False)) as secret_file:
+        path = Path(f"/run/secrets/{secret_name}")
+        with path.open(
+            f"/run/secrets/{secret_name}", encoding=locale.getpreferredencoding(do_setlocale=False)
+        ) as secret_file:
             secret = secret_file.read()
             os.environ[env_name] = secret
             _logger.debug(f"Setting environment variable {env_name} from file {secret_name}")
