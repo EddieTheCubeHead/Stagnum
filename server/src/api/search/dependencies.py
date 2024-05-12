@@ -9,22 +9,28 @@ from api.common.helpers import build_auth_header, get_sharpest_icon
 from api.common.models import NamedResource
 from api.search.models import (
     Album,
+    AlbumData,
     AlbumSearchResult,
     Artist,
+    ArtistData,
     ArtistSearchResult,
     GeneralSearchResult,
+    GeneralSearchResultData,
     PaginatedSearchResult,
+    PaginatedSearchResultData,
     Playlist,
+    PlaylistData,
     PlaylistSearchResult,
     SpotifyPlayableType,
     Track,
+    TrackData,
     TrackSearchResult,
 )
 
 _logger = getLogger("main.api.search.dependencies")
 
 
-def _build_track(track_data: dict) -> Track:
+def _build_track(track_data: TrackData) -> Track:
     album_artists = [
         NamedResource(name=artist["name"], link=artist["href"]) for artist in track_data["album"]["artists"]
     ]
@@ -45,7 +51,7 @@ def _build_track(track_data: dict) -> Track:
     )
 
 
-def _build_paginated_track_search(result_data):
+def _build_paginated_track_search(result_data: PaginatedSearchResultData[TrackData]) -> TrackSearchResult:
     return TrackSearchResult(
         limit=result_data["limit"],
         offset=result_data["offset"],
@@ -56,7 +62,7 @@ def _build_paginated_track_search(result_data):
     )
 
 
-def _build_artist(artist_data: dict) -> Artist:
+def _build_artist(artist_data: ArtistData) -> Artist:
     return Artist(
         name=artist_data["name"],
         uri=artist_data["uri"],
@@ -65,7 +71,7 @@ def _build_artist(artist_data: dict) -> Artist:
     )
 
 
-def _build_paginated_artist_search(result_data):
+def _build_paginated_artist_search(result_data: PaginatedSearchResultData[ArtistData]) -> ArtistSearchResult:
     return ArtistSearchResult(
         limit=result_data["limit"],
         offset=result_data["offset"],
@@ -76,7 +82,7 @@ def _build_paginated_artist_search(result_data):
     )
 
 
-def _build_album(album_data: dict) -> Album:
+def _build_album(album_data: AlbumData) -> Album:
     return Album(
         artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in album_data["artists"]],
         year=int(album_data["release_date"][:4]),
@@ -87,7 +93,7 @@ def _build_album(album_data: dict) -> Album:
     )
 
 
-def _build_paginated_album_search(result_data):
+def _build_paginated_album_search(result_data: PaginatedSearchResultData[AlbumData]) -> AlbumSearchResult:
     return AlbumSearchResult(
         limit=result_data["limit"],
         offset=result_data["offset"],
@@ -98,7 +104,7 @@ def _build_paginated_album_search(result_data):
     )
 
 
-def _build_playlist(playlist_data: dict) -> Playlist:
+def _build_playlist(playlist_data: PlaylistData) -> Playlist:
     return Playlist(
         name=playlist_data["name"],
         uri=playlist_data["uri"],
@@ -107,7 +113,7 @@ def _build_playlist(playlist_data: dict) -> Playlist:
     )
 
 
-def _build_paginated_playlist_search(result_data):
+def _build_paginated_playlist_search(result_data: PaginatedSearchResultData[PlaylistData]) -> PlaylistSearchResult:
     return PlaylistSearchResult(
         limit=result_data["limit"],
         offset=result_data["offset"],
@@ -137,7 +143,9 @@ class SearchSpotifyClientRaw:
             tracks=tracks_result, artists=artist_result, albums=album_result, playlists=playlists_result
         )
 
-    def _get_search(self, query: str, user: User, types: list[str], offset: int = 0, limit: int = 20) -> dict:
+    def _get_search(
+        self, query: str, user: User, types: list[str], offset: int = 0, limit: int = 20
+    ) -> GeneralSearchResultData:
         _validate_query(query)
         search_types = ",".join(types)
         headers = build_auth_header(user)
