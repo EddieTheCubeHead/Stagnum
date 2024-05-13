@@ -1,18 +1,16 @@
-import os
 from contextlib import asynccontextmanager
 from logging import getLogger
+from typing import AsyncGenerator
 
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api import pool, search, auth, health
+from api import auth, health, pool, search
 from api.common.dependencies import validated_user
-from api.common.helpers import map_user_entity_to_model
+from api.common.helpers import _get_allowed_origins, map_user_entity_to_model
 from api.common.models import UserModel
-
-from api.common.helpers import _get_allowed_origins
 
 _logger = getLogger("main.application")
 
@@ -22,11 +20,9 @@ _ALLOWED_HEADERS = ["Authorization"]
 
 
 @asynccontextmanager
-async def setup_scheduler(_: FastAPI):
+async def setup_scheduler(_: FastAPI) -> AsyncGenerator:
     _logger.info("Setting up scheduled jobs")
-    job_stores = {
-        "default": MemoryJobStore()
-    }
+    job_stores = {"default": MemoryJobStore()}
     _logger.debug("Creating and starting scheduler")
     scheduler = AsyncIOScheduler(jobstores=job_stores)
     scheduler.start()
@@ -46,13 +42,16 @@ def create_app() -> FastAPI:
         application.include_router(api_module.router)
     application.include_router(pool.websocket_router)
 
-    application.add_middleware(CORSMiddleware,
-                               allow_origins=_get_allowed_origins(), allow_credentials=True,
-                               allow_methods=_ALLOWED_METHODS, allow_headers=_ALLOWED_HEADERS)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=_get_allowed_origins(),
+        allow_credentials=True,
+        allow_methods=_ALLOWED_METHODS,
+        allow_headers=_ALLOWED_HEADERS,
+    )
 
     @application.get("/me")
     async def get_me(user: validated_user) -> UserModel:
         return map_user_entity_to_model(user)
-
 
     return application

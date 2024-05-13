@@ -2,15 +2,13 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
-from sqlalchemy import select
-from starlette.testclient import TestClient
-
 from api.pool.models import PoolFullContents
 from database.database_connection import ConnectionManager
-from database.entities import Pool, PoolMember, PoolJoinedUser, PlaybackSession, User, EntityBase
-from test_types.callables import ValidateResponse, ValidateModel, MockPlaylistFetch, \
-    AssertEmptyPoolModel, AssertEmptyTables
-from test_types.typed_dictionaries import Headers, TrackData
+from database.entities import PlaybackSession, Pool, PoolJoinedUser, PoolMember, User
+from sqlalchemy import select
+from starlette.testclient import TestClient
+from test_types.callables import AssertEmptyPoolModel, AssertEmptyTables, MockPlaylistFetch, ValidateModel
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture
@@ -24,18 +22,23 @@ def assert_empty_pool_model(validate_model: ValidateModel) -> AssertEmptyPoolMod
     return wrapper
 
 
-def should_wipe_whole_pool_on_delete_pool(existing_playback: list[TrackData], test_client: TestClient,
-                                          validate_model: ValidateModel, assert_empty_pool_model: AssertEmptyPoolModel,
-                                          db_connection: ConnectionManager, assert_empty_tables: AssertEmptyTables,
-                                          valid_token_header: Headers):
+@pytest.mark.usefixtures("existing_playback")
+def should_wipe_whole_pool_on_delete_pool(
+    test_client: TestClient,
+    assert_empty_pool_model: AssertEmptyPoolModel,
+    assert_empty_tables: AssertEmptyTables,
+    valid_token_header: Headers,
+) -> None:
     response = test_client.delete("/pool", headers=valid_token_header)
 
     assert_empty_pool_model(response)
     assert_empty_tables(Pool, PoolMember, PoolJoinedUser, PlaybackSession)
 
 
-def should_send_playback_pause_on_pool_delete(existing_playback: list[TrackData], test_client: TestClient,
-                                              requests_client: Mock, valid_token_header: Headers):
+@pytest.mark.usefixtures("existing_playback")
+def should_send_playback_pause_on_pool_delete(
+    test_client: TestClient, requests_client: Mock, valid_token_header: Headers
+) -> None:
     requests_client.put.reset_mock()
 
     test_client.delete("/pool", headers=valid_token_header)
@@ -44,11 +47,14 @@ def should_send_playback_pause_on_pool_delete(existing_playback: list[TrackData]
     assert actual_call.args[0] == "https://api.spotify.com/v1/me/player/pause"
 
 
-def should_wipe_leavers_pool_members_on_leave_pool(shared_pool_code: str, joined_user_header: Headers,
-                                                   test_client: TestClient, validate_response: ValidateResponse,
-                                                   db_connection: ConnectionManager, another_logged_in_user: User,
-                                                   assert_empty_pool_model: AssertEmptyPoolModel,
-                                                   mock_playlist_fetch: MockPlaylistFetch):
+def should_wipe_leavers_pool_members_on_leave_pool(
+    joined_user_header: Headers,
+    test_client: TestClient,
+    db_connection: ConnectionManager,
+    another_logged_in_user: User,
+    assert_empty_pool_model: AssertEmptyPoolModel,
+    mock_playlist_fetch: MockPlaylistFetch,
+) -> None:
     pool_content_data = mock_playlist_fetch(35)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
 

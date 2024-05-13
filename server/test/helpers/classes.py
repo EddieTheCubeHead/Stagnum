@@ -4,10 +4,9 @@ from enum import Enum
 from typing import override
 
 from _pytest.python_api import ApproxBase
-from pydantic import BaseModel
-
 from api.common.dependencies import DateTimeWrapperRaw
-from test_types.typed_dictionaries import TrackData, ArtistData, AlbumData, PlaylistData, PaginatedSearchResultData
+from api.common.spotify_models import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
+from pydantic import BaseModel
 
 
 @dataclass
@@ -73,22 +72,23 @@ class MockedPoolContents:
 
 # "Borrowed" from here: https://github.com/pytest-dev/pytest/issues/8395
 class ApproxDatetime(ApproxBase):
-
-    def __init__(self, expected, absolute_tolerance: datetime.timedelta = datetime.timedelta(milliseconds=250)):
+    def __init__(
+        self, expected: datetime.datetime, absolute_tolerance: datetime.timedelta = datetime.timedelta(milliseconds=250)
+    ) -> None:
         if absolute_tolerance < datetime.timedelta(0):
-            raise ValueError(f"absolute tolerance can't be negative: {absolute_tolerance}")
+            msg = f"absolute tolerance can't be negative: {absolute_tolerance}"
+            raise ValueError(msg)
         super().__init__(expected, abs=absolute_tolerance)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"approx_datetime({self.expected!r} \u00b1 {self.abs!r})"
 
-    def __eq__(self, actual):
+    def __eq__(self, actual: datetime.datetime) -> bool:
         return abs(self.expected - actual) <= self.abs
 
 
 class MockDateTimeWrapper(DateTimeWrapperRaw):
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._add_to_now: datetime.timedelta = datetime.timedelta(milliseconds=0)
 

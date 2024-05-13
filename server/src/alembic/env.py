@@ -1,12 +1,9 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
-from alembic import context
-
 import database.entities
+from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,7 +26,7 @@ target_metadata = database.entities.EntityBase.metadata
 # ... etc.
 
 
-def get_database_url():
+def get_database_url() -> str:
     return os.getenv("DATABASE_CONNECTION_URL", default="sqlite:///:memory:")
 
 
@@ -47,10 +44,7 @@ def run_migrations_offline() -> None:
     """
     url = get_database_url()
     context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"}
     )
 
     with context.begin_transaction():
@@ -66,16 +60,10 @@ def run_migrations_online() -> None:
     """
     options_dict = config.get_section(config.config_ini_section, {})
     options_dict["sqlalchemy.url"] = get_database_url()
-    connectable = engine_from_config(
-        options_dict,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = engine_from_config(options_dict, prefix="sqlalchemy.", poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

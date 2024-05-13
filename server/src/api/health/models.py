@@ -3,7 +3,6 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-
 HEALTHY = "HEALTHY"
 UNHEALTHY = "UNHEALTHY"
 
@@ -15,7 +14,6 @@ class HealthcheckBaseModel(BaseModel):
 
 class HealthcheckResourceResult(HealthcheckBaseModel):
     resource: str
-
 
 
 class HealthcheckResult(HealthcheckBaseModel):
