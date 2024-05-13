@@ -23,9 +23,7 @@ def search_item_type(request: FixtureRequest) -> str:
 
 @pytest.fixture
 def run_search_resource_call(
-    request: FixtureRequest,
-    search_item_type: str,
-    run_search_call: RunSearchCall,
+    request: FixtureRequest, search_item_type: str, run_search_call: RunSearchCall
 ) -> RunSearch:
     def wrapper(query: str, limit: int = 20) -> httpx.Response:
         item_query_part: str = f"{search_item_type}s"
@@ -52,8 +50,7 @@ def should_propagate_errors_from_spotify_api(
 
 
 def should_include_current_token_in_response_headers(
-    assert_token_in_headers: AssertTokenInHeaders,
-    run_search_resource_call: RunSearch,
+    assert_token_in_headers: AssertTokenInHeaders, run_search_resource_call: RunSearch
 ) -> None:
     query = "test query"
     result = run_search_resource_call(query)
@@ -87,10 +84,7 @@ def should_get_twenty_items_by_default(
 
 
 def should_query_spotify_for_items_with_provided_query_string(
-    run_search_resource_call: RunSearch,
-    valid_token_header: Headers,
-    requests_client: Mock,
-    search_item_type: str,
+    run_search_resource_call: RunSearch, valid_token_header: Headers, requests_client: Mock, search_item_type: str
 ) -> None:
     query = "my query"
     run_search_resource_call(query)
