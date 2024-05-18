@@ -55,8 +55,8 @@ jobs:
     - name: Pytest coverage report
       uses: MishaKav/pytest-coverage-comment@main
       with:
-        pytest-coverage-path: pytest-coverage.txt
-        junitxml-path: pytest.xml
+        pytest-coverage-path: server/pytest-coverage.txt
+        junitxml-path: server/pytest.xml
 
     - name: Commit automatic cleans
       uses: stefanzweifel/git-auto-commit-action@v5
