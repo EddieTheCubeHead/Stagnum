@@ -106,4 +106,8 @@ slow = "marks tests as slow (deselect with '-m \"not slow\"')"
 [tool.coverage.run]
 
 source = ["src"]
+omit = [
+    "src/main.py",
+    "src/logging_config.py"
+]
 branch = true
