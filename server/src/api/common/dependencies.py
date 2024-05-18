@@ -21,7 +21,7 @@ from api.common.spotify_models import RefreshTokenData, RequestTokenData
 _logger = getLogger("main.api.common.dependencies")
 
 
-class DateTimeWrapperRaw:
+class DateTimeWrapperRaw:  # pragma: no cover - we're always mocking this class
     """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
 
     def __init__(self) -> None:
@@ -37,7 +37,7 @@ class DateTimeWrapperRaw:
 DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]
 
 
-class RequestsClientRaw:
+class RequestsClientRaw:  # pragma: no cover - we're always mocking this class
     """A class to enable easy mocking of requests functionality with FastAPI dependency system.
 
     Only houses wrapper functions for requests calls, no actual logic should ever reside here, as this class won't
@@ -237,9 +237,6 @@ class TokenHolderRaw:
 
     def log_out(self, token: str) -> None:
         self._user_database_connection.log_out(token)
-
-    def is_token_logged_in(self, token: str) -> bool:
-        return self._user_database_connection.get_from_token(token) is not None
 
     def is_user_logged_in(self, user_id: str) -> bool:
         return self._user_database_connection.get_from_id(user_id).session is not None

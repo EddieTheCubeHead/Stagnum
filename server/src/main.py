@@ -2,7 +2,6 @@ import os
 from logging import getLogger
 from pathlib import Path
 
-from api.common.helpers import _get_allowed_origins
 from logging_config import setup_logging
 
 setup_logging()  # out of order because importing uvicorn fires off logger events
@@ -34,14 +33,8 @@ def _inject_secrets() -> None:
         _inject_secret(secret_file)
 
 
-def _check_cors() -> None:
-    all_allowed_cors = _get_allowed_origins()
-    _logger.info(f"Allowed CORS origins: {all_allowed_cors}")
-
-
 if __name__ == "__main__":
     _inject_secrets()
-    _check_cors()
     uvicorn.run(
         "api.application:create_app",
         host=os.getenv("HOST", default="127.0.0.1"),

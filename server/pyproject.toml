@@ -98,3 +98,12 @@ pytest_alembic_enabled = true
 
 [tool.pytest.ini_options.markers]
 slow = "marks tests as slow (deselect with '-m \"not slow\"')"
+
+############################
+# coverage
+############################
+
+[tool.coverage.run]
+
+source = ["src"]
+branch = true

@@ -50,7 +50,12 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest
+        pytest --cov-report "xml:coverage.xml" --cov=src tests/
+
+    - name: Pytest coverage report
+      uses: MishaKav/pytest-coverage-comment@main
+      with:
+        pytest-xml-coverage-path: ./coverage.xml
 
     - name: Commit automatic cleans
       uses: stefanzweifel/git-auto-commit-action@v5
