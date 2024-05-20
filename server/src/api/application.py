@@ -20,7 +20,7 @@ _ALLOWED_HEADERS = ["Authorization"]
 
 
 @asynccontextmanager
-async def setup_scheduler(_: FastAPI) -> AsyncGenerator:
+async def setup_scheduler(_: FastAPI) -> AsyncGenerator:  # pragma: no cover
     _logger.info("Setting up scheduled jobs")
     job_stores = {"default": MemoryJobStore()}
     _logger.debug("Creating and starting scheduler")

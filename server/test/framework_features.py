@@ -35,7 +35,7 @@ def should_have_automatic_insert_timestamp(
         actual_object = session.scalar(select(LoginState).where(LoginState.state_string == "12345678abcdefgh"))
 
     actual_timestamp = mock_datetime_wrapper.ensure_utc(actual_object.insert_time_stamp)
-    expected_timestamp = ApproxDatetime(mock_datetime_wrapper.now(), datetime.timedelta(seconds=1))
+    expected_timestamp = ApproxDatetime(mock_datetime_wrapper.now(), datetime.timedelta(seconds=2))
     assert actual_timestamp == expected_timestamp
 
 

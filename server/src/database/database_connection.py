@@ -27,7 +27,7 @@ class ConnectionManager:
             self.engine = self._use_persistent_in_memory_engine(db_address, echo=echo)
         elif db_address.startswith("sqlite"):
             self.engine = create_engine(db_address, echo=echo)
-        else:
+        else:  # pragma: no cover - we're always using sqlite for tests
             self.engine = create_engine(db_address, echo=echo, connect_args={"options": "-c timezone=utc"})
         self._session = sessionmaker()
         self._session.configure(bind=self.engine)
