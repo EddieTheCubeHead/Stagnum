@@ -39,4 +39,6 @@ jobs:
       - name: Comment coverage
         uses: MishaKav/jest-coverage-comment@main
         with:
+          title: Client rewrite coverage
+          badge-title: Client rewrite coverage
           coverage-summary-path: clientRewrite/coverage/coverage-summary.json
