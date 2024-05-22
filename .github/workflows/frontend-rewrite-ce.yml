@@ -9,6 +9,11 @@ on:
 jobs:
   code-quality:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: './clientRewrite'
+
     steps:
       - uses: actions/checkout@v2
 
