@@ -1,6 +1,6 @@
 module.exports = {
     root: true,
-    env: {browser: true, es2020: true},
+    env: { browser: true, es2020: true },
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/strict-type-checked',
@@ -11,17 +11,15 @@ module.exports = {
     ],
     ignorePatterns: ['dist', '.eslintrc.cjs'],
     parser: '@typescript-eslint/parser',
-    plugins: [
-        'react-refresh',
-    ],
+    plugins: ['react-refresh'],
     rules: {
         'react-refresh/only-export-components': [
             'warn',
-            {allowConstantExport: true},
+            { allowConstantExport: true },
         ],
     },
     globals: {
-        "__dirname": true
+        __dirname: true,
     },
     parserOptions: {
         ecmaVersion: 'latest',
