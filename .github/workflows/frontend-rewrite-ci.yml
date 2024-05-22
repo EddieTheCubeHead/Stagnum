@@ -31,10 +31,12 @@ jobs:
         run: yarn lint
 
       - name: Check formatting
-        run: yarn format:check
+        run: yarn formatcheck
 
       - name: Run Tests
-        run: yarn test:cicd
+        run: yarn coverage
 
       - name: Comment coverage
         uses: MishaKav/jest-coverage-comment@main
+        with:
+          coverage-summary-path: clientRewrite/coverage/coverage-final.json
