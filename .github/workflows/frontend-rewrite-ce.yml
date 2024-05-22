@@ -21,5 +21,13 @@ jobs:
       - name: Run ESLint
         run: yarn lint
 
+      - name: Check formatting
+        run: yarn formatcheck
+
       - name: Run Tests
         run: yarn coverage
+
+      - name: Comment coverage
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          coverage-summary-path: ./coverage/coverage-final.json
