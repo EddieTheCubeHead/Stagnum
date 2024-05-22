@@ -6,7 +6,9 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
+        "typecheck": "tsc --pretty --noEmit",
         "lint": "eslint --report-unused-disable-directives --max-warnings 0",
+        "formatcheck": "yarn prettier -c",
         "format": "yarn prettier --write --list-different .",
         "lf": "yarn lint && yarn format",
         "preview": "vite preview",

@@ -74,6 +74,7 @@ unfixable = [
 [tool.ruff.format]
 skip-magic-trailing-comma = true
 preview = true
+line-ending = "lf"
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
