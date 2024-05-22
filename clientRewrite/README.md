@@ -1,30 +1,39 @@
-# React + TypeScript + Vite
+# Stagnum client rewrite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+During the coursework there were multiple times the team encountered difficulties using Next.js for pure frontend
+work with a different server implementation. Moreover, because of repeated crunches to get the frontend
+into a presentable state for the course demo sessions, the code quality produced was subpar.
 
-Currently, two official plugins are available:
+To fix both of these issues a decision was made to rewrite the whole frontend. The framework chosen to be used for
+the rewrite was Vite, based on recommendations by acquaintances. The package manager was also changed from npm to
+yarn, based on prior good experience.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The aim is to reach the same quality the backend has. This includes both architecture with small components and
+overall reusable code, as well as tooling with extremely high test coverage, extensive typing, linting and code
+formatting.
 
-## Expanding the ESLint configuration
+## Running the project
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Enable corepack (requires admin rights)
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+corepack enable
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Install packages
+
+```bash
+yarn
+```
+
+Lint and format
+
+```bash
+yarn lf
+```
+
+Run development server
+
+```bash
+yarn run
+```
