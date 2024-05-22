@@ -34,9 +34,9 @@ jobs:
         run: yarn format:check
 
       - name: Run Tests
-        run: yarn coverage
+        run: yarn test:cicd
 
       - name: Comment coverage
         uses: MishaKav/jest-coverage-comment@main
         with:
-          coverage-summary-path: clientRewrite/coverage/coverage-final.json
+          coverage-summary-path: clientRewrite/coverage/summary.json

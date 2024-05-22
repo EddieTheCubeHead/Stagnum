@@ -14,7 +14,7 @@
         "preview": "vite preview",
         "test": "vitest",
         "coverage": "vitest run --coverage",
-        "test:cicd": "vitest run --coverage.enabled --reporter=junit --coverage.reporter=json-summary"
+        "test:cicd": "vitest run --coverage.enabled --reporter=junit --coverage.reporter=summary"
     },
     "dependencies": {
         "eslint-plugin-react": "^7.34.1",
