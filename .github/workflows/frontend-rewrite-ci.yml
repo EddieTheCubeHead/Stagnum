@@ -31,7 +31,7 @@ jobs:
         run: yarn lint
 
       - name: Check formatting
-        run: yarn formatcheck
+        run: yarn format:check
 
       - name: Run Tests
         run: yarn coverage
