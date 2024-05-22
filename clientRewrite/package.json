@@ -8,12 +8,13 @@
         "build": "tsc && vite build",
         "typecheck": "tsc --pretty --noEmit",
         "lint": "eslint --report-unused-disable-directives --max-warnings 0",
-        "formatcheck": "yarn prettier -c .",
+        "format:check": "yarn prettier -c .",
         "format": "yarn prettier --write --list-different .",
         "lf": "yarn lint && yarn format",
         "preview": "vite preview",
         "test": "vitest",
-        "coverage": "vitest run --coverage"
+        "coverage": "vitest run --coverage",
+        "test:cicd": "vitest run --coverage.enabled --reporter=junit --coverage.reporter=json-summary"
     },
     "dependencies": {
         "eslint-plugin-react": "^7.34.1",
