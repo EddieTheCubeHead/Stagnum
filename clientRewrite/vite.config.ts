@@ -8,5 +8,8 @@ export default defineConfig({
     test: {
         root: "./test",
         include: ["**/*_features.ts"],
+        coverage: {
+            reportsDirectory: "../coverage",
+        },
     },
 })
