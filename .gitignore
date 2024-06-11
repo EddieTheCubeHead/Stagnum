@@ -19,3 +19,4 @@ terraform.tfstate.backup
 terraform.tfvars
 secret_spotify_client_id.txt
 secret_spotify_client_secret.txt
+/.vite/
