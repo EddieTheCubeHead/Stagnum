@@ -5,6 +5,8 @@ interface NamePlaceholderProps {
 }
 
 function NamePlaceholder({ userName }: NamePlaceholderProps) {
+    // Should be maybe calculated from username hash?
+    // Still changes randomly on reload, will be fixed later
     const randomColor = useMemo(() => Math.floor(Math.random() * 6), [])
     const colorClasses = [
         { bg: "bg-avatar-1-bg", text: "text-avatar-1-text" },

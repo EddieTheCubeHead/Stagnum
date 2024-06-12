@@ -8,31 +8,14 @@ function mockTheme(isLightTheme: boolean) {
         value: vi.fn().mockImplementation((query) => ({
             matches: isLightTheme,
             media: query,
-            onchange: null,
-            addListener: vi.fn(), // Deprecated
-            removeListener: vi.fn(), // Deprecated
             addEventListener: vi.fn(),
-            removeEventListener: vi.fn(),
-            dispatchEvent: vi.fn(),
         })),
     })
 }
 
 describe("ThemeProvider", () => {
     it("Should include theme in classname", () => {
-        Object.defineProperty(window, "matchMedia", {
-            writable: true,
-            value: vi.fn().mockImplementation((query) => ({
-                matches: true,
-                media: query,
-                onchange: null,
-                addListener: vi.fn(), // Deprecated
-                removeListener: vi.fn(), // Deprecated
-                addEventListener: vi.fn(),
-                removeEventListener: vi.fn(),
-                dispatchEvent: vi.fn(),
-            })),
-        })
+        mockTheme(true)
         render(<ThemeProvider>component under test</ThemeProvider>)
 
         expect(screen.getByText("component under test").className).toContain("light")
