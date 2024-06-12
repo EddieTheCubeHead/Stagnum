@@ -11,7 +11,7 @@
         --color-text: hsl(0, 0%, 90%);
         --color-clickable: hsl(0, 0%, 48%);
         --color-stroke: hsl(0, 0%, 74%);
-        --color-accent:	hsl(210, 79%, 46%);
+        --color-accent: hsl(210, 79%, 46%);
 
         --color-avatar-1-bg: hsl(4, 70%, 27%);
         --color-avatar-1-text: hsl(4, 70%, 67%);
@@ -28,7 +28,7 @@
     }
 
     @font-face {
-        font-family: "Jano Sans Pro"
+        font-family: "Jano Sans Pro";
     }
 }
 
