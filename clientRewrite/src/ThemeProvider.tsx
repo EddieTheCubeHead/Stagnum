@@ -1,6 +1,9 @@
-import React from "react"
+import React, { useState } from "react"
 
 export function ThemeProvider({ children }: { children?: React.ReactNode }) {
-    const theme = window.matchMedia && !window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark"
-    return <div className={theme}>{children}</div>
+    const userThemeMatcher = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)")
+    // const userTheme = .matches ? "light" : "dark"
+    const [theme, setTheme] = useState(userThemeMatcher.matches ? "light" : "dark")
+    userThemeMatcher.addEventListener("change", (event) => setTheme(event.matches ? "light" : "dark"))
+    return <div className={`theme-${theme} bg-background`}>{children}</div>
 }

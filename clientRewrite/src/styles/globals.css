@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --color-background: hsl(0, 0%, 3%);
+        --color-element-base-low: hsl(0, 0%, 7%);
+        --color-element-base-mid: hsl(0, 0%, 13%);
+        --color-element-base-high: hsl(0, 0%, 20%);
+        --color-text: hsl(0, 0%, 90%);
+        --color-clickable: hsl(0, 0%, 48%);
+        --color-stroke: hsl(0, 0%, 74%);
+        --color-accent:	hsl(210, 79%, 46%);
+    }
+}
+
+.theme-dark {
+    --color-background: hsl(0, 0%, 3%);
+    --color-element-base-low: hsl(0, 0%, 7%);
+    --color-element-base-mid: hsl(0, 0%, 13%);
+    --color-element-base-high: hsl(0, 0%, 20%);
+    --color-text: hsl(0, 0%, 90%);
+    --color-clickable: hsl(0, 0%, 48%);
+    --color-stroke: hsl(0, 0%, 74%);
+}
+
+.theme-light {
+    --color-background: hsl(0, 0%, 100%);
+    --color-element-base-low: hsl(0, 0%, 93%);
+    --color-element-base-mid: hsl(0, 0%, 81%);
+    --color-element-base-high: hsl(0, 0%, 20%);
+    --color-text: hsl(0, 0%, 5%);
+    --color-clickable: hsl(0, 0%, 63%);
+    --color-stroke: hsl(0, 0%, 22%);
+}
