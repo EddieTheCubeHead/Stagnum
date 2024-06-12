@@ -1,5 +1,9 @@
-import { LoginPopup } from "./login/components/LoginPopup.tsx"
+import { Home } from "./views/Home.tsx"
 
 export function App() {
-    return <LoginPopup />
+    return (
+        <div className="bg-background text-text min-h-screen font-default">
+            <Home />
+        </div>
+    )
 }

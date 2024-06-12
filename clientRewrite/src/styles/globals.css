@@ -12,6 +12,23 @@
         --color-clickable: hsl(0, 0%, 48%);
         --color-stroke: hsl(0, 0%, 74%);
         --color-accent:	hsl(210, 79%, 46%);
+
+        --color-avatar-1-bg: hsl(4, 70%, 27%);
+        --color-avatar-1-text: hsl(4, 70%, 67%);
+        --color-avatar-2-bg: hsl(52, 70%, 27%);
+        --color-avatar-2-text: hsl(52, 70%, 67%);
+        --color-avatar-3-bg: hsl(117, 70%, 27%);
+        --color-avatar-3-text: hsl(117, 70%, 67%);
+        --color-avatar-4-bg: hsl(177, 70%, 27%);
+        --color-avatar-4-text: hsl(177, 70%, 67%);
+        --color-avatar-5-bg: hsl(237, 70%, 27%);
+        --color-avatar-5-text: hsl(237, 70%, 67%);
+        --color-avatar-6-bg: hsl(301, 70%, 27%);
+        --color-avatar-6-text: hsl(301, 70%, 67%);
+    }
+
+    @font-face {
+        font-family: "Jano Sans Pro"
     }
 }
 
