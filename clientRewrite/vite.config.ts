@@ -7,9 +7,11 @@ export default defineConfig({
     plugins: [react()],
     test: {
         root: "./test",
-        include: ["**/*_features.ts"],
+        include: ["**/*Features.ts", "**/*Features.tsx"],
         coverage: {
             reportsDirectory: "../coverage",
         },
+        environment: "jsdom",
+        globals: true,
     },
 })
