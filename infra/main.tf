@@ -2,8 +2,9 @@ locals {
   azs = ["eu-north-1a"]
   tags = {
     Terraform   = "true"
-    Environment = "dev"
+    Environment = "Prod"
     Project     = "Stagnum"
+    Service     = "Stagnum"
   }
   data_inputs = {
 
@@ -57,7 +58,7 @@ module "ec2_instance" {
 
   name          = "Stagnum-stack"
   ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
 
   key_name                    = "user1"
   monitoring                  = true
@@ -87,6 +88,7 @@ data "aws_ami" "amazon_linux" {
 resource "aws_ebs_volume" "posrgres" {
   availability_zone = module.ec2_instance.availability_zone
   size              = 10
+  type              = "gp3"
 
   tags = local.tags
 }

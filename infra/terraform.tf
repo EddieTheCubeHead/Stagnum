@@ -1,4 +1,5 @@
 terraform {
+  /*
   backend "s3" {
     bucket         = "stagnum-prod-tfstate-bucket"
     key            = "state/terraform.tfstate"
@@ -6,6 +7,7 @@ terraform {
     encrypt        = true
     dynamodb_table = "stagnum-prod-tf-lockid"
   }
+  */
 
   required_providers {
     aws = {
