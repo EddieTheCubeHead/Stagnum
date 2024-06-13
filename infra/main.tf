@@ -1,354 +1,98 @@
-# Creating an ECS cluster
-resource "aws_ecs_cluster" "aws-cluster" {
-  name = "${var.app_name}-cluster"
-
-  configuration {
-    execute_command_configuration {
-      kms_key_id = aws_kms_key.stagnum.arn
-      logging    = "OVERRIDE"
-
-      log_configuration {
-        cloud_watch_encryption_enabled = true
-        cloud_watch_log_group_name     = aws_cloudwatch_log_group.log-group.name
-      }
-    }
-  }
-}
-
-resource "aws_kms_key" "stagnum" {
-  description             = "stagnum"
-  deletion_window_in_days = 7
-}
-
-# creating an iam policy document for ecsTaskExecutionRole
-data "aws_iam_policy_document" "assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-  }
-}
-
-# creating an iam role with needed permissions to execute tasks
-resource "aws_iam_role" "ecsTaskExecutionRole" {
-  name               = "ecsTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
-}
-
-# attaching AmazonECSTaskExecutionRolePolicy to ecsTaskExecutionRole
-resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
-  role       = aws_iam_role.ecsTaskExecutionRole.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_cloudwatch_log_group" "log-group" {
-  name = "stagnum-logs"
-}
-
 locals {
-  frontend_name = "${var.app_name}-front-container"
-  backend_name  = "${var.app_name}-back-container"
-  database_name = "${var.app_name}-data-container"
-  frontend_url  = "http://${aws_alb.front-lb.dns_name}"
-  backend_url   = "http://${aws_alb.back-lb.dns_name}"
-  database_url  = "localhost:5432"
-}
-
-resource "aws_ecs_task_definition" "front-task" {
-  family                   = "${var.app_name}-front-task"
-  container_definitions    = <<DEFINITION
-  [
-    {
-      "name": "${local.frontend_name}",
-      "image": "eddiethecubehead/stagnum_client:master",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 3000
-        }
-      ],
-      "environment": [
-        { "name": "NEXT_PUBLIC_FRONTEND_URI", "value": "${local.frontend_url}" },
-        { "name": "NEXT_PUBLIC_BACKEND_URI", "value": "${local.backend_url}" }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
-          "awslogs-region": "${var.aws_region}",
-          "awslogs-create-group": "true",
-          "awslogs-stream-prefix": "stagnum"
-        }
-      }
-    }
-  ]
-  DEFINITION
-  requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
-  network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512                                   # Specifying the memory our task requires
-  cpu                      = 256                                   # Specifying the CPU our task requires
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
-}
-
-# Creating the task definition
-resource "aws_ecs_task_definition" "back-task" {
-  family                   = "${var.app_name}-back-task"
-  container_definitions    = <<DEFINITION
-  [
-    {
-      "name": "${local.backend_name}",
-      "image": "eddiethecubehead/stagnum_server:master",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 8080
-        }
-      ],
-      "environment": [
-        { "name":"DATABASE_CONNECTION_URL", "value": "postgresql://${var.postgres_user}:${var.postgres_pass}@${local.database_url}/${var.postgres_db}"},
-        { "name":"SPOTIFY_CLIENT_ID", "value": "${var.spotify_client_id}"},
-        { "name":"SPOTIFY_CLIENT_SECRET", "value": "${var.spotify_client_secret}"},
-        { "name":"VERBOSE_SQLALCHEMY", "value": "${var.verbose_sqlalchemy}"},
-        { "name":"CORS_ORIGINS", "value": "${var.cors_origins}"},
-        { "name":"ENVIRONMENT", "value": "${var.app_environment}"},
-        { "name":"CUSTOM_WEIGHT_SCALE", "value": "${var.custom_weigth_scale}" },
-        { "name":"USER_WEIGHT_SCALE", "value": "${var.user_weight_scale}"},
-        { "name":"PSEUDO_RANDOM_FLOOR", "value":"${var.pseudo_random_floor}"},
-        { "name":"PSEUDO_RANDOM_CEILING", "value": "${var.pseudo_random_ceiling}"}
-      ],
-      "healthCheck":{
-        "command": ["CMD-SHELL", "curl -f http://${local.backend_url}/health/ || exit 1"],
-        "interval": 10,
-        "timeout": 30,
-        "retries": 5,
-        "startPeriod": 30
-      },
-      "dependsOn":[
-        {
-          "containerName":"${local.database_name}",
-          "condition":"HEALTHY"
-        }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
-          "awslogs-region": "${var.aws_region}",
-          "awslogs-create-group": "true",
-          "awslogs-stream-prefix": "stagnum"
-        }
-      }
-    },
-    {
-      "name": "${local.database_name}",
-      "image": "postgres",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 5432
-        }
-      ],
-      "environment":[
-        { "name":"POSTGRES_USER", "value": "${var.postgres_user}"},
-        { "name":"POSTGRES_PASSWORD","value": "${var.postgres_pass}"},
-        { "name":"POSTGRES_DB","value": "${var.postgres_db}"}
-      ],
-      "healthCheck":{
-        "command": ["CMD-SHELL", "pg_isready -d ${var.postgres_db}"],
-        "interval": 10,
-        "timeout": 30,
-        "retries": 5,
-        "startPeriod": 30
-      },
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "${aws_cloudwatch_log_group.log-group.name}",
-          "awslogs-region": "${var.aws_region}",
-          "awslogs-create-group": "true",
-          "awslogs-stream-prefix": "stagnum"
-        }
-      }
-    }
-  ]
-  DEFINITION
-  requires_compatibilities = ["FARGATE"]                           # Stating that we are using ECS Fargate
-  network_mode             = "awsvpc"                              # Using awsvpc as our network mode as this is required for Fargate
-  memory                   = 512                                   # Specifying the memory our task requires
-  cpu                      = 256                                   # Specifying the CPU our task requires
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn # Stating Amazon Resource Name (ARN) of the execution role
-}
-
-# Providing a reference to our default VPC
-resource "aws_default_vpc" "default_vpc" {
-
-}
-
-# Providing a reference to our default subnets
-resource "aws_default_subnet" "default_subnet_a" {
-  availability_zone = "${var.aws_region}a"
-}
-
-# Providing a reference to our default subnets
-resource "aws_default_subnet" "default_subnet_b" {
-  availability_zone = "${var.aws_region}b"
-}
-
-# Creating a load balancer
-resource "aws_alb" "front-lb" {
-  name               = "${var.app_name}-front-lb" # Naming our load balancer
-  load_balancer_type = "application"
-  subnets            = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-
-  # Referencing the security group
-  security_groups = ["${aws_security_group.aws-lb_security_group.id}"]
-}
-
-resource "aws_alb" "back-lb" {
-  name               = "${var.app_name}-back-lb" # Naming our load balancer
-  load_balancer_type = "application"
-  subnets            = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-
-  # Referencing the security group
-  security_groups = ["${aws_security_group.aws-lb_security_group.id}"]
-}
-
-# Creating a security group for the load balancer:
-resource "aws_security_group" "aws-lb_security_group" {
-  ingress {
-    from_port   = 80 # Allowing traffic in from port 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allowing traffic in from all sources
+  azs = ["eu-north-1a"]
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+    Project     = "Stagnum"
   }
+  data_inputs = {
 
-  egress {
-    from_port   = 0             # Allowing any incoming port
-    to_port     = 0             # Allowing any outgoing port
-    protocol    = "-1"          # Allowing any outgoing protocol 
-    cidr_blocks = ["0.0.0.0/0"] # Allowing traffic out to all IP addresses
   }
 }
 
-# Creating a target group for the load balancer
-resource "aws_lb_target_group" "front-target-group" {
-  name        = "front-target-group"
-  port        = "80"
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = aws_default_vpc.default_vpc.id # Referencing the default VPC
+########################################################
+# Networking
+########################################################
 
-  health_check {
-    path                = "/"
-    interval            = 60
-    timeout             = 10
-    healthy_threshold   = 5
-    unhealthy_threshold = 5
-    matcher             = "200-399"
-  }
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 5.0"
+
+  name = "Stagnum-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = local.azs
+  private_subnets = []
+  public_subnets  = ["10.0.1.0/24"]
+
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = local.tags
 }
 
-# Creating a target group for the load balancer
-resource "aws_lb_target_group" "back-target-group" {
-  name        = "back-target-group"
-  port        = "80"
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = aws_default_vpc.default_vpc.id # Referencing the default VPC
+module "security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
 
-  health_check {
-    path                = "/"
-    interval            = 60
-    timeout             = 10
-    healthy_threshold   = 5
-    unhealthy_threshold = 5
-    matcher             = "200-399"
-  }
-}
+  name        = "Stagnum-security-group"
+  description = "Security group for stagnum"
+  vpc_id      = module.vpc.vpc_id
 
-# Creating a client listener for the load balancer
-resource "aws_lb_listener" "client-listener" {
-  load_balancer_arn = aws_alb.front-lb.arn # Referencing our load balancer
-  port              = "80"
-  protocol          = "HTTP"
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["http-80-tcp", "https-443-tcp", "all-icmp"]
+  egress_rules        = ["all-all"]
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.front-target-group.arn # Referencing our target group
-  }
-}
-
-resource "aws_lb_listener" "server-listener" {
-  load_balancer_arn = aws_alb.back-lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.back-target-group.arn
-  }
+  tags = local.tags
 }
 
 
-# Creating the service
-resource "aws_ecs_service" "stagnum-front-service" {
-  name            = "${var.app_name}-front-service"
-  cluster         = aws_ecs_cluster.aws-cluster.id         # Referencing our created Cluster
-  task_definition = aws_ecs_task_definition.front-task.arn # Referencing the task our service will spin up
-  launch_type     = "FARGATE"
-  desired_count   = 1 # Setting the number of tasks we want deployed
+########################################################
+# EC2
+########################################################
 
+module "ec2_instance" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 5.0"
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.front-target-group.arn # Referencing our target group
-    container_name   = "${var.app_name}-front-container"
-    container_port   = 3000 # Specifying the container port
+  name          = "Stagnum-stack"
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+
+  key_name                    = "user1"
+  monitoring                  = true
+  vpc_security_group_ids      = [module.security_group.security_group_id]
+  subnet_id                   = element(module.vpc.public_subnets, 0)
+  availability_zone           = element(local.azs, 0)
+  associate_public_ip_address = true
+  user_data                   = templatefile("${path.root}/config/userdata.tftpl", local.data_inputs)
+
+  tags = local.tags
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
   }
-
-  network_configuration {
-    subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = true
-    security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 }
 
-resource "aws_ecs_service" "stagnum-back-service" {
-  name            = "${var.app_name}-back-service"
-  cluster         = aws_ecs_cluster.aws-cluster.id        # Referencing our created Cluster
-  task_definition = aws_ecs_task_definition.back-task.arn # Referencing the task our service will spin up
-  launch_type     = "FARGATE"
-  desired_count   = 1 # Setting the number of tasks we want deployed
+resource "aws_ebs_volume" "posrgres" {
+  availability_zone = module.ec2_instance.availability_zone
+  size              = 10
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.back-target-group.arn
-    container_name   = "${var.app_name}-back-container"
-    container_port   = 8080
-  }
-
-  network_configuration {
-    subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = true
-    security_groups  = ["${aws_security_group.aws-service_security_group.id}"] # Setting the security group
-  }
+  tags = local.tags
 }
 
-# Creating a security group for the service
-resource "aws_security_group" "aws-service_security_group" {
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    # Only allowing traffic in from the load balancer security group
-    security_groups = ["${aws_security_group.aws-lb_security_group.id}"]
-  }
-
-  egress {
-    from_port   = 0             # Allowing any incoming port
-    to_port     = 0             # Allowing any outgoing port
-    protocol    = "-1"          # Allowing any outgoing protocol 
-    cidr_blocks = ["0.0.0.0/0"] # Allowing traffic out to all IP addresses
-  }
+resource "aws_volume_attachment" "this" {
+  device_name = "/dev/sdh"
+  volume_id   = aws_ebs_volume.posrgres.id
+  instance_id = module.ec2_instance.id
 }

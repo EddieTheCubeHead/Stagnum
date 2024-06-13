@@ -1,11 +1,7 @@
-
-output "front_lb_dns" {
-  value       = aws_alb.front-lb.dns_name
-  description = "AWS load balancer DNS Name for frontend"
+output "ec2_eip" {
+  value = module.ec2_instance.public_ip
 }
 
-output "back_lb_dns" {
-  value       = aws_alb.back-lb.dns_name
-  description = "AWS load balancer DNS name for backend"
-
+output "ec2_public_dns" {
+  value = module.ec2_instance.public_dns
 }
