@@ -49,6 +49,9 @@ const config: Config = {
 
                 iconSize: "2.5rem",
                 bigIconSize: "3rem",
+
+                128: "32rem",
+                192: "48rem",
             },
             fontFamily: {
                 default: ["Montserrat", "sans-serif"],

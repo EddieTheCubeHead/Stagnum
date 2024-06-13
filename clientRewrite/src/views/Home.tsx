@@ -1,9 +1,11 @@
-import { TopBar } from "../common/components/topBar/TopBar.tsx"
+import { TopBar } from "../common/components/TopBar.tsx"
+import { LoginPopup } from "../login/components/LoginPopup.tsx"
 
-export function Home() {
+export const Home = () => {
     return (
         <>
             <TopBar userName="Eddie" />
+            <LoginPopup />
         </>
     )
 }
