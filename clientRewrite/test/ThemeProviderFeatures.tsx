@@ -1,30 +1,17 @@
 import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { ThemeProvider } from "../src/ThemeProvider"
-
-function mockTheme(isLightTheme: boolean) {
-    Object.defineProperty(window, "matchMedia", {
-        writable: true,
-        value: vi.fn().mockImplementation((query) => ({
-            matches: isLightTheme,
-            media: query,
-            addEventListener: vi.fn(),
-        })),
-    })
-}
+import { Theme, useThemeStore } from "../src/common/stores/themeStore"
 
 describe("ThemeProvider", () => {
     it("Should include theme in classname", () => {
-        mockTheme(true)
         render(<ThemeProvider>component under test</ThemeProvider>)
 
-        expect(screen.getByText("component under test").className).toContain("light")
+        expect(screen.getByText("component under test").className).toContain(Theme.Dark)
     })
 
-    it.each(["dark", "light"])("Should get theme from browser theme: %s", (theme) => {
-        const isLightTheme = theme === "light"
-
-        mockTheme(isLightTheme)
+    it.each([Theme.Dark, Theme.Light])("Should get theme from theme store", (theme) => {
+        useThemeStore.setState({ theme: theme })
 
         render(<ThemeProvider>component under test</ThemeProvider>)
 
