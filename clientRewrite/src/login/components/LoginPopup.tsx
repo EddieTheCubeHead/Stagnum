@@ -1,5 +1,6 @@
 import { ReactNode } from "react"
 import { MainLogo } from "../../common/components/MainLogo.tsx"
+import { useThemeStore } from "../../common/stores/themeStore.ts"
 
 export const LoginPopup = () => {
     return (
@@ -62,14 +63,17 @@ const MainLogoWithSpotifyLogo = () => {
 }
 
 function BackgroundImage() {
+    const theme = useThemeStore().theme
+    const capitalizedTheme = theme.charAt(0).toUpperCase() + theme.slice(1)
+    console.log(theme)
     return (
         // Force width usage with invisible div
         <>
             <div className="w-full max-md:hidden"></div>
             <img
                 className="w-3/5 max-md:hidden object-scale-down bottom-0 right-0 absolute"
-                alt="Login background image"
-                src="/LoginBGDark.png"
+                alt={`${capitalizedTheme} theme login background image`}
+                src={`/LoginBG${capitalizedTheme}.png`}
             />
         </>
     )
