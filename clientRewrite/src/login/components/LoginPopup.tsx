@@ -48,7 +48,7 @@ const MainLogoWithSpotifyLogo = () => {
                 <div className="flex justify-center space-x-1 relative -right-12 -bottom-2">
                     <p className="-bottom-1 relative text-lg flex-none pointer-events-none">For</p>
                     <img
-                        src="../../../public/Spotify_Logo_RGB_Green.png"
+                        src="/Spotify_Logo_RGB_Green.png"
                         alt="Spotify logo"
                         className="object-scale-down w-1/4 flex-none"
                     />
@@ -69,7 +69,7 @@ function BackgroundImage() {
             <img
                 className="w-3/5 max-md:hidden object-scale-down bottom-0 right-0 absolute"
                 alt="Login background image"
-                src="../../../public/LoginBGDark.png"
+                src="/LoginBGDark.png"
             />
         </>
     )
