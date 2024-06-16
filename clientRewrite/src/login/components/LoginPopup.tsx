@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 import { MainLogo } from "../../common/components/MainLogo.tsx"
 import { useThemeStore } from "../../common/stores/themeStore.ts"
+import { Button } from "../../common/components/Button.tsx"
 
 export const LoginPopup = () => {
     return (
@@ -33,11 +34,10 @@ const LoginPopupCard = () => {
 
 const LoginPrompt = () => {
     return (
-        <div className="w-full flex-col space-y-3 md:space-y-8">
+        <div className="w-full flex-col space-y-2 md:space-y-4 lg:space-y-5">
             <MainLogoWithSpotifyLogo />
-            <div className="w-full text-center px-3 md:px-6 lg:px-20">
-                <p className="pointer-events-none">Please log in with your Spotify account</p>
-            </div>
+            <LoginInfoText />
+            <LoginButton />
         </div>
     )
 }
@@ -62,7 +62,23 @@ const MainLogoWithSpotifyLogo = () => {
     )
 }
 
-function BackgroundImage() {
+const LoginInfoText = () => {
+    return (
+        <div className="w-full text-center px-3 md:px-6 lg:px-20">
+            <p className="pointer-events-none">Please log in with your Spotify account</p>
+        </div>
+    )
+}
+
+const LoginButton = () => {
+    return (
+        <div className="flex justify-center">
+            <Button onClick={() => {}} text={"Login"} />
+        </div>
+    )
+}
+
+const BackgroundImage = () => {
     const theme = useThemeStore().theme
     const capitalizedTheme = theme.charAt(0).toUpperCase() + theme.slice(1)
     console.log(theme)

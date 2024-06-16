@@ -15,7 +15,10 @@ const config: Config = {
                 text: "var(--color-text)",
                 clickable: "var(--color-clickable)",
                 stroke: "var(--color-stroke)",
-                accent: "var(--color-accent)",
+                accent: {
+                    DEFAULT: "var(--color-accent)",
+                    purple: "var(--color-accent-purple)",
+                },
                 avatar: {
                     1: {
                         bg: "var(--color-avatar-1-bg)",

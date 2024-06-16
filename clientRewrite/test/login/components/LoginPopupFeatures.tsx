@@ -24,4 +24,10 @@ describe("LoginPopup", () => {
             screen.getByAltText(`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme login background image`),
         ).toBeDefined()
     })
+
+    it("Should display login button", () => {
+        render(<LoginPopup />)
+
+        expect(screen.getByRole("button", { name: "Login" })).toBeDefined()
+    })
 })
