@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { render, screen } from "@testing-library/react"
-import { LoginPopup } from "../../../src/login/components/LoginPopup"
+import { LoginPopup } from "../../../src/login/components/loginPopup/LoginPopup"
 import { Theme, useThemeStore } from "../../../src/common/stores/themeStore"
 
 describe("LoginPopup", () => {
