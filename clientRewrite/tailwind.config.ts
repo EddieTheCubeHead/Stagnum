@@ -15,7 +15,10 @@ const config: Config = {
                 text: "var(--color-text)",
                 clickable: "var(--color-clickable)",
                 stroke: "var(--color-stroke)",
-                accent: "var(--color-accent)",
+                accent: {
+                    DEFAULT: "var(--color-accent)",
+                    purple: "var(--color-accent-purple)",
+                },
                 avatar: {
                     1: {
                         bg: "var(--color-avatar-1-bg)",
@@ -49,6 +52,9 @@ const config: Config = {
 
                 iconSize: "2.5rem",
                 bigIconSize: "3rem",
+
+                128: "32rem",
+                192: "48rem",
             },
             fontFamily: {
                 default: ["Montserrat", "sans-serif"],
