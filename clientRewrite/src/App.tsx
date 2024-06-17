@@ -1,9 +1,14 @@
 import { Home } from "./views/Home.tsx"
+import { ThemeProvider } from "./ThemeProvider.tsx"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 export const App = () => {
+    const queryClient = new QueryClient()
     return (
-        <div className="bg-background text-text min-h-screen font-default">
-            <Home />
-        </div>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+                <Home />
+            </ThemeProvider>
+        </QueryClientProvider>
     )
 }
