@@ -11,9 +11,10 @@ export default defineConfig({
         coverage: {
             reportsDirectory: "./coverage",
             include: ["src/**/*"],
+            exclude: ["src/main.tsx", "src/App.tsx"],
         },
         environment: "jsdom",
-        setupFiles: ["./test/setupTest.ts"],
+        setupFiles: ["./setup-vitest.ts"],
         globals: true,
     },
 })
