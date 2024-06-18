@@ -18,24 +18,24 @@ const mockAxiosGet = (data: any) => {
 }
 
 describe("Main", () => {
-    // @ts-expect-error
-    it("Should fetch login callback if code and state in url parameters", async () => {
-        const testCode = "my_test_code"
-        const testState = "my_test_state"
-        mockQueryParamCodeAndState(testCode, testState)
-        const accessToken = "my_access_token_1234"
-        const tokenData = { access_token: accessToken }
-        mockAxiosGet(tokenData)
-
-        render(
-            <TestQueryProvider>
-                <Main />
-            </TestQueryProvider>,
-        )
-
+    it(
+        "Should fetch login callback if code and state in url parameters",
         // @ts-expect-error
-        await new Promise((resolve: TimerHandler) => setTimeout(resolve))
+        new Promise((done: () => void) => {
+            const testCode = "my_test_code"
+            const testState = "my_test_state"
+            mockQueryParamCodeAndState(testCode, testState)
+            const accessToken = "my_access_token_1234"
+            const tokenData = { access_token: accessToken }
+            mockAxiosGet(tokenData)
 
-        expect(useTokenStore.getState().token).toEqual(accessToken)
-    })
+            render(
+                <TestQueryProvider>
+                    <Main />
+                </TestQueryProvider>,
+            )
+            done()
+            expect(useTokenStore.getState().token).toEqual(accessToken)
+        }),
+    )
 })
