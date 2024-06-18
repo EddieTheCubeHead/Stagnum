@@ -4,7 +4,7 @@ interface NamePlaceholderProps {
     userName: string
 }
 
-function NamePlaceholder({ userName }: NamePlaceholderProps) {
+export const NamePlaceholder = ({ userName }: NamePlaceholderProps) => {
     // Should be maybe calculated from username hash?
     // Still changes randomly on reload, will be fixed later
     const randomColor = useMemo(() => Math.floor(Math.random() * 6), [])
@@ -24,22 +24,4 @@ function NamePlaceholder({ userName }: NamePlaceholderProps) {
             <span className={`font-semibold ${color.text}`}>{userName.toUpperCase().charAt(0)}</span>
         </div>
     )
-}
-
-interface AvatarImageProps {
-    imageUrl: string
-    userName: string
-}
-
-function AvatarImage({ imageUrl, userName }: AvatarImageProps) {
-    return <img className="w-iconSize h-iconSize rounded-full" src={imageUrl} alt={`User ${userName} avatar`} />
-}
-
-interface AvatarProps {
-    imageUrl?: string
-    userName: string
-}
-
-export function Avatar({ imageUrl, userName }: AvatarProps) {
-    return imageUrl ? <AvatarImage imageUrl={imageUrl} userName={userName} /> : <NamePlaceholder userName={userName} />
 }
