@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { useTokenStore } from "../../src/common/stores/tokenStore"
 import { Home } from "../../src/views/Home"
 import { render, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../utils/TestQueryProvider"
+import axios from "axios"
 
 describe("Home", () => {
     it("Should open login popup if no token data", () => {
