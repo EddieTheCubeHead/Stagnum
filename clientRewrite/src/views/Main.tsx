@@ -1,9 +1,10 @@
 import { useTokenStore } from "../common/stores/tokenStore.ts"
 import { fetchToken } from "../api/fetchToken.ts"
-import { Home } from "./Home.tsx"
 import { TopBar } from "../common/components/TopBar.tsx"
 import { useEffect } from "react"
 import { CardsSkeleton } from "../common/components/CardsSkeleton.tsx"
+import { EnsureLoginWrapper } from "../common/components/EnsureLoginWrapper.tsx"
+import { Home } from "./Home.tsx"
 
 export const Main = () => {
     const query = new URLSearchParams(window.location.search)
@@ -21,7 +22,7 @@ export const Main = () => {
     return (
         <div className="bg-background text-text min-h-screen font-default">
             <TopBar />
-            {code === null || state === null ? <Home /> : <CardsSkeleton />}
+            {code === null || state === null ? <EnsureLoginWrapper view={<Home />} /> : <CardsSkeleton />}
         </div>
     )
 }

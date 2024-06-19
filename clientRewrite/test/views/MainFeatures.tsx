@@ -19,28 +19,6 @@ const mockAxiosGet = (data: any) => {
 }
 
 describe("Main", () => {
-    it("Should open login popup if no token data", () => {
-        useTokenStore.setState({ token: null })
-        render(
-            <TestQueryProvider>
-                <Main />
-            </TestQueryProvider>,
-        )
-
-        expect(screen.getByText("Login")).toBeDefined()
-    })
-
-    it("Should not open login popup if token data is set", () => {
-        useTokenStore.setState({ token: "my_test_token_1234" })
-        render(
-            <TestQueryProvider>
-                <Main />
-            </TestQueryProvider>,
-        )
-
-        expect(screen.queryByText("Login")).toBeNull()
-    })
-
     it(
         "Should fetch login callback if code and state in url parameters",
         // @ts-expect-error
