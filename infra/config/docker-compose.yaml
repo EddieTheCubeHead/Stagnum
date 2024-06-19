@@ -1,0 +1,81 @@
+version: "3.8"
+# TODO: Add watchtower to update images
+# TODO: Add https reverse proxy
+services:
+  frontend:
+    image: eddiethecubehead/stagnum_client:master
+    restart: always
+    ports:
+      - ${FRONTEND_PORT}:3000
+    networks:
+      - outgoing
+      - internal
+    environment:
+      NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
+      NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
+    depends_on:
+      backend:
+        condition: service_healthy
+    env_file:
+      - .env
+  backend:
+    image: eddiethecubehead/stagnum_server:master
+    restart: always
+    ports:
+      - ${BACKEND_PORT}:8080
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - outgoing
+      - internal
+    environment:
+      DATABASE_CONNECTION_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${DATABASE_PORT}/${POSTGRES_DB}
+      VERBOSE_SQLALCHEMY: false
+      CORS_ORIGINS: "*"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health/ || exit 1" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - spotify_client_id
+      - spotify_client_secret
+    env_file:
+      - .env
+
+  database:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    ports:
+      - ${DATABASE_PORT}:5432
+    networks:
+      - internal
+    env_file:
+      - .env
+    volumes:
+      - ../data:/var/lib/postgresql/data
+
+secrets:
+  spotify_client_id:
+    file: ./secret_spotify_client_id.txt
+  spotify_client_secret:
+    file: ./secret_spotify_client_secret.txt
+
+
+networks:
+  outgoing:
+    driver: bridge
+  internal:
+    driver: bridge

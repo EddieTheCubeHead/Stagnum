@@ -1,1 +1,54 @@
-# TODO: Create cloud init script to download docker-compose and startup servers
+#!/bin/bash
+
+echo "[INFO] Checking if ebs is formated"
+if file -s /dev/${ebs_name} | grep -q ': data'; then
+    echo "[INFO] EBS is not formated, formating..."
+    sudo mkfs -t xfs /dev/${ebs_name}
+fi
+echo "[INFO] Making data folder"
+mkdir /data
+echo "[INFO] Mounting EBS to data folder"
+sudo mount /dev/${ebs_name} /data
+
+echo "[INFO] Installing docker"
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+sudo apt-get update
+sudo apt-get install ca-certificates curl -y
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+echo "[INFO] Setting up docker-compose"
+mkdir /Stagnum
+cd /Stagnum
+echo "POSTGRES_USER=${postgres_user}" > .env
+echo "POSTGRES_PASSWORD=${postgres_pass}" > .env
+echo "POSTGRES_DB=${postgres_db}" > .env
+echo "DATABASE_PORT=${postgres_port}" > .env
+
+echo "FRONTEND_PORT=${frontend_port}" > .env
+echo "BACKEND_PORT=${backend_port}" > .env
+
+echo "ENVIRONMENT=${enviroment}" > .env
+
+echo "CUSTOM_WEIGHT_SCALE=${custom_weight_scale}" > .env
+echo "USER_WEIGHT_SCALE=${user_weight_scale}" > .env
+echo "PSEUDO_RANDOM_FLOOR=${pseudu_random_floor}" > .env
+echo "PSEUDO_RANDOM_CEILING=${pseudo_random_ceiling}" > .env
+
+echo "NEXT_PUBLIC_FRONTEND_URI=${frontend_uri}" > .env
+echo "NEXT_PUBLIC_BACKEND_URI=${backend_uri}" > .env
+echo "spotify_client_id=${spotify_client_id}" > secret_spotify_client_id.txt
+echo "spotify_client_secret=${spotify_client_secret}" > secret_spotify_client_secret.txt
+wget https://raw.githubusercontent.com/EddieTheCubeHead/Stagnum/master/docker-compose-deploy.yml #TODO: edit this to be one from config once in main
+mv docker-compose-deploy.yml docker-compose.yaml # temp solution
+
+echo "[INFO] Starting docker-compose"
+sudo docker compose up -d
