@@ -6,52 +6,52 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                background: "var(--color-background)",
+                background: "hsl(var(--color-background) / <alpha-value>)",
                 elementBackground: {
-                    1: "var(--color-element-base-low)",
-                    2: "var(--color-element-base-mid)",
-                    3: "var(--color-element-base-high)",
+                    1: "hsl(var(--color-element-base-low) / <alpha-value>)",
+                    2: "hsl(var(--color-element-base-mid) / <alpha-value>)",
+                    3: "hsl(var(--color-element-base-high) / <alpha-value>)",
                 },
-                text: "var(--color-text)",
-                clickable: "var(--color-clickable)",
-                stroke: "var(--color-stroke)",
+                text: "hsl(var(--color-text) / <alpha-value>)",
+                clickable: "hsl(var(--color-clickable) / <alpha-value>)",
+                stroke: "hsl(var(--color-stroke) / <alpha-value>)",
                 accent: {
-                    DEFAULT: "var(--color-accent)",
-                    purple: "var(--color-accent-purple)",
+                    DEFAULT: "hsl(var(--color-accent) / <alpha-value>)",
+                    purple: "hsl(var(--color-accent-purple) / <alpha-value>)",
                 },
                 avatar: {
                     1: {
-                        bg: "var(--color-avatar-1-bg)",
-                        text: "var(--color-avatar-1-text)",
+                        bg: "hsl(var(--color-avatar-1-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-1-text) / <alpha-value>)",
                     },
                     2: {
-                        bg: "var(--color-avatar-2-bg)",
-                        text: "var(--color-avatar-2-text)",
+                        bg: "hsl(var(--color-avatar-2-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-2-text) / <alpha-value>)",
                     },
                     3: {
-                        bg: "var(--color-avatar-3-bg)",
-                        text: "var(--color-avatar-3-text)",
+                        bg: "hsl(var(--color-avatar-3-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-3-text) / <alpha-value>)",
                     },
                     4: {
-                        bg: "var(--color-avatar-4-bg)",
-                        text: "var(--color-avatar-4-text)",
+                        bg: "hsl(var(--color-avatar-4-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-4-text) / <alpha-value>)",
                     },
                     5: {
-                        bg: "var(--color-avatar-5-bg)",
-                        text: "var(--color-avatar-5-text)",
+                        bg: "hsl(var(--color-avatar-5-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-5-text) / <alpha-value>)",
                     },
                     6: {
-                        bg: "var(--color-avatar-6-bg)",
-                        text: "var(--color-avatar-6-text)",
+                        bg: "hsl(var(--color-avatar-6-bg) / <alpha-value>)",
+                        text: "hsl(var(--color-avatar-6-text) / <alpha-value>)",
                     },
                 },
             },
             spacing: {
-                cardHeight: "3rem",
-                bigCardHeight: "3.5rem",
+                cardHeight: "2.5rem",
+                bigCardHeight: "3rem",
 
-                iconSize: "2.5rem",
-                bigIconSize: "3rem",
+                iconSize: "2rem",
+                bigIconSize: "2.5rem",
 
                 128: "32rem",
                 192: "48rem",
