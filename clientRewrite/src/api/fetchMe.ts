@@ -9,5 +9,6 @@ export const fetchMe = async ({ queryKey }: fetchMeParameters) => {
     if (!token) {
         return null
     }
-    return await get("/me", token)
+    const me = await get("/me", token)
+    return me.data
 }
