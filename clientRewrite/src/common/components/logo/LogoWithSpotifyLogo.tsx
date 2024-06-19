@@ -1,6 +1,7 @@
-import { MainLogo } from "./MainLogo.tsx"
+import { Logo } from "./Logo.tsx"
+import { Size } from "../../constants/size.ts"
 
-export const MainLogoWithSpotifyLogo = () => {
+export const LogoWithSpotifyLogo = () => {
     return (
         <div className="w-full flex justify-center">
             <div className="flex-col">
@@ -13,7 +14,7 @@ export const MainLogoWithSpotifyLogo = () => {
                     />
                 </div>
                 <div className="flex justify-center">
-                    <MainLogo />
+                    <Logo size={Size.l} />
                 </div>
             </div>
         </div>

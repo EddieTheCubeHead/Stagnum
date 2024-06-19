@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
 interface NamePlaceholderProps {
-    userName: string
+    userName: string | undefined
 }
 
 export const NamePlaceholder = ({ userName }: NamePlaceholderProps) => {
@@ -17,11 +17,12 @@ export const NamePlaceholder = ({ userName }: NamePlaceholderProps) => {
         { bg: "bg-avatar-6-bg", text: "text-avatar-6-text" },
     ]
     const color = colorClasses[randomColor]
+    const displayName = userName ?? "?"
     return (
         <div
             className={`relative inline-flex items-center justify-center w-iconSize h-iconSize overflow-hidden ${color.bg} rounded-full`}
         >
-            <span className={`font-semibold ${color.text}`}>{userName.toUpperCase().charAt(0)}</span>
+            <span className={`font-semibold ${color.text}`}>{displayName.toUpperCase().charAt(0)}</span>
         </div>
     )
 }
