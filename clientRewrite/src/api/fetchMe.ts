@@ -1,11 +1,6 @@
 import { get } from "./methods.ts"
 
-interface fetchMeParameters {
-    queryKey: [string, { token: string | null }]
-}
-
-export const fetchMe = async ({ queryKey }: fetchMeParameters) => {
-    const [_key, { token }] = queryKey
+export const fetchMe = async (token: string | null) => {
     if (!token) {
         return null
     }
