@@ -16,7 +16,7 @@ _logger = getLogger("main.application")
 
 
 _ALLOWED_METHODS = ["GET", "POST", "DELETE", "OPTIONS"]
-_ALLOWED_HEADERS = ["Authorization"]
+_ALLOWED_HEADERS = ["Authorization", "Content-Type", "Access-Control-Allow-Origin"]
 
 
 @asynccontextmanager
@@ -47,7 +47,7 @@ def create_app() -> FastAPI:
         allow_origins=_get_allowed_origins(),
         allow_credentials=True,
         allow_methods=_ALLOWED_METHODS,
-        allow_headers=_ALLOWED_HEADERS,
+        allow_headers=["*"],
     )
 
     @application.get("/me")
