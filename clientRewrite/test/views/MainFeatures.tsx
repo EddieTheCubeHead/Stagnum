@@ -3,8 +3,8 @@ import { act, render, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../utils/TestQueryProvider"
 import { useTokenStore } from "../../src/common/stores/tokenStore"
 import axios from "axios"
-import { Main } from "../../src/views/Main"
-import { Home } from "../../src/views/Home"
+import { Main } from "../../src/common/views/Main"
+import { Home } from "../../src/common/views/Home"
 import { mockAxiosGet } from "../utils/mockAxios"
 
 const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
