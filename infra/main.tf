@@ -83,6 +83,7 @@ module "ec2_instance" {
   availability_zone           = element(local.azs, 0)
   associate_public_ip_address = true
   user_data                   = templatefile("${path.root}/config/userdata.tftpl", local.data_inputs)
+  user_data_replace_on_change = true
 
   tags       = local.tags
   depends_on = [aws_key_pair.deployer]
