@@ -1,5 +1,4 @@
 version: "3.8"
-# TODO: Add watchtower to update images
 # TODO: Add https reverse proxy
 services:
   frontend:
@@ -66,6 +65,13 @@ services:
       - .env
     volumes:
       - ../data:/var/lib/postgresql/data
+
+  watchtower:
+    # This container is watching for updates in docker images and updating to latest
+    image: containrrr/watchtower 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30
 
 secrets:
   spotify_client_id:

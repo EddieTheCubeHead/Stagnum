@@ -14,16 +14,16 @@ locals {
     postgres_port         = "5432"
     frontend_uri          = "http://localhost:80"
     backend_uri           = "http://localhost:8080"
-    postgres_user         = "root"
-    postgres_pass         = "pass"
-    postgres_db           = "data"
-    spotify_client_id     = ""
-    spotify_client_secret = ""
-    enviroment            = "PRODUCTION"
-    custom_weight_scale   = "5"
-    user_weight_scale     = "20"
-    pseudu_random_floor   = "60"
-    pseudo_random_ceiling = "90"
+    postgres_user         = var.postgres_user
+    postgres_pass         = var.postgres_pass
+    postgres_db           = var.postgres_db
+    spotify_client_id     = var.spotify_client_id
+    spotify_client_secret = var.spotify_client_secret
+    enviroment            = var.app_environment
+    custom_weight_scale   = var.custom_weigth_scale
+    user_weight_scale     = var.user_weight_scale
+    pseudu_random_floor   = var.pseudo_random_floor
+    pseudo_random_ceiling = var.pseudo_random_ceiling
   }
 }
 
@@ -112,7 +112,7 @@ resource "aws_ebs_volume" "posrgres" {
   size              = 10
   type              = "gp3"
 
-  tags = merge({ name : "Stagnum-postgers" }, local.tags)
+  tags = merge({ Name : "Stagnum-postgers" }, local.tags)
 }
 
 resource "aws_volume_attachment" "this" {
