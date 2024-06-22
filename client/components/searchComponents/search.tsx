@@ -109,7 +109,7 @@ const Search: React.FC<SearchProps> = ({
         toggleExpanded()
     }
 
-    // useEffect to only execute search request after one second has passed from the last input
+    // useEffect to only execute toolbarSearch request after one second has passed from the last input
     useEffect(() => {
         if (!mounted.current) {
             mounted.current = true
