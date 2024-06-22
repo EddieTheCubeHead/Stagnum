@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --color-background: 0deg 0% 3%;
+        --color-element-base-low: 0deg 0% 7%;
+        --color-element-base-mid: 0deg 0% 13%;
+        --color-element-base-high: 0deg 0% 20%;
+        --color-text: 0deg 0% 90%;
+        --color-clickable: 0deg 0% 48%;
+        --color-stroke: 0deg 0% 74%;
+        --color-accent: 210deg 79% 46%;
+        --color-accent-purple: 281deg 86% 44%;
+
+        --color-avatar-1-bg: 4deg 70% 27%;
+        --color-avatar-1-text: 4deg 70% 67%;
+        --color-avatar-2-bg: 52deg 70% 27%;
+        --color-avatar-2-text: 52deg 70% 67%;
+        --color-avatar-3-bg: 117deg 70% 27%;
+        --color-avatar-3-text: 117deg 70% 67%;
+        --color-avatar-4-bg: 177deg 70% 27%;
+        --color-avatar-4-text: 177deg 70% 67%;
+        --color-avatar-5-bg: 237deg 70% 27%;
+        --color-avatar-5-text: 237deg 70% 67%;
+        --color-avatar-6-bg: 301deg 70% 27%;
+        --color-avatar-6-text: 301deg 70% 67%;
+    }
+
+    @font-face {
+        font-family: "Jano Sans Pro";
+    }
+}
+
+.theme-dark {
+    --color-background: 0deg 0% 3%;
+    --color-element-base-low: 0deg 0% 7%;
+    --color-element-base-mid: 0deg 0% 13%;
+    --color-element-base-high: 0deg 0% 20%;
+    --color-text: 0deg 0% 90%;
+    --color-clickable: 0deg 0% 48%;
+    --color-stroke: 0deg 0% 74%;
+}
+
+.theme-light {
+    --color-background: 0deg 0% 100%;
+    --color-element-base-low: 0deg 0% 93%;
+    --color-element-base-mid: 0deg 0% 81%;
+    --color-element-base-high: 0deg 0% 20%;
+    --color-text: 0deg 0% 5%;
+    --color-clickable: 0deg 0% 63%;
+    --color-stroke: 0deg 0% 22%;
+}
