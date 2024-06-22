@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { CardsSkeleton } from "../common/components/CardsSkeleton.tsx"
 import { EnsureLoginWrapper } from "../common/components/EnsureLoginWrapper.tsx"
 import { Home } from "./Home.tsx"
+import { ToolBar } from "../common/components/toolbar/ToolBar.tsx"
 
 export const Main = () => {
     const query = new URLSearchParams(window.location.search)
@@ -23,6 +24,7 @@ export const Main = () => {
         <div className="bg-background text-text min-h-screen font-default">
             <TopBar />
             {code === null || state === null ? <EnsureLoginWrapper view={<Home />} /> : <CardsSkeleton />}
+            <ToolBar />
         </div>
     )
 }
