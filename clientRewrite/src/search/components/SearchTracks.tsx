@@ -2,7 +2,7 @@ import { SearchCategoryTitleCard } from "./cards/SearchCategoryTitleCard.tsx"
 import { Track } from "../../common/icons/Track.tsx"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
-import { SearchSpotifyPlaylistCard } from "./cards/SearchSpotifyPlaylistCard.tsx"
+import { SearchSpotifyTrackCard } from "./cards/SearchSpotifyTrackCard.tsx"
 
 export const SearchTracks = () => {
     const { data } = useSpotifyGeneralQuery()
@@ -17,8 +17,8 @@ export const SearchTracks = () => {
             />
             {searchStore.isTracksOpened ? (
                 <div className="flex-col space-y-1 pl-8 pr-1">
-                    {data?.playlists.items.map((playlist) => (
-                        <SearchSpotifyPlaylistCard key={playlist.uri} playlist={playlist} />
+                    {data?.tracks.items.map((playlist) => (
+                        <SearchSpotifyTrackCard key={playlist.uri} track={playlist} />
                     ))}
                 </div>
             ) : (

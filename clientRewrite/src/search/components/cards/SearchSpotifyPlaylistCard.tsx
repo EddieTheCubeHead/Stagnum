@@ -14,7 +14,7 @@ export const SearchSpotifyPlaylistCard = ({ playlist }: SearchSpotifyPlaylistCar
                 alt={`Playlist: ${playlist.name} icon`}
                 className="h-iconSize w-iconSize pointer-events-none select-none"
             />
-            <div className="text-sm">
+            <div className="text-xs ">
                 <NameWithLink resource={playlist} />
             </div>
         </CardBase>

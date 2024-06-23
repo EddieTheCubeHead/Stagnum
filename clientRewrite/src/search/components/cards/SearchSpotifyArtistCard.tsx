@@ -14,7 +14,7 @@ export const SearchSpotifyArtistCard = ({ artist }: SearchSpotifyArtistCardProps
                 alt={`Artist: ${artist.name} image`}
                 className="h-iconSize w-iconSize pointer-events-none select-none"
             />
-            <div className="text-sm">
+            <div className="text-xs">
                 <NameWithLink resource={artist} />
             </div>
         </CardBase>

@@ -9,7 +9,7 @@ export const Search = () => {
         <>
             <div className="max-h-full w-full flex-col space-y-2">
                 <SearchTopBar />
-                <div className="overflow-y-auto">
+                <div className="overflow-y-auto space-y-1 pb-4">
                     <SearchTracks />
                     <SearchAlbums />
                     <SearchArtists />
