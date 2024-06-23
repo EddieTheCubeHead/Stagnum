@@ -59,6 +59,9 @@ const config: Config = {
             fontFamily: {
                 default: ["Montserrat", "sans-serif"],
             },
+            fontSize: {
+                xxs: "0.7rem",
+            },
         },
     },
 }

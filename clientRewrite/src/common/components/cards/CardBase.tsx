@@ -5,5 +5,9 @@ interface CardBaseProps {
 }
 
 export const CardBase = ({ children }: CardBaseProps) => {
-    return <div className="bg-elementBackground-2 h-cardHeight w-full flex p-1 rounded-md space-x-1">{children}</div>
+    return (
+        <div className="bg-elementBackground-2 h-cardHeight w-full flex p-2 rounded-md space-x-2 select-none items-center">
+            {children}
+        </div>
+    )
 }

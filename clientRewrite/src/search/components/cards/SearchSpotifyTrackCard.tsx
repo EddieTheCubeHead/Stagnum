@@ -12,7 +12,7 @@ export const SearchSpotifyTrackCard = ({ track }: SearchSpotifyTrackCardProps) =
             <img
                 src={track.album.icon_link}
                 alt={`Album: ${track.album.name} icon for track ${track.name}`}
-                className="h-iconSize w-iconSize"
+                className="h-iconSize w-iconSize pointer-events-none select-none"
             />
             <TrackAndArtistsNameField track={track} artists={track.artists} />
         </CardBase>

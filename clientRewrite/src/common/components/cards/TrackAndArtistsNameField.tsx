@@ -10,7 +10,7 @@ export const TrackAndArtistsNameField = ({ track, artists }: TrackAndArtistsName
     return (
         <div className="flex-col text-xs select-none">
             <NameWithLink resource={track} />
-            <div className="flex font-extralight space-x-2">
+            <div className="flex text-xxs font-extralight space-x-2">
                 {artists.map((artist: NamedSpotifyResource) => (
                     <NameWithLink key={track.link + artist.link} resource={artist} />
                 ))}
