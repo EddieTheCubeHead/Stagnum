@@ -1,12 +1,11 @@
-import { useSpotifyResourceQuery } from "../hooks/useSpotifyResourceQuery.ts"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { SearchCategoryTitleCard } from "./cards/SearchCategoryTitleCard.tsx"
 import { SearchSpotifyArtistCard } from "./cards/SearchSpotifyArtistCard.tsx"
-import { SpotifyArtist } from "../types/SpotifyArtist.ts"
 import { Artist } from "../../common/icons/Artist.tsx"
+import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
 
 export const SearchArtists = () => {
-    const { data } = useSpotifyResourceQuery<SpotifyArtist>("artists")
+    const { data } = useSpotifyGeneralQuery()
     const searchStore = useSearchStore()
     return (
         <div className="flex-col space-y-1 px-2">
@@ -18,7 +17,7 @@ export const SearchArtists = () => {
             />
             {searchStore.isArtistsOpened ? (
                 <div className="flex-col space-y-1 pl-8 pr-1">
-                    {data?.items.map((artist) => <SearchSpotifyArtistCard key={artist.uri} artist={artist} />)}
+                    {data?.artists.items.map((artist) => <SearchSpotifyArtistCard key={artist.uri} artist={artist} />)}
                 </div>
             ) : (
                 <div className="flex-col pl-8 pr-1 relative -top-1">

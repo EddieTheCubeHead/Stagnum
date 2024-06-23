@@ -2,8 +2,9 @@ import { useQuery } from "@tanstack/react-query"
 import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { fetchSpotifyResource } from "../../api/fetchSpotifyResource.ts"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
-import { PlayableSpotifyResource } from "../types/PlayableSpotifyResource.ts"
+import { PlayableSpotifyResource } from "../models/PlayableSpotifyResource.ts"
 
+// Redundant for now but might be useful when implementing paging - leaving as is for now
 export const useSpotifyResourceQuery = <TModel extends PlayableSpotifyResource>(
     resourceType: "tracks" | "albums" | "artists" | "playlists",
 ) => {

@@ -28,8 +28,8 @@
         "no-empty-function": "warn", // Flags empty function declarations and expressions.
         "no-extra-boolean-cast": "warn", // Disallows unnecessary double negation (!!) in boolean contexts.
         "no-console": "warn", // Disallows the use of console statements, encouraging the use of proper logging mechanisms in production code.
-        "@typescript-eslint/explicit-module-boundary-types": "off", // Disable explicit module boundary types for Next.js API routes
-        "react/prop-types": "off", // Disable prop-types validation for TypeScript projects
+        "@typescript-eslint/explicit-module-boundary-types": "off", // Disable explicit module boundary models for Next.js API routes
+        "react/prop-types": "off", // Disable prop-models validation for TypeScript projects
         "react/react-in-jsx-scope": "off", // Not required in Next.js
         "react/display-name": "off", // Allow missing display names for functional components
         "@typescript-eslint/explicit-function-return-type": [
@@ -37,7 +37,7 @@
             {
                 "allowExpressions": true
             }
-        ], // Enforce explicit return types for functions except for expressions
+        ], // Enforce explicit return models for functions except for expressions
         "@typescript-eslint/no-explicit-any": "off" // Allowing explicit any for cases like JSON parsing where TypeScript inference is limited
     },
     "parser": "@typescript-eslint/parser",

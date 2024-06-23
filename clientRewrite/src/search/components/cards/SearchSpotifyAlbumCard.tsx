@@ -1,6 +1,6 @@
 import { CardBase } from "../../../common/components/cards/CardBase.tsx"
 import { TrackAndArtistsNameField } from "../../../common/components/cards/TrackAndArtistsNameField.tsx"
-import { SpotifyAlbum } from "../../types/SpotifyAlbum.ts"
+import { SpotifyAlbum } from "../../models/SpotifyAlbum.ts"
 
 interface SearchSpotifyAlbumCardProps {
     album: SpotifyAlbum

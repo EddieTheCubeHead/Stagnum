@@ -1,5 +1,5 @@
 import { CardBase } from "../../../common/components/cards/CardBase.tsx"
-import { SpotifyArtist } from "../../types/SpotifyArtist.ts"
+import { SpotifyArtist } from "../../models/SpotifyArtist.ts"
 import { NameWithLink } from "../../../common/components/cards/NameWithLink.tsx"
 
 interface SearchSpotifyArtistCardProps {

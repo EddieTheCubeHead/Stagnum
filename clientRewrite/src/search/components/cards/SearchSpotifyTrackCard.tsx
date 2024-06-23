@@ -1,4 +1,4 @@
-import { SpotifyTrack } from "../../types/SpotifyTrack.ts"
+import { SpotifyTrack } from "../../models/SpotifyTrack.ts"
 import { CardBase } from "../../../common/components/cards/CardBase.tsx"
 import { TrackAndArtistsNameField } from "../../../common/components/cards/TrackAndArtistsNameField.tsx"
 

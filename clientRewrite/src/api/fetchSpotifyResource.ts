@@ -1,6 +1,6 @@
 import { get } from "./methods.ts"
-import { PlayableSpotifyResource } from "../search/types/PlayableSpotifyResource.ts"
-import { PaginatedSpotifySearchResult } from "../search/types/PaginatedSpotifySearchResult.ts"
+import { PlayableSpotifyResource } from "../search/models/PlayableSpotifyResource.ts"
+import { PaginatedSpotifySearchResult } from "../search/models/PaginatedSpotifySearchResult.ts"
 
 export const fetchSpotifyResource = async <TModel extends PlayableSpotifyResource>(
     resource: "tracks" | "albums" | "artists" | "playlists",
