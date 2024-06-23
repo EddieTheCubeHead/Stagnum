@@ -40,6 +40,7 @@ variable "spotify_client_secret" {
   type        = string
 }
 
+
 variable "postgres_user" {
   description = "The username for the database to use"
   type        = string
@@ -81,14 +82,28 @@ variable "pseudo_random_ceiling" {
   type        = number
 }
 
-variable "verbose_sqlalchemy" {
-  description = "Should the sqlalchemy be verbose"
-  default     = false
-  type        = bool
+variable "domain" {
+  type        = string
+  description = "Domain of the service"
+  default     = "stagnum.net"
 }
 
-variable "cors_origins" {
-  description = "The Cors for the backend to use"
-  default     = "*"
+variable "frontend_port" {
+  type    = string
+  default = "80"
+}
+
+variable "backend_port" {
+  type    = string
+  default = "8080"
+}
+
+variable "postgres_port" {
+  type    = string
+  default = "5432"
+}
+
+variable "le_email" {
   type        = string
+  description = "Let's encrypt cert email"
 }

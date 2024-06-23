@@ -68,6 +68,7 @@ jobs:
           TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
           TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
           TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+          TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
         run: |
           export exitcode=0
           terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
@@ -91,11 +92,6 @@ jobs:
       # Create string output of Terraform Plan
       - name: Create String Output
         id: tf-plan-string
-        env:
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API }}
-          TF_VAR_rcon_pass: ${{ secrets.RCON_PASS }}
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
 
@@ -189,4 +185,5 @@ jobs:
           TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
           TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
           TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+          TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
         run: terraform apply -auto-approve tfplan
