@@ -89,21 +89,21 @@ variable "domain" {
 }
 
 variable "frontend_port" {
-  type = string
+  type    = string
   default = "80"
 }
 
 variable "backend_port" {
-  type = string
+  type    = string
   default = "8080"
 }
 
 variable "postgres_port" {
-  type = string
+  type    = string
   default = "5432"
 }
 
 variable "le_email" {
-  type = string
+  type        = string
   description = "Let's encrypt cert email"
 }
