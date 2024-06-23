@@ -57,8 +57,8 @@ echo "NEXT_PUBLIC_FRONTEND_URI=${frontend_uri}" >> .env
 echo "NEXT_PUBLIC_BACKEND_URI=${backend_uri}" >> .env
 echo "${spotify_client_id}" > secret_spotify_client_id.txt
 echo "${spotify_client_secret}" > secret_spotify_client_secret.txt
-wget https://raw.githubusercontent.com/EddieTheCubeHead/Stagnum/master/docker-compose-deploy.yml #TODO: edit this to be one from config once in main
-mv docker-compose-deploy.yml docker-compose.yaml # temp solution
+wget https://raw.githubusercontent.com/EddieTheCubeHead/Stagnum/master/infra/config/docker-compose.yaml
 
 echo "[INFO] Starting docker-compose"
+# remove this comment once ns servers have been set up
 #sudo docker compose up -d
