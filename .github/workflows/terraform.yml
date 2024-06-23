@@ -27,7 +27,6 @@ jobs:
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
-        working-directory: "./infra"
         shell: bash
 
     steps:
@@ -47,11 +46,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
           AWS_REGION: "eu-north-1"
-        run: terraform init
+        run: terraform -chdir=infra init
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
-        run: terraform fmt -check
+        run: terraform -chdir=infra fmt -check
 
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
@@ -71,7 +70,7 @@ jobs:
           TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
         run: |
           export exitcode=0
-          terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+          terraform -chdir=infra plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
@@ -87,13 +86,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: tfplan
+          path: infra/tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
         id: tf-plan-string
         run: |
-          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          TERRAFORM_PLAN=$(terraform -chdir=infra show -no-color tfplan)
 
           delimiter="$(openssl rand -hex 8)"
           echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
@@ -138,7 +137,6 @@ jobs:
 
     defaults:
       run:
-        working-directory: "./infra"
         shell: bash
 
     steps:
@@ -158,7 +156,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
           AWS_REGION: "eu-north-1"
-        run: terraform init
+        run: terraform -chdir=infra init
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
@@ -169,6 +167,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
+          path: infra/
 
         # On push to "master", build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
@@ -186,4 +185,4 @@ jobs:
           TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
           TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
           TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
-        run: terraform apply -auto-approve tfplan
+        run: terraform -chdir=infra apply -auto-approve tfplan
