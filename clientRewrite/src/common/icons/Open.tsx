@@ -1,4 +1,8 @@
-export const Temp = () => {
+export const Open = () => {
+    // Html comments and jsx don't mix well. Have license this way:
+    //
+    // Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com
+    // License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -9,7 +9,7 @@ export const SearchTracks = () => {
     const { data } = useSpotifyResourceQuery<SpotifyTrack>("tracks")
     const searchStore = useSearchStore()
     return (
-        <div className="flex-col space-y-1 p-2">
+        <div className="flex-col space-y-1 px-2">
             <SearchCategoryTitleCard
                 title="Tracks"
                 icon={<Track />}

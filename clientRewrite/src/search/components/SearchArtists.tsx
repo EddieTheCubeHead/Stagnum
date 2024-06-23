@@ -1,24 +1,24 @@
 import { useSpotifyResourceQuery } from "../hooks/useSpotifyResourceQuery.ts"
-import { SpotifyTrack } from "../types/SpotifyTrack.ts"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { SearchCategoryTitleCard } from "./cards/SearchCategoryTitleCard.tsx"
-import { Track } from "../../common/icons/Track.tsx"
-import { SearchSpotifyTrackCard } from "./cards/SearchSpotifyTrackCard.tsx"
+import { SearchSpotifyArtistCard } from "./cards/SearchSpotifyArtistCard.tsx"
+import { SpotifyArtist } from "../types/SpotifyArtist.ts"
+import { Artist } from "../../common/icons/Artist.tsx"
 
 export const SearchArtists = () => {
-    const { data } = useSpotifyResourceQuery<SpotifyTrack>("artists")
+    const { data } = useSpotifyResourceQuery<SpotifyArtist>("artists")
     const searchStore = useSearchStore()
     return (
-        <div className="flex-col space-y-1 p-2">
+        <div className="flex-col space-y-1 px-2">
             <SearchCategoryTitleCard
                 title="Artists"
-                icon={<Track />}
-                isOpen={searchStore.isTracksOpened}
-                setIsOpen={searchStore.setIsTracksOpened}
+                icon={<Artist />}
+                isOpen={searchStore.isArtistsOpened}
+                setIsOpen={searchStore.setIsArtistsOpened}
             />
-            {searchStore.isTracksOpened ? (
+            {searchStore.isArtistsOpened ? (
                 <div className="flex-col space-y-1 pl-8 pr-1">
-                    {data?.items.map((track) => <SearchSpotifyTrackCard key={track.uri} track={track} />)}
+                    {data?.items.map((artist) => <SearchSpotifyArtistCard key={artist.uri} artist={artist} />)}
                 </div>
             ) : (
                 <div className="flex-col pl-8 pr-1 relative -top-1">

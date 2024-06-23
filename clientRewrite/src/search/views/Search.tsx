@@ -7,7 +7,7 @@ import { SearchTopBar } from "../components/SearchTopBar.tsx"
 export const Search = () => {
     return (
         <>
-            <div className="max-h-full w-full flex-col">
+            <div className="max-h-full w-full flex-col space-y-2">
                 <SearchTopBar />
                 <div className="overflow-y-auto">
                     <SearchTracks />
