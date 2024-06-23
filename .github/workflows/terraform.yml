@@ -68,6 +68,7 @@ jobs:
           TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
           TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
           TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+          TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
         run: |
           export exitcode=0
           terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
@@ -184,4 +185,5 @@ jobs:
           TF_VAR_aws_secret_key: ${{secrets.AWS_ACCESS_KEY_SECRET}}
           TF_VAR_spotify_client_id: ${{secrets.SPOTIFY_CLIENT_ID}}
           TF_VAR_spotify_client_secret: ${{secrets.SPOTIFY_CLIENT_SECRET}}
+          TF_VAR_le_email: ${{secrets.LETS_ENCRYPT_NOTIFY_EMAIL}}
         run: terraform apply -auto-approve tfplan
