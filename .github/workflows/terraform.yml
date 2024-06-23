@@ -91,13 +91,8 @@ jobs:
       # Create string output of Terraform Plan
       - name: Create String Output
         id: tf-plan-string
-        env:
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API }}
-          TF_VAR_rcon_pass: ${{ secrets.RCON_PASS }}
         run: |
-          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          TERRAFORM_PLAN=$(terraform show tfplan)
 
           delimiter="$(openssl rand -hex 8)"
           echo "summary<<${delimiter}" >> $GITHUB_OUTPUT

@@ -7,13 +7,15 @@ locals {
     Service     = "Stagnum"
   }
   data_inputs = {
-    # TODO: Set values
     ebs_name              = "nvme1n1"
-    frontend_port         = "80"
-    backend_port          = "8080"
-    postgres_port         = "5432"
-    frontend_uri          = "http://localhost:80"
-    backend_uri           = "http://localhost:8080"
+    frontend_port         = var.frontend_port
+    backend_port          = var.backend_port
+    postgres_port         = var.postgres_port
+    frontend_uri          = "https://${var.domain}"
+    backend_uri           = "https://back.${var.domain}"
+    arn_role              = module.iam_assumable_role.iam_role_arn
+    route53_zone          = aws_route53_zone.primary.zone_id
+    le_email              = var.le_email
     postgres_user         = var.postgres_user
     postgres_pass         = var.postgres_pass
     postgres_db           = var.postgres_db
@@ -24,8 +26,11 @@ locals {
     user_weight_scale     = var.user_weight_scale
     pseudu_random_floor   = var.pseudo_random_floor
     pseudo_random_ceiling = var.pseudo_random_ceiling
+    region                = data.aws_region.current.name
+    domain                = var.domain
   }
 }
+data "aws_region" "current" {}
 
 ########################################################
 # Networking
@@ -84,9 +89,13 @@ module "ec2_instance" {
   associate_public_ip_address = true
   user_data                   = templatefile("${path.root}/config/userdata.tftpl", local.data_inputs)
   user_data_replace_on_change = true
+  iam_instance_profile        = module.iam_assumable_role.iam_instance_profile_name
+  metadata_options = {
+    http_tokens = "required"
+  }
 
   tags       = local.tags
-  depends_on = [aws_key_pair.deployer]
+  depends_on = [aws_key_pair.deployer, module.vpc]
 }
 
 resource "aws_key_pair" "deployer" {
@@ -127,12 +136,20 @@ resource "aws_volume_attachment" "this" {
 ########################################################
 
 resource "aws_route53_zone" "primary" {
-  name = "stagnum.com"
+  name = var.domain
 }
 
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.primary.zone_id
-  name    = "www.stagnum.com"
+  name    = "www.${var.domain}"
+  type    = "A"
+  ttl     = 300
+  records = [module.ec2_instance.public_ip]
+}
+
+resource "aws_route53_record" "back" {
+  zone_id = aws_route53_zone.primary.zone_id
+  name    = "back.${var.domain}"
   type    = "A"
   ttl     = 300
   records = [module.ec2_instance.public_ip]
@@ -140,8 +157,70 @@ resource "aws_route53_record" "www" {
 
 resource "aws_route53_record" "main" {
   zone_id = aws_route53_zone.primary.zone_id
-  name    = "stagnum.com"
+  name    = var.domain
   type    = "A"
   ttl     = 300
   records = [module.ec2_instance.public_ip]
+}
+
+########################################################
+# IAM role for EC2
+########################################################
+
+data "aws_iam_policy_document" "route53_policy" {
+  statement {
+    sid = "UpdateRoutes"
+    actions = [
+      "route53:ChangeResourceRecordSets",
+      "route53:ListResourceRecordSets"
+    ]
+    resources = [aws_route53_zone.primary.arn]
+  }
+  statement {
+    sid = "GetChange"
+    actions = [
+      "route53:GetChange"
+    ]
+    resources = ["arn:aws:route53:::change/*"]
+  }
+  statement {
+    sid       = "ListHostedZones"
+    actions   = ["route53:ListHostedZonesByName"]
+    resources = ["*"]
+  }
+}
+
+module "iam_policy_from_data_source" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "~> 5.0"
+
+  name        = "route53_ec2_modify"
+  path        = "/"
+  description = "Edit stagnum zones for let's encrypt"
+
+  policy = data.aws_iam_policy_document.route53_policy.json
+
+  tags = {
+    PolicyDescription = "Policy created using example from data source"
+  }
+}
+
+module "iam_assumable_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version = "~> 5.0"
+
+  trusted_role_services = [
+    "ec2.amazonaws.com"
+  ]
+
+  create_role = true
+
+  role_name               = "route53_ec2_modify"
+  role_requires_mfa       = false
+  create_instance_profile = true
+
+  custom_role_policy_arns = [
+    module.iam_policy_from_data_source.arn
+  ]
+  number_of_custom_role_policy_arns = 1
 }
