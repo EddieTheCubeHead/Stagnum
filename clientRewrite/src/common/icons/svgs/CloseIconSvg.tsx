@@ -1,4 +1,4 @@
-export const Close = () => {
+export const CloseIconSvg = () => {
     // Html comments and jsx don't mix well. Have license this way:
     //
     // Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com

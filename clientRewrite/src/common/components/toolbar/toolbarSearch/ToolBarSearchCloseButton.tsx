@@ -1,4 +1,4 @@
-import { Close } from "../../../icons/Close.tsx"
+import { CloseIconSvg } from "../../../icons/svgs/CloseIconSvg.tsx"
 import { useSearchStore } from "../../../stores/searchStore.ts"
 
 export const ToolBarSearchCloseButton = () => {
@@ -10,7 +10,7 @@ export const ToolBarSearchCloseButton = () => {
                 className="h-cardHeight w-cardHeight z-30"
                 aria-label="Close search"
             >
-                <Close />
+                <CloseIconSvg />
             </button>
         </div>
     )
