@@ -61,6 +61,7 @@ const config: Config = {
             },
             fontSize: {
                 xxs: "0.7rem",
+                icon: "0.5rem",
             },
         },
     },

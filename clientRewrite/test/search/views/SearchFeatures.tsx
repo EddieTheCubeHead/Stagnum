@@ -24,7 +24,7 @@ describe("Search", () => {
 
         const categories = ["Tracks", "Albums", "Artists", "Playlists"]
 
-        categories.map((category) => expect(screen.getByText(category)).toBeDefined())
+        categories.map((category) => expect(screen.getByRole("heading", { name: category })).toBeDefined())
     })
 
     it("Should not render empty categories when data is loading", () => {
@@ -44,6 +44,45 @@ describe("Search", () => {
 
         const categories = ["Tracks", "Albums", "Artists", "Playlists"]
 
-        categories.map((category) => expect(screen.queryByText(category)).toBeNull())
+        categories.map((category) => expect(screen.queryByRole("heading", { name: category })).toBeNull())
+    })
+
+    // @ts-expect-error
+    it("Should render category buttons in top bar", async () => {
+        mockAxiosGet(mockedSearchData())
+        useSearchStore.setState({ query: "my query" })
+
+        render(
+            <TestQueryProvider>
+                <Search />
+            </TestQueryProvider>,
+        )
+
+        // @ts-expect-error
+        await new Promise((r: TimerHandler) => setTimeout(r, 50))
+
+        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+
+        categories.map((category) => expect(screen.getByRole("button", { name: category })).toBeDefined())
+    })
+
+    it("Should not render category buttons when data is loading", () => {
+        vi.spyOn(axios, "get").mockImplementation(async (url, config) => {
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 200))
+            return mockedSearchData()
+        })
+
+        useSearchStore.setState({ query: "my query" })
+
+        render(
+            <TestQueryProvider>
+                <Search />
+            </TestQueryProvider>,
+        )
+
+        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+
+        categories.map((category) => expect(screen.queryByRole("button", { name: category })).toBeNull())
     })
 })

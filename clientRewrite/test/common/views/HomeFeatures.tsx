@@ -29,6 +29,6 @@ describe("Home", () => {
 
         // @ts-expect-error
         await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
-        expect(screen.getByText("Tracks")).toBeDefined()
+        expect(screen.getByRole("heading", { name: "Tracks" })).toBeDefined()
     })
 })
