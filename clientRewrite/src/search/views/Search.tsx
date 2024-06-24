@@ -1,4 +1,4 @@
-import { SearchTopBar } from "../components/SearchTopBar.tsx"
+import { SearchTopBar } from "../components/searchTopBar/SearchTopBar.tsx"
 import { SearchResults } from "../components/SearchResults.tsx"
 import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
 import { SearchSkeleton } from "../components/SearchSkeleton.tsx"

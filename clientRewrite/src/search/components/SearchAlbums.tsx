@@ -16,11 +16,11 @@ export const SearchAlbums = () => {
                 setIsOpen={searchStore.setIsAlbumsOpened}
             />
             {searchStore.isAlbumsOpened ? (
-                <div className="flex-col space-y-1 pl-8 pr-1 pt-1">
+                <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
                     {data?.albums.items.map((album) => <SearchSpotifyAlbumCard key={album.uri} album={album} />)}
                 </div>
             ) : (
-                <div className="flex-col pl-8 pr-1">
+                <div className="flex-col pl-10 pr-1">
                     <div className="bg-elementBackground-1 h-1 -top-2 rounded-b-md"></div>
                 </div>
             )}

@@ -24,7 +24,7 @@ describe("Search", () => {
 
         const categories = ["Tracks", "Albums", "Artists", "Playlists"]
 
-        categories.map((category) => expect(screen.getByText(category)).toBeDefined())
+        categories.map((category) => expect(screen.getByRole("heading", { name: category })).toBeDefined())
     })
 
     it("Should not render empty categories when data is loading", () => {
@@ -44,6 +44,6 @@ describe("Search", () => {
 
         const categories = ["Tracks", "Albums", "Artists", "Playlists"]
 
-        categories.map((category) => expect(screen.queryByText(category)).toBeNull())
+        categories.map((category) => expect(screen.queryByRole("heading", { name: category })).toBeNull())
     })
 })
