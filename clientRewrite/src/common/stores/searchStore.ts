@@ -15,6 +15,7 @@ type SearchStore = {
 
     query: string
     setQuery: (query: string) => void
+    clearQuery: () => void
 }
 
 export const useSearchStore = create<SearchStore>((set) => ({
@@ -22,7 +23,13 @@ export const useSearchStore = create<SearchStore>((set) => ({
     setIsOpened: (isOpened: boolean) => set({ isOpened }),
 
     query: "",
-    setQuery: (query: string) => set({ query }),
+    setQuery: (query: string) => {
+        if (query === "") {
+            return
+        }
+        set({ query })
+    },
+    clearQuery: () => set({ query: "" }),
 
     isTracksOpened: true,
     setIsTracksOpened: (isTracksOpened: boolean) => set({ isTracksOpened }),

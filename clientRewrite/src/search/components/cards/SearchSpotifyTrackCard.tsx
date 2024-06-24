@@ -1,6 +1,6 @@
 import { SpotifyTrack } from "../../models/SpotifyTrack.ts"
-import { CardBase } from "../../../common/components/cards/CardBase.tsx"
-import { TrackAndArtistsNameField } from "../../../common/components/cards/TrackAndArtistsNameField.tsx"
+import { ResourceWithArtistNameField } from "../../../common/components/cards/ResourceWithArtistNameField.tsx"
+import { SearchResourceCard } from "./SearchResourceCard.tsx"
 
 interface SearchSpotifyTrackCardProps {
     track: SpotifyTrack
@@ -8,13 +8,9 @@ interface SearchSpotifyTrackCardProps {
 
 export const SearchSpotifyTrackCard = ({ track }: SearchSpotifyTrackCardProps) => {
     return (
-        <CardBase>
-            <img
-                src={track.album.icon_link}
-                alt={`Album: ${track.album.name} icon for track ${track.name}`}
-                className="h-iconSize w-iconSize pointer-events-none select-none"
-            />
-            <TrackAndArtistsNameField track={track} artists={track.artists} />
-        </CardBase>
+        <SearchResourceCard
+            iconSource={track.album}
+            nameField={<ResourceWithArtistNameField track={track} artists={track.artists} />}
+        />
     )
 }

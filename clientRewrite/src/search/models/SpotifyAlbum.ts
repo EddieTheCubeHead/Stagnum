@@ -1,8 +1,7 @@
-import { PlayableSpotifyResource } from "./PlayableSpotifyResource.ts"
 import { NamedSpotifyResource } from "../../common/models/NamedSpotifyResource.ts"
+import { PlayableSpotifyResourceWithIcon } from "./PlayableSpotifyResourceWithIcon.ts"
 
-export interface SpotifyAlbum extends PlayableSpotifyResource {
+export interface SpotifyAlbum extends PlayableSpotifyResourceWithIcon {
     artists: NamedSpotifyResource[]
     year: number
-    icon_link: string
 }

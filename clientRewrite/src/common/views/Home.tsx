@@ -1,5 +1,7 @@
 import { Search } from "../../search/views/Search.tsx"
+import { useSearchStore } from "../stores/searchStore.ts"
 
 export const Home = () => {
-    return <Search />
+    const searchStore = useSearchStore()
+    return <>{searchStore.query && <Search />}</>
 }

@@ -1,5 +1,3 @@
-import { PlayableSpotifyResource } from "./PlayableSpotifyResource.ts"
+import { PlayableSpotifyResourceWithIcon } from "./PlayableSpotifyResourceWithIcon.ts"
 
-export interface SpotifyArtist extends PlayableSpotifyResource {
-    icon_link: string
-}
+export interface SpotifyArtist extends PlayableSpotifyResourceWithIcon {}

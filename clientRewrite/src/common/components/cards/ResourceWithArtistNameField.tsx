@@ -6,7 +6,7 @@ interface TrackAndArtistsNameFieldProps {
     artists: NamedSpotifyResource[]
 }
 
-export const TrackAndArtistsNameField = ({ track, artists }: TrackAndArtistsNameFieldProps) => {
+export const ResourceWithArtistNameField = ({ track, artists }: TrackAndArtistsNameFieldProps) => {
     return (
         <div className="flex-col text-xs select-none">
             <NameWithLink resource={track} />

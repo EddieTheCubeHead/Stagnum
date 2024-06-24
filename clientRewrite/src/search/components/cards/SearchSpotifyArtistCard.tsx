@@ -1,6 +1,6 @@
-import { CardBase } from "../../../common/components/cards/CardBase.tsx"
 import { SpotifyArtist } from "../../models/SpotifyArtist.ts"
 import { NameWithLink } from "../../../common/components/cards/NameWithLink.tsx"
+import { SearchResourceCard } from "./SearchResourceCard.tsx"
 
 interface SearchSpotifyArtistCardProps {
     artist: SpotifyArtist
@@ -8,15 +8,13 @@ interface SearchSpotifyArtistCardProps {
 
 export const SearchSpotifyArtistCard = ({ artist }: SearchSpotifyArtistCardProps) => {
     return (
-        <CardBase>
-            <img
-                src={artist.icon_link}
-                alt={`Artist: ${artist.name} image`}
-                className="h-iconSize w-iconSize pointer-events-none select-none"
-            />
-            <div className="text-xs">
-                <NameWithLink resource={artist} />
-            </div>
-        </CardBase>
+        <SearchResourceCard
+            iconSource={artist}
+            nameField={
+                <div className="text-xs ">
+                    <NameWithLink resource={artist} />
+                </div>
+            }
+        />
     )
 }

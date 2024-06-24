@@ -1,11 +1,11 @@
 import { expect, it, describe, vi } from "vitest"
 import { act, render, screen } from "@testing-library/react"
-import { TestQueryProvider } from "../utils/TestQueryProvider"
-import { useTokenStore } from "../../src/common/stores/tokenStore"
+import { TestQueryProvider } from "../../utils/TestQueryProvider"
+import { useTokenStore } from "../../../src/common/stores/tokenStore"
 import axios from "axios"
-import { Main } from "../../src/common/views/Main"
-import { Home } from "../../src/common/views/Home"
-import { mockAxiosGet } from "../utils/mockAxios"
+import { Main } from "../../../src/common/views/Main"
+import { Home } from "../../../src/common/views/Home"
+import { mockAxiosGet } from "../../utils/mockAxios"
 
 const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
     let queryParams = vi.spyOn(window, "location", "get")

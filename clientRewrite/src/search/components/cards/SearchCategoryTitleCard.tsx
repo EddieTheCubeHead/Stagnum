@@ -21,7 +21,7 @@ export const SearchCategoryTitleCard = ({ title, iconSvg, isOpen, setIsOpen }: S
                 <IconButton svg={<OpenIconSvg />} onClick={() => setIsOpen(true)} />
             )}
             <Icon svg={iconSvg} />
-            <p className="font-semibold text-lg">{title}</p>
+            <h3 className="font-semibold text-lg">{title}</h3>
         </CardBase>
     )
 }
