@@ -1,11 +1,11 @@
-import { useTokenStore } from "../common/stores/tokenStore.ts"
-import { fetchToken } from "../api/fetchToken.ts"
-import { TopBar } from "../common/components/TopBar.tsx"
+import { useTokenStore } from "../stores/tokenStore.ts"
+import { fetchToken } from "../../api/fetchToken.ts"
+import { TopBar } from "../components/TopBar.tsx"
 import { useEffect } from "react"
-import { CardsSkeleton } from "../common/components/CardsSkeleton.tsx"
-import { EnsureLoginWrapper } from "../common/components/EnsureLoginWrapper.tsx"
+import { CardsSkeleton } from "../components/CardsSkeleton.tsx"
+import { EnsureLoginWrapper } from "../components/EnsureLoginWrapper.tsx"
 import { Home } from "./Home.tsx"
-import { ToolBar } from "../common/components/toolbar/ToolBar.tsx"
+import { ToolBar } from "../components/toolbar/ToolBar.tsx"
 
 export const Main = () => {
     const query = new URLSearchParams(window.location.search)

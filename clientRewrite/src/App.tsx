@@ -1,6 +1,6 @@
 import { ThemeProvider } from "./ThemeProvider.tsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Main } from "./views/Main.tsx"
+import { Main } from "./common/views/Main.tsx"
 
 export const App = () => {
     const queryClient = new QueryClient()

@@ -1,4 +1,4 @@
-import { afterEach, vi } from "vitest"
+import { afterEach } from "vitest"
 import { cleanup } from "@testing-library/react"
 import { useTokenStore } from "./src/common/stores/tokenStore"
 import { Theme, useThemeStore } from "./src/common/stores/themeStore"
