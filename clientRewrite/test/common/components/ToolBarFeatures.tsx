@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
@@ -37,38 +37,47 @@ describe("Tool bar", () => {
         expect(useSearchStore.getState().query).toBe("")
     })
 
-    // @ts-expect-error
-    it("Should set search query with debounce delay after typing", async () => {
-        render(<ToolBar />)
+    describe("Debounce", () => {
+        const debounceDelay = 511
 
-        act(() => {
-            screen.getByRole("button", { name: "Search" }).click()
+        beforeEach(() => {
+            vi.useFakeTimers()
         })
-        fireEvent.change(screen.getByRole("textbox"), { target: { value: "test" } })
-        fireEvent.change(screen.getByRole("textbox"), { target: { value: "test query" } })
 
-        expect(useSearchStore.getState().query).toBe("")
-
-        // @ts-expect-error
-        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 512))
-
-        expect(useSearchStore.getState().query).toBe("test query")
-    })
-
-    // @ts-expect-error
-    it("Should not change search query if search input changes to empty string", async () => {
-        useSearchStore.setState({ query: "test" })
-        render(<ToolBar />)
-
-        act(() => {
-            screen.getByRole("button", { name: "Search" }).click()
+        afterEach(() => {
+            vi.restoreAllMocks()
         })
-        fireEvent.change(screen.getByRole("textbox"), { target: { value: "test" } })
-        fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } })
-        // @ts-expect-error
-        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 512))
 
-        expect(useSearchStore.getState().query).toBe("test")
+        it("Should set search query with debounce delay after typing", () => {
+            render(<ToolBar />)
+
+            act(() => {
+                screen.getByRole("button", { name: "Search" }).click()
+            })
+            fireEvent.change(screen.getByRole("textbox"), { target: { value: "test" } })
+            fireEvent.change(screen.getByRole("textbox"), { target: { value: "test query" } })
+
+            expect(useSearchStore.getState().query).toBe("")
+
+            vi.advanceTimersByTime(debounceDelay + 1)
+
+            expect(useSearchStore.getState().query).toBe("test query")
+        })
+
+        it("Should not change search query if search input changes to empty string", () => {
+            useSearchStore.setState({ query: "test" })
+            render(<ToolBar />)
+
+            act(() => {
+                screen.getByRole("button", { name: "Search" }).click()
+            })
+            fireEvent.change(screen.getByRole("textbox"), { target: { value: "test" } })
+            fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } })
+
+            vi.advanceTimersByTime(debounceDelay + 1)
+
+            expect(useSearchStore.getState().query).toBe("test")
+        })
     })
 
     it("Should set search query to be empty string when pressing close", () => {

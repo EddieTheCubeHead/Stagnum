@@ -16,7 +16,9 @@ describe("Home", () => {
 
         expect(screen.queryByText("Tracks")).toBeNull()
     })
-    it("Should render search if search query set", () => {
+
+    // @ts-expect-error
+    it("Should render search if search query set", async () => {
         mockAxiosGet(mockedSearchData())
         useSearchStore.setState({ query: "my query" })
         render(
@@ -25,6 +27,8 @@ describe("Home", () => {
             </TestQueryProvider>,
         )
 
+        // @ts-expect-error
+        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
         expect(screen.getByText("Tracks")).toBeDefined()
     })
 })
