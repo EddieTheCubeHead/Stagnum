@@ -9,6 +9,7 @@ interface SearchSpotifyArtistCardProps {
 export const SearchSpotifyArtistCard = ({ artist }: SearchSpotifyArtistCardProps) => {
     return (
         <SearchResourceCard
+            resource={artist}
             iconSource={artist}
             nameField={
                 <div className="text-xs ">

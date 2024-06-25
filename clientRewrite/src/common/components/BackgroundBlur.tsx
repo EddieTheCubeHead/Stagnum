@@ -6,7 +6,7 @@ interface BackgroundBlurProps {
 
 export const BackgroundBlur = ({ children }: BackgroundBlurProps) => {
     return (
-        <div className="h-screen w-screen backdrop-blur-sm z-40 top-0 absolute flex items-center justify-center">
+        <div className="h-screen w-screen backdrop-blur-sm z-40 top-0 left-0 fixed flex items-center justify-center">
             {children}
         </div>
     )

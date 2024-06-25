@@ -9,6 +9,7 @@ interface SearchSpotifyPlaylistCardProps {
 export const SearchSpotifyPlaylistCard = ({ playlist }: SearchSpotifyPlaylistCardProps) => {
     return (
         <SearchResourceCard
+            resource={playlist}
             iconSource={playlist}
             nameField={
                 <div className="text-xs ">

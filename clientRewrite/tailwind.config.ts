@@ -15,6 +15,14 @@ const config: Config = {
                 text: "hsl(var(--color-text) / <alpha-value>)",
                 clickable: "hsl(var(--color-clickable) / <alpha-value>)",
                 stroke: "hsl(var(--color-stroke) / <alpha-value>)",
+                confirm: {
+                    DEFAULT: "hsl(var(--color-confirm) / <alpha-value>)",
+                    bg: "hsl(var(--color-confirm-bg) / <alpha-value>)",
+                },
+                error: {
+                    DEFAULT: "hsl(var(--color-error) / <alpha-value>)",
+                    bg: "hsl(var(--color-error-bg) / <alpha-value>)",
+                },
                 accent: {
                     DEFAULT: "hsl(var(--color-accent) / <alpha-value>)",
                     purple: "hsl(var(--color-accent-purple) / <alpha-value>)",
