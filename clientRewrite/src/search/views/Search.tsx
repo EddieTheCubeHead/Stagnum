@@ -6,15 +6,15 @@ import { SearchSkeleton } from "../components/SearchSkeleton.tsx"
 export const Search = () => {
     const { isLoading } = useSpotifyGeneralQuery()
     return (
-        <>
+        <div className="grow max-w-full basis-2/3 flex-col space-y-2 overflow-y-auto">
             {isLoading ? (
                 <SearchSkeleton />
             ) : (
-                <div className="max-h-full w-full flex-col space-y-2">
+                <>
                     <SearchTopBar />
                     <SearchResults />
-                </div>
+                </>
             )}
-        </>
+        </div>
     )
 }

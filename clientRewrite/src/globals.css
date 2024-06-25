@@ -32,10 +32,6 @@
         --color-error: 0deg 70% 49%;
         --color-error-bg: 0deg 100% 19%;
     }
-
-    @font-face {
-        font-family: "Jano Sans Pro";
-    }
 }
 
 .theme-dark {

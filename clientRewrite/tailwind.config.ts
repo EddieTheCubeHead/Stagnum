@@ -71,6 +71,10 @@ const config: Config = {
                 xxs: "0.7rem",
                 icon: "0.5rem",
             },
+            minWidth: {
+                "2/3": "66%",
+                "1/3": "33%",
+            },
         },
     },
 }
