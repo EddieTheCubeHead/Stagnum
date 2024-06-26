@@ -12,3 +12,9 @@ export const mockAxiosPost = (data: any) => {
 
     axiosMock.mockResolvedValue({ data: data })
 }
+
+export const mockAxiosDelete = (data: any) => {
+    const axiosMock = vi.spyOn(axios, "delete")
+
+    axiosMock.mockResolvedValue({ data: data })
+}

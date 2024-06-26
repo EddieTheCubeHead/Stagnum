@@ -37,7 +37,7 @@ def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrac
         PoolTrack(
             name=track["name"],
             spotify_icon_uri=icon_uri,
-            spotify_track_uri=track["uri"],
+            spotify_resource_uri=track["uri"],
             duration_ms=track["duration_ms"],
         )
         for track in tracks
@@ -49,7 +49,7 @@ def _build_tracks_without_image(tracks: list[dict]) -> list[PoolTrack]:
         PoolTrack(
             name=track["name"],
             spotify_icon_uri=get_sharpest_icon(track["album"]["images"]),
-            spotify_track_uri=track["uri"],
+            spotify_resource_uri=track["uri"],
             duration_ms=track["duration_ms"],
         )
         for track in tracks
@@ -89,7 +89,7 @@ class PoolSpotifyClientRaw:
         return PoolTrack(
             name=track_data["name"],
             spotify_icon_uri=get_sharpest_icon(track_data["album"]["images"]),
-            spotify_track_uri=track_data["uri"],
+            spotify_resource_uri=track_data["uri"],
             duration_ms=track_data["duration_ms"],
         )
 
@@ -101,7 +101,7 @@ class PoolSpotifyClientRaw:
             name=album_data["name"],
             spotify_icon_uri=sharpest_icon_url,
             tracks=tracks,
-            spotify_collection_uri=album_data["uri"],
+            spotify_resource_uri=album_data["uri"],
         )
 
     def _fetch_artist(self, user: User, artist_id: str) -> PoolCollection:
@@ -113,7 +113,7 @@ class PoolSpotifyClientRaw:
             name=artist_data["name"],
             spotify_icon_uri=get_sharpest_icon(artist_data["images"]),
             tracks=tracks,
-            spotify_collection_uri=artist_data["uri"],
+            spotify_resource_uri=artist_data["uri"],
         )
 
     def _fetch_playlist(self, user: User, playlist_id: str) -> PoolCollection:
@@ -123,7 +123,7 @@ class PoolSpotifyClientRaw:
             name=playlist_data["name"],
             spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
             tracks=tracks,
-            spotify_collection_uri=playlist_data["uri"],
+            spotify_resource_uri=playlist_data["uri"],
         )
 
     def _fully_fetch_playlist(self, playlist_id: str, user: User) -> PlaylistData:
@@ -173,7 +173,7 @@ def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, se
     for track in pool_contents.tracks:
         pool_member = PoolMember(
             user_id=pool_contents.user.spotify_id,
-            content_uri=track.spotify_track_uri,
+            content_uri=track.spotify_resource_uri,
             image_url=track.spotify_icon_uri,
             name=track.name,
             sort_order=current_sort_order,
@@ -188,7 +188,7 @@ def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, se
             user_id=pool_contents.user.spotify_id,
             image_url=collection.spotify_icon_uri,
             name=collection.name,
-            content_uri=collection.spotify_collection_uri,
+            content_uri=collection.spotify_resource_uri,
             sort_order=current_sort_order,
             pool_id=pool.id,
         )
@@ -197,7 +197,7 @@ def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, se
         for track in collection.tracks:
             pool_member = PoolMember(
                 user_id=pool_contents.user.spotify_id,
-                content_uri=track.spotify_track_uri,
+                content_uri=track.spotify_resource_uri,
                 image_url=track.spotify_icon_uri,
                 name=track.name,
                 sort_order=current_sort_order,
@@ -362,7 +362,7 @@ def _get_current_track(pool: Pool, session: Session) -> PoolTrack | None:
     return PoolTrack(
         name=playback_session.current_track_name,
         spotify_icon_uri=playback_session.current_track_image_url,
-        spotify_track_uri=playback_session.current_track_uri,
+        spotify_resource_uri=playback_session.current_track_uri,
         duration_ms=playback_session.current_track_duration_ms,
     )
 
@@ -716,7 +716,7 @@ class PoolPlaybackServiceRaw:
         return PoolTrack(
             name=next_song.name,
             spotify_icon_uri=next_song.image_url,
-            spotify_track_uri=next_song.content_uri,
+            spotify_resource_uri=next_song.content_uri,
             duration_ms=next_song.duration_ms,
         )
 

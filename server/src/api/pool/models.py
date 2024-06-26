@@ -14,14 +14,14 @@ class PoolCreationData(BaseModel):
 class PoolTrack(BaseModel):
     name: str
     spotify_icon_uri: str
-    spotify_track_uri: str
+    spotify_resource_uri: str
     duration_ms: int
 
 
 class PoolCollection(BaseModel):
     name: str
     spotify_icon_uri: str
-    spotify_collection_uri: str
+    spotify_resource_uri: str
     tracks: list[PoolTrack]
 
 

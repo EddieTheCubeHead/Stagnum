@@ -13,7 +13,7 @@ def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
         PoolTrack(
             name=track.name,
             spotify_icon_uri=track.image_url,
-            spotify_track_uri=track.content_uri,
+            spotify_resource_uri=track.content_uri,
             duration_ms=track.duration_ms,
         )
         for track in collection.children
@@ -37,7 +37,7 @@ def create_pool_return_model(
                 PoolTrack(
                     name=pool_member.name,
                     spotify_icon_uri=pool_member.image_url,
-                    spotify_track_uri=pool_member.content_uri,
+                    spotify_resource_uri=pool_member.content_uri,
                     duration_ms=pool_member.duration_ms,
                 )
             )
@@ -47,7 +47,7 @@ def create_pool_return_model(
                     name=pool_member.name,
                     spotify_icon_uri=pool_member.image_url,
                     tracks=_create_collection_tracks(pool_member),
-                    spotify_collection_uri=pool_member.content_uri,
+                    spotify_resource_uri=pool_member.content_uri,
                 )
             )
     return PoolFullContents(
@@ -59,6 +59,6 @@ def map_pool_member_entity_to_model(pool_member: PoolMember) -> PoolTrack:
     return PoolTrack(
         name=pool_member.name,
         spotify_icon_uri=pool_member.image_url,
-        spotify_track_uri=pool_member.content_uri,
+        spotify_resource_uri=pool_member.content_uri,
         duration_ms=pool_member.duration_ms,
     )

@@ -45,7 +45,7 @@ const PoolManager: React.FC<PoolManagerProps> = ({
             currently_playing: {
                 name: '',
                 spotify_icon_uri: '',
-                spotify_track_uri: '',
+                spotify_resource_uri: '',
                 duration_ms: 0,
             },
         }

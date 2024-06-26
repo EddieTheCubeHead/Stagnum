@@ -76,7 +76,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(
         model_data = data["model"]
         assert model_data["name"] in [track["name"] for track in existing_playback]
         assert model_data["spotify_icon_uri"] in [track["album"]["images"][0]["url"] for track in existing_playback]
-        assert model_data["spotify_track_uri"] in [track["uri"] for track in existing_playback]
+        assert model_data["spotify_resource_uri"] in [track["uri"] for track in existing_playback]
         assert model_data["duration_ms"] == fixed_track_length_ms
 
 
@@ -134,7 +134,7 @@ async def should_notify_socket_if_playback_fix_occurs(
         await run_scheduling_job()
         data = websocket.receive_json()
         assert data["type"] == "current_track"
-        assert data["model"]["spotify_track_uri"] == new_track_data["uri"]
+        assert data["model"]["spotify_resource_uri"] == new_track_data["uri"]
 
 
 def should_wipe_pool_for_listeners_on_pool_delete(

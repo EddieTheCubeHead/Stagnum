@@ -16,7 +16,7 @@ export const Pool = () => {
                 {pool?.users.map((user) => (
                     <>
                         {user.tracks.map((track) => (
-                            <PoolMemberCard key={track.spotify_track_uri} poolMember={track} isTopLevel={true} />
+                            <PoolMemberCard key={track.spotify_resource_uri} poolMember={track} isTopLevel={true} />
                         ))}
                         {user.collections.map((collection) => (
                             <PoolCollectionSection collection={collection} />

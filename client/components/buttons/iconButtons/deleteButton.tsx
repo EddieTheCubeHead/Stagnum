@@ -20,7 +20,7 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
 
     const handleClick = (): void => {
         let isCollection: boolean
-        if ('spotify_collection_uri' in poolItem) {
+        if ('spotify_resource_uri' in poolItem) {
             isCollection = true
         } else {
             isCollection = false
@@ -29,8 +29,8 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({
         axios
             .delete(
                 isCollection
-                    ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_collection_uri}`
-                    : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_track_uri}`,
+                    ? `${backend_uri}/pool/content/${(poolItem as PoolCollection).spotify_resource_uri}`
+                    : `${backend_uri}/pool/content/${(poolItem as PoolTrack).spotify_resource_uri}`,
                 {
                     headers: {
                         Authorization: localStorage.getItem('token')

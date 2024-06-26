@@ -164,7 +164,7 @@ def create_playback(
         response = test_client.post("/pool", json=data_json, headers=valid_token_header)
         currently_playing = validate_response(response)["currently_playing"]
         for track in tracks:
-            if track["uri"] == currently_playing["spotify_track_uri"]:
+            if track["uri"] == currently_playing["spotify_resource_uri"]:
                 current_playback_data.current_track = track
         return tracks
 

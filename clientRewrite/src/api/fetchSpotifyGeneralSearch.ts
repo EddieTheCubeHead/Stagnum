@@ -1,4 +1,4 @@
-import { get } from "./methods.ts"
+import { apiGet } from "./methods.ts"
 import { GeneralSpotifySearchResult } from "../search/models/GeneralSpotifySearchResult.ts"
 
 export const fetchSpotifyGeneralSearch = async (
@@ -9,6 +9,6 @@ export const fetchSpotifyGeneralSearch = async (
         return null
     }
 
-    const result = await get(`/search`, token, { query })
+    const result = await apiGet(`/search`, token, { query })
     return result.data
 }

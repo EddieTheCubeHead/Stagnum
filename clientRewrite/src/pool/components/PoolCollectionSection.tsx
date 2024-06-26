@@ -14,7 +14,7 @@ export const PoolCollectionSection = ({ collection }: PoolCollectionSectionProps
             {open ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
                     {collection.tracks.map((track) => (
-                        <PoolMemberCard key={track.spotify_track_uri} poolMember={track} />
+                        <PoolMemberCard key={track.spotify_resource_uri} poolMember={track} />
                     ))}
                 </div>
             ) : (

@@ -1,9 +1,9 @@
-import { get } from "./methods.ts"
+import { apiGet } from "./methods.ts"
 
 export const fetchMe = async (token: string | null) => {
     if (!token) {
         return null
     }
-    const me = await get("/me", token)
+    const me = await apiGet("/me", token)
     return me.data
 }

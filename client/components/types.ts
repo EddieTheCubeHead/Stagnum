@@ -38,14 +38,14 @@ export interface Album {
 export interface PoolTrack {
     name: string
     spotify_icon_uri: string
-    spotify_track_uri: string
+    spotify_resource_uri: string
     duration_ms: number
 }
 
 export interface PoolCollection {
     name: string
     spotify_icon_uri: string
-    spotify_collection_uri: string
+    spotify_resource_uri: string
     tracks: PoolTrack[]
 }
 
