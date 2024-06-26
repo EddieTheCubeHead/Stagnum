@@ -9,8 +9,8 @@ interface PoolCollectionSectionProps {
 export const PoolCollectionSection = ({ collection }: PoolCollectionSectionProps) => {
     const [open, setOpen] = useState(true)
     return (
-        <>
-            <PoolMemberCard poolMember={collection} parentProps={{ open, setOpen }} />
+        <div>
+            <PoolMemberCard poolMember={collection} parentProps={{ open, setOpen }} isTopLevel={true} />
             {open ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
                     {collection.tracks.map((track) => (
@@ -22,6 +22,6 @@ export const PoolCollectionSection = ({ collection }: PoolCollectionSectionProps
                     <div className="bg-elementBackground-1 h-1 -top-2 rounded-b-md"></div>
                 </div>
             )}
-        </>
+        </div>
     )
 }

@@ -6,7 +6,7 @@ import { SearchSkeleton } from "../components/SearchSkeleton.tsx"
 export const Search = () => {
     const { isLoading } = useSpotifyGeneralQuery()
     return (
-        <div className="grow max-w-full basis-2/3 space-y-2 h-[calc(100vh-3rem)] overflow-y-auto">
+        <div className="min-w-0 grow max-w-full basis-2/3 space-y-2 h-[calc(100vh-3rem)] overflow-y-auto">
             {isLoading ? (
                 <SearchSkeleton />
             ) : (

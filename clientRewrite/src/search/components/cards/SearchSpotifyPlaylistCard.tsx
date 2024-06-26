@@ -1,6 +1,7 @@
 import { SpotifyPlaylist } from "../../models/SpotifyPlaylist.ts"
-import { NameWithLink } from "../../../common/components/cards/NameWithLink.tsx"
 import { SearchResourceCard } from "./SearchResourceCard.tsx"
+import { CardText } from "../../../common/components/cards/CardText.tsx"
+import { Size } from "../../../common/constants/size.ts"
 
 interface SearchSpotifyPlaylistCardProps {
     playlist: SpotifyPlaylist
@@ -13,7 +14,7 @@ export const SearchSpotifyPlaylistCard = ({ playlist }: SearchSpotifyPlaylistCar
             iconSource={playlist}
             nameField={
                 <div className="text-xs ">
-                    <NameWithLink resource={playlist} />
+                    <CardText text={playlist.name} title={playlist.name} link={playlist.link} size={Size.s} />
                 </div>
             }
         />

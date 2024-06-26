@@ -8,7 +8,6 @@ interface CollapseIconButtonProps {
 }
 
 export const CollapseIconButton = ({ open, setOpen }: CollapseIconButtonProps) => {
-    console.log(open)
     return (
         <>
             {open ? (
