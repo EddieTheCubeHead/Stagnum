@@ -21,7 +21,7 @@ export const Main = () => {
         }
     }, [code, state])
     return (
-        <div className="bg-background text-text min-h-screen font-default flex flex-col">
+        <div className="bg-background text-text min-h-screen font-default">
             <TopBar />
             {code === null || state === null ? <EnsureLoginWrapper view={<Home />} /> : <SearchSkeleton />}
             <ToolBar />

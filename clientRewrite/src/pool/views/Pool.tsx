@@ -7,9 +7,11 @@ export const Pool = () => {
     const { pool } = usePoolStore()
     const isSearchOpen = useSearchStore().query !== ""
     return (
-        <div className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden"}`}>
+        <div
+            className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden"} h-[calc(100vh-3rem)] overflow-y-auto space-y-2`}
+        >
             <PoolTopBar />
-            <div className="overflow-y-auto grow space-y-1 pb-4 px-2">
+            <div className="grow space-y-1 pb-4 px-2 ">
                 {pool?.users.map((user) => (
                     <>
                         {user.tracks.map((track) => (
