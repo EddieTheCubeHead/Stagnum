@@ -11,7 +11,7 @@ export const Home = () => {
     return (
         <>
             {confirmingOverwrite !== "" && <ConfirmPoolOverwriteModal />}
-            <div className="flex space-x-1 grow">
+            <div className="flex grow min-w-0">
                 {pool && <Pool />}
                 {query !== "" && <Search />}
             </div>

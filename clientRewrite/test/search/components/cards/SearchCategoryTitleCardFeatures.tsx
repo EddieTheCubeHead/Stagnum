@@ -19,14 +19,14 @@ describe("SearchCategoryTitleCardFeatures", () => {
     it("Should render collapse icon initially", () => {
         render(<TestTitleCard />)
 
-        expect(screen.getByTitle("Collapse section")).toBeDefined()
+        expect(screen.getByTitle("Collapse")).toBeDefined()
     })
 
     it("Should render open icon after collapsing state", () => {
         render(<TestTitleCard />)
 
-        act(() => screen.getByRole("button", { name: "Collapse section" }).click())
+        act(() => screen.getByRole("button", { name: "Collapse" }).click())
 
-        expect(screen.getByTitle("Open section")).toBeDefined()
+        expect(screen.getByTitle("Open")).toBeDefined()
     })
 })

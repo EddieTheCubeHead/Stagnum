@@ -9,7 +9,7 @@ export const Pool = () => {
     const isSearchOpen = useSearchStore().query !== ""
     return (
         <div
-            className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden"} h-[calc(100vh-3rem)] overflow-y-auto space-y-2`}
+            className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden lg:mr-1"} h-[calc(100vh-3rem)] overflow-y-auto space-y-2`}
         >
             <PoolTopBar />
             <div className="grow pb-4 px-2 space-y-1">
