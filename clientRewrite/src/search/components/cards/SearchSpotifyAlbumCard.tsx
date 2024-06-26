@@ -9,6 +9,7 @@ interface SearchSpotifyAlbumCardProps {
 export const SearchSpotifyAlbumCard = ({ album }: SearchSpotifyAlbumCardProps) => {
     return (
         <SearchResourceCard
+            resource={album}
             iconSource={album}
             nameField={<ResourceWithArtistNameField track={album} artists={album.artists} />}
         />

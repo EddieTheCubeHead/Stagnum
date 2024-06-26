@@ -26,10 +26,11 @@
         --color-avatar-5-text: 237deg 70% 67%;
         --color-avatar-6-bg: 301deg 70% 27%;
         --color-avatar-6-text: 301deg 70% 67%;
-    }
 
-    @font-face {
-        font-family: "Jano Sans Pro";
+        --color-confirm: 130deg 85% 45%;
+        --color-confirm-bg: 133deg 100% 19%;
+        --color-error: 0deg 70% 49%;
+        --color-error-bg: 0deg 100% 19%;
     }
 }
 
@@ -51,4 +52,7 @@
     --color-text: 0deg 0% 5%;
     --color-clickable: 0deg 0% 63%;
     --color-stroke: 0deg 0% 22%;
+
+    --color-confirm-bg: 133deg 47% 63%;
+    --color-error-bg: 0deg 37% 65%;
 }

@@ -1,14 +1,18 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { SpotifyTrack } from "../../../../src/search/models/SpotifyTrack"
 import { SpotifyArtist } from "../../../../src/search/models/SpotifyArtist"
 import { SpotifyAlbum } from "../../../../src/search/models/SpotifyAlbum"
 import { SpotifyPlaylist } from "../../../../src/search/models/SpotifyPlaylist"
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { SearchSpotifyTrackCard } from "../../../../src/search/components/cards/SearchSpotifyTrackCard"
 import "@testing-library/jest-dom/vitest"
 import { SearchSpotifyAlbumCard } from "../../../../src/search/components/cards/SearchSpotifyAlbumCard"
 import { SearchSpotifyArtistCard } from "../../../../src/search/components/cards/SearchSpotifyArtistCard"
 import { SearchSpotifyPlaylistCard } from "../../../../src/search/components/cards/SearchSpotifyPlaylistCard"
+import { mockAxiosPost } from "../../../utils/mockAxios"
+import { mockedTrackPoolData } from "../../data/mockPoolData"
+import { usePoolStore } from "../../../../src/common/stores/poolStore"
+import { useTokenStore } from "../../../../src/common/stores/tokenStore"
 
 describe("SearchResourceCard", () => {
     const mockArtist: SpotifyArtist = {
@@ -108,6 +112,39 @@ describe("SearchResourceCard", () => {
             render(<SearchSpotifyPlaylistCard playlist={mockPlaylist} />)
 
             expect(screen.getByRole("img")).toHaveAttribute("src", mockPlaylist.icon_link)
+        })
+    })
+
+    describe("Pool manipulation", () => {
+        beforeEach(() => {
+            useTokenStore.setState({ token: "my test token" })
+        })
+
+        // @ts-expect-error
+        it("Should start pool playback when clicking create pool without existing playback", async () => {
+            const mock_pool_data = mockedTrackPoolData()
+            mockAxiosPost(mock_pool_data)
+            render(<SearchSpotifyTrackCard track={mockTrack} />)
+
+            act(() => screen.getByRole("button").click())
+
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+            expect(usePoolStore.getState().pool).toBe(mock_pool_data)
+        })
+
+        // @ts-expect-error
+        it("Should confirm overriding pool creation with a modal", async () => {
+            usePoolStore.setState({ pool: mockedTrackPoolData() })
+            render(<SearchSpotifyArtistCard artist={mockArtist} />)
+
+            act(() => screen.getByRole("button").click())
+
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+            expect(usePoolStore.getState().confirmingOverwrite).toBe(mockArtist.uri)
         })
     })
 })

@@ -17,7 +17,7 @@ export const IconButton = ({ svg, onClick, title, toggled }: IconButtonProps) =>
             <Icon svg={svg} button={true} toggled={toggled} />
             {title && (
                 <p
-                    className={`select-none ${toggled ? "text-accent" : "text-clickable"} group-hover:text-stroke font-bold text-icon`}
+                    className={`select-none ${toggled ? "text-accent group-hover:text-accent-purple" : "text-clickable group-hover:text-stroke"} font-bold text-icon`}
                 >
                     {title}
                 </p>

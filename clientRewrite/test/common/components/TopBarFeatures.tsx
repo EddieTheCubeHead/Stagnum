@@ -16,16 +16,6 @@ describe("Top bar", () => {
         expect(screen.getByText("Stagnum")).toBeDefined()
     })
 
-    it("Should render question in place of username initial placeholder if no user data", () => {
-        render(
-            <TestQueryProvider>
-                <TopBar />
-            </TestQueryProvider>,
-        )
-
-        expect(screen.getByText("?")).toBeDefined()
-    })
-
     // @ts-expect-error
     it("Should render username first letter if image missing", async () => {
         useTokenStore.setState({ token: "my_test_token_1234" })

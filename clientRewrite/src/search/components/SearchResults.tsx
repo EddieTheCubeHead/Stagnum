@@ -5,7 +5,7 @@ import { SearchPlaylists } from "./SearchPlaylists.tsx"
 
 export const SearchResults = () => {
     return (
-        <div className="overflow-y-auto space-y-1 pb-4">
+        <div className="space-y-1 pb-4">
             <SearchTracks />
             <SearchAlbums />
             <SearchArtists />
