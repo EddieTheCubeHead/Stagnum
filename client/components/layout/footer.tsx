@@ -42,7 +42,7 @@ const Footer: React.FC<FooterProps> = ({
         currentTrack = {
             name: 'Playback',
             spotify_icon_uri: '',
-            spotify_track_uri: '',
+            spotify_resource_uri: '',
             duration_ms: 0,
         }
     }
@@ -55,7 +55,7 @@ const Footer: React.FC<FooterProps> = ({
             currently_playing: {
                 name: '',
                 spotify_icon_uri: '',
-                spotify_track_uri: '',
+                spotify_resource_uri: '',
                 duration_ms: 0,
             },
         }

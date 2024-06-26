@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders } from "axios"
 
-export const get = async (path: string, token?: string, params?: object) => {
+export const apiGet = async (path: string, token?: string, params?: object) => {
     const headers = new AxiosHeaders()
     if (token) {
         headers.set("Authorization", token)
@@ -10,9 +10,16 @@ export const get = async (path: string, token?: string, params?: object) => {
     return await axios.get(fetchUrl, { params, headers })
 }
 
-export const post = async <T extends object>(path: string, body: T, token: string) => {
+export const apiPost = async <T extends object>(path: string, body: T, token: string) => {
     const headers = new AxiosHeaders()
     headers.set("Authorization", token)
     const postUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
     return await axios.post(postUrl, body, { headers })
+}
+
+export const apiDelete = async (path: string, token: string) => {
+    const headers = new AxiosHeaders()
+    headers.set("Authorization", token)
+    const deleteUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
+    return await axios.delete(deleteUrl, { headers })
 }

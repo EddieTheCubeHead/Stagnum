@@ -39,7 +39,7 @@ const HomePageContent: React.FC = () => {
         currently_playing: {
             name: '',
             spotify_icon_uri: '',
-            spotify_track_uri: '',
+            spotify_resource_uri: '',
             duration_ms: 0,
         },
     })
@@ -56,7 +56,7 @@ const HomePageContent: React.FC = () => {
     const [currentTrack, setCurrentTrack] = useState<PoolTrack>({
         name: 'Playback',
         spotify_icon_uri: '',
-        spotify_track_uri: '',
+        spotify_resource_uri: '',
         duration_ms: 0,
     })
     const [user, setUser] = useState<User>({

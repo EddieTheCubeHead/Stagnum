@@ -1,4 +1,4 @@
-import { post } from "./methods.ts"
+import { apiPost } from "./methods.ts"
 
 export const postCreatePool = async (resourceUri: string, token: string) => {
     const postData = {
@@ -9,6 +9,6 @@ export const postCreatePool = async (resourceUri: string, token: string) => {
         ],
     }
 
-    const poolData = await post("/pool", postData, token)
+    const poolData = await apiPost("/pool", postData, token)
     return poolData.data
 }

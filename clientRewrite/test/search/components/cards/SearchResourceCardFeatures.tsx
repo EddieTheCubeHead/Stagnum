@@ -9,7 +9,7 @@ import "@testing-library/jest-dom/vitest"
 import { SearchSpotifyAlbumCard } from "../../../../src/search/components/cards/SearchSpotifyAlbumCard"
 import { SearchSpotifyArtistCard } from "../../../../src/search/components/cards/SearchSpotifyArtistCard"
 import { SearchSpotifyPlaylistCard } from "../../../../src/search/components/cards/SearchSpotifyPlaylistCard"
-import { mockAxiosPost } from "../../../utils/mockAxios"
+import { mockAxiosDelete, mockAxiosPost } from "../../../utils/mockAxios"
 import { mockedTrackPoolData } from "../../data/mockPoolData"
 import { usePoolStore } from "../../../../src/common/stores/poolStore"
 import { useTokenStore } from "../../../../src/common/stores/tokenStore"
@@ -154,6 +154,20 @@ describe("SearchResourceCard", () => {
             render(<SearchSpotifyTrackCard track={mockTrack} />)
 
             act(() => screen.getByRole("button", { name: "Add" }).click())
+
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+            expect(usePoolStore.getState().pool).toBe(mock_pool_data)
+        })
+
+        // @ts-expect-error
+        it("Should delete resource from pool when pressing add button", async () => {
+            const mock_pool_data = mockedTrackPoolData()
+            mockAxiosDelete(mock_pool_data)
+            render(<SearchSpotifyTrackCard track={mockTrack} />)
+
+            act(() => screen.getByRole("button", { name: "Delete" }).click())
 
             // @ts-expect-error
             await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
