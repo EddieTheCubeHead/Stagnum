@@ -6,7 +6,7 @@ interface AvatarImageProps {
 export const AvatarImage = ({ imageUrl, userName }: AvatarImageProps) => {
     return (
         <img
-            className="w-iconSize h-iconSize rounded-full object-none hover:scale-105"
+            className="w-iconSize h-iconSize rounded-full object-none"
             src={imageUrl}
             alt={`User ${userName} avatar`}
         />
