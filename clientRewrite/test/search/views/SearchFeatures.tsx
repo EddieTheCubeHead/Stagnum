@@ -61,7 +61,8 @@ describe("Search", () => {
         // @ts-expect-error
         await new Promise((r: TimerHandler) => setTimeout(r, 50))
 
-        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+        // It sees both the icon title and the icon button text
+        const categories = ["Track Tracks", "Album Albums", "Artist Artists", "Playlist Playlists"]
 
         categories.map((category) => expect(screen.getByRole("button", { name: category })).toBeDefined())
     })
@@ -81,7 +82,7 @@ describe("Search", () => {
             </TestQueryProvider>,
         )
 
-        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+        const categories = ["Track Tracks", "Album Albums", "Artist Artists", "Playlist Playlists"]
 
         categories.map((category) => expect(screen.queryByRole("button", { name: category })).toBeNull())
     })

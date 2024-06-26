@@ -126,7 +126,7 @@ describe("SearchResourceCard", () => {
             mockAxiosPost(mock_pool_data)
             render(<SearchSpotifyTrackCard track={mockTrack} />)
 
-            act(() => screen.getByRole("button").click())
+            act(() => screen.getByRole("button", { name: "Play" }).click())
 
             // @ts-expect-error
             await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
@@ -139,12 +139,26 @@ describe("SearchResourceCard", () => {
             usePoolStore.setState({ pool: mockedTrackPoolData() })
             render(<SearchSpotifyArtistCard artist={mockArtist} />)
 
-            act(() => screen.getByRole("button").click())
+            act(() => screen.getByRole("button", { name: "Play" }).click())
 
             // @ts-expect-error
             await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
 
             expect(usePoolStore.getState().confirmingOverwrite).toBe(mockArtist.uri)
+        })
+
+        // @ts-expect-error
+        it("Should add resource to pool when pressing add button", async () => {
+            const mock_pool_data = mockedTrackPoolData()
+            mockAxiosPost(mock_pool_data)
+            render(<SearchSpotifyTrackCard track={mockTrack} />)
+
+            act(() => screen.getByRole("button", { name: "Add" }).click())
+
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+            expect(usePoolStore.getState().pool).toBe(mock_pool_data)
         })
     })
 })

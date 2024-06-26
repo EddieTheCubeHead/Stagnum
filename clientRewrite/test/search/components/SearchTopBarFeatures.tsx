@@ -8,7 +8,7 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Tracks" }).click()
+            screen.getByRole("button", { name: "Track Tracks" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
@@ -21,8 +21,8 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Tracks" }).click()
-            screen.getByRole("button", { name: "Tracks" }).click()
+            screen.getByRole("button", { name: "Track Tracks" }).click()
+            screen.getByRole("button", { name: "Track Tracks" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
@@ -35,7 +35,7 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Albums" }).click()
+            screen.getByRole("button", { name: "Album Albums" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
@@ -48,8 +48,8 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Albums" }).click()
-            screen.getByRole("button", { name: "Albums" }).click()
+            screen.getByRole("button", { name: "Album Albums" }).click()
+            screen.getByRole("button", { name: "Album Albums" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
@@ -62,7 +62,7 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Artists" }).click()
+            screen.getByRole("button", { name: "Artist Artists" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
@@ -75,8 +75,8 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Artists" }).click()
-            screen.getByRole("button", { name: "Artists" }).click()
+            screen.getByRole("button", { name: "Artist Artists" }).click()
+            screen.getByRole("button", { name: "Artist Artists" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
@@ -89,7 +89,7 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Playlists" }).click()
+            screen.getByRole("button", { name: "Playlist Playlists" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
@@ -102,8 +102,8 @@ describe("SearchTopBar", () => {
         render(<SearchTopBar />)
 
         act(() => {
-            screen.getByRole("button", { name: "Playlists" }).click()
-            screen.getByRole("button", { name: "Playlists" }).click()
+            screen.getByRole("button", { name: "Playlist Playlists" }).click()
+            screen.getByRole("button", { name: "Playlist Playlists" }).click()
         })
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
