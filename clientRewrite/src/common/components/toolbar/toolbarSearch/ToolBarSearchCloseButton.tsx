@@ -8,7 +8,6 @@ export const ToolBarSearchCloseButton = () => {
             <button
                 onClick={() => {
                     searchStore.setIsOpened(false)
-                    searchStore.clearQuery()
                 }}
                 className="h-cardHeight w-cardHeight z-30"
                 aria-label="Close search"
