@@ -8,11 +8,11 @@ interface CardTextProps {
 }
 
 export const CardText = ({ size, text, link, title }: CardTextProps) => {
-    let textSize = "text-xs min-w-0 max-w-44 truncate text-ellipsis"
+    let textSize = "text-xs min-w-0 truncate text-ellipsis"
     if (size === Size.xs) {
-        textSize = "text-xxs font-extralight min-w-0 max-w-24 truncate text-ellipsis"
+        textSize = "text-xxs font-extralight min-w-0 truncate text-ellipsis"
     } else if (size === Size.l) {
-        textSize = "font-semibold text-lg min-w-0 max-w-44 truncate text-ellipsis"
+        textSize = "font-semibold text-lg min-w-0 truncate text-ellipsis"
     }
     if (link) {
         return (

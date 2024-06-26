@@ -10,11 +10,11 @@ interface TrackAndArtistsNameFieldProps {
 export const ResourceWithArtistNameField = ({ track, artists }: TrackAndArtistsNameFieldProps) => {
     const artistNames = artists.map((artist) => artist.name).join(", ")
     return (
-        <div className="flex-col text-xs select-none">
-            <div className="flex">
+        <div className="flex-col text-xs select-none min-w-0">
+            <div className="flex shrink">
                 <CardText size={Size.s} text={track.name} title={track.name} link={track.link} />
             </div>
-            <div className="flex space-x-2 max-w-44">
+            <div className="flex space-x-2">
                 {artists.map((artist: NamedSpotifyResource) => (
                     <CardText
                         key={track.link + artist.link}
