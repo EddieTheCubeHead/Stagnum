@@ -3,9 +3,10 @@ import { act, render, screen } from "@testing-library/react"
 import { Pool } from "../../../src/pool/views/Pool"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
-import { mockAxiosGet } from "../../utils/mockAxios"
+import { mockAxiosDelete, mockAxiosGet } from "../../utils/mockAxios"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { useTokenStore } from "../../../src/common/stores/tokenStore"
+import { SearchSpotifyTrackCard } from "../../../src/search/components/cards/SearchSpotifyTrackCard"
 
 describe("Pool", () => {
     it("Should render pool contents if present", () => {
@@ -67,9 +68,29 @@ describe("Pool", () => {
 
         expect(screen.getByText(mockedCollectionPoolData().users[0].collections[0].tracks[0].name)).toBeDefined()
 
-        act(() => screen.getByRole("button").click())
+        act(() => screen.getByRole("button", { name: "Collapse" }).click())
 
         expect(screen.getByText(mockedCollectionPoolData().users[0].collections[0].name)).toBeDefined()
         expect(screen.queryByText(mockedCollectionPoolData().users[0].collections[0].tracks[0].name)).toBeNull()
+    })
+
+    // @ts-expect-error
+    it("Should delete resource from pool when pressing add button", async () => {
+        const mock_pool_data = mockedTrackPoolData()
+        useTokenStore.setState({ token: "my_test_token_1234" })
+        mockAxiosDelete(mock_pool_data)
+        usePoolStore.setState({ pool: mockedCollectionPoolData() })
+        render(
+            <TestQueryProvider>
+                <Pool />
+            </TestQueryProvider>,
+        )
+
+        act(() => screen.getAllByRole("button", { name: "Delete" })[0].click())
+
+        // @ts-expect-error
+        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+        expect(usePoolStore.getState().pool).toBe(mock_pool_data)
     })
 })

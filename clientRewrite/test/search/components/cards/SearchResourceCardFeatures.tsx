@@ -160,19 +160,5 @@ describe("SearchResourceCard", () => {
 
             expect(usePoolStore.getState().pool).toBe(mock_pool_data)
         })
-
-        // @ts-expect-error
-        it("Should delete resource from pool when pressing add button", async () => {
-            const mock_pool_data = mockedTrackPoolData()
-            mockAxiosDelete(mock_pool_data)
-            render(<SearchSpotifyTrackCard track={mockTrack} />)
-
-            act(() => screen.getByRole("button", { name: "Delete" }).click())
-
-            // @ts-expect-error
-            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
-
-            expect(usePoolStore.getState().pool).toBe(mock_pool_data)
-        })
     })
 })
