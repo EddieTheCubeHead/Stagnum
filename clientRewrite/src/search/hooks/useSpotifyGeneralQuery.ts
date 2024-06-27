@@ -1,14 +1,15 @@
 import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { useQuery } from "@tanstack/react-query"
-import { fetchSpotifyGeneralSearch } from "../../api/fetchSpotifyGeneralSearch.ts"
+import { useApiGet } from "../../api/methods.ts"
 
 export const useSpotifyGeneralQuery = () => {
-    const tokenStore = useTokenStore()
-    const searchStore = useSearchStore()
+    const { token } = useTokenStore()
+    const { query } = useSearchStore()
+    const fetchSpotifyGeneralSearch = useApiGet("/search")
     return useQuery({
-        queryKey: ["generalSearch", searchStore.query, tokenStore.token],
-        queryFn: () => fetchSpotifyGeneralSearch(searchStore.query, tokenStore.token),
-        enabled: searchStore.query !== "",
+        queryKey: ["generalSearch", query, token],
+        queryFn: () => fetchSpotifyGeneralSearch({ query }),
+        enabled: query !== "",
     })
 }

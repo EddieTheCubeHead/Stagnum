@@ -12,7 +12,7 @@ export const ToolBar = () => {
     const { pool, setDeletingPool } = usePoolStore()
     return (
         <div className="select-none w-full justify-center items-center p-8 fixed bottom-0 flex z-30 pointer-events-none">
-            <div className="flex items-center pointer-events-auto">
+            <div className="flex items-center pointer-events-auto rounded-full">
                 <IconButton svg={<HomeIconSvg />} size={Size.l} onClick={() => clearQuery()} />
                 <ToolBarSearch />
                 {!isOpened &&
