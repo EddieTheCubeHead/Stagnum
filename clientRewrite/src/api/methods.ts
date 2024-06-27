@@ -11,11 +11,23 @@ export const apiGet = async (path: string, token?: string, params?: object) => {
     return await axios.get(fetchUrl, { params, headers })
 }
 
-export const apiPost = async <T extends object>(path: string, body: T, token: string) => {
-    const headers = new AxiosHeaders()
-    headers.set("Authorization", token)
-    const postUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
-    return await axios.post(postUrl, body, { headers })
+export const useApiGet = (path: string) => {
+    const headers = useTokenHeader()
+    const callDecorator = useCommonApiCallDecorator()
+    return async (params?: object) => {
+        const fetchUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
+        console.log("Getting", fetchUrl)
+        return await callDecorator(axios.get(fetchUrl, { params, headers }))
+    }
+}
+
+export const useApiPost = (path: string) => {
+    const headers = useTokenHeader()
+    const callDecorator = useCommonApiCallDecorator()
+    return async <T extends object>(body: T) => {
+        const postUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
+        return await callDecorator(axios.post(postUrl, body, { headers }))
+    }
 }
 
 export const useApiDelete = (path: string) => {
