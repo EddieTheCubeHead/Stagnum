@@ -3,6 +3,7 @@ import { TrackIconSvg } from "../../common/icons/svgs/TrackIconSvg.tsx"
 import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
 import { SearchSpotifyTrackCard } from "./cards/SearchSpotifyTrackCard.tsx"
+import { SpotifyTrack } from "../models/SpotifyTrack.ts"
 
 export const SearchTracks = () => {
     const { data } = useSpotifyGeneralQuery()
@@ -17,8 +18,8 @@ export const SearchTracks = () => {
             />
             {searchStore.isTracksOpened ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
-                    {data?.tracks.items.map((playlist) => (
-                        <SearchSpotifyTrackCard key={playlist.uri} track={playlist} />
+                    {data?.tracks.items.map((track: SpotifyTrack) => (
+                        <SearchSpotifyTrackCard key={track.uri} track={track} />
                     ))}
                 </div>
             ) : (
