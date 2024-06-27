@@ -1,20 +1,31 @@
 import { vi } from "vitest"
-import axios from "axios"
+import axios, { AxiosHeaders } from "axios"
 
 export const mockAxiosGet = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "get")
-
-    axiosMock.mockResolvedValue({ data: data })
+    mockAxiosCall("get", data)
 }
 
 export const mockAxiosPost = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "post")
-
-    axiosMock.mockResolvedValue({ data: data })
+    mockAxiosCall("post", data)
 }
 
 export const mockAxiosDelete = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "delete")
+    mockAxiosCall("delete", data)
+}
 
-    axiosMock.mockResolvedValue({ data: data })
+const mockAxiosCall = (call: "get" | "post" | "delete", data: any) => {
+    const axiosMock = vi.spyOn(axios, call)
+
+    axiosMock.mockResolvedValue(createMockData(data))
+}
+
+const createMockData = (data: any) => {
+    const mockHeaders = new AxiosHeaders()
+    mockHeaders.set("Authorization", "return header")
+    return {
+        data,
+        config: {
+            headers: mockHeaders,
+        },
+    }
 }

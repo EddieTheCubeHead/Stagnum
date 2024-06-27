@@ -1,4 +1,5 @@
-import axios, { AxiosHeaders } from "axios"
+import axios, { AxiosHeaders, AxiosResponse } from "axios"
+import { useTokenStore } from "../common/stores/tokenStore.ts"
 
 export const apiGet = async (path: string, token?: string, params?: object) => {
     const headers = new AxiosHeaders()
@@ -17,9 +18,28 @@ export const apiPost = async <T extends object>(path: string, body: T, token: st
     return await axios.post(postUrl, body, { headers })
 }
 
-export const apiDelete = async (path: string, token: string) => {
+export const useApiDelete = (path: string) => {
+    const headers = useTokenHeader()
+    const callDecorator = useCommonApiCallDecorator()
+    return async () => {
+        const deleteUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
+        return await callDecorator(axios.delete(deleteUrl, { headers }))
+    }
+}
+
+const useCommonApiCallDecorator = () => {
+    const { setToken } = useTokenStore()
+    return async (request: Promise<AxiosResponse<any>>) => {
+        const response = await request
+        const newHeader = response.config.headers["Authorization"] as string | undefined
+        setToken(newHeader ? newHeader : null)
+        return response.data
+    }
+}
+
+const useTokenHeader = () => {
+    const { token } = useTokenStore()
     const headers = new AxiosHeaders()
     headers.set("Authorization", token)
-    const deleteUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
-    return await axios.delete(deleteUrl, { headers })
+    return headers
 }
