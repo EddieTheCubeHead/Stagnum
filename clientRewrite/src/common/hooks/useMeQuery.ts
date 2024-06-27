@@ -6,7 +6,8 @@ import { useApiGet } from "../../api/methods.ts"
 export const useMeQuery = (): { user: User; error: Error | null; isLoading: boolean } => {
     const { token, setToken } = useTokenStore()
     const { data, error, isLoading } = useQuery({
-        queryKey: ["me", token],
+        queryKey: ["me"],
+        // @ts-expect-error - hard to type both our object and TanStack's three override objects
         queryFn: useApiGet("/me"),
         enabled: token !== null,
         retry: 3,

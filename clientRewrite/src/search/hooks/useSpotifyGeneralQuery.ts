@@ -9,7 +9,7 @@ export const useSpotifyGeneralQuery = () => {
     const fetchSpotifyGeneralSearch = useApiGet("/search")
     return useQuery({
         queryKey: ["generalSearch", query, token],
-        queryFn: () => fetchSpotifyGeneralSearch({ query }),
+        queryFn: () => fetchSpotifyGeneralSearch({ params: { query } }),
         enabled: query !== "",
     })
 }

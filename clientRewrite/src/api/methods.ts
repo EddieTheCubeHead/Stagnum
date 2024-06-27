@@ -11,10 +11,14 @@ export const apiGet = async (path: string, token?: string, params?: object) => {
     return await axios.get(fetchUrl, { params, headers })
 }
 
+interface useApiGetParameters {
+    params?: object
+}
+
 export const useApiGet = (path: string) => {
     const headers = useTokenHeader()
     const callDecorator = useCommonApiCallDecorator()
-    return async (params?: object) => {
+    return async ({ params }: useApiGetParameters) => {
         const fetchUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
         console.log("Getting", fetchUrl)
         return await callDecorator(axios.get(fetchUrl, { params, headers }))
