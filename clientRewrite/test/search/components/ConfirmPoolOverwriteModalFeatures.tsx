@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { ConfirmPoolOverwriteModal } from "../../../src/search/components/ConfirmPoolOverwriteModal"
+import { ConfirmPoolOverwriteModal } from "../../../src/pool/components/ConfirmPoolOverwriteModal"
 import { act, render, screen } from "@testing-library/react"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockAxiosPost } from "../../utils/mockAxios"

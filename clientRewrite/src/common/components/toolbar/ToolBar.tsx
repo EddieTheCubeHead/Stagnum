@@ -9,7 +9,7 @@ import { usePoolStore } from "../../stores/poolStore.ts"
 
 export const ToolBar = () => {
     const { isOpened, clearQuery } = useSearchStore()
-    const { pool } = usePoolStore()
+    const { pool, setDeletingPool } = usePoolStore()
     return (
         <div className="select-none w-full justify-center items-center p-8 fixed bottom-0 flex z-30 pointer-events-none">
             <div className="flex items-center pointer-events-auto">
@@ -17,7 +17,7 @@ export const ToolBar = () => {
                 <ToolBarSearch />
                 {!isOpened &&
                     (pool ? (
-                        <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => {}} />
+                        <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => setDeletingPool(true)} />
                     ) : (
                         <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
                     ))}

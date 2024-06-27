@@ -5,7 +5,7 @@ import { CollapseIconButton } from "../../common/components/CollapseIconButton.t
 import { CardText } from "../../common/components/cards/CardText.tsx"
 import { Size } from "../../common/constants/size.ts"
 import { IconButton } from "../../common/icons/IconButton.tsx"
-import { useDeletePoolContent } from "../../search/hooks/useDeletePoolContent.ts"
+import { useDeletePoolContent } from "../hooks/useDeletePoolContent.ts"
 
 interface PoolMemberParentExtraProps {
     setOpen: (open: boolean) => void
