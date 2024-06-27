@@ -23,7 +23,7 @@ describe("Main", () => {
         mockQueryParamCodeAndState(testCode, testState)
         const accessToken = "my_access_token_1234"
         const tokenData = { access_token: accessToken }
-        mockAxiosGet(tokenData)
+        mockAxiosGet(tokenData, "my_access_token_1234")
 
         render(
             <TestQueryProvider>
