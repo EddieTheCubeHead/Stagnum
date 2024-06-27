@@ -3,6 +3,7 @@ import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { SearchSpotifyAlbumCard } from "./cards/SearchSpotifyAlbumCard.tsx"
 import { AlbumIconSvg } from "../../common/icons/svgs/AlbumIconSvg.tsx"
 import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
+import { SpotifyAlbum } from "../models/SpotifyAlbum.ts"
 
 export const SearchAlbums = () => {
     const { data } = useSpotifyGeneralQuery()
@@ -17,7 +18,9 @@ export const SearchAlbums = () => {
             />
             {searchStore.isAlbumsOpened ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
-                    {data?.albums.items.map((album) => <SearchSpotifyAlbumCard key={album.uri} album={album} />)}
+                    {data?.albums.items.map((album: SpotifyAlbum) => (
+                        <SearchSpotifyAlbumCard key={album.uri} album={album} />
+                    ))}
                 </div>
             ) : (
                 <div className="flex-col pl-10 pr-1">

@@ -1,20 +1,31 @@
 import { vi } from "vitest"
-import axios from "axios"
+import axios, { AxiosHeaders } from "axios"
 
-export const mockAxiosGet = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "get")
-
-    axiosMock.mockResolvedValue({ data: data })
+export const mockAxiosGet = (data: any, return_header?: string) => {
+    mockAxiosCall("get", data, return_header)
 }
 
-export const mockAxiosPost = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "post")
-
-    axiosMock.mockResolvedValue({ data: data })
+export const mockAxiosPost = (data: any, return_header?: string) => {
+    mockAxiosCall("post", data)
 }
 
-export const mockAxiosDelete = (data: any) => {
-    const axiosMock = vi.spyOn(axios, "delete")
+export const mockAxiosDelete = (data: any, return_header?: string) => {
+    mockAxiosCall("delete", data)
+}
 
-    axiosMock.mockResolvedValue({ data: data })
+const mockAxiosCall = (call: "get" | "post" | "delete", data: any, return_header?: string) => {
+    const axiosMock = vi.spyOn(axios, call)
+
+    axiosMock.mockResolvedValue(createMockData(data, return_header))
+}
+
+const createMockData = (data: any, return_header?: string) => {
+    const mockHeaders = new AxiosHeaders()
+    mockHeaders.set("Authorization", return_header ?? "return header")
+    return {
+        data,
+        config: {
+            headers: mockHeaders,
+        },
+    }
 }

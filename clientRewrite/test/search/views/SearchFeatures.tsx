@@ -6,6 +6,7 @@ import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { render, screen } from "@testing-library/react"
 import { Search } from "../../../src/search/views/Search"
 import axios from "axios"
+import { useTokenStore } from "../../../src/common/stores/tokenStore"
 
 describe("Search", () => {
     // @ts-expect-error
@@ -25,6 +26,23 @@ describe("Search", () => {
         const categories = ["Tracks", "Albums", "Artists", "Playlists"]
 
         categories.map((category) => expect(screen.getByRole("heading", { name: category })).toBeDefined())
+    })
+
+    // @ts-expect-error
+    it("Should set new token if token changed", async () => {
+        mockAxiosGet(mockedSearchData(), "test token")
+        useSearchStore.setState({ query: "my query" })
+
+        render(
+            <TestQueryProvider>
+                <Search />
+            </TestQueryProvider>,
+        )
+
+        // @ts-expect-error
+        await new Promise((r: TimerHandler) => setTimeout(r, 50))
+
+        expect(useTokenStore.getState().token).toBe("test token")
     })
 
     it("Should not render empty categories when data is loading", () => {

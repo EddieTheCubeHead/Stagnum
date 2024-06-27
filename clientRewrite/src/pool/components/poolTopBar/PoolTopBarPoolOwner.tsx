@@ -5,9 +5,9 @@ import { PoolTopBarPoolOwnerSkeleton } from "./PoolTopBarPoolOwnerSkeleton.tsx"
 
 export const PoolTopBarPoolOwner = () => {
     const { pool } = usePoolStore()
-    const { user, isLoading } = useMeQuery()
+    const { user } = useMeQuery()
 
-    if (isLoading) {
+    if (!user) {
         return <PoolTopBarPoolOwnerSkeleton />
     }
     return (

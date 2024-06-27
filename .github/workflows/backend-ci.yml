@@ -53,7 +53,7 @@ jobs:
     - name: Lint with ruff
       uses: chartboost/ruff-action@v1
       with:
-        args: '--no-fix'
+        args: 'check --no-fix'
 
     - name: Test with pytest
       run: |
