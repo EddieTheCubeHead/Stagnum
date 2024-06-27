@@ -1,13 +1,16 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { Home } from "../../../src/common/views/Home"
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { mockAxiosGet } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
+import { mockedTrackPoolData } from "../../search/data/mockPoolData"
+import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 
 describe("Home", () => {
+    beforeEach(() => usePoolStore.setState({ deletingPool: false, confirmingOverwrite: "" }))
     it("Should not render search if query is null", () => {
         render(
             <TestQueryProvider>

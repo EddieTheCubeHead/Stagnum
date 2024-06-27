@@ -1,12 +1,14 @@
 import { ReactNode } from "react"
+import { Size } from "../constants/size.ts"
 
 interface IconPrompts {
     svg: ReactNode
     button?: boolean
     toggled?: boolean
+    size?: Size.md | Size.l
 }
 
-export const Icon = ({ svg, button, toggled }: IconPrompts) => {
+export const Icon = ({ svg, button, toggled, size }: IconPrompts) => {
     let colorClassName = "fill-clickable stroke-clickable"
     if (toggled) {
         colorClassName = "fill-accent stroke-accent"
@@ -18,8 +20,8 @@ export const Icon = ({ svg, button, toggled }: IconPrompts) => {
             : " group-hover:fill-stroke group-hover:stroke-stroke"
     }
     return (
-        <span className="size-8 flex items-center justify-center">
-            <span className={`size-5 ${colorClassName}`}>{svg}</span>
+        <span className={`${size === Size.l ? "size-10" : "size-6"} flex items-center justify-center`}>
+            <span className={`${size === Size.l ? "size-7" : "size-5"} ${colorClassName}`}>{svg}</span>
         </span>
     )
 }

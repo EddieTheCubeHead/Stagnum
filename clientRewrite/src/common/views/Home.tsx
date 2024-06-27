@@ -1,16 +1,18 @@
 import { Search } from "../../search/views/Search.tsx"
 import { useSearchStore } from "../stores/searchStore.ts"
-import { ConfirmPoolOverwriteModal } from "../../search/components/ConfirmPoolOverwriteModal.tsx"
+import { ConfirmPoolOverwriteModal } from "../../pool/components/ConfirmPoolOverwriteModal.tsx"
 import { usePoolStore } from "../stores/poolStore.ts"
 import { Pool } from "../../pool/views/Pool.tsx"
+import { ConfirmPoolDeleteModal } from "../../pool/components/ConfirmPoolDeleteModal.tsx"
 
 export const Home = () => {
     const { query } = useSearchStore()
-    const { pool } = usePoolStore()
+    const { pool, deletingPool } = usePoolStore()
     const { confirmingOverwrite } = usePoolStore()
     return (
         <>
             {confirmingOverwrite !== "" && <ConfirmPoolOverwriteModal />}
+            {deletingPool && <ConfirmPoolDeleteModal />}
             <div className="flex grow min-w-0">
                 {pool && <Pool />}
                 {query !== "" && <Search />}

@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
+import { usePoolStore } from "../../../src/common/stores/poolStore"
+import { mockedTrackPoolData } from "../../search/data/mockPoolData"
 
 describe("Tool bar", () => {
     it("Should render toolbarSearch button initially", () => {
@@ -80,7 +82,7 @@ describe("Tool bar", () => {
         })
     })
 
-    it("Should set search query to be empty string when pressing close", () => {
+    it("Should close search field when pressing close", () => {
         useSearchStore.setState({ query: "test" })
         render(<ToolBar />)
 
@@ -89,6 +91,39 @@ describe("Tool bar", () => {
             screen.getByRole("button", { name: "Close search" }).click()
         })
 
+        expect(useSearchStore.getState().isOpened).toBe(false)
+    })
+
+    it("Should clear search query when pressing home", () => {
+        useSearchStore.setState({ query: "test" })
+        render(<ToolBar />)
+
+        act(() => {
+            screen.getByRole("button", { name: "Home" }).click()
+        })
+
         expect(useSearchStore.getState().query).toBe("")
+    })
+
+    it("Should render delete pool as disabled if user has no pool", () => {
+        render(<ToolBar />)
+
+        expect(screen.queryByRole("button", { name: "Delete pool" })).toBeNull()
+        expect(screen.getByTitle("Delete pool")).toBeDefined()
+    })
+
+    it("Should not render delete pool at all if search field is opened", () => {
+        useSearchStore.setState({ isOpened: true })
+        render(<ToolBar />)
+
+        expect(screen.queryByTitle("Delete pool")).toBeNull()
+    })
+
+    it("Should render delete pool as button if user has a pool", () => {
+        useSearchStore.setState({ isOpened: false })
+        usePoolStore.setState({ pool: mockedTrackPoolData() })
+        render(<ToolBar />)
+
+        expect(screen.getByRole("button", { name: "Delete pool" })).toBeDefined()
     })
 })
