@@ -1,20 +1,16 @@
-import { ReactNode } from "react"
-import { Icon } from "./Icon.tsx"
+import { Icon, IconProps } from "./Icon.tsx"
 import { Size } from "../constants/size.ts"
 
-interface IconButtonProps {
-    svg: ReactNode
+interface IconButtonProps extends IconProps {
     onClick: () => void
     title?: string
-    toggled?: boolean
-    size?: Size.md | Size.l
 }
 
 export const IconButton = ({ svg, onClick, title, toggled, size }: IconButtonProps) => {
     return (
         <button
             onClick={onClick}
-            className={`fill-clickable hover:fill-stroke group ${size === Size.l ? "size-12" : "size-8"} flex-col justify-center items-center`}
+            className={`fill-clickable hover:fill-stroke group ${size === Size.l ? "size-12" : "size-8"} flex-col grow-0 shrink-0 justify-center items-center`}
         >
             <div className="flex justify-center">
                 <Icon svg={svg} button={true} toggled={toggled} size={size} />

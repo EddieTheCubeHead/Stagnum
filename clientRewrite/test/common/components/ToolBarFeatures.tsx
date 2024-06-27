@@ -4,8 +4,13 @@ import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedTrackPoolData } from "../../search/data/mockPoolData"
+import { ToolBarState, useToolBarStore } from "../../../src/common/stores/toolBarStore"
 
 describe("Tool bar", () => {
+    beforeEach(() => {
+        useToolBarStore.setState({ state: ToolBarState.Normal })
+    })
+
     it("Should render toolbarSearch button initially", () => {
         render(<ToolBar />)
 
@@ -24,7 +29,7 @@ describe("Tool bar", () => {
 
         act(() => screen.getByRole("button", { name: "Search" }).click())
 
-        expect(screen.getByRole("button", { name: "Close search" })).toBeDefined()
+        expect(screen.getByRole("button", { name: "Close" })).toBeDefined()
         expect(screen.getByPlaceholderText("Search...")).toBeDefined()
     })
 
@@ -86,10 +91,8 @@ describe("Tool bar", () => {
         useSearchStore.setState({ query: "test" })
         render(<ToolBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Search" }).click()
-            screen.getByRole("button", { name: "Close search" }).click()
-        })
+        fireEvent.click(screen.getByRole("button", { name: "Search" }))
+        fireEvent.click(screen.getByRole("button", { name: "Close" }))
 
         expect(useSearchStore.getState().isOpened).toBe(false)
     })
@@ -113,7 +116,7 @@ describe("Tool bar", () => {
     })
 
     it("Should not render delete pool at all if search field is opened", () => {
-        useSearchStore.setState({ isOpened: true })
+        useToolBarStore.setState({ state: ToolBarState.Search })
         render(<ToolBar />)
 
         expect(screen.queryByTitle("Delete pool")).toBeNull()

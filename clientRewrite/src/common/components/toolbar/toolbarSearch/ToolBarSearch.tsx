@@ -7,7 +7,7 @@ export const ToolBarSearch = () => {
     const searchStore = useSearchStore()
     return (
         <div className="flex items-center">
-            <div className="flex items-center -space-x-11 p-4 pointer-events-auto">
+            <div className="flex items-center -space-x-11">
                 {searchStore.isOpened && <ToolBarSearchInput />}
                 <ToolBarSearchOpenButton />
                 {searchStore.isOpened && <ToolBarSearchCloseButton />}
