@@ -7,7 +7,7 @@ import { SubviewTopBar } from "../../../common/components/SubviewTopBar.tsx"
 export const SearchTopBar = () => {
     return (
         <SubviewTopBar>
-            <div className="flex relative">
+            <div className="flex grow max-w-96">
                 <SearchTopBarTracksButton />
                 <SearchTopBarAlbumsButton />
                 <SearchTopBarArtistsButton />

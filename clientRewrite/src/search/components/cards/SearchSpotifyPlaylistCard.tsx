@@ -12,11 +12,7 @@ export const SearchSpotifyPlaylistCard = ({ playlist }: SearchSpotifyPlaylistCar
         <SearchResourceCard
             resource={playlist}
             iconSource={playlist}
-            nameField={
-                <div className="text-xs ">
-                    <CardText text={playlist.name} title={playlist.name} link={playlist.link} size={Size.s} />
-                </div>
-            }
+            nameField={<CardText text={playlist.name} title={playlist.name} link={playlist.link} size={Size.s} />}
         />
     )
 }

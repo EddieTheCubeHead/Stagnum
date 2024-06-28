@@ -3,10 +3,13 @@ import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useCallback } from "react"
 import { useApiPost } from "../../api/methods.ts"
 import { Pool } from "../../common/models/Pool.ts"
+import { useAlertStore } from "../../alertSystem/alertStore.ts"
+import { AlertType } from "../../alertSystem/Alert.ts"
 
 export const useAddToPool = (resourceUri: string) => {
     const poolStore = usePoolStore()
     const token = useTokenStore().token
+    const { addAlert } = useAlertStore()
     const postAddToPool = useApiPost<Pool>("/pool/content")
     return useCallback(() => {
         if (token === null) {
@@ -14,6 +17,7 @@ export const useAddToPool = (resourceUri: string) => {
         }
         postAddToPool({ spotify_uri: resourceUri }).then((poolData) => {
             poolStore.setPool(poolData)
+            addAlert({ type: AlertType.Success, message: "Added to pool!" })
         })
     }, [resourceUri, poolStore, token])
 }

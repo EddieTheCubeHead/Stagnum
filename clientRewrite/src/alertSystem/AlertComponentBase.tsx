@@ -7,11 +7,9 @@ interface AlertComponentBaseProps {
 }
 
 export const AlertComponentBase = ({ children, type }: AlertComponentBaseProps) => {
-    const borderColor = type === AlertType.Success ? "border-confirm" : "border-error"
+    const color = type === AlertType.Success ? "border-confirm bg-confirm-bg" : "border-error bg-error-bg"
     return (
-        <div
-            className={`pl-2 grow h-10 bg-elementBackground-1 border-2 ${borderColor} rounded-xl flex items-center justify-center`}
-        >
+        <div className={`p-2 min-h-10 min-w-0 border-2 ${color} rounded-xl flex items-center justify-center`}>
             {children}
         </div>
     )

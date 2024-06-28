@@ -27,10 +27,10 @@
         --color-avatar-6-bg: 301deg 70% 27%;
         --color-avatar-6-text: 301deg 70% 67%;
 
-        --color-confirm: 130deg 85% 45%;
-        --color-confirm-bg: 133deg 100% 19%;
-        --color-error: 0deg 70% 49%;
-        --color-error-bg: 0deg 100% 19%;
+        --color-confirm: 133deg 100% 38%;
+        --color-confirm-bg: 133deg 100% 10%;
+        --color-error: 0deg 100% 35%;
+        --color-error-bg: 0deg 100% 14%;
     }
 }
 
