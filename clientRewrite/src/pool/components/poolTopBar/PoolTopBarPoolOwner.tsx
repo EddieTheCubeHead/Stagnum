@@ -7,12 +7,12 @@ export const PoolTopBarPoolOwner = () => {
     const { pool } = usePoolStore()
     const { user } = useMeQuery()
 
-    if (!user) {
+    if (!pool?.owner || !user) {
         return <PoolTopBarPoolOwnerSkeleton />
     }
     return (
         <>
-            <Avatar />
+            <Avatar avatarUser={pool?.owner ?? user} />
             <div className="flex-col text-xs select-none">
                 <p className="flex text-xxs font-extralight">Pool owner</p>
                 <p>{pool?.owner.spotify_id == user.spotify_id ? "You" : pool?.owner.display_name}</p>

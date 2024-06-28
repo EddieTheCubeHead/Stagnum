@@ -5,7 +5,8 @@ import { useSearchStore } from "../../stores/searchStore.ts"
 import { ToolBarState, useToolBarStore } from "../../stores/toolBarStore.ts"
 import { ToolBarButtons } from "./ToolBarButtons.tsx"
 import { ToolBarExpandedSearch } from "./ToolBarExpandedSearch.tsx"
-import { ToolBarExpandedPoolShareField } from "./ToolBarExpandedPoolShareField.tsx"
+import { ToolBarExpandedSharePoolField } from "./ToolBarExpandedSharePoolField.tsx"
+import { ToolBarExpandedJoinPoolField } from "./ToolBarExpandedJoinPoolField.tsx"
 
 export const ToolBar = () => {
     const { clearQuery } = useSearchStore()
@@ -20,7 +21,8 @@ export const ToolBar = () => {
                 <IconButton svg={<HomeIconSvg />} size={Size.l} onClick={clearToolbarState} />
                 {state === ToolBarState.Normal && <ToolBarButtons />}
                 {state === ToolBarState.Search && <ToolBarExpandedSearch />}
-                {state === ToolBarState.SharePool && <ToolBarExpandedPoolShareField />}
+                {state === ToolBarState.SharePool && <ToolBarExpandedSharePoolField />}
+                {state === ToolBarState.JoinPool && <ToolBarExpandedJoinPoolField />}
             </div>
         </div>
     )

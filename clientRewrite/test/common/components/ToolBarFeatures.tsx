@@ -164,4 +164,11 @@ describe("Tool bar", () => {
 
         expect(screen.queryByText("123456")).toBeNull()
     })
+
+    it("Should render code input after clicking join pool", () => {
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        mockPool.share_code = "123456"
+        mockAxiosPost(mockPool)
+    })
 })

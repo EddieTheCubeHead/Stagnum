@@ -11,7 +11,7 @@ export const ToolBarExpandedSearch = () => {
             action={
                 <input
                     type="text"
-                    className="placeholder-clickable text-stroke !outline-0 !ring-0 !border-none bg-transparent min-w-0 grow"
+                    className="placeholder-clickable text-stroke text-xs !outline-0 !ring-0 !border-none bg-transparent min-w-0 grow"
                     placeholder="Search..."
                     onChange={(e) => debouncedSetQuery(e.target.value)}
                 ></input>
