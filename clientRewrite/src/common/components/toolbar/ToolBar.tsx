@@ -17,7 +17,7 @@ export const ToolBar = () => {
     }
     return (
         <div className="select-none w-full justify-center items-center p-8 fixed bottom-4 flex z-30 pointer-events-none">
-            <div className="flex items-center pointer-events-auto rounded-full space-x-2 px-3 bg-elementBackground-1/85 sm:bg-elementBackground-1/65 md:bg-elementBackground-1/45 lg:bg-elementBackground-1/25">
+            <div className="flex items-center pointer-events-auto rounded-full space-x-2 px-3 bg-elementBackground-1/90 sm:bg-elementBackground-1/75 md:bg-elementBackground-1/60 lg:bg-elementBackground-1/45">
                 <IconButton svg={<HomeIconSvg />} size={Size.l} onClick={clearToolbarState} />
                 {state === ToolBarState.Normal && <ToolBarButtons />}
                 {state === ToolBarState.Search && <ToolBarExpandedSearch />}

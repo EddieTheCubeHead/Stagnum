@@ -4,13 +4,16 @@ import { WarningPopup } from "../../common/components/WarningPopup.tsx"
 
 export const ConfirmPoolOverwriteModal = () => {
     const { setConfirmingOverwrite, confirmingOverwrite } = usePoolStore()
-    const onAccept = useCreatePool(confirmingOverwrite)
+    const onAccept = useCreatePool(confirmingOverwrite ?? { name: "", uri: "", link: "" })
     const confirmCallback = () => {
-        setConfirmingOverwrite("")
         onAccept()
+        setConfirmingOverwrite(null)
     }
-    const cancelCallback = () => setConfirmingOverwrite("")
+    const cancelCallback = () => setConfirmingOverwrite(null)
     const warningText =
         "Creating a new playback pool will overwrite your current one! Are you sure you want to continue?"
+    if (confirmingOverwrite === null) {
+        return null
+    }
     return <WarningPopup warningText={warningText} cancelCallback={cancelCallback} confirmCallback={confirmCallback} />
 }

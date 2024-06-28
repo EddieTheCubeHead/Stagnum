@@ -10,7 +10,7 @@ interface SearchTopBarButtonProps {
 
 export const SearchTopBarButton = ({ title, svg, focusMethod, isFocused }: SearchTopBarButtonProps) => {
     return (
-        <div className="flex-initial w-24 flex justify-center">
+        <div className="flex-initial flex justify-center grow min-w-0">
             <IconButton
                 svg={svg}
                 onClick={() => {

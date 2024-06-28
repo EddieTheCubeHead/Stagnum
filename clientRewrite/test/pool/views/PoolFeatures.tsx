@@ -7,6 +7,7 @@ import { mockAxiosDelete, mockAxiosGet } from "../../utils/mockAxios"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { useTokenStore } from "../../../src/common/stores/tokenStore"
 import { SearchSpotifyTrackCard } from "../../../src/search/components/cards/SearchSpotifyTrackCard"
+import { useAlertStore } from "../../../src/alertSystem/alertStore"
 
 describe("Pool", () => {
     it("Should render pool contents if present", () => {
@@ -75,7 +76,7 @@ describe("Pool", () => {
     })
 
     // @ts-expect-error
-    it("Should delete resource from pool when pressing add button", async () => {
+    it("Should delete resource from pool when pressing delete button", async () => {
         const mock_pool_data = mockedTrackPoolData()
         useTokenStore.setState({ token: "my_test_token_1234" })
         mockAxiosDelete(mock_pool_data)
@@ -92,5 +93,26 @@ describe("Pool", () => {
         await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
 
         expect(usePoolStore.getState().pool).toBe(mock_pool_data)
+    })
+
+    // @ts-expect-error
+    it("Should create alert when successfully deleting pool resource", async () => {
+        const mock_pool_data = mockedTrackPoolData()
+        useTokenStore.setState({ token: "my_test_token_1234" })
+        mockAxiosDelete(mock_pool_data)
+        const expectedDeletedName = mockedCollectionPoolData().users[0].collections[0].name
+        usePoolStore.setState({ pool: mockedCollectionPoolData() })
+        render(
+            <TestQueryProvider>
+                <Pool />
+            </TestQueryProvider>,
+        )
+
+        act(() => screen.getAllByRole("button", { name: "Delete" })[0].click())
+
+        // @ts-expect-error
+        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
+
+        expect(useAlertStore.getState().alerts[0].message).toBe(`Deleted "${expectedDeletedName}" from pool`)
     })
 })

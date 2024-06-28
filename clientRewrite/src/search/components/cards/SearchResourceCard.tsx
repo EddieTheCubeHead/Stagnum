@@ -16,10 +16,10 @@ interface SearchResourceCardProps {
 }
 
 export const SearchResourceCard = ({ resource, iconSource, nameField }: SearchResourceCardProps) => {
-    const createPool = useCreatePool(resource.uri)
-    const addToPool = useAddToPool(resource.uri)
+    const createPool = useCreatePool(resource)
+    const addToPool = useAddToPool(resource)
     const { setConfirmingOverwrite, pool } = usePoolStore()
-    const createPoolOnClick = pool === null ? createPool : () => setConfirmingOverwrite(resource.uri)
+    const createPoolOnClick = pool === null ? createPool : () => setConfirmingOverwrite(resource)
     return (
         <CardBase>
             <img

@@ -8,7 +8,7 @@ export const useMeQuery = (): { user: User; error: Error | null; isLoading: bool
     const { data, error, isLoading } = useQuery({
         queryKey: ["me"],
         // @ts-expect-error - hard to type both our object and TanStack's three override objects
-        queryFn: useApiGet("/me"),
+        queryFn: useApiGet<User>("/me"),
         enabled: token !== null,
         retry: 3,
         staleTime: 10000,

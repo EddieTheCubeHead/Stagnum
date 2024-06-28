@@ -9,9 +9,9 @@ interface AvatarProps {
 }
 
 export const Avatar = ({ avatarUser }: AvatarProps) => {
-    const { user } = useMeQuery()
+    const { user, error } = useMeQuery()
     avatarUser ??= user
-    if (!avatarUser) {
+    if (!avatarUser || error) {
         return <AvatarSkeleton />
     }
     return avatarUser.icon_url ? (
