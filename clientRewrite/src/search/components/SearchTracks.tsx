@@ -23,7 +23,7 @@ export const SearchTracks = () => {
                     ))}
                 </div>
             ) : (
-                <div className="flex-col pl-10 pr-1">
+                <div className="flex-col pl-10 pr-1 select-none">
                     <div className="bg-elementBackground-1 h-1 -top-2 rounded-b-md"></div>
                 </div>
             )}

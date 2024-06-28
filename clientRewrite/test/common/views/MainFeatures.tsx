@@ -8,6 +8,7 @@ import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedTrackPoolData } from "../../search/data/mockPoolData"
 import { userEvent } from "@testing-library/user-event"
+import { useAlertStore } from "../../../src/alertSystem/alertStore"
 
 const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
     let queryParams = vi.spyOn(window, "location", "get")
@@ -96,6 +97,24 @@ describe("Main", () => {
 
             expect(screen.queryByText(mockedTrackPoolData().users[0].tracks[0].name)).toBeNull()
             expect(usePoolStore.getState().pool).toBeNull()
+        })
+
+        // @ts-expect-error
+        it("Should show alert after successfully deleting pool", async () => {
+            mockAxiosDelete(null)
+            render(
+                <TestQueryProvider>
+                    <Main />
+                </TestQueryProvider>,
+            )
+
+            await user.click(screen.getByRole("button", { name: "Delete pool" }))
+            await user.click(screen.getByRole("button", { name: "Continue" }))
+
+            // @ts-expect-error
+            await new Promise((r: TimerHandler) => setTimeout(r, 50))
+
+            expect(useAlertStore.getState().alerts[0].message).toBe("Deleted your pool")
         })
     })
 })

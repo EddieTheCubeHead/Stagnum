@@ -5,8 +5,9 @@ import { useApiPost } from "../../api/methods.ts"
 import { Pool } from "../../common/models/Pool.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { AlertType } from "../../alertSystem/Alert.ts"
+import { PlayableSpotifyResource } from "../models/PlayableSpotifyResource.ts"
 
-export const useCreatePool = (resourceUri: string) => {
+export const useCreatePool = (resource: PlayableSpotifyResource) => {
     const poolStore = usePoolStore()
     const token = useTokenStore().token
     const { addAlert } = useAlertStore()
@@ -14,7 +15,7 @@ export const useCreatePool = (resourceUri: string) => {
     const postBody = {
         spotify_uris: [
             {
-                spotify_uri: resourceUri,
+                spotify_uri: resource.uri,
             },
         ],
     }
@@ -24,7 +25,7 @@ export const useCreatePool = (resourceUri: string) => {
         }
         postCreatePool(postBody).then((poolData) => {
             poolStore.setPool(poolData)
-            addAlert({ type: AlertType.Success, message: "Pool created!" })
+            addAlert({ type: AlertType.Success, message: `Created a pool from "${resource.name}"` })
         })
-    }, [resourceUri, poolStore, token])
+    }, [resource, poolStore, token])
 }

@@ -19,7 +19,7 @@ interface PoolMemberCardProps {
 }
 
 export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemberCardProps) => {
-    const deleteFromPool = useDeletePoolContent(poolMember.spotify_resource_uri)
+    const deleteFromPool = useDeletePoolContent(poolMember)
     return (
         <CardBase isTopLevel={isTopLevel}>
             {parentProps && <CollapseIconButton open={parentProps.open} setOpen={parentProps.setOpen} />}

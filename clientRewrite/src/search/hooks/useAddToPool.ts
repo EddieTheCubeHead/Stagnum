@@ -5,8 +5,9 @@ import { useApiPost } from "../../api/methods.ts"
 import { Pool } from "../../common/models/Pool.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { AlertType } from "../../alertSystem/Alert.ts"
+import { PlayableSpotifyResource } from "../models/PlayableSpotifyResource.ts"
 
-export const useAddToPool = (resourceUri: string) => {
+export const useAddToPool = (resource: PlayableSpotifyResource) => {
     const poolStore = usePoolStore()
     const token = useTokenStore().token
     const { addAlert } = useAlertStore()
@@ -15,9 +16,9 @@ export const useAddToPool = (resourceUri: string) => {
         if (token === null) {
             throw new Error("Token null on pool addition!")
         }
-        postAddToPool({ spotify_uri: resourceUri }).then((poolData) => {
+        postAddToPool({ spotify_uri: resource.uri }).then((poolData) => {
             poolStore.setPool(poolData)
-            addAlert({ type: AlertType.Success, message: "Added to pool!" })
+            addAlert({ type: AlertType.Success, message: `Added "${resource.name}" to pool` })
         })
-    }, [resourceUri, poolStore, token])
+    }, [resource, poolStore, token])
 }
