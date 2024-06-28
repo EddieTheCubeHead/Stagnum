@@ -9,6 +9,7 @@ import { mockAxiosPost } from "../../utils/mockAxios"
 import { SharePool } from "../../../src/pool/components/SharePool"
 import axios from "axios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
+import { TestQueryProvider } from "../../utils/TestQueryProvider"
 
 describe("Tool bar", () => {
     beforeEach(() => {
@@ -138,7 +139,11 @@ describe("Tool bar", () => {
         usePoolStore.setState({ pool: mockPool })
         mockPool.share_code = "123456"
         mockAxiosPost(mockPool)
-        render(<ToolBar />)
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
 
         act(() => {
             screen.getByRole("button", { name: "Share pool" }).click()
@@ -158,7 +163,11 @@ describe("Tool bar", () => {
             return mockedSearchData()
         })
 
-        render(<ToolBar />)
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
 
         screen.getByRole("button", { name: "Share pool" }).click()
 

@@ -1,21 +1,13 @@
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useApiPost } from "../../api/methods.ts"
-import { useEffect } from "react"
 import { SharePoolSkeleton } from "./SharePoolSkeleton.tsx"
 import { IconButton } from "../../common/icons/IconButton.tsx"
 import { CopyIconSvg } from "../../common/icons/svgs/CopyIconSvg.tsx"
 import { Size } from "../../common/constants/size.ts"
-import { Pool } from "../../common/models/Pool.ts"
+import { useSharePoolQuery } from "../../common/hooks/useSharePoolQuery.ts"
 
 export const SharePool = () => {
-    const { pool, setPool } = usePoolStore()
-    const sharePoolApiCall = useApiPost<Pool>("/pool/share")
-
-    useEffect(() => {
-        if (!pool?.share_code) {
-            sharePoolApiCall({}).then((poolModel) => setPool(poolModel))
-        }
-    }, [pool])
+    const { pool } = usePoolStore()
+    useSharePoolQuery()
 
     if (!pool?.share_code) {
         return <SharePoolSkeleton />
