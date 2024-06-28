@@ -4,6 +4,7 @@ import { ConfirmPoolOverwriteModal } from "../../pool/components/ConfirmPoolOver
 import { usePoolStore } from "../stores/poolStore.ts"
 import { Pool } from "../../pool/views/Pool.tsx"
 import { ConfirmPoolDeleteModal } from "../../pool/components/ConfirmPoolDeleteModal.tsx"
+import { AlertHandler } from "../../alertSystem/AlertHandler.tsx"
 
 export const Home = () => {
     const { query } = useSearchStore()
@@ -11,6 +12,7 @@ export const Home = () => {
     const { confirmingOverwrite } = usePoolStore()
     return (
         <>
+            <AlertHandler />
             {confirmingOverwrite !== "" && <ConfirmPoolOverwriteModal />}
             {deletingPool && <ConfirmPoolDeleteModal />}
             <div className="flex grow min-w-0">

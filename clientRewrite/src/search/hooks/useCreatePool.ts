@@ -2,11 +2,12 @@ import { usePoolStore } from "../../common/stores/poolStore.ts"
 import { useCallback } from "react"
 import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useApiPost } from "../../api/methods.ts"
+import { Pool } from "../../common/models/Pool.ts"
 
 export const useCreatePool = (resourceUri: string) => {
     const poolStore = usePoolStore()
     const token = useTokenStore().token
-    const postCreatePool = useApiPost("/pool")
+    const postCreatePool = useApiPost<Pool>("/pool")
     const postBody = {
         spotify_uris: [
             {
