@@ -12,7 +12,6 @@ export const useDeletePoolContent = (resourceUri: string) => {
     const { addAlert } = useAlertStore()
     const deletePoolContent = useApiDelete<Pool>(`/pool/content/${resourceUri}`)
     return useCallback(() => {
-        console.log("useDeletePoolContent inner")
         if (token === null) {
             throw new Error("Token null on pool addition!")
         }

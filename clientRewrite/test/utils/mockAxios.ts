@@ -6,11 +6,11 @@ export const mockAxiosGet = (data: any, return_header?: string) => {
 }
 
 export const mockAxiosPost = (data: any, return_header?: string) => {
-    mockAxiosCall("post", data)
+    mockAxiosCall("post", data, return_header)
 }
 
 export const mockAxiosDelete = (data: any, return_header?: string) => {
-    mockAxiosCall("delete", data)
+    mockAxiosCall("delete", data, return_header)
 }
 
 const mockAxiosCall = (call: "get" | "post" | "delete", data: any, return_header?: string) => {
