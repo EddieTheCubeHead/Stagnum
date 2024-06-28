@@ -14,14 +14,14 @@ export const Pool = () => {
             <PoolTopBar />
             <div className="grow pb-4 px-2 space-y-1">
                 {pool?.users.map((user) => (
-                    <>
+                    <div key={user.user.spotify_id}>
                         {user.tracks.map((track) => (
                             <PoolMemberCard key={track.spotify_resource_uri} poolMember={track} isTopLevel={true} />
                         ))}
                         {user.collections.map((collection) => (
-                            <PoolCollectionSection collection={collection} />
+                            <PoolCollectionSection key={collection.spotify_resource_uri} collection={collection} />
                         ))}
-                    </>
+                    </div>
                 ))}
             </div>
         </div>

@@ -6,11 +6,9 @@ import { mockAxiosGet } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
-import { mockedTrackPoolData } from "../../search/data/mockPoolData"
-import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 
 describe("Home", () => {
-    beforeEach(() => usePoolStore.setState({ deletingPool: false, confirmingOverwrite: "" }))
+    beforeEach(() => usePoolStore.setState({ deletingPool: false, confirmingOverwrite: null }))
     it("Should not render search if query is null", () => {
         render(
             <TestQueryProvider>
@@ -37,7 +35,7 @@ describe("Home", () => {
     })
 
     it("Should render confirm pool overwrite modal if overwrite attempted", () => {
-        usePoolStore.setState({ confirmingOverwrite: "test_uri" })
+        usePoolStore.setState({ confirmingOverwrite: { name: "name", uri: "uri", link: "link" } })
         render(
             <TestQueryProvider>
                 <Home />
