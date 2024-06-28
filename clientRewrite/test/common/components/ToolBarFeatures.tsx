@@ -167,8 +167,29 @@ describe("Tool bar", () => {
 
     it("Should render code input after clicking join pool", () => {
         const mockPool = mockedTrackPoolData()
+        render(<ToolBar />)
+
+        act(() => screen.getByRole("button", { name: "Join pool" }).click())
+
+        expect(screen.getByPlaceholderText("Pool code")).toBeDefined()
+    })
+
+    it("Should join pool after filling pool code and clicking join pool", () => {
+        usePoolStore.setState({ pool: null })
+        const mockPool = mockedTrackPoolData()
         usePoolStore.setState({ pool: mockPool })
         mockPool.share_code = "123456"
         mockAxiosPost(mockPool)
+        render(<ToolBar />)
+
+        act(() => {
+            screen.getByRole("button", { name: "Join pool" }).click()
+        })
+        act(() => {
+            fireEvent.input(screen.getByPlaceholderText("Pool code"), "123456")
+            screen.getByRole("button", { name: "Join pool" }).click()
+        })
+
+        expect(usePoolStore.getState().pool.share_code).toBe("123456")
     })
 })

@@ -19,7 +19,7 @@ export const ToolBarExpandedJoinPoolField = () => {
                     <input
                         type="text"
                         className="placeholder-clickable text-stroke text-xs !outline-0 !ring-0 !border-none bg-transparent min-w-0 grow"
-                        placeholder="Pool code..."
+                        placeholder="Pool code"
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value)}
                         onSubmit={joinPoolCallback}
