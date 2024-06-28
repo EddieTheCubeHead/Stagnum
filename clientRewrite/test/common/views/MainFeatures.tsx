@@ -43,7 +43,7 @@ describe("Main", () => {
         beforeEach(() => {
             useSearchStore.setState({ isOpened: false })
             useTokenStore.setState({ token: "my_test_token_1234" })
-            usePoolStore.setState({ pool: mockedTrackPoolData(), deletingPool: false, confirmingOverwrite: "" })
+            usePoolStore.setState({ pool: mockedTrackPoolData(), deletingPool: false, confirmingOverwrite: null })
         })
 
         it("Should prompt whether user wants to delete the pool when clicking delete pool", () => {

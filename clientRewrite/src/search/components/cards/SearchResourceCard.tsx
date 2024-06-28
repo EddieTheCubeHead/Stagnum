@@ -19,7 +19,7 @@ export const SearchResourceCard = ({ resource, iconSource, nameField }: SearchRe
     const createPool = useCreatePool(resource)
     const addToPool = useAddToPool(resource)
     const { setConfirmingOverwrite, pool } = usePoolStore()
-    const createPoolOnClick = pool === null ? createPool : () => setConfirmingOverwrite(resource.uri)
+    const createPoolOnClick = pool === null ? createPool : () => setConfirmingOverwrite(resource)
     return (
         <CardBase>
             <img

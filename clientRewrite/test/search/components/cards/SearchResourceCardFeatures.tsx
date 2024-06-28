@@ -159,7 +159,7 @@ describe("SearchResourceCard", () => {
             // @ts-expect-error
             await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
 
-            expect(usePoolStore.getState().confirmingOverwrite).toBe(mockArtist.uri)
+            expect(usePoolStore.getState().confirmingOverwrite).toBe(mockArtist)
         })
 
         // @ts-expect-error

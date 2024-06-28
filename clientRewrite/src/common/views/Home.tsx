@@ -13,7 +13,7 @@ export const Home = () => {
     return (
         <>
             <AlertHandler />
-            {confirmingOverwrite !== "" && <ConfirmPoolOverwriteModal />}
+            {confirmingOverwrite !== null && <ConfirmPoolOverwriteModal />}
             {deletingPool && <ConfirmPoolDeleteModal />}
             <div className="flex grow min-w-0">
                 {pool && <Pool />}
