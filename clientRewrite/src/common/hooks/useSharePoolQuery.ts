@@ -5,6 +5,6 @@ export const useSharePoolQuery = () => {
     useQuery({
         queryKey: ["share pool"],
         queryFn: usePostSharePool(),
-        retry: 3,
+        retry: 1,
     })
 }
