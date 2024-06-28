@@ -4,8 +4,17 @@ import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedTrackPoolData } from "../../search/data/mockPoolData"
+import { ToolBarState, useToolBarStore } from "../../../src/common/stores/toolBarStore"
+import { mockAxiosPost } from "../../utils/mockAxios"
+import { SharePool } from "../../../src/pool/components/SharePool"
+import axios from "axios"
+import { mockedSearchData } from "../../search/data/mockedSearchData"
 
 describe("Tool bar", () => {
+    beforeEach(() => {
+        useToolBarStore.setState({ state: ToolBarState.Normal })
+    })
+
     it("Should render toolbarSearch button initially", () => {
         render(<ToolBar />)
 
@@ -24,7 +33,7 @@ describe("Tool bar", () => {
 
         act(() => screen.getByRole("button", { name: "Search" }).click())
 
-        expect(screen.getByRole("button", { name: "Close search" })).toBeDefined()
+        expect(screen.getByRole("button", { name: "Close" })).toBeDefined()
         expect(screen.getByPlaceholderText("Search...")).toBeDefined()
     })
 
@@ -86,10 +95,8 @@ describe("Tool bar", () => {
         useSearchStore.setState({ query: "test" })
         render(<ToolBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Search" }).click()
-            screen.getByRole("button", { name: "Close search" }).click()
-        })
+        fireEvent.click(screen.getByRole("button", { name: "Search" }))
+        fireEvent.click(screen.getByRole("button", { name: "Close" }))
 
         expect(useSearchStore.getState().isOpened).toBe(false)
     })
@@ -113,17 +120,76 @@ describe("Tool bar", () => {
     })
 
     it("Should not render delete pool at all if search field is opened", () => {
-        useSearchStore.setState({ isOpened: true })
+        useToolBarStore.setState({ state: ToolBarState.Search })
         render(<ToolBar />)
 
         expect(screen.queryByTitle("Delete pool")).toBeNull()
     })
 
     it("Should render delete pool as button if user has a pool", () => {
-        useSearchStore.setState({ isOpened: false })
         usePoolStore.setState({ pool: mockedTrackPoolData() })
         render(<ToolBar />)
 
         expect(screen.getByRole("button", { name: "Delete pool" })).toBeDefined()
+    })
+
+    it("Should render share pool share field after clicking on share pool", () => {
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        mockPool.share_code = "123456"
+        mockAxiosPost(mockPool)
+        render(<ToolBar />)
+
+        act(() => {
+            screen.getByRole("button", { name: "Share pool" }).click()
+        })
+
+        expect(screen.getByText("123456")).toBeDefined()
+    })
+
+    it("Should render share pool skeleton after clicking on share pool if pool is loading", () => {
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        mockPool.share_code = "123456"
+
+        vi.spyOn(axios, "get").mockImplementation(async (url, config) => {
+            // @ts-expect-error
+            await new Promise((resolve: TimerHandler) => setTimeout(resolve, 500))
+            return mockedSearchData()
+        })
+
+        render(<ToolBar />)
+
+        screen.getByRole("button", { name: "Share pool" }).click()
+
+        expect(screen.queryByText("123456")).toBeNull()
+    })
+
+    it("Should render code input after clicking join pool", () => {
+        const mockPool = mockedTrackPoolData()
+        render(<ToolBar />)
+
+        act(() => screen.getByRole("button", { name: "Join pool" }).click())
+
+        expect(screen.getByPlaceholderText("Pool code")).toBeDefined()
+    })
+
+    it("Should join pool after filling pool code and clicking join pool", () => {
+        usePoolStore.setState({ pool: null })
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        mockPool.share_code = "123456"
+        mockAxiosPost(mockPool)
+        render(<ToolBar />)
+
+        act(() => {
+            screen.getByRole("button", { name: "Join pool" }).click()
+        })
+        act(() => {
+            fireEvent.input(screen.getByPlaceholderText("Pool code"), "123456")
+            screen.getByRole("button", { name: "Join pool" }).click()
+        })
+
+        expect(usePoolStore.getState().pool.share_code).toBe("123456")
     })
 })

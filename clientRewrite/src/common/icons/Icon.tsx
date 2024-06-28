@@ -1,14 +1,14 @@
 import { ReactNode } from "react"
 import { Size } from "../constants/size.ts"
 
-interface IconPrompts {
+export interface IconProps {
     svg: ReactNode
     button?: boolean
     toggled?: boolean
     size?: Size.md | Size.l
 }
 
-export const Icon = ({ svg, button, toggled, size }: IconPrompts) => {
+export const Icon = ({ svg, button, toggled, size }: IconProps) => {
     let colorClassName = "fill-clickable stroke-clickable"
     if (toggled) {
         colorClassName = "fill-accent stroke-accent"

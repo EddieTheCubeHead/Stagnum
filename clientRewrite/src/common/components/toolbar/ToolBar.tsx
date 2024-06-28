@@ -1,26 +1,28 @@
-import { ToolBarSearch } from "./toolbarSearch/ToolBarSearch.tsx"
-import { Icon } from "../../icons/Icon.tsx"
 import { HomeIconSvg } from "../../icons/svgs/HomeIconSvg.tsx"
-import { DeletePoolIconSvg } from "../../icons/svgs/DeletePoolIconSvg.tsx"
 import { Size } from "../../constants/size.ts"
 import { IconButton } from "../../icons/IconButton.tsx"
 import { useSearchStore } from "../../stores/searchStore.ts"
-import { usePoolStore } from "../../stores/poolStore.ts"
+import { ToolBarState, useToolBarStore } from "../../stores/toolBarStore.ts"
+import { ToolBarButtons } from "./ToolBarButtons.tsx"
+import { ToolBarExpandedSearch } from "./ToolBarExpandedSearch.tsx"
+import { ToolBarExpandedSharePoolField } from "./ToolBarExpandedSharePoolField.tsx"
+import { ToolBarExpandedJoinPoolField } from "./ToolBarExpandedJoinPoolField.tsx"
 
 export const ToolBar = () => {
-    const { isOpened, clearQuery } = useSearchStore()
-    const { pool, setDeletingPool } = usePoolStore()
+    const { clearQuery } = useSearchStore()
+    const { state, setState } = useToolBarStore()
+    const clearToolbarState = () => {
+        clearQuery()
+        setState(ToolBarState.Normal)
+    }
     return (
-        <div className="select-none w-full justify-center items-center p-8 fixed bottom-0 flex z-30 pointer-events-none">
-            <div className="flex items-center pointer-events-auto rounded-full">
-                <IconButton svg={<HomeIconSvg />} size={Size.l} onClick={() => clearQuery()} />
-                <ToolBarSearch />
-                {!isOpened &&
-                    (pool ? (
-                        <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => setDeletingPool(true)} />
-                    ) : (
-                        <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
-                    ))}
+        <div className="select-none w-full justify-center items-center p-8 fixed bottom-4 flex z-30 pointer-events-none">
+            <div className="flex items-center pointer-events-auto rounded-full space-x-2 px-3 bg-elementBackground-1/85 sm:bg-elementBackground-1/65 md:bg-elementBackground-1/45 lg:bg-elementBackground-1/25">
+                <IconButton svg={<HomeIconSvg />} size={Size.l} onClick={clearToolbarState} />
+                {state === ToolBarState.Normal && <ToolBarButtons />}
+                {state === ToolBarState.Search && <ToolBarExpandedSearch />}
+                {state === ToolBarState.SharePool && <ToolBarExpandedSharePoolField />}
+                {state === ToolBarState.JoinPool && <ToolBarExpandedJoinPoolField />}
             </div>
         </div>
     )
