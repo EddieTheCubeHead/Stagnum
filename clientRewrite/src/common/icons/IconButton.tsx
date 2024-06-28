@@ -12,7 +12,7 @@ export const IconButton = ({ svg, onClick, title, toggled, size }: IconButtonPro
             onClick={onClick}
             className={`fill-clickable hover:fill-stroke group ${size === Size.l ? "size-12" : "size-8"} flex-col grow-0 shrink-0 justify-center items-center`}
         >
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center">
                 <Icon svg={svg} button={true} toggled={toggled} size={size} />
             </div>
 

@@ -14,13 +14,15 @@ export const ToolBarButtons = () => {
     const { setState } = useToolBarStore()
     return (
         <>
-            <Icon svg={<SharePoolIconSvg />} size={Size.l} />
+            <IconButton svg={<SharePoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.SharePool)} />
             <ToolBarHighlightedButton svg={<SearchIconSvg />} onClick={() => setState(ToolBarState.Search)} />
-            <Icon svg={<JoinPoolIconSvg />} size={Size.l} />
+            <IconButton svg={<JoinPoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.JoinPool)} />
             {pool ? (
                 <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => setDeletingPool(true)} />
             ) : (
-                <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
+                <div className="size-12 flex items-center justify-center">
+                    <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
+                </div>
             )}
         </>
     )
