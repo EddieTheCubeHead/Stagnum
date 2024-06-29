@@ -7,7 +7,7 @@ interface PoolCollectionSectionProps {
 }
 
 export const PoolCollectionSection = ({ collection }: PoolCollectionSectionProps) => {
-    const [open, setOpen] = useState(true)
+    const [open, setOpen] = useState(false)
     return (
         <div>
             <PoolMemberCard poolMember={collection} parentProps={{ open, setOpen }} isTopLevel={true} />
