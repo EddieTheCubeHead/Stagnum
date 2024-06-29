@@ -5,11 +5,11 @@ import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
-import { usePoolStore } from "../../../src/common/stores/poolStore"
+import { PoolState, usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData } from "../../search/data/mockPoolData"
 
 describe("Home", () => {
-    beforeEach(() => usePoolStore.setState({ deletingPool: false, confirmingOverwrite: null }))
+    beforeEach(() => usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null }))
     it("Should not render search if query is null", () => {
         render(
             <TestQueryProvider>

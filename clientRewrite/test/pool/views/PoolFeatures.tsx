@@ -59,7 +59,7 @@ describe("Pool", () => {
         expect(screen.getByText("heiasi")).toBeDefined()
     })
 
-    it("Should allow collapsing pool member collections", () => {
+    it("Should allow opening pool member collections", () => {
         usePoolStore.setState({ pool: mockedCollectionPoolData() })
         render(
             <TestQueryProvider>
@@ -67,12 +67,12 @@ describe("Pool", () => {
             </TestQueryProvider>,
         )
 
-        expect(screen.getByText(mockedCollectionPoolData().users[0].collections[0].tracks[0].name)).toBeDefined()
-
-        act(() => screen.getByRole("button", { name: "Collapse" }).click())
-
         expect(screen.getByText(mockedCollectionPoolData().users[0].collections[0].name)).toBeDefined()
         expect(screen.queryByText(mockedCollectionPoolData().users[0].collections[0].tracks[0].name)).toBeNull()
+
+        act(() => screen.getByRole("button", { name: "Open" }).click())
+
+        expect(screen.getByText(mockedCollectionPoolData().users[0].collections[0].tracks[0].name)).toBeDefined()
     })
 
     // @ts-expect-error
