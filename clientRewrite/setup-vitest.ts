@@ -15,6 +15,7 @@ beforeEach(() => {
             },
         }
     })
+    vi.stubEnv("VITE_BACKEND_URL", "test.server")
     mockAxiosGetError("Network GET event called without mocking it!")
     mockAxiosPostError("Network POST event called without mocking it!")
     mockAxiosDeleteError("Network DELETE event called without mocking it!")

@@ -20,6 +20,35 @@ const mockAxiosCall = (call: "get" | "post" | "delete", data: any, return_header
     axiosMock.mockResolvedValue(createMockData(data, return_header))
 }
 
+interface mockGetRoute {
+    route: string
+    data: any
+}
+
+interface mockMultipleGets {
+    routes: mockGetRoute[]
+    returnHeader?: string
+}
+
+export const mockMultipleGets = ({ routes, returnHeader }: mockMultipleGets) => {
+    const axiosMock = vi.spyOn(axios, "get")
+
+    axiosMock.mockImplementation(async (url, ...args) => {
+        let mockedData = undefined
+        routes.forEach((routeMock) => {
+            if ("test.server" + routeMock.route === url) {
+                mockedData = routeMock.data
+            }
+        })
+
+        if (mockedData !== undefined) {
+            return createMockData(mockedData, returnHeader)
+        }
+        console.log(url)
+        throw new Error(`Attempting to call an un-mocked GET route ${url}`)
+    })
+}
+
 export const mockAxiosGetError = (errorMessage: string) => {
     mockAxiosError(errorMessage, "get")
 }

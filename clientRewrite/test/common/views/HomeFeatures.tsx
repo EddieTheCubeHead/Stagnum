@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest"
 import { Home } from "../../../src/common/views/Home"
 import { render, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
-import { mockAxiosGet } from "../../utils/mockAxios"
+import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
@@ -51,7 +51,14 @@ describe("Home", () => {
     })
 
     it("Should fetch existing pool from server on Home view render", () => {
-        mockAxiosGet(mockedCollectionPoolData())
+        mockMultipleGets({
+            routes: [
+                {
+                    route: "/pool",
+                    data: mockedCollectionPoolData(),
+                },
+            ],
+        })
         render(
             <TestQueryProvider>
                 <Home />
