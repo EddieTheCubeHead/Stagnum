@@ -9,7 +9,6 @@ export const apiGet = async (path: string, token?: string, params?: object) => {
         headers.set("Authorization", token)
     }
 
-    console.log(import.meta.env.VITE_BACKEND_URL)
     const fetchUrl = `${import.meta.env.VITE_BACKEND_URL}${path}`
     return await axios.get(fetchUrl, { params, headers })
 }
