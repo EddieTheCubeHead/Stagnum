@@ -3,7 +3,7 @@ import { usePoolStore } from "../stores/poolStore.ts"
 
 export const useStartWebSocket = () => {
     const { token } = useTokenStore()
-    const { setPool, clearPool } = usePoolStore()
+    const { setPool, setPlaybackState, clearPool } = usePoolStore()
     return () => {
         const socket = new WebSocket(
             `${import.meta.env.VITE_BACKEND_URL.replace("http", "ws")}/websocket/connect?Authorization=${token}`,
@@ -21,6 +21,10 @@ export const useStartWebSocket = () => {
                 } else {
                     setPool(message.model)
                 }
+            }
+
+            if (message.type === "current_track") {
+                setPlaybackState(message.model)
             }
         }
 

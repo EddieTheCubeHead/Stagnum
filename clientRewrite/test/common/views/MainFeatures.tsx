@@ -76,7 +76,8 @@ describe("Main", () => {
             await user.click(screen.getByRole("button", { name: "Delete pool" }))
             await user.click(screen.getByRole("button", { name: "Cancel" }))
 
-            expect(screen.getByText(mockedTrackPoolData().users[0].tracks[0].name)).toBeDefined()
+            // We want to find both the pool member card and the playback status
+            expect(screen.getAllByText(mockedTrackPoolData().users[0].tracks[0].name).length).toBe(2)
             expect(usePoolStore.getState().pool).toBeDefined()
         })
 
@@ -101,6 +102,7 @@ describe("Main", () => {
 
         // @ts-expect-error
         it("Should show alert after successfully deleting pool", async () => {
+            mockAxiosGet(null)
             mockAxiosDelete(null)
             render(
                 <TestQueryProvider>
