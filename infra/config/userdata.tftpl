@@ -53,8 +53,8 @@ echo "USER_WEIGHT_SCALE=${user_weight_scale}" >> .env
 echo "PSEUDO_RANDOM_FLOOR=${pseudu_random_floor}" >> .env
 echo "PSEUDO_RANDOM_CEILING=${pseudo_random_ceiling}" >> .env
 
-echo "VITE_FRONTEND_URI=${frontend_uri}" >> .env
-echo "VITE_BACKEND_URI=${backend_uri}" >> .env
+echo "VITE_FRONTEND_URL=${frontend_uri}" >> .env
+echo "VITE_BACKEND_URL=${backend_uri}" >> .env
 echo "${spotify_client_id}" > secret_spotify_client_id.txt
 echo "${spotify_client_secret}" > secret_spotify_client_secret.txt
 wget https://raw.githubusercontent.com/EddieTheCubeHead/Stagnum/master/infra/config/docker-compose.yaml
