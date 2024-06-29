@@ -3,12 +3,14 @@ import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
-import { mockedTrackPoolData } from "../../search/data/mockPoolData"
+import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
 import { ToolBarState, useToolBarStore } from "../../../src/common/stores/toolBarStore"
 import { mockAxiosPost } from "../../utils/mockAxios"
 import { SharePool } from "../../../src/pool/components/SharePool"
 import axios from "axios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
+import { TestQueryProvider } from "../../utils/TestQueryProvider"
+import { userEvent } from "@testing-library/user-event"
 
 describe("Tool bar", () => {
     beforeEach(() => {
@@ -138,7 +140,11 @@ describe("Tool bar", () => {
         usePoolStore.setState({ pool: mockPool })
         mockPool.share_code = "123456"
         mockAxiosPost(mockPool)
-        render(<ToolBar />)
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
 
         act(() => {
             screen.getByRole("button", { name: "Share pool" }).click()
@@ -158,7 +164,11 @@ describe("Tool bar", () => {
             return mockedSearchData()
         })
 
-        render(<ToolBar />)
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
 
         screen.getByRole("button", { name: "Share pool" }).click()
 
@@ -175,7 +185,6 @@ describe("Tool bar", () => {
     })
 
     it("Should join pool after filling pool code and clicking join pool", () => {
-        usePoolStore.setState({ pool: null })
         const mockPool = mockedTrackPoolData()
         usePoolStore.setState({ pool: mockPool })
         mockPool.share_code = "123456"
@@ -191,5 +200,16 @@ describe("Tool bar", () => {
         })
 
         expect(usePoolStore.getState().pool.share_code).toBe("123456")
+    })
+
+    it("Should display playback state if pool exists", () => {
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        render(<ToolBar />)
+
+        expect(
+            screen.getByRole("img", { name: `Currently playing ${mockPool.currently_playing.name} icon` }),
+        ).toBeDefined()
+        expect(screen.getByText(mockPool.currently_playing.name)).toBeDefined()
     })
 })

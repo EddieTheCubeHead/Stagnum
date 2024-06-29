@@ -97,6 +97,7 @@ describe("Pool", () => {
 
     // @ts-expect-error
     it("Should create alert when successfully deleting pool resource", async () => {
+        mockAxiosGet(null)
         const mock_pool_data = mockedTrackPoolData()
         useTokenStore.setState({ token: "my_test_token_1234" })
         mockAxiosDelete(mock_pool_data)

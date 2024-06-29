@@ -14,16 +14,24 @@ export const ToolBarButtons = () => {
     const { setState } = useToolBarStore()
     return (
         <>
-            <IconButton svg={<SharePoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.SharePool)} />
-            <ToolBarHighlightedButton svg={<SearchIconSvg />} onClick={() => setState(ToolBarState.Search)} />
-            <IconButton svg={<JoinPoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.JoinPool)} />
-            {pool ? (
-                <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => setDeletingPool(true)} />
-            ) : (
-                <div className="size-12 flex items-center justify-center">
-                    <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
-                </div>
-            )}
+            <div className="grow">
+                <IconButton svg={<SharePoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.SharePool)} />
+            </div>
+            <div className="grow">
+                <ToolBarHighlightedButton svg={<SearchIconSvg />} onClick={() => setState(ToolBarState.Search)} />
+            </div>
+            <div className="grow">
+                <IconButton svg={<JoinPoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.JoinPool)} />
+            </div>
+            <div className="grow">
+                {pool ? (
+                    <IconButton svg={<DeletePoolIconSvg />} size={Size.l} onClick={() => setDeletingPool(true)} />
+                ) : (
+                    <div className="size-12 flex items-center justify-center">
+                        <Icon svg={<DeletePoolIconSvg />} size={Size.l} />
+                    </div>
+                )}
+            </div>
         </>
     )
 }
