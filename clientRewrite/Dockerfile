@@ -1,7 +1,13 @@
 FROM node:18-alpine3.17 as build
 
+ARG VITE_BACKEND_URL
+ARG VITE_FRONTEND_URL
+
 WORKDIR /app
+RUN echo "VITE_BACKEND_URL=${VITE_BACKEND_URL}" >> .env
+RUN echo "VITE_FRONTEND_URL=${VITE_FRONTEND_URL}" >> .env
 COPY . /app
+
 
 RUN yarn
 RUN yarn build

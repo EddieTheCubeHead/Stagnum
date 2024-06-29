@@ -5,15 +5,15 @@ services:
     build:
       context: ./clientRewrite/
       dockerfile: Dockerfile
+      args:
+        VITE_BACKEND_URL: "http://localhost:8080"
+        VITE_FRONTEND_URL: "http://localhost:80"
     restart: always
     ports:
       - ${FRONTEND_PORT}:80
     networks:
       - outgoing
       - internal
-    environment:
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-      VITE_FRONTEND_URL: ${VITE_FRONTEND_URL}
     depends_on:
       backend:
         condition: service_healthy
