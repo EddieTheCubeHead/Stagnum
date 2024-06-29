@@ -1,17 +1,16 @@
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useDeletePool } from "../hooks/useDeletePool.ts"
 import { WarningPopup } from "../../common/components/WarningPopup.tsx"
+import { useLeavePool } from "../hooks/useLeavePool.ts"
 
-export const ConfirmPoolDeleteModal = () => {
+export const ConfirmPoolLeaveModal = () => {
     const { clearPoolState } = usePoolStore()
     const cancelCallback = () => clearPoolState()
-    const deletePool = useDeletePool()
+    const leavePool = useLeavePool()
     const confirmCallback = () => {
-        deletePool()
+        leavePool()
         clearPoolState()
     }
-    const warningText =
-        "You are about to delete your current playback pool! This cannot be reversed. Do you wish to continue?"
+    const warningText = "You are about to leave your current playback pool. Do you wish to continue?"
 
     return <WarningPopup warningText={warningText} cancelCallback={cancelCallback} confirmCallback={confirmCallback} />
 }

@@ -9,5 +9,6 @@ export const useGetPoolQuery = () => {
         queryKey: ["get pool", token],
         queryFn: getPool,
         enabled: token !== null,
+        staleTime: Infinity,
     })
 }

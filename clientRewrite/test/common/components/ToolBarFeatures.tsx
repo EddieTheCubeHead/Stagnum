@@ -2,11 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
-import { usePoolStore } from "../../../src/common/stores/poolStore"
+import { PoolState, usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
 import { ToolBarState, useToolBarStore } from "../../../src/common/stores/toolBarStore"
-import { mockAxiosPost } from "../../utils/mockAxios"
-import { SharePool } from "../../../src/pool/components/SharePool"
+import { mockAxiosGet, mockAxiosPost } from "../../utils/mockAxios"
 import axios from "axios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
@@ -18,21 +17,30 @@ describe("Tool bar", () => {
     })
 
     it("Should render toolbarSearch button initially", () => {
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         expect(screen.getByRole("button", { name: "Search" })).toBeDefined()
     })
 
     it("Should not initially render toolbarSearch field and close toolbarSearch buttons", () => {
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         expect(screen.queryByRole("button", { name: "Close search" })).toBeNull()
         expect(screen.queryByPlaceholderText("Search...")).toBeNull()
     })
 
     it("Should render toolbarSearch field and close toolbarSearch buttons after click on open toolbarSearch button", () => {
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         act(() => screen.getByRole("button", { name: "Search" }).click())
 
         expect(screen.getByRole("button", { name: "Close" })).toBeDefined()
@@ -40,8 +48,11 @@ describe("Tool bar", () => {
     })
 
     it("Should not set search query immediately after typing", () => {
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         act(() => {
             screen.getByRole("button", { name: "Search" }).click()
         })
@@ -62,8 +73,11 @@ describe("Tool bar", () => {
         })
 
         it("Should set search query with debounce delay after typing", () => {
-            render(<ToolBar />)
-
+            render(
+                <TestQueryProvider>
+                    <ToolBar />
+                </TestQueryProvider>,
+            )
             act(() => {
                 screen.getByRole("button", { name: "Search" }).click()
             })
@@ -79,8 +93,11 @@ describe("Tool bar", () => {
 
         it("Should not change search query if search input changes to empty string", () => {
             useSearchStore.setState({ query: "test" })
-            render(<ToolBar />)
-
+            render(
+                <TestQueryProvider>
+                    <ToolBar />
+                </TestQueryProvider>,
+            )
             act(() => {
                 screen.getByRole("button", { name: "Search" }).click()
             })
@@ -95,8 +112,11 @@ describe("Tool bar", () => {
 
     it("Should close search field when pressing close", () => {
         useSearchStore.setState({ query: "test" })
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         fireEvent.click(screen.getByRole("button", { name: "Search" }))
         fireEvent.click(screen.getByRole("button", { name: "Close" }))
 
@@ -105,8 +125,11 @@ describe("Tool bar", () => {
 
     it("Should clear search query when pressing home", () => {
         useSearchStore.setState({ query: "test" })
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         act(() => {
             screen.getByRole("button", { name: "Home" }).click()
         })
@@ -115,24 +138,34 @@ describe("Tool bar", () => {
     })
 
     it("Should render delete pool as disabled if user has no pool", () => {
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         expect(screen.queryByRole("button", { name: "Delete pool" })).toBeNull()
         expect(screen.getByTitle("Delete pool")).toBeDefined()
     })
 
     it("Should not render delete pool at all if search field is opened", () => {
         useToolBarStore.setState({ state: ToolBarState.Search })
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         expect(screen.queryByTitle("Delete pool")).toBeNull()
     })
 
     it("Should render delete pool as button if user has a pool", () => {
         usePoolStore.setState({ pool: mockedTrackPoolData() })
-        render(<ToolBar />)
-
-        expect(screen.getByRole("button", { name: "Delete pool" })).toBeDefined()
+        mockAxiosGet(mockedTrackPoolData().owner)
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
+        expect(screen.findByRole("button", { name: "Delete pool" })).toBeDefined()
     })
 
     it("Should render share pool share field after clicking on share pool", () => {
@@ -176,9 +209,11 @@ describe("Tool bar", () => {
     })
 
     it("Should render code input after clicking join pool", () => {
-        const mockPool = mockedTrackPoolData()
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         act(() => screen.getByRole("button", { name: "Join pool" }).click())
 
         expect(screen.getByPlaceholderText("Pool code")).toBeDefined()
@@ -189,8 +224,11 @@ describe("Tool bar", () => {
         usePoolStore.setState({ pool: mockPool })
         mockPool.share_code = "123456"
         mockAxiosPost(mockPool)
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         act(() => {
             screen.getByRole("button", { name: "Join pool" }).click()
         })
@@ -205,11 +243,28 @@ describe("Tool bar", () => {
     it("Should display playback state if pool exists", () => {
         const mockPool = mockedTrackPoolData()
         usePoolStore.setState({ pool: mockPool })
-        render(<ToolBar />)
-
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
         expect(
             screen.getByRole("img", { name: `Currently playing ${mockPool.currently_playing.name} icon` }),
         ).toBeDefined()
         expect(screen.getByText(mockPool.currently_playing.name)).toBeDefined()
+    })
+
+    it("Should display leave pool instead of delete pool if user is part of another user's pool", () => {
+        mockAxiosGet({ display_name: "Test", icon_url: null, spotify_id: "1234" })
+        const mockPool = mockedCollectionPoolData()
+        usePoolStore.setState({ pool: mockPool })
+
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
+
+        expect(screen.findByRole("button", { name: "Leave pool" })).toBeDefined()
     })
 })
