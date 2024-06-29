@@ -18,9 +18,7 @@ def _inject_secret(secret_name: str) -> None:
     if os.getenv(env_name) is None:
         _logger.debug(f"Environment variable {env_name} not found! Getting from secret file.")
         path = Path(f"/run/secrets/{secret_name}")
-        with path.open(
-            f"/run/secrets/{secret_name}", encoding=locale.getpreferredencoding(do_setlocale=False)
-        ) as secret_file:
+        with path.open("r", encoding=locale.getpreferredencoding(do_setlocale=False)) as secret_file:
             secret = secret_file.read()
             os.environ[env_name] = secret
             _logger.debug(f"Setting environment variable {env_name} from file {secret_name}")

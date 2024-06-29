@@ -43,8 +43,8 @@ services:
       - outgoing
       - internal
     environment:
-      NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
-      NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
+      VITE_BACKEND_URI: ${VITE_BACKEND_URI}
+      VITE_FRONTEND_URI: ${VITE_FRONTEND_URI}
     depends_on:
       backend:
         condition: service_healthy
