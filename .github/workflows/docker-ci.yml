@@ -34,7 +34,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
-          VITE_BACKEND_URL=https://server.stagnum.net
+          VITE_BACKEND_URL=https://back.stagnum.net
           VITE_FRONTEND_URL=https://stagnum.net
   
   create-docker-images-back:
