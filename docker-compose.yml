@@ -3,23 +3,17 @@ version: "3.8"
 services:
   frontend:
     build:
-      context: ./client/
+      context: ./clientRewrite/
       dockerfile: Dockerfile
     restart: always
     ports:
-      - ${FRONTEND_PORT}:3000
+      - ${FRONTEND_PORT}:80
     networks:
       - outgoing
       - internal
     environment:
-      NEXT_PUBLIC_FRONTEND_URI: ${NEXT_PUBLIC_FRONTEND_URI}
-      NEXT_PUBLIC_BACKEND_URI: ${NEXT_PUBLIC_BACKEND_URI}
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000/about || exit 1" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
+      VITE_BACKEND_URI: ${VITE_BACKEND_URI}
+      VITE_FRONTEND_URI: ${VITE_FRONTEND_URI}
     depends_on:
       backend:
         condition: service_healthy
