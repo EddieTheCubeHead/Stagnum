@@ -12,7 +12,7 @@ export const Pool = () => {
             className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden lg:mr-1"} h-[calc(100vh-3rem)] overflow-y-auto space-y-2`}
         >
             <PoolTopBar />
-            <div className="grow pb-4 px-2">
+            <div className="grow pb-4 px-2 space-y-1">
                 {pool?.users.map((user) => (
                     <div key={user.user.spotify_id} className="space-y-1">
                         {user.tracks.map((track) => (

@@ -8,12 +8,14 @@ import { AlertHandler } from "../../alertSystem/AlertHandler.tsx"
 import { useStartWebSocket } from "../hooks/useStartWebSocket.ts"
 import { useTokenStore } from "../stores/tokenStore.ts"
 import { useEffect } from "react"
+import { useGetPoolQuery } from "../hooks/useGetPoolQuery.ts"
 
 export const Home = () => {
     const { token } = useTokenStore()
     const { query } = useSearchStore()
     const { pool, deletingPool } = usePoolStore()
     const { confirmingOverwrite } = usePoolStore()
+    useGetPoolQuery()
     const startWebSocket = useStartWebSocket()
     useEffect(() => {
         startWebSocket()

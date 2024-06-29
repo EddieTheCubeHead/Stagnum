@@ -102,7 +102,7 @@ describe("Main", () => {
 
         // @ts-expect-error
         it("Should show alert after successfully deleting pool", async () => {
-            mockAxiosGet(null)
+            mockAxiosGet(mockedTrackPoolData())
             mockAxiosDelete(null)
             render(
                 <TestQueryProvider>
