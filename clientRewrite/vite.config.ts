@@ -11,7 +11,7 @@ export default defineConfig({
         coverage: {
             reportsDirectory: "./coverage",
             include: ["src/**/*"],
-            exclude: ["src/main.tsx", "src/App.tsx"],
+            exclude: ["src/main.tsx", "src/App.tsx", "src/common/hooks/useStartWebSocket.ts"],
         },
         environment: "jsdom",
         setupFiles: ["./setup-vitest.ts"],

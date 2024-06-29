@@ -51,11 +51,12 @@ describe("Home", () => {
     })
 
     it("Should fetch existing pool from server on Home view render", () => {
+        const mockPool = mockedCollectionPoolData()
         mockMultipleGets({
             routes: [
                 {
                     route: "/pool",
-                    data: mockedCollectionPoolData(),
+                    data: mockPool,
                 },
             ],
         })

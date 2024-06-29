@@ -44,7 +44,6 @@ export const mockMultipleGets = ({ routes, returnHeader }: mockMultipleGets) => 
         if (mockedData !== undefined) {
             return createMockData(mockedData, returnHeader)
         }
-        console.log(url)
         throw new Error(`Attempting to call an un-mocked GET route ${url}`)
     })
 }

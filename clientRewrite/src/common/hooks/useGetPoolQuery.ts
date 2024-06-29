@@ -5,7 +5,6 @@ import { useGetPool } from "./useGetPool.ts"
 export const useGetPoolQuery = () => {
     const { token } = useTokenStore()
     const getPool = useGetPool()
-    console.log("useGetPoolQuery", token)
     useQuery({
         queryKey: ["get pool", token],
         queryFn: getPool,
