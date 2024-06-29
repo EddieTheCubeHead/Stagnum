@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { Home } from "../../../src/common/views/Home"
-import { act, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
-import { mockAxiosGet } from "../../utils/mockAxios"
+import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
+import { mockedCollectionPoolData } from "../../search/data/mockPoolData"
 
 describe("Home", () => {
     beforeEach(() => usePoolStore.setState({ deletingPool: false, confirmingOverwrite: null }))
@@ -19,8 +20,7 @@ describe("Home", () => {
         expect(screen.queryByText("Tracks")).toBeNull()
     })
 
-    // @ts-expect-error
-    it("Should render search if search query set", async () => {
+    it("Should render search if search query set", () => {
         mockAxiosGet(mockedSearchData())
         useSearchStore.setState({ query: "my query" })
         render(
@@ -29,9 +29,7 @@ describe("Home", () => {
             </TestQueryProvider>,
         )
 
-        // @ts-expect-error
-        await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
-        expect(screen.getByRole("heading", { name: "Tracks" })).toBeDefined()
+        expect(screen.findByRole("heading", { name: "Tracks" })).toBeDefined()
     })
 
     it("Should render confirm pool overwrite modal if overwrite attempted", () => {
@@ -50,5 +48,24 @@ describe("Home", () => {
         ).toBeDefined()
         expect(screen.getByRole("button", { name: "Cancel" })).toBeDefined()
         expect(screen.getByRole("button", { name: "Continue" })).toBeDefined()
+    })
+
+    it("Should fetch existing pool from server on Home view render", () => {
+        const mockPool = mockedCollectionPoolData()
+        mockMultipleGets({
+            routes: [
+                {
+                    route: "/pool",
+                    data: mockPool,
+                },
+            ],
+        })
+        render(
+            <TestQueryProvider>
+                <Home />
+            </TestQueryProvider>,
+        )
+
+        expect(screen.findByText(mockedCollectionPoolData().users[0].collections[0].name)).toBeDefined()
     })
 })

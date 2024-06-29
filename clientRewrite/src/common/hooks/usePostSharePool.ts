@@ -14,5 +14,6 @@ export const usePostSharePool = () => {
                 return poolModel
             })
         }
+        return null
     }
 }

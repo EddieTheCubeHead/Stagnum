@@ -13,7 +13,7 @@ export const AlertComponent = ({ alert }: AlertComponentBaseProps) => {
     const { removeAlert } = useAlertStore()
     useEffect(() => {
         if (alert.type === AlertType.Success) {
-            const timer = setTimeout(() => removeAlert(alert), 7000)
+            const timer = setTimeout(() => removeAlert(alert), 5000)
             return () => clearTimeout(timer)
         }
     }, [alert])
