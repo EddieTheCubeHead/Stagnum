@@ -9,6 +9,7 @@ export const AvatarImage = ({ imageUrl, userName }: AvatarImageProps) => {
             className="w-iconSize h-iconSize rounded-full object-none"
             src={imageUrl}
             alt={`User ${userName} avatar`}
+            title={`User ${userName} avatar`}
         />
     )
 }

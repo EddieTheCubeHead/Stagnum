@@ -9,7 +9,6 @@ import { LeavePoolIconSvg } from "../../icons/svgs/LeavePoolIconSvg.tsx"
 export const ToolBarClearPoolButton = () => {
     const { pool, setPoolState } = usePoolStore()
     const { user } = useMeQuery()
-    console.log(pool?.owner?.spotify_id, user?.spotify_id)
     return (
         <div className="grow">
             {pool ? (
