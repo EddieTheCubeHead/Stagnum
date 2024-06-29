@@ -33,6 +33,7 @@ sudo mount /dev/${ebs_name} /data
 echo "[INFO] Setting up docker-compose"
 mkdir /Stagnum
 cd /Stagnum
+echo "[INFO] Setting env variables"
 echo "POSTGRES_USER=${postgres_user}" >> .env
 echo "POSTGRES_PASSWORD=${postgres_pass}" >> .env
 echo "POSTGRES_DB=${postgres_db}" >> .env
