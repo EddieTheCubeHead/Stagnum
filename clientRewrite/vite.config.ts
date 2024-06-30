@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react-swc"
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [react()],
+    server: {
+        port: 80,
+    },
     test: {
         root: ".",
         include: ["**/*Features.ts", "**/*Features.tsx"],

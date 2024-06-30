@@ -20,7 +20,7 @@ def _inject_secret(secret_name: str) -> None:
         path = Path(f"/run/secrets/{secret_name}")
         with path.open("r", encoding=locale.getpreferredencoding(do_setlocale=False)) as secret_file:
             secret = secret_file.read()
-            os.environ[env_name] = secret
+            os.environ[env_name] = secret.strip()
             _logger.info(f"Setting environment variable {env_name} from file {secret_name}")
 
 
