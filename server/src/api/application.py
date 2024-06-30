@@ -47,7 +47,7 @@ def create_app() -> FastAPI:
         allow_origins=_get_allowed_origins(),
         allow_credentials=True,
         allow_methods=_ALLOWED_METHODS,
-        allow_headers=["*"],
+        allow_headers=_ALLOWED_HEADERS,
     )
 
     @application.get("/me")
