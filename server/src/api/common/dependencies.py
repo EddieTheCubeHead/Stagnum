@@ -249,6 +249,7 @@ class TokenHolderRaw:
             client_secret = _get_client_secret()
             refreshed_session = self._auth_client.refresh_token(user_session.refresh_token, client_id, client_secret)
             user_session = self._user_database_connection.refresh_session(user, refreshed_session)
+            user.session = user_session
         if self._response is not None:
             self._response.headers["Authorization"] = user_session.user_token
 

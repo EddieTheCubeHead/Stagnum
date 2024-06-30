@@ -1,5 +1,6 @@
 import datetime
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from database.database_connection import ConnectionManager
@@ -61,6 +62,27 @@ async def should_refresh_token_in_queue_job(
     with db_connection.session() as session:
         user_session: UserSession = session.scalar(select(UserSession))
     assert user_session.user_token == f"Bearer {refresh_token_return}"
+
+
+@pytest.mark.wip
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("correct_env_variables", "existing_playback")
+async def should_perform_job_api_call_with_correct_token_after_refresh_in_queue_job(
+    refresh_token_return: str,
+    increment_now: IncrementNow,
+    run_scheduling_job: RunSchedulingJob,
+    create_spotify_playback: CreateSpotifyPlayback,
+    requests_client_post_queue: MockResponseQueue,
+    build_success_response: BuildSuccessResponse,
+    requests_client: Mock,
+) -> None:
+    increment_now(datetime.timedelta(seconds=3600))
+    create_spotify_playback()
+    requests_client_post_queue.append(build_success_response({}))
+
+    await run_scheduling_job()
+
+    assert requests_client.post.call_args[1] == {"headers": {"Authorization": f"Bearer {refresh_token_return}"}}
 
 
 @pytest.mark.asyncio
