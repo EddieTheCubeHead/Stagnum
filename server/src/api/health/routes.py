@@ -11,7 +11,7 @@ _logger = getLogger("main.api.pool.routes")
 router = APIRouter(prefix="/health", tags=["health"])
 
 
-@router.get("/")
+@router.get("")
 def healthcheck(
     request_timer: RequestTimer,
     healthcheck_database_connection: HealthcheckDatabaseConnection,

@@ -14,7 +14,7 @@ _logger = getLogger("main.api.pool.routes")
 router = APIRouter(prefix="/pool", tags=["pool"])
 
 
-@router.post("/")
+@router.post("")
 async def create_pool(
     base_collection: PoolCreationData,
     user: validated_user,
@@ -31,7 +31,7 @@ async def create_pool(
     )
 
 
-@router.get("/")
+@router.get("")
 async def get_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
     _logger.debug(f"GET /pool called with token {user}")
     return create_pool_return_model(*database_connection.get_pool_data(user))
@@ -105,7 +105,7 @@ async def join_pool(
     return data_model
 
 
-@router.delete("/")
+@router.delete("")
 async def delete_pool(
     user: validated_user,
     pool_database_connection: PoolDatabaseConnection,

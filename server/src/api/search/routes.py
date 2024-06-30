@@ -19,7 +19,7 @@ _logger = getLogger("main.api.search.routes")
 router = APIRouter(prefix="/search", tags=["search"])
 
 
-@router.get("/")
+@router.get("")
 async def search(query: str, user: validated_user, spotify_client: SearchSpotifyClient) -> GeneralSearchResult:
     _logger.debug(f"GET /search called with query '{query}' and token '{user}'.")
     all_playable_types = [e.value for e in SpotifyPlayableType]
