@@ -120,7 +120,6 @@ def should_return_error_if_member_does_not_exist_in_pool(
     assert json_data["detail"] == "Can't delete a pool member that does not exist."
 
 
-@pytest.mark.wip
 def should_return_error_if_member_is_not_users_own(
     test_client: TestClient,
     existing_playback: list[TrackData],
