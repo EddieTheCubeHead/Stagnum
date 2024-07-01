@@ -11,18 +11,30 @@ class PoolCreationData(BaseModel):
     spotify_uris: list[PoolContent]
 
 
-class PoolTrack(BaseModel):
+class PoolMember(BaseModel):
     name: str
     spotify_icon_uri: str
     spotify_resource_uri: str
+
+
+class SavedPoolMember(PoolMember):
+    id: int
+
+
+class PoolTrack(SavedPoolMember):
     duration_ms: int
 
 
-class PoolCollection(BaseModel):
-    name: str
-    spotify_icon_uri: str
-    spotify_resource_uri: str
+class PoolCollection(SavedPoolMember):
     tracks: list[PoolTrack]
+
+
+class UnsavedPoolTrack(PoolMember):
+    duration_ms: int
+
+
+class UnsavedPoolCollection(PoolMember):
+    tracks: list[UnsavedPoolTrack]
 
 
 class PoolUserContents(BaseModel):
@@ -31,8 +43,14 @@ class PoolUserContents(BaseModel):
     user: UserModel
 
 
+class UnsavedPoolUserContents(BaseModel):
+    tracks: list[UnsavedPoolTrack]
+    collections: list[UnsavedPoolCollection]
+    user: UserModel
+
+
 class PoolFullContents(BaseModel):
     users: list[PoolUserContents]
-    currently_playing: PoolTrack | None
+    currently_playing: UnsavedPoolTrack | None
     share_code: str | None = None
     owner: UserModel | None = None

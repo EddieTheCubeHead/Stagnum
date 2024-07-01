@@ -55,7 +55,9 @@ class PoolMember(EntityBase):
     )
 
     parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")
-    children: Mapped[list[PoolMember]] = relationship(lazy="joined", back_populates="parent")
+    children: Mapped[list[PoolMember]] = relationship(
+        lazy="joined", back_populates="parent", order_by="PoolMember.sort_order"
+    )
     randomization_parameters: Mapped[PoolMemberRandomizationParameters] = relationship(
         lazy="joined", back_populates="pool_member"
     )

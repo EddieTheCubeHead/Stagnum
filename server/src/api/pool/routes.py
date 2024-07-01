@@ -4,10 +4,9 @@ from database.entities import PoolMember, User
 from fastapi import APIRouter
 
 from api.common.dependencies import validated_user
-from api.common.helpers import map_user_entity_to_model
 from api.pool.dependencies import PoolDatabaseConnection, PoolPlaybackService, PoolSpotifyClient, WebsocketUpdater
 from api.pool.helpers import create_pool_return_model
-from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, PoolTrack
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, UnsavedPoolTrack
 
 _logger = getLogger("main.api.pool.routes")
 
@@ -23,12 +22,10 @@ async def create_pool(
     pool_playback_service: PoolPlaybackService,
 ) -> PoolFullContents:
     _logger.debug(f"POST /pool called with collection {base_collection} and token {user.session.user_token}")
-    pool_user_content = spotify_client.get_pool_content(user, *base_collection.spotify_uris)
-    database_connection.create_pool(pool_user_content)
-    current_track = pool_playback_service.start_playback(user)
-    return PoolFullContents(
-        users=[pool_user_content], currently_playing=current_track, owner=map_user_entity_to_model(user)
-    )
+    unsaved_pool_user_content = spotify_client.get_unsaved_pool_content(user, *base_collection.spotify_uris)
+    database_connection.create_pool(unsaved_pool_user_content)
+    pool_playback_service.start_playback(user)
+    return create_pool_return_model(*database_connection.get_pool_data(user))
 
 
 @router.get("")
@@ -46,7 +43,7 @@ async def add_content(
     websocket_updater: WebsocketUpdater,
 ) -> PoolFullContents:
     _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
-    added_content = spotify_client.get_pool_content(user, to_add)
+    added_content = spotify_client.get_unsaved_pool_content(user, to_add)
     whole_pool = database_connection.add_to_pool(added_content, user)
     return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
 
@@ -80,7 +77,7 @@ async def _create_model_and_update_listeners(
 
 
 @router.post("/playback/skip")
-async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackService) -> PoolTrack:
+async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackService) -> UnsavedPoolTrack:
     _logger.debug(f"POST /pool/playback/skip called with token {user.session.user_token}")
     return await pool_playback_service.skip_song(user)
 

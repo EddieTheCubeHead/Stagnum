@@ -64,7 +64,6 @@ async def should_refresh_token_in_queue_job(
     assert user_session.user_token == f"Bearer {refresh_token_return}"
 
 
-@pytest.mark.wip
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("correct_env_variables", "existing_playback")
 async def should_perform_job_api_call_with_correct_token_after_refresh_in_queue_job(
