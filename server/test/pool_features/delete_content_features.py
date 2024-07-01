@@ -46,7 +46,6 @@ def should_not_have_track_in_database_after_deletion(
     assert len(all_tracks) == len(existing_pool) - 1
 
 
-@pytest.mark.wip
 def should_be_able_to_delete_separate_child_from_collection(
     create_pool: CreatePool,
     get_existing_pool: GetExistingPool,

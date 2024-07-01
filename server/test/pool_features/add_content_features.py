@@ -1,16 +1,22 @@
 import pytest
-from api.pool.models import PoolContent
+from api.pool.models import PoolContent, PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember
 from helpers.classes import ErrorData, MockedPoolContents
 from sqlalchemy import and_, select
 from starlette.testclient import TestClient
+from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     AssertTokenInHeaders,
+    BuildSuccessResponse,
     MockAlbumFetch,
+    MockAlbumSearchResult,
+    MockArtistSearchResult,
     MockPlaylistFetch,
     MockTrackFetch,
     MockTrackSearchResult,
+    ValidateErrorResponse,
+    ValidateModel,
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
@@ -82,6 +88,70 @@ def should_preserve_existing_pool_members_on_new_member_addition(
             session.scalars(select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
         )
     assert len(actual_pool_content) == len(existing_pool) + 1
+
+
+@pytest.mark.usefixtures("existing_pool")
+def should_not_allow_adding_same_track_twice_by_same_user(
+    create_mock_track_search_result: MockTrackSearchResult,
+    requests_client_get_queue: MockResponseQueue,
+    build_success_response: BuildSuccessResponse,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_error_response: ValidateErrorResponse,
+) -> None:
+    track = create_mock_track_search_result()
+    requests_client_get_queue.append(build_success_response(track))
+    requests_client_get_queue.append(build_success_response(track))
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+    test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    expected_error_response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+    validate_error_response(expected_error_response, 400, "Cannot add the same resource twice by the same user!")
+
+
+def should_allow_adding_same_track_by_different_users(
+    create_mock_track_search_result: MockTrackSearchResult,
+    requests_client_get_queue: MockResponseQueue,
+    build_success_response: BuildSuccessResponse,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_model: ValidateModel,
+    joined_user_header: Headers,
+) -> None:
+    track = create_mock_track_search_result()
+    requests_client_get_queue.append(build_success_response(track))
+    requests_client_get_queue.append(build_success_response(track))
+    pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+    test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    expected_response = test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
+    validate_model(PoolFullContents, expected_response)
+
+
+@pytest.mark.usefixtures("existing_pool")
+def should_allow_adding_track_that_is_inside_a_collection(
+    create_mock_artist_search_result: MockArtistSearchResult,
+    create_mock_track_search_result: MockTrackSearchResult,
+    create_mock_album_search_result: MockAlbumSearchResult,
+    requests_client_get_queue: MockResponseQueue,
+    build_success_response: BuildSuccessResponse,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_model: ValidateModel,
+) -> None:
+    artist = create_mock_artist_search_result()
+    track, *rest = (create_mock_track_search_result(artist) for _ in range(10))
+    album = create_mock_album_search_result(artist, [track, *rest].copy())
+    # track album is popped in mock album fetch method. Add it back...
+    track["album"] = create_mock_album_search_result(artist)
+    requests_client_get_queue.append(build_success_response(album))
+    requests_client_get_queue.append(build_success_response(track))
+    track_pool_content_data = PoolContent(spotify_uri=track["uri"]).model_dump()
+    album_pool_content_data = PoolContent(spotify_uri=album["uri"]).model_dump()
+    test_client.post("/pool/content", json=album_pool_content_data, headers=valid_token_header)
+
+    expected_response = test_client.post("/pool/content", json=track_pool_content_data, headers=valid_token_header)
+    validate_model(PoolFullContents, expected_response)
 
 
 def should_correctly_construct_pool_after_collection_addition(

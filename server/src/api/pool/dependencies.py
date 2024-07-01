@@ -12,7 +12,7 @@ from database.entities import (
     User,
 )
 from fastapi import Depends, HTTPException, WebSocket
-from sqlalchemy import and_, delete, or_, select, update
+from sqlalchemy import and_, delete, exists, or_, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
@@ -28,6 +28,7 @@ from api.pool.models import (
     UnsavedPoolTrack,
     UnsavedPoolUserContents,
 )
+from api.pool.models import PoolMember as PoolMemberModel
 from api.pool.randomization_algorithms import NextSongProvider
 from api.pool.spotify_models import PlaybackStateData, QueueData
 
@@ -378,6 +379,27 @@ def _get_current_track(pool: Pool, session: Session) -> UnsavedPoolTrack | None:
     )
 
 
+def _validate_pool_member_addition(session: Session, pool_member: PoolMemberModel, user: User) -> None:
+    if session.query(
+        exists().where(
+            and_(
+                PoolMember.content_uri == pool_member.spotify_resource_uri,
+                PoolMember.user_id == user.spotify_id,
+                # because SQLAlchemy doesn't support is None
+                PoolMember.parent_id == None,  # noqa: E711
+            )
+        )
+    ).scalar():
+        raise HTTPException(400, "Cannot add the same resource twice by the same user!")
+
+
+def _validate_pool_member_additions(session: Session, contents: UnsavedPoolUserContents, user: User) -> None:
+    for track in contents.tracks:
+        _validate_pool_member_addition(session, track, user)
+    for collection in contents.collections:
+        _validate_pool_member_addition(session, collection, user)
+
+
 class PoolDatabaseConnectionRaw:
     def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper) -> None:
         self._database_connection = database_connection
@@ -391,6 +413,7 @@ class PoolDatabaseConnectionRaw:
 
     def add_to_pool(self, contents: UnsavedPoolUserContents, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
+            _validate_pool_member_additions(session, contents, user)
             pool = _get_pool_for_user(user, session)
             if pool is None:
                 pool = _create_transient_pool(map_user_entity_to_model(user), session)
