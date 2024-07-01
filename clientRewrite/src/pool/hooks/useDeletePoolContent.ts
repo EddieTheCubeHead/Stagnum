@@ -11,7 +11,7 @@ export const useDeletePoolContent = (resource: PoolMember) => {
     const poolStore = usePoolStore()
     const token = useTokenStore().token
     const { addAlert } = useAlertStore()
-    const deletePoolContent = useApiDelete<Pool>(`/pool/content/${resource.spotify_resource_uri}`)
+    const deletePoolContent = useApiDelete<Pool>(`/pool/content/${resource.id}`)
     return useCallback(() => {
         if (token === null) {
             throw new Error("Token null on pool addition!")

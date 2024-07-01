@@ -289,8 +289,8 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
     )
 
 
-def _get_and_validate_member_to_delete(content_uri: str, user: User, session: Session) -> PoolMember:
-    matching_members = session.scalars(select(PoolMember).where(PoolMember.content_uri == content_uri)).unique().all()
+def _get_and_validate_member_to_delete(content_id: int, user: User, session: Session) -> PoolMember:
+    matching_members = session.scalars(select(PoolMember).where(PoolMember.id == content_id)).unique().all()
     if len(matching_members) == 0:
         raise HTTPException(status_code=404, detail="Can't delete a pool member that does not exist.")
 
@@ -397,9 +397,9 @@ class PoolDatabaseConnectionRaw:
             _create_pool_member_entities(contents, pool, session)
             return _get_user_pool(user, session)
 
-    def delete_from_pool(self, content_uri: str, user: User) -> list[PoolMember]:
+    def delete_from_pool(self, content_id: int, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
-            pool_member = _get_and_validate_member_to_delete(content_uri, user, session)
+            pool_member = _get_and_validate_member_to_delete(content_id, user, session)
             _delete_pool_member(pool_member, user, session)
             return _get_user_pool(user, session)
 

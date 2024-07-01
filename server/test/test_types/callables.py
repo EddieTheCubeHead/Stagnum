@@ -12,6 +12,7 @@ from api.common.spotify_models import (
     PlaylistData,
     TrackData,
 )
+from api.pool.models import PoolFullContents
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from api.search.spotify_models import GeneralSearchResultData
 from database.entities import EntityBase, PoolMember, User
@@ -200,3 +201,4 @@ type MockArtistFetch = Callable[[], PoolContentData]
 type MockPutResponse = Callable[[], None]
 type AssertEmptyPoolModel = Callable[[httpx.Response], None]
 type AssertPlaybackStarted = Callable[[list[str]], None]
+type GetExistingPool = Callable[[], type[PoolFullContents]]

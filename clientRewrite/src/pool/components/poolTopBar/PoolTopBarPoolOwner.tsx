@@ -1,7 +1,7 @@
-import { Avatar } from "../../../common/components/avatar/Avatar.tsx"
 import { usePoolStore } from "../../../common/stores/poolStore.ts"
 import { useMeQuery } from "../../../common/hooks/useMeQuery.ts"
 import { PoolTopBarPoolOwnerSkeleton } from "./PoolTopBarPoolOwnerSkeleton.tsx"
+import { Avatar } from "../../../common/components/avatar/Avatar.tsx"
 
 export const PoolTopBarPoolOwner = () => {
     const { pool } = usePoolStore()

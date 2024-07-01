@@ -24,7 +24,7 @@ from api.common.dependencies import (
 )
 from api.common.models import ParsedTokenResponse
 from api.common.spotify_models import AlbumData, ArtistData, PlaylistData, TrackData
-from api.pool.models import PoolContent, PoolCreationData
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
 from faker import Faker
@@ -42,6 +42,7 @@ from test_types.callables import (
     CreatePool,
     CreatePoolCreationDataJson,
     CreateToken,
+    GetExistingPool,
     GetQueryParameter,
     IncrementNow,
     LogUserIn,
@@ -569,6 +570,16 @@ def mock_playlist_fetch(
 @pytest.fixture
 def mocked_pool_contents() -> MockedPoolContents:
     return MockedPoolContents()
+
+
+@pytest.fixture
+def get_existing_pool(
+    validate_model: ValidateModel, test_client: TestClient, valid_token_header: Headers
+) -> GetExistingPool:
+    def wrapper() -> type[PoolFullContents]:
+        return validate_model(PoolFullContents, test_client.get("/pool", headers=valid_token_header))
+
+    return wrapper
 
 
 @pytest.fixture

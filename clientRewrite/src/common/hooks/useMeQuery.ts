@@ -11,10 +11,12 @@ export const useMeQuery = (): { user: User; error: Error | null; isLoading: bool
         queryFn: useApiGet<User>("/me"),
         enabled: token !== null,
         retry: 3,
+        // We want to fail fast so user can re-log-in on stale token
+        retryDelay: (attemptIndex) => Math.min(500 * 1.5 ** attemptIndex, 30000),
         staleTime: 10000,
     })
 
-    if (error) {
+    if (error && token !== null) {
         setToken(null)
     }
 
