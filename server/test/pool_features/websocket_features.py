@@ -9,6 +9,7 @@ from starlette.testclient import TestClient
 from test_types.callables import (
     BuildQueue,
     CreateSpotifyPlayback,
+    GetExistingPool,
     IncrementNow,
     MockPlaylistFetch,
     MockTrackSearchResult,
@@ -35,20 +36,22 @@ def should_get_update_when_pool_contents_added(
                 assert len(user_data["collections"]) == 1
 
 
+@pytest.mark.usefixtures("existing_playback")
 def should_get_update_when_pool_contents_deleted(
     test_client: TestClient,
     valid_token_header: Headers,
     joined_user_token: Headers,
     logged_in_user_id: str,
-    existing_playback: list[TrackData],
+    get_existing_pool: GetExistingPool,
 ) -> None:
+    existing_tracks = get_existing_pool().users[0].tracks
     with test_client.websocket_connect(f"/websocket/connect?Authorization={joined_user_token}") as websocket:
-        deleted_song = random.choice(existing_playback)
-        test_client.delete(f"/pool/content/{deleted_song["uri"]}", headers=valid_token_header)
+        deleted_song = random.choice(existing_tracks)
+        test_client.delete(f"/pool/content/{deleted_song.id}", headers=valid_token_header)
         data = websocket.receive_json()
         for user_data in data["model"]["users"]:
             if user_data["user"]["spotify_id"] == logged_in_user_id:
-                assert len(user_data["tracks"]) == len(existing_playback) - 1
+                assert len(user_data["tracks"]) == len(existing_tracks) - 1
 
 
 def should_get_update_when_user_joins_pool(

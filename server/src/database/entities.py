@@ -49,13 +49,19 @@ class PoolMember(EntityBase):
     image_url: Mapped[str] = mapped_column(String(256), nullable=False)
     content_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer(), nullable=True)
+
+    # Note: sort_order at the moment just ensures collections are internally sound. Once we get to permanent pools
+    # and other stuff where inter-collection ordering actually matters, we need to add a lot of logic for handling
+    # these.
     sort_order: Mapped[int] = mapped_column(Integer(), nullable=True)
     parent_id: Mapped[int | None] = mapped_column(
         ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"), default=None, nullable=True
     )
 
     parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")
-    children: Mapped[list[PoolMember]] = relationship(lazy="joined", back_populates="parent")
+    children: Mapped[list[PoolMember]] = relationship(
+        lazy="joined", back_populates="parent", order_by="PoolMember.sort_order"
+    )
     randomization_parameters: Mapped[PoolMemberRandomizationParameters] = relationship(
         lazy="joined", back_populates="pool_member"
     )

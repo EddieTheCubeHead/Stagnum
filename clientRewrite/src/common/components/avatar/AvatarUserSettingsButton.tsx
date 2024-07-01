@@ -1,4 +1,4 @@
-import { Avatar } from "./Avatar.tsx"
+import { MeAvatar } from "./MeAvatar.tsx"
 import { useState } from "react"
 import { UserSettingsMenu } from "./UserSettingsMenu.tsx"
 
@@ -7,7 +7,7 @@ export const AvatarUserSettingsButton = () => {
     return (
         <div>
             <button onClick={() => setIsOpened(!isOpened)} className="hover:scale-105">
-                <Avatar />
+                <MeAvatar />
             </button>
             {isOpened && <UserSettingsMenu />}
         </div>

@@ -3,7 +3,7 @@ from logging import getLogger
 from database.entities import PoolMember, User
 
 from api.common.helpers import map_user_entity_to_model
-from api.pool.models import PoolCollection, PoolFullContents, PoolTrack, PoolUserContents
+from api.pool.models import PoolCollection, PoolFullContents, PoolTrack, PoolUserContents, UnsavedPoolTrack
 
 _logger = getLogger("main.api.pool.helpers")
 
@@ -11,6 +11,7 @@ _logger = getLogger("main.api.pool.helpers")
 def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
     return [
         PoolTrack(
+            id=track.id,
             name=track.name,
             spotify_icon_uri=track.image_url,
             spotify_resource_uri=track.content_uri,
@@ -35,6 +36,7 @@ def create_pool_return_model(
         if pool_member.content_uri.split(":")[1] == "track":
             users_map[pool_member.user_id].tracks.append(
                 PoolTrack(
+                    id=pool_member.id,
                     name=pool_member.name,
                     spotify_icon_uri=pool_member.image_url,
                     spotify_resource_uri=pool_member.content_uri,
@@ -44,6 +46,7 @@ def create_pool_return_model(
         else:
             users_map[pool_member.user_id].collections.append(
                 PoolCollection(
+                    id=pool_member.id,
                     name=pool_member.name,
                     spotify_icon_uri=pool_member.image_url,
                     tracks=_create_collection_tracks(pool_member),
@@ -57,6 +60,16 @@ def create_pool_return_model(
 
 def map_pool_member_entity_to_model(pool_member: PoolMember) -> PoolTrack:
     return PoolTrack(
+        id=pool_member.id,
+        name=pool_member.name,
+        spotify_icon_uri=pool_member.image_url,
+        spotify_resource_uri=pool_member.content_uri,
+        duration_ms=pool_member.duration_ms,
+    )
+
+
+def map_unsaved_pool_member_entity_to_model(pool_member: PoolMember) -> UnsavedPoolTrack:
+    return UnsavedPoolTrack(
         name=pool_member.name,
         spotify_icon_uri=pool_member.image_url,
         spotify_resource_uri=pool_member.content_uri,

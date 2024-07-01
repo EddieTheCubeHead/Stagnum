@@ -12,15 +12,23 @@ from database.entities import (
     User,
 )
 from fastapi import Depends, HTTPException, WebSocket
-from sqlalchemy import and_, delete, or_, select, update
+from sqlalchemy import and_, delete, exists, or_, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
 from api.common.helpers import build_auth_header, create_random_string, get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
 from api.common.spotify_models import PlaylistData
-from api.pool.helpers import map_pool_member_entity_to_model
-from api.pool.models import PoolCollection, PoolContent, PoolFullContents, PoolTrack, PoolUserContents
+from api.pool.helpers import map_pool_member_entity_to_model, map_unsaved_pool_member_entity_to_model
+from api.pool.models import (
+    PoolContent,
+    PoolFullContents,
+    PoolTrack,
+    UnsavedPoolCollection,
+    UnsavedPoolTrack,
+    UnsavedPoolUserContents,
+)
+from api.pool.models import PoolMember as PoolMemberModel
 from api.pool.randomization_algorithms import NextSongProvider
 from api.pool.spotify_models import PlaybackStateData, QueueData
 
@@ -30,11 +38,11 @@ _PLAYBACK_UPDATE_CUTOFF_MS = 3000
 FullPoolData = (list[PoolMember], list[User], PoolTrack | None, str | None)
 
 
-def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrack]:
+def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[UnsavedPoolTrack]:
     # Weird bug at least in my test set where this fails pydantic validation if we return the list comprehension.
     # Extracting it into a separate variable fixed the bug. Mb investigate and report to pydantic?
     return [
-        PoolTrack(
+        UnsavedPoolTrack(
             name=track["name"],
             spotify_icon_uri=icon_uri,
             spotify_resource_uri=track["uri"],
@@ -44,9 +52,9 @@ def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[PoolTrac
     ]
 
 
-def _build_tracks_without_image(tracks: list[dict]) -> list[PoolTrack]:
+def _build_tracks_without_image(tracks: list[dict]) -> list[UnsavedPoolTrack]:
     return [
-        PoolTrack(
+        UnsavedPoolTrack(
             name=track["name"],
             spotify_icon_uri=get_sharpest_icon(track["album"]["images"]),
             spotify_resource_uri=track["uri"],
@@ -67,59 +75,59 @@ class PoolSpotifyClientRaw:
             "playlist": self._fetch_playlist,
         }
 
-    def get_pool_content(self, user: User, *pool_contents: PoolContent) -> PoolUserContents:
-        pool_tracks: list[PoolTrack] = []
-        pool_collections: list[PoolCollection] = []
+    def get_unsaved_pool_content(self, user: User, *pool_contents: PoolContent) -> UnsavedPoolUserContents:
+        pool_tracks: list[UnsavedPoolTrack] = []
+        pool_collections: list[UnsavedPoolCollection] = []
         for pool_content in pool_contents:
             _logger.debug(f"Fetching spotify content with uri {pool_content.spotify_uri}")
             content = self._fetch_content(user, pool_content.spotify_uri)
-            if type(content) is PoolTrack:
+            if type(content) is UnsavedPoolTrack:
                 pool_tracks.append(content)
             else:
                 pool_collections.append(content)
         user_model = map_user_entity_to_model(user)
-        return PoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
+        return UnsavedPoolUserContents(tracks=pool_tracks, collections=pool_collections, user=user_model)
 
-    def _fetch_content(self, user: User, content_uri: str) -> PoolTrack | PoolCollection:
+    def _fetch_content(self, user: User, content_uri: str) -> UnsavedPoolTrack | UnsavedPoolCollection:
         _, content_type, content_id = content_uri.split(":")
         return self._fetch_methods[content_type](user, content_id)
 
-    def _fetch_track(self, user: User, track_id: str) -> PoolTrack:
+    def _fetch_track(self, user: User, track_id: str) -> UnsavedPoolTrack:
         track_data = self._spotify_client.get(f"tracks/{track_id}", headers=build_auth_header(user))
-        return PoolTrack(
+        return UnsavedPoolTrack(
             name=track_data["name"],
             spotify_icon_uri=get_sharpest_icon(track_data["album"]["images"]),
             spotify_resource_uri=track_data["uri"],
             duration_ms=track_data["duration_ms"],
         )
 
-    def _fetch_album(self, user: User, album_id: str) -> PoolCollection:
+    def _fetch_album(self, user: User, album_id: str) -> UnsavedPoolCollection:
         album_data = self._spotify_client.get(f"albums/{album_id}", headers=build_auth_header(user))
         sharpest_icon_url = get_sharpest_icon(album_data["images"])
         tracks = _build_tracks_with_image(album_data["tracks"]["items"], sharpest_icon_url)
-        return PoolCollection(
+        return UnsavedPoolCollection(
             name=album_data["name"],
             spotify_icon_uri=sharpest_icon_url,
             tracks=tracks,
             spotify_resource_uri=album_data["uri"],
         )
 
-    def _fetch_artist(self, user: User, artist_id: str) -> PoolCollection:
+    def _fetch_artist(self, user: User, artist_id: str) -> UnsavedPoolCollection:
         token_header = build_auth_header(user)
         artist_data = self._spotify_client.get(f"artists/{artist_id}", headers=token_header)
         artist_track_data = self._spotify_client.get(f"artists/{artist_id}/top-tracks", headers=token_header)
         tracks = _build_tracks_without_image(artist_track_data["tracks"])
-        return PoolCollection(
+        return UnsavedPoolCollection(
             name=artist_data["name"],
             spotify_icon_uri=get_sharpest_icon(artist_data["images"]),
             tracks=tracks,
             spotify_resource_uri=artist_data["uri"],
         )
 
-    def _fetch_playlist(self, user: User, playlist_id: str) -> PoolCollection:
+    def _fetch_playlist(self, user: User, playlist_id: str) -> UnsavedPoolCollection:
         playlist_data = self._fully_fetch_playlist(playlist_id, user)
         tracks = _build_tracks_without_image([track["track"] for track in playlist_data["tracks"]["items"]])
-        return PoolCollection(
+        return UnsavedPoolCollection(
             name=playlist_data["name"],
             spotify_icon_uri=get_sharpest_icon(playlist_data["images"]),
             tracks=tracks,
@@ -167,7 +175,7 @@ class PoolSpotifyClientRaw:
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
 
 
-def _create_pool_member_entities(pool_contents: PoolUserContents, pool: Pool, session: Session) -> None:
+def _create_pool_member_entities(pool_contents: UnsavedPoolUserContents, pool: Pool, session: Session) -> None:
     _logger.debug("Creating pool member database entities")
     current_sort_order = 0
     for track in pool_contents.tracks:
@@ -239,12 +247,14 @@ def _purge_playback_users_pools(users: list[User], session: Session) -> None:
         delete(PoolJoinedUser).where(
             PoolJoinedUser.pool.has(
                 and_(
+                    # because SQLAlchemy doesn't support is None
                     Pool.name == None,  # noqa: E711
                     Pool.owner_user_id.in_(user_ids),
                 )
             )
         )
     )
+    # because SQLAlchemy doesn't support is None
     session.execute(delete(Pool).where(and_(Pool.name == None, Pool.owner_user_id.in_(user_ids))))  # noqa: E711
 
 
@@ -256,7 +266,9 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
     return list(
         session.scalars(
             select(PoolMember)
+            # because SQLAlchemy doesn't support is None
             .where(and_(PoolMember.pool_id == pool.id, PoolMember.parent_id == None))  # noqa: E711
+            .order_by(PoolMember.sort_order)
             .options(joinedload(PoolMember.children))
         )
         .unique()
@@ -278,8 +290,8 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
     )
 
 
-def _get_and_validate_member_to_delete(content_uri: str, user: User, session: Session) -> PoolMember:
-    matching_members = session.scalars(select(PoolMember).where(PoolMember.content_uri == content_uri)).unique().all()
+def _get_and_validate_member_to_delete(content_id: int, user: User, session: Session) -> PoolMember:
+    matching_members = session.scalars(select(PoolMember).where(PoolMember.id == content_id)).unique().all()
     if len(matching_members) == 0:
         raise HTTPException(status_code=404, detail="Can't delete a pool member that does not exist.")
 
@@ -355,11 +367,11 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
     session.merge(playing_track)
 
 
-def _get_current_track(pool: Pool, session: Session) -> PoolTrack | None:
+def _get_current_track(pool: Pool, session: Session) -> UnsavedPoolTrack | None:
     playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == pool.owner_user_id))
     if playback_session is None:
         return None
-    return PoolTrack(
+    return UnsavedPoolTrack(
         name=playback_session.current_track_name,
         spotify_icon_uri=playback_session.current_track_image_url,
         spotify_resource_uri=playback_session.current_track_uri,
@@ -367,28 +379,50 @@ def _get_current_track(pool: Pool, session: Session) -> PoolTrack | None:
     )
 
 
+def _validate_pool_member_addition(session: Session, pool_member: PoolMemberModel, user: User) -> None:
+    if session.query(
+        exists().where(
+            and_(
+                PoolMember.content_uri == pool_member.spotify_resource_uri,
+                PoolMember.user_id == user.spotify_id,
+                # because SQLAlchemy doesn't support is None
+                PoolMember.parent_id == None,  # noqa: E711
+            )
+        )
+    ).scalar():
+        raise HTTPException(400, "Cannot add the same resource twice by the same user!")
+
+
+def _validate_pool_member_additions(session: Session, contents: UnsavedPoolUserContents, user: User) -> None:
+    for track in contents.tracks:
+        _validate_pool_member_addition(session, track, user)
+    for collection in contents.collections:
+        _validate_pool_member_addition(session, collection, user)
+
+
 class PoolDatabaseConnectionRaw:
     def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper) -> None:
         self._database_connection = database_connection
         self._datetime_wrapper = datetime_wrapper
 
-    def create_pool(self, pool: PoolUserContents) -> None:
+    def create_pool(self, pool: UnsavedPoolUserContents) -> None:
         with self._database_connection.session() as session:
             _purge_existing_transient_pool(pool.user, session)
             transient_pool = _create_transient_pool(pool.user, session)
             _create_pool_member_entities(pool, transient_pool, session)
 
-    def add_to_pool(self, contents: PoolUserContents, user: User) -> list[PoolMember]:
+    def add_to_pool(self, contents: UnsavedPoolUserContents, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
+            _validate_pool_member_additions(session, contents, user)
             pool = _get_pool_for_user(user, session)
             if pool is None:
                 pool = _create_transient_pool(map_user_entity_to_model(user), session)
             _create_pool_member_entities(contents, pool, session)
             return _get_user_pool(user, session)
 
-    def delete_from_pool(self, content_uri: str, user: User) -> list[PoolMember]:
+    def delete_from_pool(self, content_id: int, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
-            pool_member = _get_and_validate_member_to_delete(content_uri, user, session)
+            pool_member = _get_and_validate_member_to_delete(content_id, user, session)
             _delete_pool_member(pool_member, user, session)
             return _get_user_pool(user, session)
 
@@ -701,19 +735,19 @@ class PoolPlaybackServiceRaw:
     async def _playback_updated(self, pool_owner: User, new_track: PoolMember) -> None:
         pool_user_ids = [user.spotify_id for user in self._database_connection.get_pool_users(pool_owner)]
         await self._websocket_updater.push_update(
-            pool_user_ids, "current_track", map_pool_member_entity_to_model(new_track).model_dump()
+            pool_user_ids, "current_track", map_unsaved_pool_member_entity_to_model(new_track).model_dump()
         )
 
     def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
         users = self._database_connection.get_pool_users(user)
         return self._next_song_provider.select_next_song(playable_tracks, users)
 
-    async def skip_song(self, user: User) -> PoolTrack:
+    async def skip_song(self, user: User) -> UnsavedPoolTrack:
         self._fetch_and_validate_spotify_state(user)
         await self._fix_queue(user)
         next_song = await self._queue_next_song(user)
         self._spotify_client.skip_current_song(user)
-        return PoolTrack(
+        return UnsavedPoolTrack(
             name=next_song.name,
             spotify_icon_uri=next_song.image_url,
             spotify_resource_uri=next_song.content_uri,
