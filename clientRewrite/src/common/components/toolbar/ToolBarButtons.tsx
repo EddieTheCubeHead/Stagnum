@@ -10,17 +10,19 @@ import { ToolBarClearPoolButton } from "./ToolBarClearPoolButton.tsx"
 export const ToolBarButtons = () => {
     const { setState } = useToolBarStore()
     return (
-        <>
-            <div className="grow">
+        <div className="flex grow">
+            <div className="flex basis-1/4 items-center justify-center">
                 <IconButton svg={<SharePoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.SharePool)} />
             </div>
-            <div className="grow">
+            <div className="flex basis-1/4 items-center justify-center">
                 <ToolBarHighlightedButton svg={<SearchIconSvg />} onClick={() => setState(ToolBarState.Search)} />
             </div>
-            <div className="grow">
+            <div className="flex basis-1/4 items-center justify-center">
                 <IconButton svg={<JoinPoolIconSvg />} size={Size.l} onClick={() => setState(ToolBarState.JoinPool)} />
             </div>
-            <ToolBarClearPoolButton />
-        </>
+            <div className="flex basis-1/4 items-center justify-center">
+                <ToolBarClearPoolButton />
+            </div>
+        </div>
     )
 }
