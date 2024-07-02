@@ -16,7 +16,7 @@ export const CardText = ({ size, text, link, title }: CardTextProps) => {
     }
     if (link) {
         return (
-            <a href={link} className={`text-text hover:underline ${textSize}`} title={title}>
+            <a href={link} target="_blank" className={`text-text hover:underline ${textSize}`} title={title}>
                 {text}
             </a>
         )

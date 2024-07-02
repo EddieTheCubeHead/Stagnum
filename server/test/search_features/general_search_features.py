@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import httpx
 import pytest
 from api.common.spotify_models import ImageData
+from api.search.models import GeneralSearchResult
 from conftest import ErrorData
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
@@ -16,6 +17,7 @@ from test_types.callables import (
     RunGeneralSearchWithCustomImages,
     RunSearch,
     RunSearchCall,
+    ValidateModel,
     ValidatePaginatedResultLength,
     ValidateResponse,
 )
@@ -128,6 +130,31 @@ def should_return_none_size_if_only_image(
     result = run_general_search_with_custom_images("query", images=images)
     search_result = validate_response(result)
     assert search_result["albums"]["items"][0]["icon_link"] == expected_image_url
+
+
+def should_return_spotify_resource_link_in_link_field(
+    run_general_search: RunSearch, validate_model: ValidateModel
+) -> None:
+    result = run_general_search("my query")
+    response = validate_model(GeneralSearchResult, result)
+    for subcategory in response.tracks, response.artists, response.playlists, response.albums:
+        for resource in subcategory.items:
+            # We always mock the href with "api" string and the external url with "url.spotify"
+            assert "api" not in resource.link
+            assert "url.spotify" in resource.link
+
+
+def should_return_spotify_resource_link_in_artist_link_field(
+    run_general_search: RunSearch, validate_model: ValidateModel
+) -> None:
+    result = run_general_search("my query")
+    response = validate_model(GeneralSearchResult, result)
+    for subcategory in response.tracks, response.albums:
+        for resource in subcategory.items:
+            for artist in resource.artists:
+                # We always mock the href with "api" string and the external url with "url.spotify"
+                assert "api" not in artist.link
+                assert "url.spotify" in artist.link
 
 
 @pytest.mark.parametrize("date_string", ("2021-01-10", "2021-01", "2021"))

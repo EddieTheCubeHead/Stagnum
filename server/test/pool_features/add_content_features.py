@@ -141,7 +141,7 @@ def should_allow_adding_track_that_is_inside_a_collection(
 ) -> None:
     artist = create_mock_artist_search_result()
     track, *rest = (create_mock_track_search_result(artist) for _ in range(10))
-    album = create_mock_album_search_result(artist, [track, *rest].copy())
+    album = create_mock_album_search_result(artist, [track, *rest])
     # track album is popped in mock album fetch method. Add it back...
     track["album"] = create_mock_album_search_result(artist)
     requests_client_get_queue.append(build_success_response(album))

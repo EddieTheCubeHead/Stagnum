@@ -92,6 +92,17 @@ def should_query_spotify_for_items_with_provided_query_string(
     requests_client.get.assert_called_with(full_query, headers=valid_token_header)
 
 
+def should_return_spotify_resource_link_in_link_field(
+    run_search_resource_call: RunSearch, validate_response: ValidateResponse
+) -> None:
+    result = run_search_resource_call("my query")
+    response = validate_response(result)
+    for item in response["items"]:
+        # We always mock the href with "api" string and the external url with "url.spotify"
+        assert "api" not in item["link"]
+        assert "url.spotify" in item["link"]
+
+
 def should_return_less_results_if_twenty_not_found(
     validate_response: ValidateResponse,
     validate_paginated_result_length: ValidatePaginatedResultLength,

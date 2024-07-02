@@ -28,22 +28,26 @@ _logger = getLogger("main.api.search.dependencies")
 
 def _build_track(track_data: TrackData) -> Track:
     album_artists = [
-        NamedResource(name=artist["name"], link=artist["href"]) for artist in track_data["album"]["artists"]
+        NamedResource(name=artist["name"], link=artist["external_urls"]["spotify"])
+        for artist in track_data["album"]["artists"]
     ]
     return Track(
-        artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in track_data["artists"]],
+        artists=[
+            NamedResource(name=artist["name"], link=artist["external_urls"]["spotify"])
+            for artist in track_data["artists"]
+        ],
         album=Album(
             name=track_data["album"]["name"],
             uri=track_data["album"]["uri"],
             artists=album_artists,
             icon_link=get_sharpest_icon(track_data["album"]["images"]),
             year=int(track_data["album"]["release_date"][:4]),
-            link=track_data["album"]["href"],
+            link=track_data["album"]["external_urls"]["spotify"],
         ),
         duration_ms=track_data["duration_ms"],
         name=track_data["name"],
         uri=track_data["uri"],
-        link=track_data["href"],
+        link=track_data["external_urls"]["spotify"],
     )
 
 
@@ -63,7 +67,7 @@ def _build_artist(artist_data: ArtistData) -> Artist:
         name=artist_data["name"],
         uri=artist_data["uri"],
         icon_link=get_sharpest_icon(artist_data["images"]),
-        link=artist_data["href"],
+        link=artist_data["external_urls"]["spotify"],
     )
 
 
@@ -80,12 +84,15 @@ def _build_paginated_artist_search(result_data: PaginatedSearchResultData[Artist
 
 def _build_album(album_data: AlbumData) -> Album:
     return Album(
-        artists=[NamedResource(name=artist["name"], link=artist["href"]) for artist in album_data["artists"]],
+        artists=[
+            NamedResource(name=artist["name"], link=artist["external_urls"]["spotify"])
+            for artist in album_data["artists"]
+        ],
         year=int(album_data["release_date"][:4]),
         icon_link=get_sharpest_icon(album_data["images"]),
         name=album_data["name"],
         uri=album_data["uri"],
-        link=album_data["href"],
+        link=album_data["external_urls"]["spotify"],
     )
 
 
@@ -105,7 +112,7 @@ def _build_playlist(playlist_data: PlaylistData) -> Playlist:
         name=playlist_data["name"],
         uri=playlist_data["uri"],
         icon_link=get_sharpest_icon(playlist_data["images"]),
-        link=playlist_data["href"],
+        link=playlist_data["external_urls"]["spotify"],
     )
 
 
