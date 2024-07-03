@@ -70,7 +70,8 @@ async def _create_model_and_update_listeners(
     pool = database_connection.get_pool(user)
     code = pool.share_data.code if pool.share_data is not None else None
     current_track = database_connection.get_current_track(user)
-    data_model = create_pool_return_model(whole_pool, pool_users, current_track, code)
+    is_playing = database_connection.get_is_playing(pool)
+    data_model = create_pool_return_model(whole_pool, pool_users, is_playing, current_track, code)
     user_ids = [user.spotify_id for user in pool_users]
     await websocket_updater.push_update(user_ids, "pool", data_model.model_dump())
     return data_model
@@ -80,6 +81,18 @@ async def _create_model_and_update_listeners(
 async def skip_song(user: validated_user, pool_playback_service: PoolPlaybackService) -> UnsavedPoolTrack:
     _logger.debug(f"POST /pool/playback/skip called with token {user.session.user_token}")
     return await pool_playback_service.skip_song(user)
+
+
+@router.post("/playback/pause")
+async def pause_playback(user: validated_user, pool_playback_service: PoolPlaybackService) -> PoolFullContents:
+    _logger.debug(f"POST /pool/playback/pause called with token {user.session.user_token}")
+    return await pool_playback_service.pause_playback(user)
+
+
+@router.post("/playback/resume")
+async def resume_playback(user: validated_user, pool_playback_service: PoolPlaybackService) -> PoolFullContents:
+    _logger.debug(f"POST /pool/playback/resume called with token {user.session.user_token}")
+    return await pool_playback_service.resume_playback(user)
 
 
 @router.post("/share")
@@ -111,7 +124,7 @@ async def delete_pool(
 ) -> PoolFullContents:
     pool_users = pool_database_connection.stop_and_purge_playback(user)
     spotify_client.stop_playback(user)
-    empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
+    empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None, is_active=False)
     await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool", empty_pool.model_dump())
     return empty_pool
 
@@ -124,4 +137,4 @@ async def leave_pool(
     await websocket_updater.push_update(
         [user_data.user.spotify_id for user_data in pool.users], "pool", pool.model_dump()
     )
-    return PoolFullContents(users=[], share_code=None, currently_playing=None)
+    return PoolFullContents(users=[], share_code=None, currently_playing=None, is_active=False)

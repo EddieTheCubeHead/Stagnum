@@ -254,6 +254,20 @@ describe("Tool bar", () => {
         expect(screen.getByText(mockPool.currently_playing.name)).toBeDefined()
     })
 
+    it("Should pause playback on clicking pause on playback display", () => {
+        const user = userEvent.setup()
+        const mockPool = mockedTrackPoolData()
+        usePoolStore.setState({ pool: mockPool })
+        mockAxiosPost({ is_active: false, ...mockPool })
+        render(
+            <TestQueryProvider>
+                <ToolBar />
+            </TestQueryProvider>,
+        )
+        user.click(screen.getByRole("button", { name: "Pause" }))
+        expect(screen.findByRole("button", { name: "Play" })).toBeDefined()
+    })
+
     it("Should display leave pool instead of delete pool if user is part of another user's pool", () => {
         mockAxiosGet({ display_name: "Test", icon_url: null, spotify_id: "1234" })
         const mockPool = mockedCollectionPoolData()

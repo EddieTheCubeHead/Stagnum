@@ -7,4 +7,5 @@ export interface Pool {
     currently_playing: Omit<PoolTrack, "id">
     share_code?: string
     owner: User
+    is_active: boolean
 }

@@ -20,7 +20,7 @@ from api.pool.dependencies import (
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from database.database_connection import ConnectionManager
-from database.entities import EntityBase, User
+from database.entities import EntityBase, PlaybackSession, User
 from faker import Faker
 from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent
 from sqlalchemy import select
@@ -174,6 +174,19 @@ def create_playback(
 @pytest.fixture
 def existing_playback(create_playback: CreatePlayback) -> list[TrackData]:
     return create_playback()
+
+
+@pytest.fixture
+def paused_playback(
+    create_playback: CreatePlayback, db_connection: ConnectionManager, logged_in_user: User
+) -> list[TrackData]:
+    track_data = create_playback()
+    with db_connection.session() as session:
+        playback_session = session.scalar(
+            select(PlaybackSession).where(PlaybackSession.user_id == logged_in_user.spotify_id)
+        )
+        playback_session.is_active = False
+    return track_data
 
 
 @pytest.fixture

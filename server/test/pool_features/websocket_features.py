@@ -152,6 +152,19 @@ def should_wipe_pool_for_listeners_on_pool_delete(
         assert data["model"]["share_code"] is None
 
 
+@pytest.mark.wip
+@pytest.mark.usefixtures("existing_playback")
+def should_send_paused_playback_state_when_pool_paused_by_user(
+    test_client: TestClient, joined_user_token: str, valid_token_header: Headers, validate_response: ValidateResponse
+) -> None:
+    with test_client.websocket_connect(f"/websocket/connect?Authorization={joined_user_token}") as websocket:
+        response = test_client.post("/pool/playback/pause", headers=valid_token_header)
+        result = validate_response(response)
+        data = websocket.receive_json()
+        assert data["type"] == "pool"
+        assert data["model"] == result
+
+
 def should_wipe_leavers_songs_on_pool_leave(
     test_client: TestClient, joined_user_header: Headers, valid_token: str, mock_playlist_fetch: MockPlaylistFetch
 ) -> None:

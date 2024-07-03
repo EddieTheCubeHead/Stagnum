@@ -19,7 +19,11 @@ from api.common.dependencies import DatabaseConnection, DateTimeWrapper, Spotify
 from api.common.helpers import build_auth_header, create_random_string, get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
 from api.common.spotify_models import PlaylistData
-from api.pool.helpers import map_pool_member_entity_to_model, map_unsaved_pool_member_entity_to_model
+from api.pool.helpers import (
+    create_pool_return_model,
+    map_pool_member_entity_to_model,
+    map_unsaved_pool_member_entity_to_model,
+)
 from api.pool.models import (
     PoolContent,
     PoolFullContents,
@@ -35,7 +39,7 @@ from api.pool.spotify_models import PlaybackStateData, QueueData
 _logger = getLogger("main.api.pool.dependencies")
 _PLAYBACK_UPDATE_CUTOFF_MS = 3000
 
-FullPoolData = (list[PoolMember], list[User], PoolTrack | None, str | None)
+FullPoolData = (list[PoolMember], list[User], bool, PoolTrack | None, str | None)
 
 
 def _build_tracks_with_image(tracks: list[dict], icon_uri: str) -> list[UnsavedPoolTrack]:
@@ -444,8 +448,24 @@ class PoolDatabaseConnectionRaw:
             whole_pool = _get_user_pool(user, session)
             pool_users = self.get_pool_users(user)
             pool = _get_pool_for_user(user, session)
+            is_playing = self.get_is_playing(pool)
             current_track = _get_current_track(pool, session)
-        return whole_pool, pool_users, current_track, pool.share_data.code if pool.share_data is not None else None
+        return (
+            whole_pool,
+            pool_users,
+            is_playing,
+            current_track,
+            pool.share_data.code if pool.share_data is not None else None,
+        )
+
+    def get_is_playing(self, pool: Pool) -> bool:
+        with self._database_connection.session() as session:
+            playback_session = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == pool.owner_user_id)
+            )
+            if playback_session is None:
+                return False
+            return playback_session.is_active
 
     def get_pool(self, user: User) -> Pool:
         with self._database_connection.session() as session:
@@ -468,6 +488,16 @@ class PoolDatabaseConnectionRaw:
                 self._create_user_playback(session, user, playing_track)
 
             _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
+
+    def set_playback_is_active(self, user: User, is_active: bool) -> PoolFullContents:  # noqa: FBT001 - data flag
+        with self._database_connection.session() as session:
+            existing_playback = session.scalar(
+                select(PlaybackSession).where(PlaybackSession.user_id == user.spotify_id)
+            )
+            if existing_playback is None:
+                raise NotImplementedError
+            existing_playback.is_active = is_active
+        return self.get_pool_data(user)
 
     def _update_user_playback(
         self,
@@ -754,16 +784,31 @@ class PoolPlaybackServiceRaw:
             duration_ms=next_song.duration_ms,
         )
 
+    async def pause_playback(self, user: User) -> PoolFullContents:
+        self._spotify_client.stop_playback(user)
+        return await self._inactivate_playback_session(user)
+
+    async def _inactivate_playback_session(self, user: User) -> PoolFullContents:
+        pool_data = self._database_connection.set_playback_is_active(user, False)  # noqa: FBT003
+        pool_model = create_pool_return_model(*pool_data)
+        user_ids = [user.user.spotify_id for user in pool_model.users]
+        await self._websocket_updater.push_update(user_ids, "pool", pool_model.model_dump())
+        return pool_model
+
+    async def resume_playback(self, user: User) -> PoolFullContents:
+        pool_data = self._database_connection.set_playback_is_active(user, True)  # noqa: FBT003
+        pool_model = create_pool_return_model(*pool_data)
+        pool_model.currently_playing = self.start_playback(user)
+        user_ids = [user.user.spotify_id for user in pool_model.users]
+        await self._websocket_updater.push_update(user_ids, "pool", pool_model.model_dump())
+        return pool_model
+
     async def _get_spotify_playback_timestamp(self, playback: PlaybackSession, user: User) -> datetime.datetime | None:
         fetch_start = self._datetime_wrapper.now()
         try:
             spotify_state = self._fetch_and_validate_spotify_state(user)
         except HTTPException:
-            pool_users = self._database_connection.stop_and_purge_playback(user)
-            empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None)
-            await self._websocket_updater.push_update(
-                [user.spotify_id for user in pool_users], "pool", empty_pool.model_dump()
-            )
+            await self._inactivate_playback_session(user)
             return None
         fetch_end = self._datetime_wrapper.now()
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]

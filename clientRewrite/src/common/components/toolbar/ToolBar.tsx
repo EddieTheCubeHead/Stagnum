@@ -7,7 +7,7 @@ import { ToolBarButtons } from "./ToolBarButtons.tsx"
 import { ToolBarExpandedSearch } from "./ToolBarExpandedSearch.tsx"
 import { ToolBarExpandedSharePoolField } from "./ToolBarExpandedSharePoolField.tsx"
 import { ToolBarExpandedJoinPoolField } from "./ToolBarExpandedJoinPoolField.tsx"
-import { PlaybackDisplay } from "../PlaybackDisplay.tsx"
+import { PlaybackDisplay } from "../playbackDisplay/PlaybackDisplay.tsx"
 import { usePoolStore } from "../../stores/poolStore.ts"
 
 export const ToolBar = () => {
