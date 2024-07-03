@@ -51,6 +51,7 @@ class UnsavedPoolUserContents(BaseModel):
 
 class PoolFullContents(BaseModel):
     users: list[PoolUserContents]
+    is_active: bool
     currently_playing: UnsavedPoolTrack | None
     share_code: str | None = None
     owner: UserModel | None = None

@@ -22,7 +22,11 @@ def _create_collection_tracks(collection: PoolMember) -> list[PoolTrack]:
 
 
 def create_pool_return_model(
-    pool: list[PoolMember], users: list[User], current_track: PoolTrack | None, share_code: str | None = None
+    pool: list[PoolMember],
+    users: list[User],
+    is_active: bool,  # noqa: FBT001 - this is a data parameter, not a behavioural one
+    current_track: PoolTrack | None,
+    share_code: str | None = None,
 ) -> PoolFullContents:
     _logger.debug(f"Creating pool return model from {len(pool)} members.")
     users_map = {}
@@ -54,7 +58,11 @@ def create_pool_return_model(
                 )
             )
     return PoolFullContents(
-        users=list(users_map.values()), share_code=share_code, currently_playing=current_track, owner=pool_owner
+        users=list(users_map.values()),
+        share_code=share_code,
+        is_active=is_active,
+        currently_playing=current_track,
+        owner=pool_owner,
     )
 
 

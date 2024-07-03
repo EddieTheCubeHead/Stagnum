@@ -8,6 +8,7 @@ from api.common.dependencies import TokenHolder
 from api.common.models import ParsedTokenResponse
 from api.common.spotify_models import TrackData
 from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.models import PoolFullContents
 from api.pool.spotify_models import PlaybackContextData
 from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
@@ -30,6 +31,7 @@ from test_types.callables import (
     RunSchedulingJob,
     SkipSong,
     ValidateErrorResponse,
+    ValidateModel,
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
@@ -39,6 +41,7 @@ from test_types.typed_dictionaries import Headers
 def assert_playback_started(requests_client: Mock) -> AssertPlaybackStarted:
     def wrapper(uris: list[str]) -> None:
         actual_call = requests_client.put.call_args
+        assert actual_call.args[0] == "https://api.spotify.com/v1/me/player/play"
         assert actual_call.kwargs["json"]["position_ms"] == 0
         call_uri = actual_call.kwargs["json"]["uris"][0]
         assert call_uri in uris
@@ -403,6 +406,46 @@ async def should_correctly_skip_next_song_after_user_changes_song(
     await run_scheduling_job()
 
     assert len(requests_client.post.call_args_list) == 1
+
+
+@pytest.mark.usefixtures("existing_playback")
+def should_return_pool_in_paused_state_after_posting_pause_playback(
+    test_client: TestClient, validate_model: ValidateModel, valid_token_header: Headers
+) -> None:
+    response = test_client.post("/pool/playback/pause", headers=valid_token_header)
+    pool = validate_model(PoolFullContents, response)
+    assert not pool.is_active
+
+
+@pytest.mark.usefixtures("existing_playback")
+def should_pause_spotify_player_on_playback_pause(
+    test_client: TestClient, requests_client: Mock, valid_token_header: Headers
+) -> None:
+    test_client.post("/pool/playback/pause", headers=valid_token_header)
+
+    assert requests_client.put.call_args[0][0] == "https://api.spotify.com/v1/me/player/pause"
+
+
+@pytest.mark.usefixtures("paused_playback")
+def should_return_pool_in_playing_state_after_posting_resume_playback(
+    test_client: TestClient, validate_model: ValidateModel, valid_token_header: Headers
+) -> None:
+    response = test_client.post("/pool/playback/resume", headers=valid_token_header)
+    pool = validate_model(PoolFullContents, response)
+    assert pool.is_active
+
+
+@pytest.mark.wip
+def should_start_playback_from_random_song_on_resuming_paused_playback(
+    test_client: TestClient,
+    valid_token_header: Headers,
+    assert_playback_started: AssertPlaybackStarted,
+    paused_playback: list[TrackData],
+) -> None:
+    test_client.post("/pool/playback/resume", headers=valid_token_header)
+
+    track_uris = [track["uri"] for track in paused_playback]
+    assert_playback_started(track_uris)
 
 
 @pytest.mark.asyncio
