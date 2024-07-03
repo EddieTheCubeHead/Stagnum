@@ -12,12 +12,12 @@ from api.pool.models import PoolFullContents
 from api.pool.spotify_models import PlaybackContextData
 from api.pool.tasks import queue_next_songs
 from database.database_connection import ConnectionManager
-from database.entities import PlaybackSession, Pool, User
+from database.entities import PlaybackSession, User
 from helpers.classes import ApproxDatetime, MockDateTimeWrapper, MockedPoolContents
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from starlette.testclient import TestClient
 from test_types.callables import (
-    AssertEmptyTables,
+    AssertPlaybackPaused,
     AssertPlaybackStarted,
     AssertTokenInHeaders,
     BuildQueue,
@@ -45,6 +45,20 @@ def assert_playback_started(requests_client: Mock) -> AssertPlaybackStarted:
         assert actual_call.kwargs["json"]["position_ms"] == 0
         call_uri = actual_call.kwargs["json"]["uris"][0]
         assert call_uri in uris
+
+    return wrapper
+
+
+@pytest.fixture
+def assert_playback_paused(db_connection: ConnectionManager, logged_in_user_id: str) -> AssertPlaybackPaused:
+    def wrapper() -> None:
+        with db_connection.session() as session:
+            expected_playback = session.scalar(
+                select(PlaybackSession).where(
+                    and_(PlaybackSession.user_id == logged_in_user_id, PlaybackSession.is_active == False)  # noqa: E712
+                )
+            )
+            assert expected_playback is not None
 
     return wrapper
 
@@ -435,7 +449,6 @@ def should_return_pool_in_playing_state_after_posting_resume_playback(
     assert pool.is_active
 
 
-@pytest.mark.wip
 def should_start_playback_from_random_song_on_resuming_paused_playback(
     test_client: TestClient,
     valid_token_header: Headers,
@@ -450,19 +463,22 @@ def should_start_playback_from_random_song_on_resuming_paused_playback(
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("existing_playback")
-async def should_end_playback_on_no_active_player_when_queueing_next_song(
+async def should_pause_playback_on_no_active_player_when_queueing_next_song(
     increment_now: IncrementNow,
     fixed_track_length_ms: int,
     mock_no_player_playback_state_response: MockNoPlayerStateResponse,
-    assert_empty_tables: AssertEmptyTables,
+    assert_playback_paused: AssertPlaybackPaused,
     run_scheduling_job: RunSchedulingJob,
+    requests_client: Mock,
 ) -> None:
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_no_player_playback_state_response()
+    requests_client.put.reset_mock()
 
     await run_scheduling_job()
 
-    assert_empty_tables(PlaybackSession, Pool)
+    requests_client.put.assert_not_called()
+    assert_playback_paused()
 
 
 @pytest.mark.usefixtures("existing_playback")
@@ -484,19 +500,41 @@ def should_raise_error_on_no_active_player_when_skipping_song(
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("existing_playback")
-async def should_end_playback_on_playback_paused_when_queueing_next_song(
+async def should_pause_playback_on_playback_paused_when_queueing_next_song(
     increment_now: IncrementNow,
     fixed_track_length_ms: int,
     run_scheduling_job: RunSchedulingJob,
     mock_playback_paused_response: MockPlaybackPausedResponse,
-    assert_empty_tables: AssertEmptyTables,
+    assert_playback_paused: AssertPlaybackPaused,
+    requests_client: Mock,
 ) -> None:
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     mock_playback_paused_response()
+    requests_client.put.reset_mock()
 
     await run_scheduling_job()
 
-    assert_empty_tables(PlaybackSession, Pool)
+    requests_client.put.assert_not_called()
+    assert_playback_paused()
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("existing_playback")
+async def should_not_queue_songs_for_paused_playback(
+    increment_now: IncrementNow,
+    fixed_track_length_ms: int,
+    run_scheduling_job: RunSchedulingJob,
+    requests_client: Mock,
+    valid_token_header: Headers,
+    test_client: TestClient,
+) -> None:
+    requests_client.post.reset_mock()
+    test_client.post("/pool/playback/pause", headers=valid_token_header)
+    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
+
+    await run_scheduling_job()
+
+    requests_client.post.assert_not_called()
 
 
 @pytest.mark.usefixtures("existing_playback")
@@ -518,20 +556,23 @@ def should_raise_error_on_playback_paused_when_skipping_song(
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("existing_playback")
-async def should_end_playback_on_playback_context_changed_when_queueing_next_song(
+async def should_pause_playback_on_playback_context_changed_when_queueing_next_song(
     increment_now: IncrementNow,
     run_scheduling_job: RunSchedulingJob,
-    assert_empty_tables: AssertEmptyTables,
+    assert_playback_paused: AssertPlaybackPaused,
     fixed_track_length_ms: int,
     create_spotify_playback: CreateSpotifyPlayback,
     invalid_playback_context: PlaybackContextData,
+    requests_client: Mock,
 ) -> None:
     increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
     create_spotify_playback(1000, 0, None, invalid_playback_context)
+    requests_client.put.reset_mock()
 
     await run_scheduling_job()
 
-    assert_empty_tables(PlaybackSession, Pool)
+    assert_playback_paused()
+    requests_client.put.assert_not_called()
 
 
 @pytest.mark.usefixtures("existing_playback")

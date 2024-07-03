@@ -785,9 +785,12 @@ class PoolPlaybackServiceRaw:
         )
 
     async def pause_playback(self, user: User) -> PoolFullContents:
+        self._spotify_client.stop_playback(user)
+        return await self._inactivate_playback_session(user)
+
+    async def _inactivate_playback_session(self, user: User) -> PoolFullContents:
         pool_data = self._database_connection.set_playback_is_active(user, False)  # noqa: FBT003
         pool_model = create_pool_return_model(*pool_data)
-        self._spotify_client.stop_playback(user)
         user_ids = [user.user.spotify_id for user in pool_model.users]
         await self._websocket_updater.push_update(user_ids, "pool", pool_model.model_dump())
         return pool_model
@@ -805,11 +808,7 @@ class PoolPlaybackServiceRaw:
         try:
             spotify_state = self._fetch_and_validate_spotify_state(user)
         except HTTPException:
-            pool_users = self._database_connection.stop_and_purge_playback(user)
-            empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None, is_active=False)
-            await self._websocket_updater.push_update(
-                [user.spotify_id for user in pool_users], "pool", empty_pool.model_dump()
-            )
+            await self._inactivate_playback_session(user)
             return None
         fetch_end = self._datetime_wrapper.now()
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]

@@ -1,22 +1,16 @@
-import datetime
 from unittest.mock import Mock
 
 import pytest
 from api.pool.models import PoolFullContents
-from database.entities import PlaybackSession, Pool, PoolMember, User
+from database.entities import PoolMember, User
 from helpers.classes import MockedPoolContents
 from starlette.testclient import TestClient
 from test_types.callables import (
-    AssertEmptyTables,
     AssertTokenInHeaders,
     CreatePool,
     GetQueryParameter,
-    IncrementNow,
-    MockNoPlayerStateResponse,
     MockPlaylistFetch,
     MockPoolContentFetches,
-    MockTrackFetch,
-    RunSchedulingJob,
     SkipSong,
     ValidateErrorResponse,
     ValidateModel,
@@ -245,27 +239,6 @@ def should_return_token_in_headers_for_join_route(
 ) -> None:
     response = test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
     assert_token_in_headers(response)
-
-
-@pytest.mark.asyncio
-async def should_delete_joined_users_pools_on_playback_stop(
-    increment_now: IncrementNow,
-    fixed_track_length_ms: int,
-    run_scheduling_job: RunSchedulingJob,
-    mock_no_player_playback_state_response: MockNoPlayerStateResponse,
-    test_client: TestClient,
-    joined_user_header: Headers,
-    mock_track_fetch: MockTrackFetch,
-    assert_empty_tables: AssertEmptyTables,
-) -> None:
-    pool_content_data = mock_track_fetch()
-    test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
-    increment_now(datetime.timedelta(milliseconds=(fixed_track_length_ms - 1000)))
-    mock_no_player_playback_state_response()
-
-    await run_scheduling_job()
-
-    assert_empty_tables(PlaybackSession, Pool)
 
 
 def should_return_owner_user_data_on_join(
