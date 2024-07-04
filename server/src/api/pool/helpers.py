@@ -2,7 +2,7 @@ from logging import getLogger
 
 from database.entities import PoolMember, User
 
-from api.common.helpers import map_user_entity_to_model
+from api.common.helpers import map_user_entity_to_joined_user_model
 from api.pool.models import PoolCollection, PoolFullContents, PoolTrack, PoolUserContents, UnsavedPoolTrack
 
 _logger = getLogger("main.api.pool.helpers")
@@ -32,13 +32,14 @@ def create_pool_return_model(
     users_map = {}
     pool_owner = None
     for user in users:
-        user_model = map_user_entity_to_model(user)
+        user_model = map_user_entity_to_joined_user_model(user)
         users_map[user.spotify_id] = PoolUserContents(tracks=[], collections=[], user=user_model)
         if user.joined_pool.pool.owner_user_id == user.spotify_id:
             pool_owner = user_model
     for pool_member in pool:
+        member_owner = users_map[pool_member.user_id]
         if pool_member.content_uri.split(":")[1] == "track":
-            users_map[pool_member.user_id].tracks.append(
+            member_owner.tracks.append(
                 PoolTrack(
                     id=pool_member.id,
                     name=pool_member.name,
@@ -48,7 +49,7 @@ def create_pool_return_model(
                 )
             )
         else:
-            users_map[pool_member.user_id].collections.append(
+            member_owner.collections.append(
                 PoolCollection(
                     id=pool_member.id,
                     name=pool_member.name,

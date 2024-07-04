@@ -12,6 +12,10 @@ class UserModel(BaseModel):
     spotify_id: str
 
 
+class PoolJoinedUser(UserModel):
+    promoted_track_id: int | None = None
+
+
 class ParsedTokenResponse(BaseModel):
     token: str
     refresh_token: str
