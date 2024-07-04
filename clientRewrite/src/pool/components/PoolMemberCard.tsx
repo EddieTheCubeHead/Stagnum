@@ -6,6 +6,8 @@ import { CardText } from "../../common/components/cards/CardText.tsx"
 import { Size } from "../../common/constants/size.ts"
 import { IconButton } from "../../common/icons/IconButton.tsx"
 import { useDeletePoolContent } from "../hooks/useDeletePoolContent.ts"
+import { StarIconSvg } from "../../common/icons/svgs/StarIconSvg.tsx"
+import { usePostPromoteTrack } from "../../common/hooks/usePostPromoteTrack.ts"
 
 interface PoolMemberParentExtraProps {
     setOpen: (open: boolean) => void
@@ -20,6 +22,7 @@ interface PoolMemberCardProps {
 
 export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemberCardProps) => {
     const deleteFromPool = useDeletePoolContent(poolMember)
+    const promotePoolMember = usePostPromoteTrack(poolMember.id)
     return (
         <CardBase isTopLevel={isTopLevel}>
             {parentProps && <CollapseIconButton open={parentProps.open} setOpen={parentProps.setOpen} />}
@@ -30,6 +33,9 @@ export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemb
             />
             <CardText title={poolMember.name} text={poolMember.name} size={Size.s} />
             <div className="grow"></div>
+            {poolMember.spotify_resource_uri.startsWith("spotify:track:") && (
+                <IconButton svg={<StarIconSvg />} onClick={promotePoolMember} />
+            )}
             <IconButton svg={<DeleteIconSvg />} onClick={deleteFromPool} />
         </CardBase>
     )
