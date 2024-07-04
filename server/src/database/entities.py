@@ -102,9 +102,13 @@ class PoolJoinedUser(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     playback_time_ms: Mapped[int] = mapped_column(Integer(), default=0)
+    promoted_track_id: Mapped[int] = mapped_column(
+        ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
+    )
 
     pool: Mapped[Pool] = relationship(lazy="joined", back_populates="joined_users")
     user: Mapped[User] = relationship(lazy="joined", back_populates="joined_pool")
+    promoted_track: Mapped[PoolMember] = relationship(lazy="joined")
 
 
 class PlaybackSession(EntityBase):

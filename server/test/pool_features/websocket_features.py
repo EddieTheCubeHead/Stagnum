@@ -152,7 +152,6 @@ def should_wipe_pool_for_listeners_on_pool_delete(
         assert data["model"]["share_code"] is None
 
 
-@pytest.mark.wip
 @pytest.mark.usefixtures("existing_playback")
 def should_send_paused_playback_state_when_pool_paused_by_user(
     test_client: TestClient, joined_user_token: str, valid_token_header: Headers, validate_response: ValidateResponse

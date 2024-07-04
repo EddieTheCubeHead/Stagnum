@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from api.common.models import UserModel
+from api.common.models import PoolJoinedUser, UserModel
 
 
 class PoolContent(BaseModel):
@@ -40,7 +40,7 @@ class UnsavedPoolCollection(PoolMember):
 class PoolUserContents(BaseModel):
     tracks: list[PoolTrack]
     collections: list[PoolCollection]
-    user: UserModel
+    user: PoolJoinedUser
 
 
 class UnsavedPoolUserContents(BaseModel):

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Annotated
 
 from database.entities import PoolMember, User
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 
 
 @dataclass
@@ -60,6 +60,20 @@ class PoolRandomizer:
 
     def get_next_song(self) -> PoolMember:
         user_id = self._get_next_playing_user_id()
+
+        if self._users[user_id].joined_pool.promoted_track_id:
+            next_track = next(
+                filter(
+                    lambda pool_track: pool_track.id == self._users[user_id].joined_pool.promoted_track_id,
+                    self._user_pools[user_id],
+                ),
+                None,
+            )
+
+            if next_track is None:
+                raise HTTPException(500, "User had promoted a track that does not exist in pool!")
+
+            return next_track
 
         user_pool_members: [PoolMemberRandomizationData] = []
         total_member_weight: float = 0

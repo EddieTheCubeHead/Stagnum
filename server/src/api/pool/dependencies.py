@@ -371,6 +371,22 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
     session.merge(playing_track)
 
 
+def _remove_played_promoted_songs(session: Session, user: User, track: PoolMember) -> None:
+    pool = _get_pool_for_user(user, session)
+    promoted_users = (
+        session.scalars(
+            select(PoolJoinedUser).where(
+                and_(PoolJoinedUser.pool_id == pool.id, PoolJoinedUser.promoted_track_id == track.id)
+            )
+        )
+        .unique()
+        .all()
+    )
+
+    for promoted_user in promoted_users:
+        promoted_user.promoted_track = None
+
+
 def _get_current_track(pool: Pool, session: Session) -> UnsavedPoolTrack | None:
     playback_session = session.scalar(select(PlaybackSession).where(PlaybackSession.user_id == pool.owner_user_id))
     if playback_session is None:
@@ -402,6 +418,16 @@ def _validate_pool_member_additions(session: Session, contents: UnsavedPoolUserC
         _validate_pool_member_addition(session, track, user)
     for collection in contents.collections:
         _validate_pool_member_addition(session, collection, user)
+
+
+def _promote_user_track(session: Session, track_id: str, user: User, pool: Pool) -> None:
+    track = session.scalar(select(PoolMember).where(and_(PoolMember.pool_id == pool.id, PoolMember.id == track_id)))
+    if track is None:
+        raise HTTPException(400, "Could not find track to promote!")
+    if not track.content_uri.startswith("spotify:track:"):
+        raise HTTPException(400, "Cannot promote collections!")
+    joined_user = session.scalar(select(PoolJoinedUser).where(PoolJoinedUser.user_id == user.spotify_id))
+    joined_user.promoted_track = track
 
 
 class PoolDatabaseConnectionRaw:
@@ -488,6 +514,7 @@ class PoolDatabaseConnectionRaw:
                 self._create_user_playback(session, user, playing_track)
 
             _update_skips_since_last_play(session, _get_pool_for_user(user, session), playing_track)
+            _remove_played_promoted_songs(session, user, playing_track)
 
     def set_playback_is_active(self, user: User, is_active: bool) -> PoolFullContents:  # noqa: FBT001 - data flag
         with self._database_connection.session() as session:
@@ -563,12 +590,14 @@ class PoolDatabaseConnectionRaw:
             )
             return (
                 session.scalars(
-                    select(User).where(
+                    select(User)
+                    .where(
                         or_(
                             User.spotify_id == pool.owner_user_id,
                             User.joined_pool.has(PoolJoinedUser.pool_id == pool.id),
                         )
                     )
+                    .options(joinedload(User.joined_pool))
                 )
                 .unique()
                 .all()
@@ -650,6 +679,12 @@ class PoolDatabaseConnectionRaw:
             _purge_existing_transient_pool(map_user_entity_to_model(user), session)
             session.commit()
             return self.get_pool_data(pool_main_user)
+
+    def promote_track(self, track_id: str, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            pool = _get_pool_for_user(user, session)
+            _promote_user_track(session, track_id, user, pool)
+            return _get_user_pool(user, session)
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

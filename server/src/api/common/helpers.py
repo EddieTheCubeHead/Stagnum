@@ -7,7 +7,7 @@ from typing import Never
 from database.entities import User
 from fastapi import HTTPException
 
-from api.common.models import UserModel
+from api.common.models import PoolJoinedUser, UserModel
 
 _logger = getLogger("main.api.common.helpers")
 
@@ -31,6 +31,15 @@ def map_user_entity_to_model(user_entity: User) -> UserModel:
         display_name=user_entity.spotify_username,
         icon_url=user_entity.spotify_avatar_url,
         spotify_id=user_entity.spotify_id,
+    )
+
+
+def map_user_entity_to_joined_user_model(user_entity: User) -> PoolJoinedUser:
+    return PoolJoinedUser(
+        display_name=user_entity.spotify_username,
+        icon_url=user_entity.spotify_avatar_url,
+        spotify_id=user_entity.spotify_id,
+        promoted_track_id=user_entity.joined_pool.promoted_track_id,
     )
 
 
