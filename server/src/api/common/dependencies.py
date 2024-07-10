@@ -82,6 +82,7 @@ RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
     response_string = response.content.decode("utf8")
+    _logger.info(f"Decoded response: {response_string}")
     parsed_data = json.loads(response_string) if response_string else None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
         error_message = (
