@@ -313,6 +313,17 @@ def _delete_pool_member(possible_parent: PoolMember, user: User, session: Sessio
     )
 
     session.execute(
+        update(PoolJoinedUser)
+        .where(
+            or_(
+                PoolJoinedUser.promoted_track_id == possible_parent.id,
+                PoolJoinedUser.promoted_track.has(PoolMember.parent_id == possible_parent.id),
+            )
+        )
+        .values(promoted_track_id=None)
+    )
+
+    session.execute(
         delete(PoolMemberRandomizationParameters).where(
             PoolMemberRandomizationParameters.pool_member.has(
                 and_(PoolMember.parent_id == possible_parent.id, PoolMember.user_id == user.spotify_id)
