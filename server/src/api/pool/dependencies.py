@@ -313,10 +313,11 @@ def _delete_pool_member(possible_parent: PoolMember, user: User, session: Sessio
     )
 
     session.execute(
-        update(PoolJoinedUser).where(
+        update(PoolJoinedUser)
+        .where(
             or_(
                 PoolJoinedUser.promoted_track_id == possible_parent.id,
-                PoolJoinedUser.promoted_track.has(PoolMember.parent_id == possible_parent.id)
+                PoolJoinedUser.promoted_track.has(PoolMember.parent_id == possible_parent.id),
             )
         )
         .values(promoted_track_id=None)
