@@ -2,6 +2,7 @@ import base64
 import datetime
 import functools
 import json
+from json import JSONDecodeError
 from logging import getLogger
 from typing import Annotated, Any, Optional
 
@@ -82,8 +83,12 @@ RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
     response_string = response.content.decode("utf8")
-    _logger.info(f"Decoded response: {response_string}")
-    parsed_data = json.loads(response_string) if response_string else None
+    try:
+        parsed_data = json.loads(response_string) if response_string else None
+    # For some reason POST /me/player/queue sometimes returns 200 with raw text content - what?
+    # Anyway this try except handles that singular edge case - all other spotify responses are proper json
+    except JSONDecodeError:
+        parsed_data = None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
         error_message = (
             f"Error code {response.status_code} received while calling Spotify API. " f"Message: {parsed_data["error"]}"
