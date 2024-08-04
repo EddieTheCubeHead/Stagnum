@@ -190,3 +190,14 @@ def should_reset_promotion_data_if_promoted_track_parent_is_deleted(
     skip_response = skip_song(valid_token_header)
 
     validate_model(UnsavedPoolTrack, skip_response)
+
+
+@pytest.mark.wip
+def should_reset_promotion_data_when_depromote_track_is_called(
+    test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel, promoted_track: PoolTrack
+) -> None:
+    test_client.post(f"/pool/promote/{promoted_track.id}", headers=valid_token_header)
+
+    depromoted_pool_response = test_client.post("/pool/depromote", headers=valid_token_header)
+    depromoted_pool_model = validate_model(PoolFullContents, depromoted_pool_response)
+    assert depromoted_pool_model.users[0].user.promoted_track_id is None

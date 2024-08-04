@@ -441,6 +441,12 @@ def _promote_user_track(session: Session, track_id: str, user: User, pool: Pool)
     joined_user.promoted_track = track
 
 
+def _depromote_user_track(session: Session, user: User) -> None:
+    pool_owner = session.scalar(select(PoolJoinedUser).where(PoolJoinedUser.user_id == user.spotify_id))
+    pool_owner.promoted_track = None
+    session.commit()
+
+
 class PoolDatabaseConnectionRaw:
     def __init__(self, database_connection: DatabaseConnection, datetime_wrapper: DateTimeWrapper) -> None:
         self._database_connection = database_connection
@@ -695,6 +701,11 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             pool = _get_pool_for_user(user, session)
             _promote_user_track(session, track_id, user, pool)
+            return _get_user_pool(user, session)
+
+    def depromote_track(self, user: User) -> list[PoolMember]:
+        with self._database_connection.session() as session:
+            _depromote_user_track(session, user)
             return _get_user_pool(user, session)
 
 

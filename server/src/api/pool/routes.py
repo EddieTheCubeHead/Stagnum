@@ -107,6 +107,15 @@ async def promote_track(
     return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
 
 
+@router.post("/depromote")
+async def depromote_user(
+    user: validated_user, database_connection: PoolDatabaseConnection, websocket_updater: WebsocketUpdater
+) -> PoolFullContents:
+    _logger.debug(f"POST /pool/depromote called with token {user.session.user_token}")
+    whole_pool = database_connection.depromote_track(user)
+    return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
+
+
 @router.post("/share")
 async def share_pool(user: validated_user, pool_database_connection: PoolDatabaseConnection) -> PoolFullContents:
     _logger.debug(f"POST /pool/share called with token {user.session.user_token}")
