@@ -10,21 +10,6 @@ from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture
-def promoted_track(
-    create_pool: CreatePool,
-    validate_model: ValidateModel,
-    current_playback_data: CurrentPlaybackData,
-    mocked_pool_contents: MockedPoolContents,
-) -> PoolTrack:
-    playing_pool = validate_model(PoolFullContents, create_pool(99))
-    for track in mocked_pool_contents.tracks:
-        if track["uri"] == playing_pool.currently_playing.spotify_resource_uri:
-            current_playback_data.current_track = track
-            break
-    return playing_pool.users[0].tracks[42]
-
-
-@pytest.fixture
 def promotable_collection_child(
     create_pool: CreatePool,
     validate_model: ValidateModel,
@@ -193,11 +178,11 @@ def should_reset_promotion_data_if_promoted_track_parent_is_deleted(
 
 
 @pytest.mark.wip
-def should_reset_promotion_data_when_depromote_track_is_called(
+def should_reset_promotion_data_when_demote_track_is_called(
     test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel, promoted_track: PoolTrack
 ) -> None:
     test_client.post(f"/pool/promote/{promoted_track.id}", headers=valid_token_header)
 
-    depromoted_pool_response = test_client.post("/pool/depromote", headers=valid_token_header)
-    depromoted_pool_model = validate_model(PoolFullContents, depromoted_pool_response)
-    assert depromoted_pool_model.users[0].user.promoted_track_id is None
+    demoted_pool_response = test_client.post("/pool/demote", headers=valid_token_header)
+    demoted_pool_model = validate_model(PoolFullContents, demoted_pool_response)
+    assert demoted_pool_model.users[0].user.promoted_track_id is None

@@ -107,8 +107,8 @@ async def promote_track(
     return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
 
 
-@router.post("/depromote")
-async def depromote_user(
+@router.post("/demote")
+async def demote_user(
     user: validated_user, database_connection: PoolDatabaseConnection, websocket_updater: WebsocketUpdater
 ) -> PoolFullContents:
     _logger.debug(f"POST /pool/depromote called with token {user.session.user_token}")

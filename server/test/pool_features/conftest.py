@@ -17,12 +17,13 @@ from api.pool.dependencies import (
     PoolSpotifyClientRaw,
     WebsocketUpdaterRaw,
 )
+from api.pool.models import PoolFullContents, PoolTrack
 from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from database.database_connection import ConnectionManager
 from database.entities import EntityBase, PlaybackSession, User
 from faker import Faker
-from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent
+from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent, MockedPoolContents
 from sqlalchemy import select
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
@@ -31,6 +32,7 @@ from test_types.callables import (
     BuildQueue,
     BuildSuccessResponse,
     CreatePlayback,
+    CreatePool,
     CreatePoolCreationDataJson,
     CreateSpotifyPlayback,
     CreateSpotifyPlaybackState,
@@ -41,6 +43,7 @@ from test_types.callables import (
     RunSchedulingJob,
     SharePoolAndGetCode,
     SkipSong,
+    ValidateModel,
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
@@ -499,3 +502,42 @@ def assert_empty_tables(db_connection: ConnectionManager) -> AssertEmptyTables:
                 assert session.scalar(select(table)) is None
 
     return wrapper
+
+
+@pytest.fixture
+def promoted_track(
+    create_pool: CreatePool,
+    validate_model: ValidateModel,
+    current_playback_data: CurrentPlaybackData,
+    mocked_pool_contents: MockedPoolContents,
+) -> PoolTrack:
+    playing_pool = validate_model(PoolFullContents, create_pool(99))
+    for track in mocked_pool_contents.tracks:
+        if track["uri"] == playing_pool.currently_playing.spotify_resource_uri:
+            current_playback_data.current_track = track
+            break
+    return playing_pool.users[0].tracks[42]
+
+
+@pytest.fixture
+def shared_pool_code_for_promotion_tests(
+    promoted_track: TrackData,  # noqa: ARG001
+    share_pool_and_get_code: SharePoolAndGetCode,
+) -> str:
+    return share_pool_and_get_code()
+
+
+@pytest.fixture
+def joined_user_header_for_promotion_tests(
+    another_logged_in_user_header: Headers, test_client: TestClient, shared_pool_code_for_promotion_tests: str
+) -> Headers:
+    test_client.post(f"/pool/join/{shared_pool_code_for_promotion_tests}", headers=another_logged_in_user_header)
+    return another_logged_in_user_header
+
+
+@pytest.fixture
+def joined_user_token_for_promotion_tests(
+    another_logged_in_user_token: str,
+    joined_user_header_for_promotion_tests: Headers,  # noqa: ARG001
+) -> str:
+    return another_logged_in_user_token
