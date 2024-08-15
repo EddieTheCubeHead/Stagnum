@@ -35,5 +35,5 @@ yarn lf
 Run development server
 
 ```bash
-yarn run
+yarn dev
 ```

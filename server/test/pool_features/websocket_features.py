@@ -5,6 +5,7 @@ import pytest
 from api.common.spotify_models import TrackData
 from api.pool import queue_next_songs
 from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.models import PoolFullContents, PoolTrack
 from starlette.testclient import TestClient
 from test_types.callables import (
     BuildQueue,
@@ -174,3 +175,34 @@ def should_wipe_leavers_songs_on_pool_leave(
         data = websocket.receive_json()
         assert data["type"] == "pool"
         assert len(data["model"]["users"]) == 1
+
+
+def should_send_updated_pool_data_on_song_promote(
+    promoted_track: PoolTrack,
+    joined_user_token_for_promotion_tests: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+) -> None:
+    with test_client.websocket_connect(
+        f"/websocket/connect?Authorization={joined_user_token_for_promotion_tests}"
+    ) as websocket:
+        test_client.post(f"/pool/promote/{promoted_track.id}", headers=valid_token_header)
+        data = websocket.receive_json()
+        model = PoolFullContents.model_validate(data["model"])
+        assert model.users[0].user.promoted_track_id == promoted_track.id
+
+
+def should_send_updated_pool_data_on_song_demote(
+    promoted_track: PoolTrack,
+    joined_user_token_for_promotion_tests: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+) -> None:
+    test_client.post(f"/pool/promote/{promoted_track.id}", headers=valid_token_header)
+    with test_client.websocket_connect(
+        f"/websocket/connect?Authorization={joined_user_token_for_promotion_tests}"
+    ) as websocket:
+        test_client.post("/pool/demote", headers=valid_token_header)
+        data = websocket.receive_json()
+        model = PoolFullContents.model_validate(data["model"])
+        assert model.users[0].user.promoted_track_id is None
