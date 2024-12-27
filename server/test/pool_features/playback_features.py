@@ -3,16 +3,6 @@ from typing import Any
 from unittest.mock import Mock
 
 import pytest
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import TokenHolder
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import TrackData
-from api.pool.dependencies import PoolPlaybackServiceRaw
-from api.pool.models import PoolFullContents
-from api.pool.spotify_models import PlaybackContextData
-from api.pool.tasks import queue_next_songs
-from database.database_connection import ConnectionManager
-from database.entities import PlaybackSession, User
 from helpers.classes import ApproxDatetime, MockDateTimeWrapper, MockedPoolContents
 from sqlalchemy import and_, select
 from starlette.testclient import TestClient
@@ -35,6 +25,17 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
+
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import TokenHolder
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import TrackData
+from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.models import PoolFullContents
+from api.pool.spotify_models import PlaybackContextData
+from api.pool.tasks import queue_next_songs
+from database.database_connection import ConnectionManager
+from database.entities import PlaybackSession, User
 
 
 @pytest.fixture

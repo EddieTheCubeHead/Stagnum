@@ -1,7 +1,6 @@
 from logging import getLogger
 from typing import Annotated
 
-from database.entities import User
 from fastapi import Depends, HTTPException
 
 from api.common.dependencies import SpotifyClient
@@ -22,6 +21,7 @@ from api.search.models import (
     TrackSearchResult,
 )
 from api.search.spotify_models import GeneralSearchResultData
+from database.entities import User
 
 _logger = getLogger("main.api.search.dependencies")
 

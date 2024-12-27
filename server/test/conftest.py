@@ -11,22 +11,6 @@ import pytest
 from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from api.application import create_app
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import (
-    AuthSpotifyClient,
-    DateTimeWrapperRaw,
-    RequestsClient,
-    RequestsClientRaw,
-    SpotifyClient,
-    TokenHolder,
-    UserDatabaseConnection,
-)
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import AlbumData, ArtistData, PlaylistData, TrackData
-from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
-from database.database_connection import ConnectionManager
-from database.entities import PoolMember, User
 from faker import Faker
 from fastapi import FastAPI
 from helpers.classes import ErrorData, ErrorResponse, MockDateTimeWrapper, MockedArtistPoolContent, MockedPoolContents
@@ -62,6 +46,23 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
+
+from api.application import create_app
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import (
+    AuthSpotifyClient,
+    DateTimeWrapperRaw,
+    RequestsClient,
+    RequestsClientRaw,
+    SpotifyClient,
+    TokenHolder,
+    UserDatabaseConnection,
+)
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import AlbumData, ArtistData, PlaylistData, TrackData
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember, User
 
 
 @pytest.fixture

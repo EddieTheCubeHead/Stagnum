@@ -1,9 +1,10 @@
 import pytest
-from api.pool.models import PoolFullContents
-from database.entities import PoolMember, User
 from starlette.testclient import TestClient
 from test_types.callables import AssertTokenInHeaders, CreatePool, ValidateErrorResponse, ValidateModel
 from test_types.typed_dictionaries import Headers
+
+from api.pool.models import PoolFullContents
+from database.entities import PoolMember, User
 
 
 def should_get_all_existing_tracks(

@@ -1,12 +1,12 @@
 from logging import getLogger
 
-from database.entities import PoolMember, User
 from fastapi import APIRouter
 
 from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolDatabaseConnection, PoolPlaybackService, PoolSpotifyClient, WebsocketUpdater
 from api.pool.helpers import create_pool_return_model
 from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, UnsavedPoolTrack
+from database.entities import PoolMember, User
 
 _logger = getLogger("main.api.pool.routes")
 

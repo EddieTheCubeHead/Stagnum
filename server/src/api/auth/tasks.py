@@ -1,10 +1,9 @@
 import datetime
 from logging import getLogger
 
-from database.database_connection import ConnectionManager
-
 from api.auth.dependencies import AuthDatabaseConnection
 from api.common.dependencies import DateTimeWrapper
+from database.database_connection import ConnectionManager
 
 _logger = getLogger("main.api.auth.tasks")
 

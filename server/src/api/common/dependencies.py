@@ -7,8 +7,6 @@ from logging import getLogger
 from typing import Annotated, Any, Optional
 
 import requests
-from database.database_connection import ConnectionManager
-from database.entities import User, UserSession
 from fastapi import Depends, Header, HTTPException
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
@@ -18,6 +16,8 @@ from starlette import status
 from api.common.helpers import _get_client_id, _get_client_secret
 from api.common.models import SpotifyTokenResponse
 from api.common.spotify_models import RefreshTokenData, RequestTokenData
+from database.database_connection import ConnectionManager
+from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
 

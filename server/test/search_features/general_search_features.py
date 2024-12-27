@@ -3,8 +3,6 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
-from api.common.spotify_models import ImageData
-from api.search.models import GeneralSearchResult
 from conftest import ErrorData
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
@@ -22,6 +20,9 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
+
+from api.common.spotify_models import ImageData
+from api.search.models import GeneralSearchResult
 
 
 @pytest.fixture

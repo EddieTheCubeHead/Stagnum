@@ -3,9 +3,6 @@ from unittest.mock import Mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from api.common.dependencies import TokenHolder, validated_user_raw
-from database.database_connection import ConnectionManager
-from database.entities import LoginState, User
 from fastapi import HTTPException
 from helpers.classes import ErrorData, SubscriptionType
 from sqlalchemy import select
@@ -21,6 +18,10 @@ from test_types.callables import (
     ValidateErrorResponse,
     ValidateResponse,
 )
+
+from api.common.dependencies import TokenHolder, validated_user_raw
+from database.database_connection import ConnectionManager
+from database.entities import LoginState, User
 
 
 @pytest.fixture

@@ -2,15 +2,6 @@ import datetime
 from logging import getLogger
 from typing import Annotated, Any, ClassVar, Literal, Optional
 
-from database.entities import (
-    PlaybackSession,
-    Pool,
-    PoolJoinedUser,
-    PoolMember,
-    PoolMemberRandomizationParameters,
-    PoolShareData,
-    User,
-)
 from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import and_, delete, exists, or_, select, update
 from sqlalchemy.orm import Session, joinedload
@@ -35,6 +26,15 @@ from api.pool.models import (
 from api.pool.models import PoolMember as PoolMemberModel
 from api.pool.randomization_algorithms import NextSongProvider
 from api.pool.spotify_models import PlaybackStateData, QueueData
+from database.entities import (
+    PlaybackSession,
+    Pool,
+    PoolJoinedUser,
+    PoolMember,
+    PoolMemberRandomizationParameters,
+    PoolShareData,
+    User,
+)
 
 _logger = getLogger("main.api.pool.dependencies")
 _PLAYBACK_UPDATE_CUTOFF_MS = 3000

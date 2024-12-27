@@ -2,7 +2,6 @@ import datetime
 from logging import getLogger
 from typing import Annotated, Optional
 
-from database.entities import LoginState, User, UserSession
 from fastapi import Depends, HTTPException
 from sqlalchemy import delete, select
 
@@ -10,6 +9,7 @@ from api.auth.models import LoginRedirect, LoginSuccess
 from api.common.dependencies import AuthSpotifyClient, DatabaseConnection, DateTimeWrapper, TokenHolder
 from api.common.helpers import _get_client_id, _get_client_secret, create_random_string
 from api.common.models import ParsedTokenResponse
+from database.entities import LoginState, User, UserSession
 
 _logger = getLogger("main.api.auth.dependencies")
 

@@ -6,22 +6,6 @@ from unittest.mock import Mock
 import httpx
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import PaginatedSearchResultData, PlaylistTrackData, TrackData
-from api.pool import queue_next_songs
-from api.pool.dependencies import (
-    PoolDatabaseConnectionRaw,
-    PoolPlaybackServiceRaw,
-    PoolSpotifyClientRaw,
-    WebsocketUpdaterRaw,
-)
-from api.pool.models import PoolFullContents, PoolTrack
-from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
-from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
-from database.database_connection import ConnectionManager
-from database.entities import EntityBase, PlaybackSession, User
 from faker import Faker
 from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent, MockedPoolContents
 from sqlalchemy import select
@@ -47,6 +31,23 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
+
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import PaginatedSearchResultData, PlaylistTrackData, TrackData
+from api.pool import queue_next_songs
+from api.pool.dependencies import (
+    PoolDatabaseConnectionRaw,
+    PoolPlaybackServiceRaw,
+    PoolSpotifyClientRaw,
+    WebsocketUpdaterRaw,
+)
+from api.pool.models import PoolFullContents, PoolTrack
+from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
+from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
+from database.database_connection import ConnectionManager
+from database.entities import EntityBase, PlaybackSession, User
 
 
 @pytest.fixture

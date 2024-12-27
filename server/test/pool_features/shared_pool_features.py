@@ -1,8 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-from api.pool.models import PoolFullContents
-from database.entities import PoolMember, User
 from helpers.classes import MockedPoolContents
 from starlette.testclient import TestClient
 from test_types.callables import (
@@ -17,6 +15,9 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
+
+from api.pool.models import PoolFullContents
+from database.entities import PoolMember, User
 
 
 @pytest.mark.usefixtures("existing_playback")

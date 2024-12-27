@@ -4,10 +4,10 @@ import string
 from logging import getLogger
 from typing import Never
 
-from database.entities import User
 from fastapi import HTTPException
 
 from api.common.models import PoolJoinedUser, UserModel
+from database.entities import User
 
 _logger = getLogger("main.api.common.helpers")
 
