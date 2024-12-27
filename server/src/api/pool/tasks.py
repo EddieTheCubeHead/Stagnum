@@ -1,7 +1,5 @@
 from logging import getLogger
 
-from database.database_connection import ConnectionManager
-
 from api.common.dependencies import (
     AuthSpotifyClient,
     DateTimeWrapper,
@@ -12,6 +10,7 @@ from api.common.dependencies import (
 )
 from api.pool.dependencies import PoolDatabaseConnection, PoolPlaybackService, PoolSpotifyClient, WebsocketUpdater
 from api.pool.randomization_algorithms import NextSongProvider
+from database.database_connection import ConnectionManager
 
 _logger = getLogger("main.api.pool.tasks")
 

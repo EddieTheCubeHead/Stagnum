@@ -2,8 +2,6 @@ import datetime
 from unittest.mock import Mock
 
 import pytest
-from database.database_connection import ConnectionManager
-from database.entities import UserSession
 from faker import Faker
 from sqlalchemy import select
 from starlette.testclient import TestClient
@@ -17,6 +15,8 @@ from test_types.callables import (
 )
 from test_types.typed_dictionaries import Headers
 
+from database.database_connection import ConnectionManager
+from database.entities import UserSession
 from pool_features.conftest import CreateSpotifyPlayback, RunSchedulingJob
 
 

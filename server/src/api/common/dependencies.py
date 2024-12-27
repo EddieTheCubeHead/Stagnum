@@ -7,8 +7,6 @@ from logging import getLogger
 from typing import Annotated, Any, Optional
 
 import requests
-from database.database_connection import ConnectionManager
-from database.entities import User, UserSession
 from fastapi import Depends, Header, HTTPException
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
@@ -18,6 +16,8 @@ from starlette import status
 from api.common.helpers import _get_client_id, _get_client_secret
 from api.common.models import SpotifyTokenResponse
 from api.common.spotify_models import RefreshTokenData, RequestTokenData
+from database.database_connection import ConnectionManager
+from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
 
@@ -53,7 +53,7 @@ class RequestsClientRaw:  # pragma: no cover - we're always mocking this class
         result = requests.get(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{'...' if len(result.content) > self._LINE_CUTOFF else ''}"
         )
         return result
 
@@ -63,7 +63,7 @@ class RequestsClientRaw:  # pragma: no cover - we're always mocking this class
         result = requests.post(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{'...' if len(result.content) > self._LINE_CUTOFF else ''}"
         )
         return result
 
@@ -73,7 +73,7 @@ class RequestsClientRaw:  # pragma: no cover - we're always mocking this class
         result = requests.put(*args, **kwargs)
         _logger.info(
             f"Call result: {result.status_code} ; "
-            f"{result.content[: self._LINE_CUTOFF]}{"..." if len(result.content) > self._LINE_CUTOFF else ""}"
+            f"{result.content[: self._LINE_CUTOFF]}{'...' if len(result.content) > self._LINE_CUTOFF else ''}"
         )
         return result
 
@@ -91,7 +91,7 @@ def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
         parsed_data = None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
         error_message = (
-            f"Error code {response.status_code} received while calling Spotify API. " f"Message: {parsed_data["error"]}"
+            f"Error code {response.status_code} received while calling Spotify API. Message: {parsed_data['error']}"
         )
         raise HTTPException(status_code=502, detail=error_message)
     return parsed_data

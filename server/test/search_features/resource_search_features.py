@@ -25,11 +25,11 @@ def search_item_type(request: FixtureRequest) -> str:
 def run_search_resource_call(
     request: FixtureRequest, search_item_type: str, run_search_call: RunSearchCall
 ) -> RunSearch:
-    def wrapper(query: str, limit: int = 20) -> httpx.Response:
+    def wrapper(query: str, result_count: int = 20, nulls_appended: int = 0) -> httpx.Response:
         item_query_part: str = f"{search_item_type}s"
         mocker_name = f"create_{search_item_type}_paginated_search"
         mocker_callable: CreateSearchResponse = request.getfixturevalue(mocker_name)
-        return run_search_call(item_query_part, mocker_callable, query, limit)
+        return run_search_call(item_query_part, mocker_callable, query, result_count, nulls_appended)
 
     return wrapper
 
@@ -111,6 +111,19 @@ def should_return_less_results_if_twenty_not_found(
     expected_result_count = 7
     query = "my query"
     result = run_search_resource_call(query, expected_result_count)
+    search_result = validate_response(result)
+    validate_paginated_result_length(search_result, expected_result_count)
+
+
+def should_ignore_trailing_nones_in_item_list(
+    validate_response: ValidateResponse,
+    validate_paginated_result_length: ValidatePaginatedResultLength,
+    run_search_resource_call: RunSearch,
+) -> None:
+    expected_result_count = 10
+    expected_null_count = 10
+    query = "null search"
+    result = run_search_resource_call(query, expected_result_count, expected_null_count)
     search_result = validate_response(result)
     validate_paginated_result_length(search_result, expected_result_count)
 

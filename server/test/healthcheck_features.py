@@ -1,6 +1,7 @@
-from api.health.models import HEALTHY, HealthcheckResult
 from conftest import ValidateModel
 from starlette.testclient import TestClient
+
+from api.health.models import HEALTHY, HealthcheckResult
 
 
 def should_return_time_taken_and_healthy_status_on_normal_operation(

@@ -1,9 +1,8 @@
 from logging import getLogger
 
-from database.entities import PoolMember, User
-
 from api.common.helpers import map_user_entity_to_joined_user_model
 from api.pool.models import PoolCollection, PoolFullContents, PoolTrack, PoolUserContents, UnsavedPoolTrack
+from database.entities import PoolMember, User
 
 _logger = getLogger("main.api.pool.helpers")
 

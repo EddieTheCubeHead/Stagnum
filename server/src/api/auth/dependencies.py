@@ -2,7 +2,6 @@ import datetime
 from logging import getLogger
 from typing import Annotated, Optional
 
-from database.entities import LoginState, User, UserSession
 from fastapi import Depends, HTTPException
 from sqlalchemy import delete, select
 
@@ -10,6 +9,7 @@ from api.auth.models import LoginRedirect, LoginSuccess
 from api.common.dependencies import AuthSpotifyClient, DatabaseConnection, DateTimeWrapper, TokenHolder
 from api.common.helpers import _get_client_id, _get_client_secret, create_random_string
 from api.common.models import ParsedTokenResponse
+from database.entities import LoginState, User, UserSession
 
 _logger = getLogger("main.api.auth.dependencies")
 
@@ -85,7 +85,7 @@ class AuthServiceRaw:
         if not self._database_connection.is_valid_state(state):
             _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
             error_message = (
-                "Login state is invalid or expired. " "Please restart the login flow to ensure a fresh and valid state."
+                "Login state is invalid or expired. Please restart the login flow to ensure a fresh and valid state."
             )
             raise HTTPException(status_code=403, detail=error_message)
 

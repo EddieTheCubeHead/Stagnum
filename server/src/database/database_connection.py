@@ -1,7 +1,6 @@
 import os
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from logging import getLogger
-from typing import ContextManager
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -44,7 +43,7 @@ class ConnectionManager:
         return cls._sqlite_in_memory_engine
 
     @contextmanager
-    def session(self) -> ContextManager[Session]:
+    def session(self) -> AbstractContextManager[Session]:
         context_session = self._session()
         _logger.debug(f"Created a database session with hash {context_session.hash_key}")
         try:

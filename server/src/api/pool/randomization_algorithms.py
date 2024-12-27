@@ -3,8 +3,9 @@ import random
 from dataclasses import dataclass
 from typing import Annotated
 
-from database.entities import PoolMember, User
 from fastapi import Depends
+
+from database.entities import PoolMember, User
 
 
 @dataclass

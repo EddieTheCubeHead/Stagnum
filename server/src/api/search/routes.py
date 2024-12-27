@@ -30,9 +30,7 @@ async def search(query: str, user: validated_user, spotify_client: SearchSpotify
 async def search_tracks(
     user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0, limit: int = 20
 ) -> TrackSearchResult:
-    _logger.debug(
-        f"GET /search/tracks called with query '{query}', " f"offset {offset}, limit {limit} and token '{user}'."
-    )
+    _logger.debug(f"GET /search/tracks called with query '{query}', offset {offset}, limit {limit} and token '{user}'.")
     return spotify_client.get_track_search(query, user, offset, limit)
 
 
@@ -40,9 +38,7 @@ async def search_tracks(
 async def search_albums(
     user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0, limit: int = 20
 ) -> AlbumSearchResult:
-    _logger.debug(
-        f"GET /search/albums called with query '{query}', " f"offset {offset}, limit {limit} and token '{user}'."
-    )
+    _logger.debug(f"GET /search/albums called with query '{query}', offset {offset}, limit {limit} and token '{user}'.")
     return spotify_client.get_album_search(query, user, offset, limit)
 
 
@@ -51,7 +47,7 @@ async def search_artists(
     user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0, limit: int = 20
 ) -> ArtistSearchResult:
     _logger.debug(
-        f"GET /search/artists called with query '{query}', " f"offset {offset}, limit {limit} and token '{user}'."
+        f"GET /search/artists called with query '{query}', offset {offset}, limit {limit} and token '{user}'."
     )
     return spotify_client.get_artist_search(query, user, offset, limit)
 
@@ -61,6 +57,6 @@ async def search_playlists(
     user: validated_user, spotify_client: SearchSpotifyClient, query: str, offset: int = 0, limit: int = 20
 ) -> PlaylistSearchResult:
     _logger.debug(
-        f"GET /search/playlists called with query '{query}', " f"offset {offset}, limit {limit} and token '{user}'."
+        f"GET /search/playlists called with query '{query}', offset {offset}, limit {limit} and token '{user}'."
     )
     return spotify_client.get_playlist_search(query, user, offset, limit)

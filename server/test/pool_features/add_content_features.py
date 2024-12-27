@@ -1,7 +1,4 @@
 import pytest
-from api.pool.models import PoolContent, PoolFullContents
-from database.database_connection import ConnectionManager
-from database.entities import PoolMember
 from helpers.classes import ErrorData, MockedPoolContents
 from sqlalchemy import and_, select
 from starlette.testclient import TestClient
@@ -20,6 +17,10 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
+
+from api.pool.models import PoolContent, PoolFullContents
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember
 
 
 def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(

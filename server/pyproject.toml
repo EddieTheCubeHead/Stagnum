@@ -52,8 +52,6 @@ select = [
 ]
 ignore = [
     "COM812", # trailing comma
-    "ANN101", # type annotation for self
-    "ANN102", # type annotation for cls
     "PLR0913", # too many arguments in function definition - should not be automatically enforced but left to user
 ]
 unfixable = [

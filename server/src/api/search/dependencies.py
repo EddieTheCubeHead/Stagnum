@@ -1,7 +1,6 @@
 from logging import getLogger
 from typing import Annotated
 
-from database.entities import User
 from fastapi import Depends, HTTPException
 
 from api.common.dependencies import SpotifyClient
@@ -22,6 +21,7 @@ from api.search.models import (
     TrackSearchResult,
 )
 from api.search.spotify_models import GeneralSearchResultData
+from database.entities import User
 
 _logger = getLogger("main.api.search.dependencies")
 
@@ -56,7 +56,7 @@ def _build_paginated_track_search(result_data: PaginatedSearchResultData[TrackDa
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        items=[_build_track(track) for track in result_data["items"]],
+        items=[_build_track(track) for track in result_data["items"] if track is not None],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"],
     )
@@ -76,7 +76,7 @@ def _build_paginated_artist_search(result_data: PaginatedSearchResultData[Artist
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        items=[_build_artist(artist) for artist in result_data["items"]],
+        items=[_build_artist(artist) for artist in result_data["items"] if artist is not None],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"],
     )
@@ -101,7 +101,7 @@ def _build_paginated_album_search(result_data: PaginatedSearchResultData[AlbumDa
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        items=[_build_album(album) for album in result_data["items"]],
+        items=[_build_album(album) for album in result_data["items"] if album is not None],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"],
     )
@@ -121,7 +121,7 @@ def _build_paginated_playlist_search(result_data: PaginatedSearchResultData[Play
         limit=result_data["limit"],
         offset=result_data["offset"],
         total=result_data["total"],
-        items=[_build_playlist(playlist) for playlist in result_data["items"]],
+        items=[_build_playlist(playlist) for playlist in result_data["items"] if playlist is not None],
         self_page_link=result_data["href"],
         next_page_link=result_data["next"],
     )

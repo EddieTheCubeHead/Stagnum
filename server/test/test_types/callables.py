@@ -1,7 +1,11 @@
 import datetime
-from typing import Any, Awaitable, Callable, Protocol
+from collections.abc import Awaitable
+from typing import Any, Callable, Protocol
 
 import httpx
+from helpers.classes import MockedPlaylistPoolContent
+from pydantic import BaseModel
+
 from api.auth.spotify_models import SpotifyFetchMeData
 from api.common.models import ParsedTokenResponse
 from api.common.spotify_models import (
@@ -16,9 +20,6 @@ from api.pool.models import PoolFullContents
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from api.search.spotify_models import GeneralSearchResultData
 from database.entities import EntityBase, PoolMember, User
-from helpers.classes import MockedPlaylistPoolContent
-from pydantic import BaseModel
-
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
 
@@ -91,15 +92,17 @@ class ValidatePaginatedResultLength(Protocol):
 
 
 class CreatePaginatedSearchResult(Protocol):
-    def __call__[T](self, query: str, limit: int, items: list[T]) -> PaginatedSearchResultData[T]: ...
+    def __call__[T](
+        self, query: str, result_count: int, items: list[T], nulls_appended: int = 0
+    ) -> PaginatedSearchResultData[T]: ...
 
 
 class CreateSearchResponse(Protocol):
-    def __call__(self, query: str, limit: int = 20) -> httpx.Response: ...
+    def __call__(self, query: str, result_count: int = 20, nulls_appended: int = 0) -> httpx.Response: ...
 
 
 class RunSearch(Protocol):
-    def __call__(self, query: str, limit: int = 20) -> httpx.Response: ...
+    def __call__(self, query: str, result_count: int = 20, nulls_appended: int = 0) -> httpx.Response: ...
 
 
 class CreateGeneralSearch(Protocol):
@@ -108,7 +111,12 @@ class CreateGeneralSearch(Protocol):
 
 class RunSearchCall(Protocol):
     def __call__(
-        self, query_addition: str | None, search_call: CreateSearchResponse, query: str, limit: int = 20
+        self,
+        query_addition: str | None,
+        search_call: CreateSearchResponse,
+        query: str,
+        result_count: int = 20,
+        nulls_appended: int = 0,
     ) -> httpx.Response: ...
 
 
