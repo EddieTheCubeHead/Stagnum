@@ -85,7 +85,7 @@ class AuthServiceRaw:
         if not self._database_connection.is_valid_state(state):
             _logger.error(f"Invalid login attempt! Did not find state string that matches state {state}.")
             error_message = (
-                "Login state is invalid or expired. " "Please restart the login flow to ensure a fresh and valid state."
+                "Login state is invalid or expired. Please restart the login flow to ensure a fresh and valid state."
             )
             raise HTTPException(status_code=403, detail=error_message)
 

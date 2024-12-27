@@ -905,7 +905,7 @@ class PoolPlaybackServiceRaw:
         while len(queue_data) > 0:
             has_skipped_songs = True
             for track_data in queue_data:
-                _logger.info(f"Skipping track {track_data["name"]} from user {user.spotify_username} queue.")
+                _logger.info(f"Skipping track {track_data['name']} from user {user.spotify_username} queue.")
                 self._spotify_client.skip_current_song(user)
             queue_data = _get_additional_queue_part(self._spotify_client.get_user_queue(user))
 

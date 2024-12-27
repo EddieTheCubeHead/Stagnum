@@ -49,7 +49,7 @@ def should_return_exception_if_state_is_not_in_database_on_auth_callback(
     test_client: TestClient, validate_error_response: ValidateErrorResponse
 ) -> None:
     response = test_client.get(
-        "/auth/login/callback?state=my_invalid_state&code=12345abcde" "&client_redirect_uri=test_url"
+        "/auth/login/callback?state=my_invalid_state&code=12345abcde&client_redirect_uri=test_url"
     )
     message = "Login state is invalid or expired. Please restart the login flow to ensure a fresh and valid state."
     validate_error_response(response, 403, message)
@@ -101,7 +101,7 @@ def should_include_code_from_query_in_spotify_api_request(
 ) -> None:
     expected_code = "my_auth_code"
     test_client.get(
-        f"/auth/login/callback?state={primary_valid_state_string}" f"&code={expected_code}&client_redirect_uri=test_url"
+        f"/auth/login/callback?state={primary_valid_state_string}&code={expected_code}&client_redirect_uri=test_url"
     )
     call = requests_client.post.call_args
     assert call.kwargs["data"]["code"] == expected_code
@@ -113,8 +113,7 @@ def should_include_redirect_url_from_query_in_spotify_api_request(
 ) -> None:
     expected_url = "my_redirect_url"
     test_client.get(
-        f"/auth/login/callback?state={primary_valid_state_string}"
-        f"&code=12345abcde&client_redirect_uri={expected_url}"
+        f"/auth/login/callback?state={primary_valid_state_string}&code=12345abcde&client_redirect_uri={expected_url}"
     )
     call = requests_client.post.call_args
     assert call.kwargs["data"]["redirect_uri"] == expected_url

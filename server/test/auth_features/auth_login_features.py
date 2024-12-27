@@ -34,7 +34,7 @@ def should_have_sixteen_bytes_of_noise_as_state_in_login_redirect_response(
     data_json = validate_response(response)
     state_string = get_query_parameter(data_json["redirect_uri"], "state")
     assert re.match(r"\w{16}", state_string), (
-        f"State string '{state_string}' does not consist of sixteen " f"digits or letters"
+        f"State string '{state_string}' does not consist of sixteen digits or letters"
     )
 
 
