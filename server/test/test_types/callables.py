@@ -91,15 +91,17 @@ class ValidatePaginatedResultLength(Protocol):
 
 
 class CreatePaginatedSearchResult(Protocol):
-    def __call__[T](self, query: str, limit: int, items: list[T]) -> PaginatedSearchResultData[T]: ...
+    def __call__[T](
+        self, query: str, result_count: int, items: list[T], nulls_appended: int = 0
+    ) -> PaginatedSearchResultData[T]: ...
 
 
 class CreateSearchResponse(Protocol):
-    def __call__(self, query: str, limit: int = 20) -> httpx.Response: ...
+    def __call__(self, query: str, result_count: int = 20, nulls_appended: int = 0) -> httpx.Response: ...
 
 
 class RunSearch(Protocol):
-    def __call__(self, query: str, limit: int = 20) -> httpx.Response: ...
+    def __call__(self, query: str, result_count: int = 20, nulls_appended: int = 0) -> httpx.Response: ...
 
 
 class CreateGeneralSearch(Protocol):
@@ -108,7 +110,12 @@ class CreateGeneralSearch(Protocol):
 
 class RunSearchCall(Protocol):
     def __call__(
-        self, query_addition: str | None, search_call: CreateSearchResponse, query: str, limit: int = 20
+        self,
+        query_addition: str | None,
+        search_call: CreateSearchResponse,
+        query: str,
+        result_count: int = 20,
+        nulls_appended: int = 0,
     ) -> httpx.Response: ...
 
 

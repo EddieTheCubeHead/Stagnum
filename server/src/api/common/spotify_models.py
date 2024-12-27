@@ -45,7 +45,7 @@ class PaginatedSearchResultData[ResultType: SpotifyResourceData](TypedDict):
     offset: int
     previous: str | None
     total: int
-    items: list[ResultType]
+    items: list[ResultType | None]
 
 
 class ArtistData(SpotifyResourceWithImagesData):
