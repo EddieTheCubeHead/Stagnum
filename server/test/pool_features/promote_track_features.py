@@ -2,12 +2,11 @@ import datetime
 import random
 
 import pytest
+from api.pool.models import PoolFullContents, PoolTrack, UnsavedPoolTrack
 from helpers.classes import CurrentPlaybackData, MockedPoolContents
 from starlette.testclient import TestClient
 from test_types.callables import CreatePool, IncrementNow, MockTrackFetch, RunSchedulingJob, SkipSong, ValidateModel
 from test_types.typed_dictionaries import Headers
-
-from api.pool.models import PoolFullContents, PoolTrack, UnsavedPoolTrack
 
 
 @pytest.fixture
@@ -178,7 +177,6 @@ def should_reset_promotion_data_if_promoted_track_parent_is_deleted(
     validate_model(UnsavedPoolTrack, skip_response)
 
 
-@pytest.mark.wip
 def should_reset_promotion_data_when_demote_track_is_called(
     test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel, promoted_track: PoolTrack
 ) -> None:
