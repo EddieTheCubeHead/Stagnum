@@ -3,9 +3,6 @@ from collections.abc import Awaitable
 from typing import Any, Callable, Protocol
 
 import httpx
-from helpers.classes import MockedPlaylistPoolContent
-from pydantic import BaseModel
-
 from api.auth.spotify_models import SpotifyFetchMeData
 from api.common.models import ParsedTokenResponse
 from api.common.spotify_models import (
@@ -17,9 +14,13 @@ from api.common.spotify_models import (
     TrackData,
 )
 from api.pool.models import PoolFullContents
+from api.pool.randomization_algorithms import RandomizationParameters
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from api.search.spotify_models import GeneralSearchResultData
 from database.entities import EntityBase, PoolMember, User
+from helpers.classes import MockedPlaylistPoolContent
+from pydantic import BaseModel
+
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
 
@@ -182,6 +183,27 @@ class AssertEmptyTables(Protocol):
     def __call__(self, *tables: type(EntityBase)) -> None: ...
 
 
+class CreatePoolMembers(Protocol):
+    def __call__(
+        self,
+        users: list[User],
+        *,
+        tracks_per_user: int = 0,
+        collections_per_user: int = 0,
+        tracks_per_collection: int = 0,
+    ) -> list[PoolMember]: ...
+
+
+class CreateRandomizationParameters(Protocol):
+    def __call__(
+        self,
+        custom_weight_scale: int = 5,
+        user_weight_scale: int = 20,
+        pseudo_random_floor: int = 60,
+        pseudo_random_ceiling: int = 90,
+    ) -> RandomizationParameters: ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
@@ -211,3 +233,4 @@ type AssertEmptyPoolModel = Callable[[httpx.Response], None]
 type AssertPlaybackStarted = Callable[[list[str]], None]
 type GetExistingPool = Callable[[], type[PoolFullContents]]
 type AssertPlaybackPaused = Callable[[], None]
+type CreateUsers = Callable[[int], list[User]]
