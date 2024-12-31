@@ -6,10 +6,8 @@ from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from api.pool.models import PoolContent, PoolCreationData
 from api.pool.randomization_algorithms import NextSongProvider, PoolRandomizer, RandomizationParameters
-from database.database_connection import ConnectionManager
 from database.entities import PoolJoinedUser, PoolMember, PoolMemberRandomizationParameters, User
 from helpers.classes import CurrentPlaybackData
-from sqlalchemy import select
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
@@ -167,26 +165,6 @@ def implement_pool_from_members(
     return wrapper
 
 
-@pytest.mark.slow
-@pytest.mark.wip
-@pytest.mark.usefixtures("weighted_parameters")
-def should_always_alternate_songs_in_two_song_queue(
-    create_playback: CreatePlayback,
-    valid_token_header: Headers,
-    skip_song: SkipSong,
-    requests_client: Mock,
-    get_query_parameter: GetQueryParameter,
-) -> None:
-    create_playback(2)
-    last_call_uri = None
-    for _ in range(10):
-        skip_song(valid_token_header)
-        actual_queue_call = requests_client.post.call_args_list[-2]
-        track_uri = get_query_parameter(actual_queue_call.args[0], "uri")
-        assert last_call_uri != track_uri
-        last_call_uri = track_uri
-
-
 @pytest.fixture
 def create_users(faker: FakerFixture) -> CreateUsers:
     def wrapper(user_amount: int) -> list[User]:
@@ -225,6 +203,23 @@ def create_pool_members(faker: FakerFixture) -> CreatePoolMembers:
                 for sort in range(tracks_per_user)
             ]
 
+            for _ in range(collections_per_user):
+                collection_id = faker.random_int()
+                pool_members += [
+                    PoolMember(
+                        user_id=user.spotify_id,
+                        id=faker.random_int(),
+                        pool_id=pool_id,
+                        image_url=faker.url(),
+                        content_uri=f"spotify:track:{faker.uuid4()}",
+                        duration_ms=faker.random_int(120000, 600000),
+                        sort_order=sort,
+                        parent_id=collection_id,
+                        randomization_parameters=PoolMemberRandomizationParameters(weight=0, skips_since_last_play=0),
+                    )
+                    for sort in range(tracks_per_collection)
+                ]
+
         return pool_members
 
     # This works perfectly fine. PyCharm has a bug that causes this to show a warning. Stack Overflow thread:
@@ -248,7 +243,25 @@ def create_randomization_parameters() -> CreateRandomizationParameters:
     return wrapper
 
 
-@pytest.mark.wip
+@pytest.mark.slow
+@pytest.mark.usefixtures("weighted_parameters")
+def should_always_alternate_songs_in_two_song_queue(
+    create_playback: CreatePlayback,
+    valid_token_header: Headers,
+    skip_song: SkipSong,
+    requests_client: Mock,
+    get_query_parameter: GetQueryParameter,
+) -> None:
+    create_playback(2)
+    last_call_uri = None
+    for _ in range(10):
+        skip_song(valid_token_header)
+        actual_queue_call = requests_client.post.call_args_list[-2]
+        track_uri = get_query_parameter(actual_queue_call.args[0], "uri")
+        assert last_call_uri != track_uri
+        last_call_uri = track_uri
+
+
 def should_always_play_song_that_was_not_played_last_in_two_song_queue(
     create_users: CreateUsers,
     create_pool_members: CreatePoolMembers,
@@ -286,24 +299,24 @@ def should_respect_custom_weight(
     assert song_2_plays * (variable_weighted_parameters.custom_weight_scale - 0.1) < song_1_plays
 
 
-@pytest.mark.slow
-@pytest.mark.usefixtures("weighted_parameters")
+@pytest.mark.parametrize("_", range(10))
 def should_balance_users_by_playtime(
-    create_test_users: CreateTestUsers,
-    create_pool_from_users: CreatePoolFromUsers,
-    skip_song: SkipSong,
-    valid_token_header: Headers,
-    db_connection: ConnectionManager,
-    implement_pool_from_members: ImplementPoolFromMembers,
+    create_users: CreateUsers,
+    create_pool_members: CreatePoolMembers,
+    create_randomization_parameters: CreateRandomizationParameters,
+    _: int,
 ) -> None:
-    users = create_test_users(4)
-    pool = create_pool_from_users(*[(user, 50) for user in users])
-    implement_pool_from_members(users, pool)
+    users = create_users(4)
+    pool_members = create_pool_members(users, tracks_per_user=30, collections_per_user=2, tracks_per_collection=20)
+    randomization_parameters = create_randomization_parameters()
+    # map ids to user once to not need to do O(n) mapping again
+    users_by_id = {user.spotify_id: user for user in users}
+    member_users = {member.content_uri: member.user_id for member in pool_members}
     for _ in range(999):
-        skip_song(valid_token_header)
-    with db_connection.session() as session:
-        pool_users = session.scalars(select(PoolJoinedUser)).unique().all()
-    pool_users_playtime = [user.playback_time_ms for user in pool_users]
+        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
+        users_by_id[member_users[result.content_uri]].joined_pool.playback_time_ms += result.duration_ms
+
+    pool_users_playtime = [user.joined_pool.playback_time_ms for user in users]
     pool_users_playtime.sort()
-    minimum_playtime_share = 0.5
+    minimum_playtime_share = 0.85
     assert pool_users_playtime[0] / pool_users_playtime[-1] > minimum_playtime_share
