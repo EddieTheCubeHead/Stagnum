@@ -4,9 +4,6 @@ from unittest.mock import Mock
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from api.pool.models import PoolContent, PoolCreationData
-from api.pool.randomization_algorithms import NextSongProvider, PoolRandomizer, RandomizationParameters
-from database.entities import PoolJoinedUser, PoolMember, PoolMemberRandomizationParameters, User
 from helpers.classes import CurrentPlaybackData
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
@@ -31,6 +28,10 @@ from test_types.callables import (
 )
 from test_types.faker import FakerFixture
 from test_types.typed_dictionaries import Headers, PoolContentData
+
+from api.pool.models import PoolContent, PoolCreationData
+from api.pool.randomization_algorithms import NextSongProvider, PoolRandomizer, RandomizationParameters
+from database.entities import PoolJoinedUser, PoolMember, PoolMemberRandomizationParameters, User
 
 
 @pytest.fixture(params=[RandomizationParameters(5, 5, 60, 90), RandomizationParameters(10, 3, 50, 75)])
