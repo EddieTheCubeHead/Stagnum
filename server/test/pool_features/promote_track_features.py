@@ -178,7 +178,6 @@ def should_reset_promotion_data_if_promoted_track_parent_is_deleted(
     validate_model(UnsavedPoolTrack, skip_response)
 
 
-@pytest.mark.wip
 def should_reset_promotion_data_when_demote_track_is_called(
     test_client: TestClient, valid_token_header: Headers, validate_model: ValidateModel, promoted_track: PoolTrack
 ) -> None:

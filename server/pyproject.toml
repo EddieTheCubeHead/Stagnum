@@ -75,6 +75,8 @@ preview = true
 line-ending = "lf"
 
 [tool.ruff.lint.isort]
+# Problem with PyCharm and ruff - cross-referencing between test and src breaks without this
+known-first-party = ["api", "database"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.flake8-pytest-style]
