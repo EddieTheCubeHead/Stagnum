@@ -60,21 +60,28 @@ class PoolRandomizer:
             self._user_pools[pool_member.user_id].append(pool_member)
 
     def get_next_song(self) -> PoolMember:
-        user_id = self._get_next_playing_user_id()
+        zero_weight_user_ids: set[str] = set()
+        while True:
+            user_id = self._get_next_playing_user_id(zero_weight_user_ids)
 
-        if self._users[user_id].joined_pool.promoted_track:
-            return self._users[user_id].joined_pool.promoted_track
+            if self._users[user_id].joined_pool.promoted_track:
+                return self._users[user_id].joined_pool.promoted_track
 
-        user_pool_members: [PoolMemberRandomizationData] = []
-        total_member_weight: float = 0
-        for pool_member in self._user_pools[user_id]:
-            if pool_member.user_id != user_id:
+            user_pool_members: [PoolMemberRandomizationData] = []
+            total_member_weight: float = 0
+            for pool_member in self._user_pools[user_id]:
+                if pool_member.user_id != user_id:
+                    continue
+                if pool_member.content_uri.split(":")[1] != "track":
+                    continue
+                member_data = self._calculate_pool_member_weight(pool_member)
+                user_pool_members.append(member_data)
+                total_member_weight += member_data.weight
+
+            if total_member_weight == 0:
+                zero_weight_user_ids.add(user_id)
                 continue
-            if pool_member.content_uri.split(":")[1] != "track":
-                continue
-            member_data = self._calculate_pool_member_weight(pool_member)
-            user_pool_members.append(member_data)
-            total_member_weight += member_data.weight
+            break
 
         track_location = total_member_weight * random.random()
 
@@ -85,12 +92,14 @@ class PoolRandomizer:
                 return user_pool_member.pool_member
         return None
 
-    def _get_next_playing_user_id(self) -> str:
+    def _get_next_playing_user_id(self, zero_weight_user_ids: set[str]) -> str:
         eligible_user_play_times: [(str, int)] = []
         total_play_time = 0
 
         for user_id, members in self._user_pools.items():
             if not _get_members_weight(members):
+                continue
+            if user_id in zero_weight_user_ids:
                 continue
             user_play_time = self._users[user_id].joined_pool.playback_time_ms
             eligible_user_play_times.append((user_id, user_play_time))

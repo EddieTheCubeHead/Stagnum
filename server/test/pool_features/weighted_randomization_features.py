@@ -321,3 +321,22 @@ def should_balance_users_by_playtime(
     pool_users_playtime.sort()
     minimum_playtime_share = 0.85
     assert pool_users_playtime[0] / pool_users_playtime[-1] > minimum_playtime_share
+
+
+@pytest.mark.wip
+def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
+    create_users: CreateUsers,
+    create_pool_members: CreatePoolMembers,
+    create_randomization_parameters: CreateRandomizationParameters,
+) -> None:
+    users = create_users(2)
+    users[1].joined_pool.playback_time_ms = 100
+    pool_members = create_pool_members([users[0]], tracks_per_user=30, collections_per_user=2, tracks_per_collection=20)
+    pool_members.extend(create_pool_members([users[1]], tracks_per_user=1))
+    pool_members[-1].randomization_parameters.skips_since_last_play = 1
+    randomization_parameters = create_randomization_parameters()
+
+    iterations = 9999
+    for _ in range(iterations):
+        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
+        assert result.user_id == users[0].spotify_id
