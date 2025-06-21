@@ -35,7 +35,11 @@ def _get_members_weight(members: list[PoolMember]) -> int:
 # Logic heavy part so here come the comments
 class PoolRandomizer:
     def __init__(
-        self, pool_members: list[PoolMember], users: list[User], randomization_parameters: RandomizationParameters
+        self,
+        pool_members: list[PoolMember],
+        users: list[User],
+        randomization_parameters: RandomizationParameters,
+        user_calculated_playtimes: dict[str, int],
     ) -> None:
         # Custom weight and user playback time based weight both operate on an exponential scale. These two base numbers
         # control the aggressiveness of that exponential scale (base^modifier, modifier [-1,1])
@@ -43,6 +47,7 @@ class PoolRandomizer:
         self._user_weight_scale = randomization_parameters.user_weight_scale
 
         self._users: dict[str, User] = {user.spotify_id: user for user in users}
+        self._user_calculated_playtimes = user_calculated_playtimes
         self._user_pools: dict[str, [PoolMember]] = {user.spotify_id: [] for user in users}
         self._pool_length = len(pool_members)
         self._pool_length_ms = sum(pool_member.duration_ms for pool_member in pool_members)
@@ -101,7 +106,8 @@ class PoolRandomizer:
                 continue
             if user_id in zero_weight_user_ids:
                 continue
-            user_play_time = self._users[user_id].joined_pool.playback_time_ms
+            # if user has no plays, their data is not in the dict, so we set playtime to 0
+            user_play_time = self._user_calculated_playtimes.get(user_id, 0)
             eligible_user_play_times.append((user_id, user_play_time))
             total_play_time += user_play_time
 
@@ -163,7 +169,9 @@ class PoolRandomizer:
 
 class NextSongProviderRaw:
     @staticmethod
-    def select_next_song(pool_members: list[PoolMember], users: list[User]) -> PoolMember:
+    def select_next_song(
+        pool_members: list[PoolMember], users: list[User], user_calculated_playtimes: dict[str, int]
+    ) -> PoolMember:
         custom_weight_scale = int(os.getenv("CUSTOM_WEIGHT_SCALE", "5"))
         user_weight_scale = int(os.getenv("USER_WEIGHT_SCALE", "20"))
         pseudo_random_floor = int(os.getenv("PSEUDO_RANDOM_FLOOR", "60"))
@@ -171,7 +179,7 @@ class NextSongProviderRaw:
         randomization_parameters = RandomizationParameters(
             custom_weight_scale, user_weight_scale, pseudo_random_floor, pseudo_random_ceiling
         )
-        randomizer = PoolRandomizer(pool_members, users, randomization_parameters)
+        randomizer = PoolRandomizer(pool_members, users, randomization_parameters, user_calculated_playtimes)
         return randomizer.get_next_song()
 
 

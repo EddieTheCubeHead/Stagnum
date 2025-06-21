@@ -181,7 +181,7 @@ def create_users(faker: FakerFixture) -> CreateUsers:
                 spotify_id=faker.uuid4(),
                 spotify_username=faker.user_name(),
                 spotify_avatar_url=faker.url(),
-                joined_pool=PoolJoinedUser(playback_time_ms=0),
+                joined_pool=PoolJoinedUser(),
             )
             for _ in range(user_amount)
         ]
@@ -281,7 +281,7 @@ def should_always_play_song_that_was_not_played_last_in_two_song_queue(
     pool_members[0].randomization_parameters.skips_since_last_play = 1
     pool_members[1].randomization_parameters.skips_since_last_play = 2
     for _ in range(99):
-        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
+        result = PoolRandomizer(pool_members, users, randomization_parameters, {users[0].spotify_id: 1}).get_next_song()
         assert result.content_uri == pool_members[1].content_uri
 
 
@@ -293,13 +293,13 @@ def should_respect_custom_weight(
     variable_weighted_parameters: RandomizationParameters,
 ) -> None:
     users = create_test_users(1)
-    users[0].joined_pool = PoolJoinedUser(playback_time_ms=0)
+    users[0].joined_pool = PoolJoinedUser()
     song_1_plays = 0
     song_2_plays = 0
     for _ in range(9999):
         pool = create_pool_from_users((users[0], 2))[users[0].spotify_id]
         pool[0].randomization_parameters.weight = 1
-        song = next_song_provider.select_next_song(pool, users)
+        song = next_song_provider.select_next_song(pool, users, {users[0].spotify_id: 1})
         if song.id == pool[0].id:
             song_1_plays += 1
         else:
@@ -317,14 +317,14 @@ def should_balance_users_by_playtime(
     users = create_users(4)
     pool_members = create_pool_members(users, tracks_per_user=30, collections_per_user=2, tracks_per_collection=20)
     randomization_parameters = create_randomization_parameters()
-    # map ids to user once to not need to do O(n) mapping again
-    users_by_id = {user.spotify_id: user for user in users}
+
+    user_playtimes = {user.spotify_id: 0 for user in users}
     member_users = {member.content_uri: member.user_id for member in pool_members}
     for _ in range(999):
-        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
-        users_by_id[member_users[result.content_uri]].joined_pool.playback_time_ms += result.duration_ms
+        result = PoolRandomizer(pool_members, users, randomization_parameters, user_playtimes).get_next_song()
+        user_playtimes[member_users[result.content_uri]] += result.duration_ms
 
-    pool_users_playtime = [user.joined_pool.playback_time_ms for user in users]
+    pool_users_playtime = list(user_playtimes.values())
     pool_users_playtime.sort()
     minimum_playtime_share = 0.85
     assert pool_users_playtime[0] / pool_users_playtime[-1] > minimum_playtime_share
@@ -344,13 +344,16 @@ def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
 
     iterations = 9999
     for _ in range(iterations):
-        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
+        result = PoolRandomizer(
+            pool_members, users, randomization_parameters, {users[0].spotify_id: 1, users[1].spotify_id: 1}
+        ).get_next_song()
         assert result.user_id == users[0].spotify_id
 
 
 @pytest.mark.wip
 @pytest.mark.slow
 @pytest.mark.asyncio
+@pytest.mark.parametrize("_", range(3))
 @pytest.mark.usefixtures("correct_env_variables")
 async def should_weight_more_recent_playback_time_more_than_less_recent_playback_time(
     joined_user_header: Headers,
@@ -365,6 +368,7 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     get_db_playback_data: GetDbPlaybackData,
     logged_in_user_id: str,
     another_logged_in_user_id: str,
+    _: int,
 ) -> None:
     monkeypatch.setenv("ENVIRONMENT", "development")
     start_time = mock_datetime_wrapper.now()
@@ -378,7 +382,7 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     # The refresh flow sends post song before it sends get refreshed token
     requests_client_post_queue.append(queue_post_response)
     create_refresh_token_return(99999)
-    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=3, minutes=55):
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=6, minutes=55):
         requests_client_post_queue.append(queue_post_response)
         await timewarp_to_next_song()
 
@@ -388,10 +392,10 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     increment_now(datetime.timedelta(minutes=10))
     song_counts = {logged_in_user_id: 0, another_logged_in_user_id: 0}
 
-    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=4, minutes=55):
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=8, minutes=55):
         requests_client_post_queue.append(queue_post_response)
         await timewarp_to_next_song()
         playback_session = get_db_playback_data()
         song_counts[playback_session.current_track.user_id] += 1
 
-    assert song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id] > 0.2  # noqa: PLR2004
+    assert song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id] > 0.3  # noqa: PLR2004

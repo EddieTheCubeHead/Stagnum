@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import Annotated, Any, ClassVar, Literal, Optional
 
 from fastapi import Depends, HTTPException, WebSocket
-from sqlalchemy import and_, delete, exists, or_, select, update
+from sqlalchemy import and_, delete, exists, func, or_, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
@@ -28,6 +28,7 @@ from api.pool.randomization_algorithms import NextSongProvider
 from api.pool.spotify_models import PlaybackStateData, QueueData
 from database.entities import (
     PlaybackSession,
+    PlayedPoolMember,
     Pool,
     PoolJoinedUser,
     PoolMember,
@@ -655,12 +656,19 @@ class PoolDatabaseConnectionRaw:
             played_user: PoolJoinedUser = session.scalar(
                 select(PoolJoinedUser).where(PoolJoinedUser.user_id == existing_playback.current_track.user_id)
             )
+            played_pool_member: PoolMember = session.scalar(
+                select(PoolMember).where(PoolMember.id == existing_playback.current_track.id)
+            )
             existing_end_time_utc = self._datetime_wrapper.ensure_utc(existing_playback.next_song_change_timestamp)
             delta: datetime.timedelta = max(
                 existing_end_time_utc - self._datetime_wrapper.now(), datetime.timedelta(milliseconds=0)
             )
             playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
-            played_user.playback_time_ms += playtime
+            session.add(
+                PlayedPoolMember(
+                    pool_member_id=played_pool_member.id, joined_user_id=played_user.user_id, played_time_ms=playtime
+                )
+            )
 
     def get_pool_for_playback_session(self, playback_session: PlaybackSession) -> Pool:
         with self._database_connection.session() as session:
@@ -707,6 +715,25 @@ class PoolDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             _depromote_user_track(session, user)
             return _get_user_pool(user, session)
+
+    def get_user_playtimes(
+        self, users: list[User], cutoff_timedelta: datetime.timedelta = datetime.timedelta(hours=1)
+    ) -> dict[str, int]:
+        cutoff_time = self._datetime_wrapper.now() - cutoff_timedelta
+        with self._database_connection.session() as session:
+            playtime_raw_mapping = (
+                session.query(
+                    PlayedPoolMember.joined_user_id, func.sum(PlayedPoolMember.played_time_ms).label("playtime_ms")
+                )
+                .filter(
+                    and_(
+                        PlayedPoolMember.joined_user_id.in_([user.spotify_id for user in users]),
+                        PlayedPoolMember.insert_time_stamp >= cutoff_time,
+                    )
+                )
+                .group_by(PlayedPoolMember.joined_user_id)
+            )
+            return dict(playtime_raw_mapping)
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]
@@ -783,7 +810,8 @@ class PoolPlaybackServiceRaw:
     def start_playback(self, user: User) -> PoolTrack:
         all_tracks = self._database_connection.get_playable_tracks(user)
         users = self._database_connection.get_pool_users(user)
-        next_track = self._next_song_provider.select_next_song(all_tracks, users)
+        user_playtime_mappings = self._database_connection.get_user_playtimes(users)
+        next_track = self._next_song_provider.select_next_song(all_tracks, users, user_playtime_mappings)
         self._spotify_client.start_playback(user, next_track.content_uri)
         self._database_connection.save_playback_status(user, next_track)
         return map_pool_member_entity_to_model(next_track)
@@ -827,7 +855,8 @@ class PoolPlaybackServiceRaw:
 
     def _get_next_track(self, playable_tracks: list[PoolMember], user: User) -> PoolMember:
         users = self._database_connection.get_pool_users(user)
-        return self._next_song_provider.select_next_song(playable_tracks, users)
+        user_playtime_mappings = self._database_connection.get_user_playtimes(users)
+        return self._next_song_provider.select_next_song(playable_tracks, users, user_playtime_mappings)
 
     async def skip_song(self, user: User) -> UnsavedPoolTrack:
         self._fetch_and_validate_spotify_state(user)
