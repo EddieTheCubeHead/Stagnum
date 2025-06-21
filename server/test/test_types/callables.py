@@ -1,6 +1,6 @@
 import datetime
-from collections.abc import Awaitable
-from typing import Any, Callable, Protocol
+from collections.abc import Awaitable, Coroutine
+from typing import Any, Callable, Optional, Protocol
 
 import httpx
 from helpers.classes import MockedPlaylistPoolContent
@@ -20,7 +20,7 @@ from api.pool.models import PoolFullContents
 from api.pool.randomization_algorithms import RandomizationParameters
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from api.search.spotify_models import GeneralSearchResultData
-from database.entities import EntityBase, PoolMember, User
+from database.entities import EntityBase, PlaybackSession, PoolMember, User
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
 
@@ -204,6 +204,10 @@ class CreateRandomizationParameters(Protocol):
     ) -> RandomizationParameters: ...
 
 
+class CreateRefreshTokenReturn(Protocol):
+    def __call__(self, expires_in: int = 800) -> str: ...
+
+
 type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
@@ -234,3 +238,6 @@ type AssertPlaybackStarted = Callable[[list[str]], None]
 type GetExistingPool = Callable[[], type[PoolFullContents]]
 type AssertPlaybackPaused = Callable[[], None]
 type CreateUsers = Callable[[int], list[User]]
+type GetDbPlaybackData = Callable[[], Optional[PlaybackSession]]
+
+type TimewarpToNextSong = Callable[[], Coroutine[Any, Any, None]]

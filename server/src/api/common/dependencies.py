@@ -150,9 +150,8 @@ class AuthSpotifyClientRaw:
     ) -> SpotifyTokenResponse:
         token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
         headers = {"Authorization": "Basic " + token, "Content-Type": "application/x-www-form-urlencoded"}
-        data = self._spotify_client.post(
-            override_url="https://accounts.spotify.com/api/token", headers=headers, data=form
-        )
+        override_url = "https://accounts.spotify.com/api/token"
+        data = self._spotify_client.post(override_url=override_url, headers=headers, data=form)
         refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
         return SpotifyTokenResponse(
             access_token=data["access_token"],

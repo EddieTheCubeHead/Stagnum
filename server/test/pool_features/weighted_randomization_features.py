@@ -1,10 +1,12 @@
+import datetime
+import json
 import random
 from unittest.mock import Mock
 
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from helpers.classes import CurrentPlaybackData
+from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
@@ -16,15 +18,20 @@ from test_types.callables import (
     CreatePoolFromUsers,
     CreatePoolMembers,
     CreateRandomizationParameters,
+    CreateRefreshTokenReturn,
     CreateTestUsers,
     CreateToken,
     CreateUsers,
+    GetDbPlaybackData,
     GetQueryParameter,
     ImplementPoolFromMembers,
+    IncrementNow,
     LogUserIn,
+    MockPlaylistFetch,
     MockPoolMemberSpotifyFetch,
     SharePoolAndGetCode,
     SkipSong,
+    TimewarpToNextSong,
 )
 from test_types.faker import FakerFixture
 from test_types.typed_dictionaries import Headers, PoolContentData
@@ -323,7 +330,6 @@ def should_balance_users_by_playtime(
     assert pool_users_playtime[0] / pool_users_playtime[-1] > minimum_playtime_share
 
 
-@pytest.mark.wip
 def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
     create_users: CreateUsers,
     create_pool_members: CreatePoolMembers,
@@ -340,3 +346,52 @@ def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
     for _ in range(iterations):
         result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
         assert result.user_id == users[0].spotify_id
+
+
+@pytest.mark.wip
+@pytest.mark.slow
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("correct_env_variables")
+async def should_weight_more_recent_playback_time_more_than_less_recent_playback_time(
+    joined_user_header: Headers,
+    mock_datetime_wrapper: MockDateTimeWrapper,
+    timewarp_to_next_song: TimewarpToNextSong,
+    monkeypatch: MonkeyPatch,
+    create_refresh_token_return: CreateRefreshTokenReturn,
+    increment_now: IncrementNow,
+    requests_client_post_queue: MockResponseQueue,
+    mock_playlist_fetch: MockPlaylistFetch,
+    test_client: TestClient,
+    get_db_playback_data: GetDbPlaybackData,
+    logged_in_user_id: str,
+    another_logged_in_user_id: str,
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    start_time = mock_datetime_wrapper.now()
+    queue_post_response = Mock()
+    queue_post_response.status_code = 200
+    queue_post_response.content = json.dumps({}).encode("utf-8")
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(minutes=55):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+    increment_now(datetime.timedelta(minutes=10))
+    # The refresh flow sends post song before it sends get refreshed token
+    requests_client_post_queue.append(queue_post_response)
+    create_refresh_token_return(99999)
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=3, minutes=55):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+
+    pool_content_data = mock_playlist_fetch(15)
+    test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
+
+    increment_now(datetime.timedelta(minutes=10))
+    song_counts = {logged_in_user_id: 0, another_logged_in_user_id: 0}
+
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=4, minutes=55):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+        playback_session = get_db_playback_data()
+        song_counts[playback_session.current_track.user_id] += 1
+
+    assert song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id] > 0.2  # noqa: PLR2004

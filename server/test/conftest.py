@@ -25,6 +25,8 @@ from test_types.callables import (
     CreateHeaderFromTokenResponse,
     CreatePool,
     CreatePoolCreationDataJson,
+    CreateRefreshTokenReturn,
+    CreateSpotifyFetchMeData,
     CreateToken,
     GetExistingPool,
     GetQueryParameter,
@@ -34,10 +36,12 @@ from test_types.callables import (
     MockAlbumSearchResult,
     MockArtistFetch,
     MockArtistSearchResult,
+    MockDefaultMeReturn,
     MockPlaylistFetch,
     MockPlaylistFetchResult,
     MockPlaylistSearchResult,
     MockPoolContentFetches,
+    MockSpotifyUserDataFetch,
     MockTokenReturn,
     MockTrackFetch,
     MockTrackSearchResult,
@@ -49,6 +53,7 @@ from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreation
 
 from api.application import create_app
 from api.auth.dependencies import AuthDatabaseConnection
+from api.auth.spotify_models import SpotifyFetchMeData
 from api.common.dependencies import (
     AuthSpotifyClient,
     DateTimeWrapperRaw,
@@ -59,7 +64,7 @@ from api.common.dependencies import (
     UserDatabaseConnection,
 )
 from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import AlbumData, ArtistData, PlaylistData, TrackData
+from api.common.spotify_models import AlbumData, ArtistData, ImageData, PlaylistData, TrackData
 from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import PoolMember, User
@@ -626,3 +631,101 @@ def existing_pool(
             session.scalars(select(PoolMember).where(PoolMember.user_id == logged_in_user_id)).unique().all()
         )
     return members
+
+
+@pytest.fixture
+def default_token_return(mock_token_return: MockTokenReturn) -> httpx.Response:
+    return mock_token_return()
+
+
+@pytest.fixture
+def default_image() -> ImageData:
+    return {"url": "https://image.example.com", "height": 300, "width": 300}
+
+
+@pytest.fixture
+def create_spotify_me_fetch_data(default_image: ImageData) -> CreateSpotifyFetchMeData:
+    def wrapper(
+        country: str = "Finland",
+        display_name: str = "Test User",
+        user_id: str = "test user",
+        images: Optional[list[ImageData]] = None,
+        product: str = "premium",
+    ) -> SpotifyFetchMeData:
+        return {
+            "country": country,
+            "display_name": display_name,
+            "id": user_id,
+            "images": images if images is not None else [default_image],
+            "product": product,
+        }
+
+    return wrapper
+
+
+@pytest.fixture
+def mock_spotify_user_data_fetch(
+    requests_client_post_queue: MockResponseQueue,
+    default_token_return: httpx.Response,
+    requests_client_get_queue: MockResponseQueue,
+    create_spotify_me_fetch_data: CreateSpotifyFetchMeData,
+) -> MockSpotifyUserDataFetch:
+    def wrapper(
+        country: str = "Finland",
+        display_name: str = "Test User",
+        user_id: str = "test user",
+        images: Optional[list[ImageData]] = None,
+        product: str = "premium",
+    ) -> httpx.Response:
+        return_json = create_spotify_me_fetch_data(country, display_name, user_id, images, product)
+        response = Mock()
+        response.status_code = 200
+        response.content = json.dumps(return_json).encode("utf-8")
+        requests_client_post_queue.append(default_token_return)
+        requests_client_get_queue.append(response)
+        return response
+
+    return wrapper
+
+
+@pytest.fixture
+def create_refresh_token_return(
+    mock_token_return: MockTokenReturn, requests_client_post_queue: MockResponseQueue, faker: Faker
+) -> CreateRefreshTokenReturn:
+    def wrapper(expires_in: int = 800) -> str:
+        token: str = faker.uuid4()
+        refresh_token_response_data = mock_token_return(token, expires_in)
+        requests_client_post_queue.append(refresh_token_response_data)
+        return token
+
+    return wrapper
+
+
+@pytest.fixture
+def refresh_token_return(create_refresh_token_return: CreateRefreshTokenReturn) -> str:
+    return create_refresh_token_return()
+
+
+@pytest.fixture
+def default_me_return(
+    request: FixtureRequest, create_spotify_me_fetch_data: CreateSpotifyFetchMeData
+) -> httpx.Response:
+    return_json = create_spotify_me_fetch_data(product=request.param.value if hasattr(request, "param") else "premium")
+    response = Mock()
+    response.status_code = 200
+    response.content = json.dumps(return_json).encode("utf-8")
+    return response
+
+
+@pytest.fixture
+def mock_default_me_return(
+    default_me_return: httpx.Response,
+    default_token_return: httpx.Response,
+    requests_client_get_queue: MockResponseQueue,
+    requests_client_post_queue: MockResponseQueue,
+) -> MockDefaultMeReturn:
+    def wrapper() -> None:
+        requests_client_post_queue.append(default_token_return)
+        requests_client_get_queue.append(default_me_return)
+
+    return wrapper
