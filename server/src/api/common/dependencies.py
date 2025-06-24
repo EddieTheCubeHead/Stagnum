@@ -7,7 +7,6 @@ from logging import getLogger
 from typing import Annotated, Any, Optional
 
 import requests
-from datetime_wrapper_raw import DateTimeWrapperRaw
 from fastapi import Depends, Header, HTTPException
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
@@ -19,6 +18,7 @@ from api.common.models import SpotifyTokenResponse
 from api.common.spotify_models import RefreshTokenData, RequestTokenData
 from database.database_connection import ConnectionManager
 from database.entities import User, UserSession
+from datetime_wrapper_raw import DateTimeWrapperRaw
 
 _logger = getLogger("main.api.common.dependencies")
 
