@@ -1,4 +1,5 @@
 import datetime
+import os
 from logging import getLogger
 from typing import Annotated, Any, ClassVar, Literal, Optional
 
@@ -717,8 +718,11 @@ class PoolDatabaseConnectionRaw:
             return _get_user_pool(user, session)
 
     def get_user_playtimes(
-        self, users: list[User], cutoff_timedelta: datetime.timedelta = datetime.timedelta(hours=1)
+        self, users: list[User], cutoff_timedelta: Optional[datetime.timedelta] = None
     ) -> dict[str, int]:
+        if cutoff_timedelta is None:
+            cutoff_timedelta_minutes = int(os.getenv("HISTORY_LENGTH_MINUTES", "90"))
+            cutoff_timedelta = datetime.timedelta(minutes=cutoff_timedelta_minutes)
         cutoff_time = self._datetime_wrapper.now() - cutoff_timedelta
         with self._database_connection.session() as session:
             playtime_raw_mapping = (

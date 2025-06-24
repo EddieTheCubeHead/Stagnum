@@ -355,7 +355,7 @@ def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("_", range(10))
 @pytest.mark.usefixtures("correct_env_variables")
-async def should_weight_more_recent_playback_time_more_than_less_recent_playback_time(
+async def should_not_consider_playback_time_over_history_threshold_for_user_weights(
     joined_user_header: Headers,
     mock_datetime_wrapper: MockDateTimeWrapper,
     timewarp_to_next_song: TimewarpToNextSong,
@@ -370,7 +370,7 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     another_logged_in_user_id: str,
     _: int,
 ) -> None:
-    monkeypatch.setenv("ENVIRONMENT", "development")
+    monkeypatch.setenv("HISTORY_LENGTH_MINUTES", "60")
     start_time = mock_datetime_wrapper.now()
     queue_post_response = Mock()
     queue_post_response.status_code = 200
@@ -382,27 +382,25 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     # The refresh flow sends post song before it sends get refreshed token
     requests_client_post_queue.append(queue_post_response)
     create_refresh_token_return(99999)
-    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=6, minutes=55):
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=2):
         requests_client_post_queue.append(queue_post_response)
         await timewarp_to_next_song()
 
     pool_content_data = mock_playlist_fetch(15)
     test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
-
-    increment_now(datetime.timedelta(minutes=10))
     song_counts = {logged_in_user_id: 0, another_logged_in_user_id: 0}
 
-    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=7, minutes=55):
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=3):
         requests_client_post_queue.append(queue_post_response)
         await timewarp_to_next_song()
         playback_session = get_db_playback_data()
         song_counts[playback_session.current_track.user_id] += 1
 
     song_ratio = song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id]
-    # Before decay implementation, the ratio used to hover around 0.15
-    # Now in rare situations (seems to be less than one in 30) it can spike over 1
+    # Before decay implementation, the ratio used to be 0 or just above
+    # Now in rare situations (seems to be about 1 in 25) it can spike over 1
     # TODO implement a pytest mark for "probabilistic" tests like so:
     # pytest.mark.probabilistic(repetitions=10, allowed_fails=1)  # noqa: ERA001 - example code
-    min_required_ratio = 0.3
+    min_required_ratio = 0.2
     max_allowed_ratio = 0.9
     assert min_required_ratio < song_ratio < max_allowed_ratio
