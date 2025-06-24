@@ -380,8 +380,15 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
         .values(skips_since_last_play=(PoolMemberRandomizationParameters.skips_since_last_play + 1))
     )
 
-    playing_track.randomization_parameters.skips_since_last_play = 1
-    session.merge(playing_track)
+    session.execute(
+        update(PoolMemberRandomizationParameters)
+        .where(
+            PoolMemberRandomizationParameters.pool_member.has(
+                and_(PoolMember.pool_id == pool.id, PoolMember.content_uri == playing_track.content_uri)
+            )
+        )
+        .values(skips_since_last_play=1)
+    )
 
 
 def _remove_played_promoted_songs(session: Session, user: User, track: PoolMember) -> None:

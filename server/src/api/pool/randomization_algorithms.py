@@ -49,7 +49,7 @@ class PoolRandomizer:
         self._users: dict[str, User] = {user.spotify_id: user for user in users}
         self._user_calculated_playtimes = user_calculated_playtimes
         self._user_pools: dict[str, [PoolMember]] = {user.spotify_id: [] for user in users}
-        self._pool_length = len(pool_members)
+        self._pool_length = len({pool_member.content_uri for pool_member in pool_members})
         self._pool_length_ms = sum(pool_member.duration_ms for pool_member in pool_members)
 
         # Pseudo random weighting operates on a floor/ceiling principle, where both are integer percentage values of

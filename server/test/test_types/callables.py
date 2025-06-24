@@ -183,6 +183,10 @@ class AssertEmptyTables(Protocol):
     def __call__(self, *tables: type(EntityBase)) -> None: ...
 
 
+class CreateParentlessPoolMember(Protocol):
+    def __call__(self, user: User, sort_order: int = 0, pool_id: Optional[int] = None) -> PoolMember: ...
+
+
 class CreatePoolMembers(Protocol):
     def __call__(
         self,
@@ -222,7 +226,7 @@ type CreateTestUsers = Callable[[int], list[User]]
 type MockPoolMemberSpotifyFetch = Callable[[PoolMember], None]
 type CreateMemberPostData = Callable[[PoolMember], PoolContentData]
 type AddTrackToPool = Callable[[PoolMember, Headers], None]
-type ImplementPoolFromMembers = Callable[[list[User], dict[str, list[PoolMember]]], None]
+type ImplementPoolFromMembers = Callable[[list[User], dict[str, list[PoolMember]]], str]
 type BuildQueue = Callable[[], QueueData]
 type AssertTokenInHeaders = Callable[[httpx.Response], str]
 type MockNoPlayerStateResponse = Callable[[], None]
