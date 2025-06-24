@@ -18,21 +18,9 @@ from api.common.models import SpotifyTokenResponse
 from api.common.spotify_models import RefreshTokenData, RequestTokenData
 from database.database_connection import ConnectionManager
 from database.entities import User, UserSession
+from datetime_wrapper_raw import DateTimeWrapperRaw
 
 _logger = getLogger("main.api.common.dependencies")
-
-
-class DateTimeWrapperRaw:  # pragma: no cover - we're always mocking this class
-    """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
-
-    def __init__(self) -> None:
-        self._timezone = datetime.timezone.utc
-
-    def now(self) -> datetime.datetime:
-        return datetime.datetime.now(self._timezone)
-
-    def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
-        return timestamp.replace(tzinfo=self._timezone)
 
 
 DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]
@@ -150,9 +138,8 @@ class AuthSpotifyClientRaw:
     ) -> SpotifyTokenResponse:
         token = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
         headers = {"Authorization": "Basic " + token, "Content-Type": "application/x-www-form-urlencoded"}
-        data = self._spotify_client.post(
-            override_url="https://accounts.spotify.com/api/token", headers=headers, data=form
-        )
+        override_url = "https://accounts.spotify.com/api/token"
+        data = self._spotify_client.post(override_url=override_url, headers=headers, data=form)
         refresh_token = data["refresh_token"] if "refresh_token" in data else form["refresh_token"]
         return SpotifyTokenResponse(
             access_token=data["access_token"],

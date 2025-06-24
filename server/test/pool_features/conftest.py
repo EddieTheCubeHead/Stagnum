@@ -9,6 +9,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from faker import Faker
 from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent, MockedPoolContents
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
@@ -20,6 +21,8 @@ from test_types.callables import (
     CreatePoolCreationDataJson,
     CreateSpotifyPlayback,
     CreateSpotifyPlaybackState,
+    GetDbPlaybackData,
+    IncrementNow,
     MockNoPlayerStateResponse,
     MockPlaybackPausedResponse,
     MockPlaylistFetchResult,
@@ -27,9 +30,11 @@ from test_types.callables import (
     RunSchedulingJob,
     SharePoolAndGetCode,
     SkipSong,
+    TimewarpToNextSong,
     ValidateModel,
     ValidateResponse,
 )
+from test_types.faker import FakerFixture
 from test_types.typed_dictionaries import Headers
 
 from api.auth.dependencies import AuthDatabaseConnection
@@ -199,9 +204,17 @@ def another_logged_in_user_header(another_logged_in_user_token: str) -> Headers:
 
 
 @pytest.fixture
-def another_logged_in_user(faker: Faker) -> User:
-    user_id = faker.uuid4()
-    return User(spotify_id=user_id, spotify_username=user_id, spotify_avatar_url="user.icon.example")
+def another_logged_in_user_id(faker: FakerFixture) -> str:
+    return faker.uuid4()
+
+
+@pytest.fixture
+def another_logged_in_user(another_logged_in_user_id: str) -> User:
+    return User(
+        spotify_id=another_logged_in_user_id,
+        spotify_username=another_logged_in_user_id,
+        spotify_avatar_url="user.icon.example",
+    )
 
 
 @pytest.fixture
@@ -450,6 +463,28 @@ def run_scheduling_job(
 
 
 @pytest.fixture
+def timewarp_to_next_song(
+    run_scheduling_job: RunSchedulingJob,
+    get_db_playback_data: GetDbPlaybackData,
+    increment_now: IncrementNow,
+    mock_datetime_wrapper: MockDateTimeWrapper,
+) -> TimewarpToNextSong:
+    async def wrapper() -> None:
+        playback_data = get_db_playback_data()
+        if playback_data is None:
+            msg = "Attempting to warp to next song without a mocked playback!"
+            raise AssertionError(msg)
+        increment_now(
+            mock_datetime_wrapper.ensure_utc(playback_data.next_song_change_timestamp)
+            - mock_datetime_wrapper.now()
+            - datetime.timedelta(milliseconds=200)
+        )
+        await run_scheduling_job()
+
+    return wrapper
+
+
+@pytest.fixture
 def skip_song(test_client: TestClient, create_spotify_playback: CreateSpotifyPlayback) -> SkipSong:
     def wrapper(headers: Headers) -> httpx.Response:
         create_spotify_playback(50000, 0)
@@ -542,3 +577,16 @@ def joined_user_token_for_promotion_tests(
     joined_user_header_for_promotion_tests: Headers,  # noqa: ARG001
 ) -> str:
     return another_logged_in_user_token
+
+
+@pytest.fixture
+def get_db_playback_data(db_connection: ConnectionManager, logged_in_user_id: str) -> GetDbPlaybackData:
+    def wrapper() -> PlaybackSession:
+        with db_connection.session() as session:
+            return session.scalar(
+                select(PlaybackSession)
+                .where(PlaybackSession.user_id == logged_in_user_id)
+                .options(joinedload(PlaybackSession.current_track))
+            )
+
+    return wrapper

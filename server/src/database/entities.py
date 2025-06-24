@@ -1,9 +1,30 @@
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
+
+from datetime_wrapper_raw import DateTimeWrapperRaw
+
+
+class NowFactory:
+    """A class used as a factory for all insert time stamps to enable mocking them for testing.
+
+    Takes the application's datetime wrapper class on initialization. The class can be swapped (for a mock) with
+    set_wrapper(new_wrapper)"""
+
+    def __init__(self, datetime_wrapper: DateTimeWrapperRaw) -> None:
+        self._datetime_wrapper = datetime_wrapper
+
+    def set_wrapper(self, datetime_wrapper: DateTimeWrapperRaw) -> None:
+        self._datetime_wrapper = datetime_wrapper
+
+    def now(self) -> datetime.datetime:
+        return self._datetime_wrapper.now()
+
+
+now_factory = NowFactory(DateTimeWrapperRaw())
 
 
 class EntityBase(DeclarativeBase):
@@ -11,9 +32,7 @@ class EntityBase(DeclarativeBase):
     def __tablename__(self) -> str:
         return self.__name__
 
-    insert_time_stamp: Mapped[datetime.datetime] = mapped_column(
-        DateTime, insert_default=datetime.datetime.now(datetime.timezone.utc)
-    )
+    insert_time_stamp: Mapped[datetime.datetime] = mapped_column(DateTime, insert_default=now_factory.now)
 
 
 class User(EntityBase):
@@ -101,7 +120,6 @@ class PoolShareData(EntityBase):
 class PoolJoinedUser(EntityBase):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.spotify_id"), primary_key=True)
     pool_id: Mapped[int] = mapped_column(ForeignKey("Pool.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
-    playback_time_ms: Mapped[int] = mapped_column(Integer(), default=0)
     promoted_track_id: Mapped[int] = mapped_column(
         ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
     )
@@ -126,3 +144,11 @@ class PlaybackSession(EntityBase):
     current_track_duration_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
 
     current_track: Mapped[PoolMember] = relationship()
+
+
+class PlayedPoolMember(EntityBase):
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
+    joined_user_id: Mapped[str] = mapped_column(ForeignKey("PoolJoinedUser.user_id"))
+    pool_member_id: Mapped[str] = mapped_column(ForeignKey("PoolMember.id"))
+
+    played_time_ms: Mapped[int] = mapped_column(Integer(), nullable=False)

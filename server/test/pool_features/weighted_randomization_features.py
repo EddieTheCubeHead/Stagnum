@@ -1,10 +1,13 @@
+import datetime
+import json
 import random
+from typing import Optional
 from unittest.mock import Mock
 
 import pytest
 from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
-from helpers.classes import CurrentPlaybackData
+from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
@@ -12,24 +15,32 @@ from test_types.callables import (
     BuildSuccessResponse,
     CreateHeaderFromTokenResponse,
     CreateMemberPostData,
+    CreateParentlessPoolMember,
     CreatePlayback,
     CreatePoolFromUsers,
     CreatePoolMembers,
     CreateRandomizationParameters,
+    CreateRefreshTokenReturn,
     CreateTestUsers,
     CreateToken,
     CreateUsers,
+    GetDbPlaybackData,
     GetQueryParameter,
     ImplementPoolFromMembers,
+    IncrementNow,
     LogUserIn,
+    MockPlaylistFetch,
     MockPoolMemberSpotifyFetch,
+    MockTrackFetch,
     SharePoolAndGetCode,
     SkipSong,
+    TimewarpToNextSong,
+    ValidateModel,
 )
 from test_types.faker import FakerFixture
 from test_types.typed_dictionaries import Headers, PoolContentData
 
-from api.pool.models import PoolContent, PoolCreationData
+from api.pool.models import PoolContent, PoolCreationData, UnsavedPoolTrack
 from api.pool.randomization_algorithms import NextSongProvider, PoolRandomizer, RandomizationParameters
 from database.entities import PoolJoinedUser, PoolMember, PoolMemberRandomizationParameters, User
 
@@ -141,7 +152,7 @@ def implement_pool_from_members(
     mock_pool_member_spotify_fetch: MockPoolMemberSpotifyFetch,
     current_playback_data: CurrentPlaybackData,
 ) -> ImplementPoolFromMembers:
-    def wrapper(users: list[User], pool_members: dict[str, list[PoolMember]]) -> None:
+    def wrapper(users: list[User], pool_members: dict[str, list[PoolMember]]) -> str:
         main_user = users[0]
         main_user_pool = pool_members[main_user.spotify_id]
         creation_data = PoolCreationData(spotify_uris=[create_member_post_data(main_user_pool[0])]).model_dump()
@@ -157,11 +168,14 @@ def implement_pool_from_members(
             add_track_to_pool(track, valid_token_header)
         for user in users[1:]:
             token = create_token()
+            user.joined_pool = None
             log_user_in(user, token)
             header = create_header_from_token_response(token)
             test_client.post(f"/pool/join/{share_code}", headers=header)
             for track in pool_members[user.spotify_id]:
                 add_track_to_pool(track, header)
+
+        return share_code
 
     return wrapper
 
@@ -174,10 +188,28 @@ def create_users(faker: FakerFixture) -> CreateUsers:
                 spotify_id=faker.uuid4(),
                 spotify_username=faker.user_name(),
                 spotify_avatar_url=faker.url(),
-                joined_pool=PoolJoinedUser(playback_time_ms=0),
+                joined_pool=PoolJoinedUser(),
             )
             for _ in range(user_amount)
         ]
+
+    return wrapper
+
+
+@pytest.fixture
+def create_parentless_pool_member(faker: FakerFixture) -> CreateParentlessPoolMember:
+    def wrapper(user: User, sort_order: int = 0, pool_id: Optional[int] = None) -> PoolMember:
+        return PoolMember(
+            user_id=user.spotify_id,
+            name=" ".join(faker.words(3)),
+            id=faker.random_int(),
+            pool_id=pool_id,
+            image_url=faker.url(),
+            content_uri=f"spotify:track:{faker.uuid4()}",
+            duration_ms=faker.random_int(120000, 600000),
+            sort_order=sort_order,
+            randomization_parameters=PoolMemberRandomizationParameters(weight=0, skips_since_last_play=0),
+        )
 
     return wrapper
 
@@ -274,7 +306,7 @@ def should_always_play_song_that_was_not_played_last_in_two_song_queue(
     pool_members[0].randomization_parameters.skips_since_last_play = 1
     pool_members[1].randomization_parameters.skips_since_last_play = 2
     for _ in range(99):
-        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
+        result = PoolRandomizer(pool_members, users, randomization_parameters, {users[0].spotify_id: 1}).get_next_song()
         assert result.content_uri == pool_members[1].content_uri
 
 
@@ -286,13 +318,13 @@ def should_respect_custom_weight(
     variable_weighted_parameters: RandomizationParameters,
 ) -> None:
     users = create_test_users(1)
-    users[0].joined_pool = PoolJoinedUser(playback_time_ms=0)
+    users[0].joined_pool = PoolJoinedUser()
     song_1_plays = 0
     song_2_plays = 0
     for _ in range(9999):
         pool = create_pool_from_users((users[0], 2))[users[0].spotify_id]
         pool[0].randomization_parameters.weight = 1
-        song = next_song_provider.select_next_song(pool, users)
+        song = next_song_provider.select_next_song(pool, users, {users[0].spotify_id: 1})
         if song.id == pool[0].id:
             song_1_plays += 1
         else:
@@ -310,14 +342,134 @@ def should_balance_users_by_playtime(
     users = create_users(4)
     pool_members = create_pool_members(users, tracks_per_user=30, collections_per_user=2, tracks_per_collection=20)
     randomization_parameters = create_randomization_parameters()
-    # map ids to user once to not need to do O(n) mapping again
-    users_by_id = {user.spotify_id: user for user in users}
+
+    user_playtimes = {user.spotify_id: 0 for user in users}
     member_users = {member.content_uri: member.user_id for member in pool_members}
     for _ in range(999):
-        result = PoolRandomizer(pool_members, users, randomization_parameters).get_next_song()
-        users_by_id[member_users[result.content_uri]].joined_pool.playback_time_ms += result.duration_ms
+        result = PoolRandomizer(pool_members, users, randomization_parameters, user_playtimes).get_next_song()
+        user_playtimes[member_users[result.content_uri]] += result.duration_ms
 
-    pool_users_playtime = [user.joined_pool.playback_time_ms for user in users]
+    pool_users_playtime = list(user_playtimes.values())
     pool_users_playtime.sort()
     minimum_playtime_share = 0.85
     assert pool_users_playtime[0] / pool_users_playtime[-1] > minimum_playtime_share
+
+
+def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
+    create_users: CreateUsers,
+    create_pool_members: CreatePoolMembers,
+    create_randomization_parameters: CreateRandomizationParameters,
+) -> None:
+    users = create_users(2)
+    users[1].joined_pool.playback_time_ms = 100
+    pool_members = create_pool_members([users[0]], tracks_per_user=30, collections_per_user=2, tracks_per_collection=20)
+    pool_members.extend(create_pool_members([users[1]], tracks_per_user=1))
+    pool_members[-1].randomization_parameters.skips_since_last_play = 1
+    randomization_parameters = create_randomization_parameters()
+
+    iterations = 9999
+    for _ in range(iterations):
+        result = PoolRandomizer(
+            pool_members, users, randomization_parameters, {users[0].spotify_id: 1, users[1].spotify_id: 1}
+        ).get_next_song()
+        assert result.user_id == users[0].spotify_id
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+@pytest.mark.parametrize("_", range(10))
+@pytest.mark.usefixtures("correct_env_variables")
+async def should_not_consider_playback_time_over_history_threshold_for_user_weights(
+    joined_user_header: Headers,
+    mock_datetime_wrapper: MockDateTimeWrapper,
+    timewarp_to_next_song: TimewarpToNextSong,
+    monkeypatch: MonkeyPatch,
+    create_refresh_token_return: CreateRefreshTokenReturn,
+    increment_now: IncrementNow,
+    requests_client_post_queue: MockResponseQueue,
+    mock_playlist_fetch: MockPlaylistFetch,
+    test_client: TestClient,
+    get_db_playback_data: GetDbPlaybackData,
+    logged_in_user_id: str,
+    another_logged_in_user_id: str,
+    _: int,
+) -> None:
+    monkeypatch.setenv("HISTORY_LENGTH_MINUTES", "60")
+    start_time = mock_datetime_wrapper.now()
+    queue_post_response = Mock()
+    queue_post_response.status_code = 200
+    queue_post_response.content = json.dumps({}).encode("utf-8")
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(minutes=55):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+    increment_now(datetime.timedelta(minutes=10))
+    # The refresh flow sends post song before it sends get refreshed token
+    requests_client_post_queue.append(queue_post_response)
+    create_refresh_token_return(99999)
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=2):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+
+    pool_content_data = mock_playlist_fetch(15)
+    test_client.post("/pool/content", json=pool_content_data, headers=joined_user_header)
+    song_counts = {logged_in_user_id: 0, another_logged_in_user_id: 0}
+
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=3):
+        requests_client_post_queue.append(queue_post_response)
+        await timewarp_to_next_song()
+        playback_session = get_db_playback_data()
+        song_counts[playback_session.current_track.user_id] += 1
+
+    song_ratio = song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id]
+    # Before decay implementation, the ratio used to be 0 or just above
+    # Now in rare situations (seems to be about 1 in 25) it can spike over 1
+    # TODO implement a pytest mark for "probabilistic" tests like so:
+    # pytest.mark.probabilistic(repetitions=10, allowed_fails=1)  # noqa: ERA001 - example code
+    min_required_ratio = 0.2
+    max_allowed_ratio = 0.9
+    assert min_required_ratio < song_ratio < max_allowed_ratio
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("_", range(10))
+def should_de_weight_all_copies_of_a_track_if_multiple_users_have_played_track_in_pool(
+    create_users: CreateUsers,
+    implement_pool_from_members: ImplementPoolFromMembers,
+    create_parentless_pool_member: CreateParentlessPoolMember,
+    skip_song: SkipSong,
+    valid_token_header: Headers,
+    validate_model: ValidateModel,
+    another_logged_in_user_header: Headers,
+    test_client: TestClient,
+    mock_track_fetch: MockTrackFetch,
+    _: int,
+) -> None:
+    users = create_users(5)
+    common_member = create_parentless_pool_member(users[0])
+    user_member_mappings = {user.spotify_id: [common_member] for user in users[:-1]}
+    shared_pool_code = implement_pool_from_members(users[:-1], user_member_mappings)
+    skip_song(valid_token_header)
+    test_client.post(f"/pool/join/{shared_pool_code}", headers=another_logged_in_user_header)
+    unique_member = mock_track_fetch()
+    test_client.post("/pool/content", json=unique_member, headers=another_logged_in_user_header)
+    skip_response = validate_model(UnsavedPoolTrack, skip_song(valid_token_header))
+    assert skip_response.spotify_resource_uri == unique_member["spotify_uri"]
+
+
+# If we set the weight for all to 0 and THEN skip, it might cause unexpected errors if all are counted for pool length
+# this test just validates that skip works normally in that case
+def should_count_tracks_duplicated_between_users_as_just_one_pool_member_for_length_based_weighting(
+    create_users: CreateUsers,
+    implement_pool_from_members: ImplementPoolFromMembers,
+    create_parentless_pool_member: CreateParentlessPoolMember,
+    skip_song: SkipSong,
+    valid_token_header: Headers,
+    validate_model: ValidateModel,
+) -> None:
+    users = create_users(10)
+    common_member = create_parentless_pool_member(users[0])
+    user_member_mappings = {user.spotify_id: [common_member] for user in users}
+    implement_pool_from_members(users, user_member_mappings)
+    skip_song(valid_token_header)
+    skip_response = validate_model(UnsavedPoolTrack, skip_song(valid_token_header))
+    assert skip_response.spotify_resource_uri == common_member.content_uri

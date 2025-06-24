@@ -6,8 +6,8 @@ from typing import override
 from _pytest.python_api import ApproxBase
 from pydantic import BaseModel
 
-from api.common.dependencies import DateTimeWrapperRaw
 from api.common.spotify_models import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
+from datetime_wrapper_raw import DateTimeWrapperRaw
 
 
 @dataclass
@@ -86,6 +86,9 @@ class ApproxDatetime(ApproxBase):
 
     def __eq__(self, actual: datetime.datetime) -> bool:
         return abs(self.expected - actual) <= self.abs
+
+    def __hash__(self) -> int:
+        return super().__hash__()
 
 
 class MockDateTimeWrapper(DateTimeWrapperRaw):

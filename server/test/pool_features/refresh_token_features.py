@@ -2,32 +2,15 @@ import datetime
 from unittest.mock import Mock
 
 import pytest
-from faker import Faker
 from sqlalchemy import select
 from starlette.testclient import TestClient
 from test_types.aliases import MockResponseQueue
-from test_types.callables import (
-    AssertTokenInHeaders,
-    BuildSuccessResponse,
-    GetExistingPool,
-    IncrementNow,
-    MockTokenReturn,
-)
+from test_types.callables import AssertTokenInHeaders, BuildSuccessResponse, GetExistingPool, IncrementNow
 from test_types.typed_dictionaries import Headers
 
 from database.database_connection import ConnectionManager
 from database.entities import UserSession
 from pool_features.conftest import CreateSpotifyPlayback, RunSchedulingJob
-
-
-@pytest.fixture
-def refresh_token_return(
-    mock_token_return: MockTokenReturn, requests_client_post_queue: MockResponseQueue, faker: Faker
-) -> str:
-    token: str = faker.uuid4()
-    refresh_token_response_data = mock_token_return(token)
-    requests_client_post_queue.append(refresh_token_response_data)
-    return token
 
 
 @pytest.mark.usefixtures("correct_env_variables", "existing_pool")
