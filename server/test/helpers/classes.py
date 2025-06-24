@@ -4,9 +4,9 @@ from enum import Enum
 from typing import override
 
 from _pytest.python_api import ApproxBase
+from datetime_wrapper_raw import DateTimeWrapperRaw
 from pydantic import BaseModel
 
-from api.common.dependencies import DateTimeWrapperRaw
 from api.common.spotify_models import AlbumData, ArtistData, PaginatedSearchResultData, PlaylistData, TrackData
 
 

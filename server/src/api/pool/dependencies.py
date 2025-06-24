@@ -733,7 +733,7 @@ class PoolDatabaseConnectionRaw:
                 )
                 .group_by(PlayedPoolMember.joined_user_id)
             )
-            return dict(playtime_raw_mapping)
+            return dict(playtime_raw_mapping.all())
 
 
 PoolDatabaseConnection = Annotated[PoolDatabaseConnectionRaw, Depends()]

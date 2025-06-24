@@ -51,6 +51,7 @@ from test_types.callables import (
 )
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
+import database.entities
 from api.application import create_app
 from api.auth.dependencies import AuthDatabaseConnection
 from api.auth.spotify_models import SpotifyFetchMeData
@@ -109,7 +110,11 @@ def requests_client_put_queue(requests_client: RequestsClient) -> MockResponseQu
 
 
 @pytest.fixture
-def db_connection(tmp_path: Path, pytestconfig: Config, monkeypatch: MonkeyPatch) -> ConnectionManager:
+def db_connection(
+    tmp_path: Path, pytestconfig: Config, monkeypatch: MonkeyPatch, mock_datetime_wrapper: MockDateTimeWrapper
+) -> ConnectionManager:
+    # We need this to ensure insert timestamps are affected by fake time skips
+    database.entities.now_factory.set_wrapper(mock_datetime_wrapper)
     echo = "-v" in pytestconfig.invocation_params.args
     monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
     monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))

@@ -1,9 +1,29 @@
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
+from datetime_wrapper_raw import DateTimeWrapperRaw
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
+
+
+class NowFactory:
+    """A class used as a factory for all insert time stamps to enable mocking them for testing.
+
+    Takes the application's datetime wrapper class on initialization. The class can be swapped (for a mock) with
+    set_wrapper(new_wrapper)"""
+
+    def __init__(self, datetime_wrapper: DateTimeWrapperRaw) -> None:
+        self._datetime_wrapper = datetime_wrapper
+
+    def set_wrapper(self, datetime_wrapper: DateTimeWrapperRaw) -> None:
+        self._datetime_wrapper = datetime_wrapper
+
+    def now(self) -> datetime.datetime:
+        return self._datetime_wrapper.now()
+
+
+now_factory = NowFactory(DateTimeWrapperRaw())
 
 
 class EntityBase(DeclarativeBase):
@@ -11,9 +31,7 @@ class EntityBase(DeclarativeBase):
     def __tablename__(self) -> str:
         return self.__name__
 
-    insert_time_stamp: Mapped[datetime.datetime] = mapped_column(
-        DateTime, insert_default=datetime.datetime.now(datetime.timezone.utc)
-    )
+    insert_time_stamp: Mapped[datetime.datetime] = mapped_column(DateTime, insert_default=now_factory.now)
 
 
 class User(EntityBase):

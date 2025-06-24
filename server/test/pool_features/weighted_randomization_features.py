@@ -353,7 +353,7 @@ def should_ignore_users_with_no_songs_over_played_since_pseudo_random_floor(
 @pytest.mark.wip
 @pytest.mark.slow
 @pytest.mark.asyncio
-@pytest.mark.parametrize("_", range(3))
+@pytest.mark.parametrize("_", range(10))
 @pytest.mark.usefixtures("correct_env_variables")
 async def should_weight_more_recent_playback_time_more_than_less_recent_playback_time(
     joined_user_header: Headers,
@@ -392,10 +392,17 @@ async def should_weight_more_recent_playback_time_more_than_less_recent_playback
     increment_now(datetime.timedelta(minutes=10))
     song_counts = {logged_in_user_id: 0, another_logged_in_user_id: 0}
 
-    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=8, minutes=55):
+    while mock_datetime_wrapper.now() - start_time < datetime.timedelta(hours=7, minutes=55):
         requests_client_post_queue.append(queue_post_response)
         await timewarp_to_next_song()
         playback_session = get_db_playback_data()
         song_counts[playback_session.current_track.user_id] += 1
 
-    assert song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id] > 0.3  # noqa: PLR2004
+    song_ratio = song_counts[logged_in_user_id] / song_counts[another_logged_in_user_id]
+    # Before decay implementation, the ratio used to hover around 0.15
+    # Now in rare situations (seems to be less than one in 30) it can spike over 1
+    # TODO implement a pytest mark for "probabilistic" tests like so:
+    # pytest.mark.probabilistic(repetitions=10, allowed_fails=1)  # noqa: ERA001 - example code
+    min_required_ratio = 0.3
+    max_allowed_ratio = 0.9
+    assert min_required_ratio < song_ratio < max_allowed_ratio

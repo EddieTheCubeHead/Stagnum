@@ -7,6 +7,7 @@ from logging import getLogger
 from typing import Annotated, Any, Optional
 
 import requests
+from datetime_wrapper_raw import DateTimeWrapperRaw
 from fastapi import Depends, Header, HTTPException
 from fastapi import Response as FastAPIResponse
 from requests import Response as RequestsResponse
@@ -20,19 +21,6 @@ from database.database_connection import ConnectionManager
 from database.entities import User, UserSession
 
 _logger = getLogger("main.api.common.dependencies")
-
-
-class DateTimeWrapperRaw:  # pragma: no cover - we're always mocking this class
-    """Wrapper for all datetime functionality. Ensures we can mock now() in testing"""
-
-    def __init__(self) -> None:
-        self._timezone = datetime.timezone.utc
-
-    def now(self) -> datetime.datetime:
-        return datetime.datetime.now(self._timezone)
-
-    def ensure_utc(self, timestamp: datetime.datetime) -> datetime.datetime:
-        return timestamp.replace(tzinfo=self._timezone)
 
 
 DateTimeWrapper = Annotated[DateTimeWrapperRaw, Depends()]
