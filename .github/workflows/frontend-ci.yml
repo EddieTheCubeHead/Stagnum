@@ -1,0 +1,44 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: './client'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run Type Check
+        run: yarn typecheck
+
+      - name: Run ESLint
+        run: yarn lint
+
+      - name: Check formatting
+        run: yarn format:check
+
+      - name: Run Tests
+        run: yarn test:cicd
+
+      - name: Comment coverage
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          title: Client rewrite coverage
+          badge-title: Client rewrite coverage
+          coverage-summary-path: client/coverage/coverage-summary.json

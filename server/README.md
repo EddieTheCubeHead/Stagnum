@@ -253,7 +253,7 @@ default port of 5432.
 
 Run pgAdmin. Add database `stagnum` via pgAdmin. 
 
-Set environment variable `DATABASE_CONNECTION_STRING` using the following template. Replace values in curly
+Set environment variable `DATABASE_CONNECTION_URL` using the following template. Replace values in curly
 braces with your port and password:
 
 ```bash
@@ -292,10 +292,10 @@ Setting an environment variable should be straightforward, here's how to do it w
 
 ```bash
 # bash
-export DATABASE_CONNECTION_STRING="postgresql://postgres:my_pass@localhost:5432/stagnum"
+export DATABASE_CONNECTION_URL="postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```
 
 ```powershell
 # Powershell
-$Env:DATABASE_CONNECTION_STRING = "postgresql://postgres:my_pass@localhost:5432/stagnum"
+$Env:DATABASE_CONNECTION_URL = "postgresql://postgres:my_pass@localhost:5432/stagnum"
 ```
