@@ -1,4 +1,4 @@
-name: Frontend rewrite CI
+name: Frontend CI
 
 on:
   push:
