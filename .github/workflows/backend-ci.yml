@@ -66,4 +66,3 @@ jobs:
         badge-title: Server coverage
         pytest-coverage-path: server/pytest-coverage.txt
         junitxml-path: server/pytest.xml
-      if: github.eventmname == 'pull_request'
