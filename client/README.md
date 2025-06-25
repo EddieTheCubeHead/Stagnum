@@ -1,18 +1,13 @@
-# Stagnum client rewrite
+# Stagnum client
 
-During the coursework there were multiple times the team encountered difficulties using Next.js for pure frontend
-work with a different server implementation. Moreover, because of repeated crunches to get the frontend
-into a presentable state for the course demo sessions, the code quality produced was subpar.
+## Development setup
 
-To fix both of these issues a decision was made to rewrite the whole frontend. The framework chosen to be used for
-the rewrite was Vite, based on recommendations by acquaintances. The package manager was also changed from npm to
-yarn, based on prior good experience.
+### Node, Yarn, packages
 
-The aim is to reach the same quality the backend has. This includes both architecture with small components and
-overall reusable code, as well as tooling with extremely high test coverage, extensive typing, linting and code
-formatting.
+The client uses yarn for package management and is developed with Vite. Vite needs node, which you can get
+from the [official Node.js website](https://nodejs.org/en/).
 
-## Running the project
+After you have node you need to enable corepack to use Yarn:
 
 Enable corepack (requires admin rights)
 
@@ -26,14 +21,33 @@ Install packages
 yarn
 ```
 
-Lint and format
+### Environment variables
+
+You need to set two environment variables into a `.env` file in the client root folder (where this file
+resides) for the client to work: `VITE_FRONTEND_URL` and `VITE_BACKEND_URL`. The `example.env` file should
+have sound defaults for those values when it comes to local development; In most cases you should be able
+to simply copy it and rename the copy to `.env`. Especially if your local development server is also
+using default values for port.
+
+## Running the project
+
+You should set up automatic formatting with prettier on save for your own convenience, and some automatic
+highlighting on lint errors depending on your environment. However, if you don't have those you can always
+lint and format via a script:
 
 ```bash
 yarn lf
 ```
 
-Run development server
+After there are no linting or formatting errors in the code starting the client in development mode is
+done with one more script:
 
 ```bash
 yarn dev
+```
+
+## Running tests
+
+```bash
+yarn test
 ```
