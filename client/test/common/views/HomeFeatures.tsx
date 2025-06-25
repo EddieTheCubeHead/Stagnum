@@ -1,17 +1,19 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { Home } from "../../../src/common/views/Home"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { PoolState, usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData } from "../../search/data/mockPoolData"
+import testComponent from "../../utils/testComponent.tsx"
+import { useTokenStore } from "../../../src/common/stores/tokenStore.ts"
 
 describe("Home", () => {
     beforeEach(() => usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null }))
     it("Should not render search if query is null", () => {
-        render(
+        testComponent(
             <TestQueryProvider>
                 <Home />
             </TestQueryProvider>,
@@ -23,7 +25,7 @@ describe("Home", () => {
     it("Should render search if search query set", () => {
         mockAxiosGet(mockedSearchData())
         useSearchStore.setState({ query: "my query" })
-        render(
+        testComponent(
             <TestQueryProvider>
                 <Home />
             </TestQueryProvider>,
@@ -34,7 +36,7 @@ describe("Home", () => {
 
     it("Should render confirm pool overwrite modal if overwrite attempted", () => {
         usePoolStore.setState({ confirmingOverwrite: { name: "name", uri: "uri", link: "link" } })
-        render(
+        testComponent(
             <TestQueryProvider>
                 <Home />
             </TestQueryProvider>,
@@ -42,7 +44,7 @@ describe("Home", () => {
 
         expect(screen.getByRole("heading", { name: "Warning!" })).toBeDefined()
         expect(
-            screen.queryByText(
+            screen.getByText(
                 "Creating a new playback pool will overwrite your current one! Are you sure you want to continue?",
             ),
         ).toBeDefined()
@@ -50,7 +52,8 @@ describe("Home", () => {
         expect(screen.getByRole("button", { name: "Continue" })).toBeDefined()
     })
 
-    it("Should fetch existing pool from server on Home view render", () => {
+    it("Should fetch existing pool from server on Home view render", async () => {
+        useTokenStore.setState({ token: "my token" })
         const mockPool = mockedCollectionPoolData()
         mockMultipleGets({
             routes: [
@@ -60,12 +63,12 @@ describe("Home", () => {
                 },
             ],
         })
-        render(
+        testComponent(
             <TestQueryProvider>
                 <Home />
             </TestQueryProvider>,
         )
 
-        expect(screen.findByText(mockedCollectionPoolData().users[0].collections[0].name)).toBeDefined()
+        expect(await screen.findByText(mockedCollectionPoolData().users[0].collections[0].name)).toBeDefined()
     })
 })

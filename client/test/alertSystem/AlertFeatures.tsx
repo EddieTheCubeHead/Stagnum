@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { useAlertStore } from "../../src/alertSystem/alertStore"
 import { AlertType } from "../../src/alertSystem/Alert"
-import { act, render, screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import { AlertHandler } from "../../src/alertSystem/AlertHandler"
+import testComponent from "../utils/testComponent.tsx"
 
 describe("Alert system", () => {
     beforeEach(() => {
@@ -12,50 +13,52 @@ describe("Alert system", () => {
     it("Should display alerts from alert queue", () => {
         useAlertStore.setState({ alerts: [{ type: AlertType.Error, message: "Test alert" }] })
 
-        render(<AlertHandler />)
+        testComponent(<AlertHandler />)
 
         expect(screen.getByText("Test alert")).toBeDefined()
     })
 
-    it("Should allow dismissing errors with close button", () => {
+    it("Should allow dismissing errors with close button", async () => {
         useAlertStore.setState({ alerts: [{ type: AlertType.Error, message: "Test alert" }] })
 
-        render(<AlertHandler />)
+        const { user } = testComponent(<AlertHandler />)
 
-        act(() => screen.getByRole("button", { name: "Close" }).click())
+        await user.click(screen.getByRole("button", { name: "Close" }))
 
         expect(screen.queryByText("Test alert")).toBeNull()
     })
 
-    it("Should allow dismissing success alerts with close button", () => {
+    it("Should allow dismissing success alerts with close button", async () => {
         useAlertStore.setState({ alerts: [{ type: AlertType.Success, message: "Test alert" }] })
 
-        render(<AlertHandler />)
+        const { user } = testComponent(<AlertHandler />)
 
-        act(() => screen.getByRole("button", { name: "Close" }).click())
+        await user.click(screen.getByRole("button", { name: "Close" }))
 
         expect(screen.queryByText("Test alert")).toBeNull()
     })
 
-    it("Should dismiss success alerts after seven seconds", () => {
+    it("Should dismiss success alerts after seven seconds", async () => {
         vi.useFakeTimers()
         useAlertStore.setState({ alerts: [{ type: AlertType.Success, message: "Test alert" }] })
 
-        render(<AlertHandler />)
+        testComponent(<AlertHandler />)
 
-        act(() => vi.advanceTimersByTime(7001))
+        await act(() => vi.advanceTimersByTime(7001))
 
         expect(screen.queryByText("Test alert")).toBeNull()
+        vi.useRealTimers()
     })
 
-    it("Should not dismiss error alerts automatically", () => {
+    it("Should not dismiss error alerts automatically", async () => {
         vi.useFakeTimers()
         useAlertStore.setState({ alerts: [{ type: AlertType.Error, message: "Test alert" }] })
 
-        render(<AlertHandler />)
+        testComponent(<AlertHandler />)
 
-        act(() => vi.advanceTimersByTime(9999999))
+        await act(() => vi.advanceTimersByTime(9999999))
 
         expect(screen.getByText("Test alert")).toBeDefined()
+        vi.useRealTimers()
     })
 })
