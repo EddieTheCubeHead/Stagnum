@@ -2,21 +2,22 @@ import { vi } from "vitest"
 import axios, { AxiosError, AxiosHeaders } from "axios"
 
 export const mockAxiosGet = (data: any, return_header?: string) => {
-    mockAxiosCall("get", data, return_header)
+    return mockAxiosCall("get", data, return_header)
 }
 
 export const mockAxiosPost = (data: any, return_header?: string) => {
-    mockAxiosCall("post", data, return_header)
+    return mockAxiosCall("post", data, return_header)
 }
 
 export const mockAxiosDelete = (data: any, return_header?: string) => {
-    mockAxiosCall("delete", data, return_header)
+    return mockAxiosCall("delete", data, return_header)
 }
 
 const mockAxiosCall = (call: "get" | "post" | "delete", data: any, return_header?: string) => {
     const axiosMock = vi.spyOn(axios, call)
 
     axiosMock.mockResolvedValue(createMockData(data, return_header))
+    return axiosMock
 }
 
 interface MockGetRouteDataResult {
@@ -59,6 +60,8 @@ export const mockMultipleGets = ({ routes, returnHeader }: mockMultipleGets) => 
         }
         throw new Error(`Attempting to call an un-mocked GET route ${url}`)
     })
+
+    return axiosMock
 }
 
 export const mockAxiosGetError = (errorMessage: string) => {

@@ -13,7 +13,7 @@ export type SearchStore = {
     isArtistsOpened: boolean
     setIsArtistsOpened: (isArtistsOpened: boolean) => void
     focusArtists: () => void
-    isPlaylistOpened: boolean
+    isPlaylistsOpened: boolean
     setIsPlaylistOpened: (isPlaylistOpened: boolean) => void
     focusPlaylists: () => void
     openAll: () => void
@@ -42,7 +42,7 @@ export const useSearchStore = create<SearchStore>((set) => ({
         set({ isTracksOpened: true })
         set({ isAlbumsOpened: false })
         set({ isArtistsOpened: false })
-        set({ isPlaylistOpened: false })
+        set({ isPlaylistsOpened: false })
     },
 
     isAlbumsOpened: true,
@@ -51,7 +51,7 @@ export const useSearchStore = create<SearchStore>((set) => ({
         set({ isTracksOpened: false })
         set({ isAlbumsOpened: true })
         set({ isArtistsOpened: false })
-        set({ isPlaylistOpened: false })
+        set({ isPlaylistsOpened: false })
     },
 
     isArtistsOpened: true,
@@ -60,22 +60,22 @@ export const useSearchStore = create<SearchStore>((set) => ({
         set({ isTracksOpened: false })
         set({ isAlbumsOpened: false })
         set({ isArtistsOpened: true })
-        set({ isPlaylistOpened: false })
+        set({ isPlaylistsOpened: false })
     },
 
-    isPlaylistOpened: true,
-    setIsPlaylistOpened: (isPlaylistOpened: boolean) => set({ isPlaylistOpened }),
+    isPlaylistsOpened: true,
+    setIsPlaylistOpened: (isPlaylistsOpened: boolean) => set({ isPlaylistsOpened }),
     focusPlaylists: () => {
         set({ isTracksOpened: false })
         set({ isAlbumsOpened: false })
         set({ isArtistsOpened: false })
-        set({ isPlaylistOpened: true })
+        set({ isPlaylistsOpened: true })
     },
 
     openAll: () => {
         set({ isTracksOpened: true })
         set({ isAlbumsOpened: true })
         set({ isArtistsOpened: true })
-        set({ isPlaylistOpened: true })
+        set({ isPlaylistsOpened: true })
     },
 }))

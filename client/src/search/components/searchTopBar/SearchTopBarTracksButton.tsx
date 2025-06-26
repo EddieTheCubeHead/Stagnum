@@ -8,7 +8,7 @@ export const SearchTopBarTracksButton = () => {
         searchStore.isTracksOpened &&
         !searchStore.isAlbumsOpened &&
         !searchStore.isArtistsOpened &&
-        !searchStore.isPlaylistOpened
+        !searchStore.isPlaylistsOpened
     return (
         <SearchTopBarButton
             title="Tracks"
