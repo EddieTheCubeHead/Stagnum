@@ -64,8 +64,38 @@ describe("Tool bar", () => {
         describe("Debounce", () => {
             const debounceDelay = 511
 
+            beforeEach(() => {
+                useSearchStore.setState({ query: "" })
+            })
+
             afterEach(() => {
                 vi.restoreAllMocks()
+            })
+
+            it("Should not change search query if search input changes to empty string", async () => {
+                const { user } = testComponent(
+                    <TestQueryProvider>
+                        <ToolBar />
+                    </TestQueryProvider>,
+                )
+                await user.click(screen.getByRole("button", { name: "Search" }))
+                await user.type(screen.getByRole("textbox"), "test")
+
+                vi.useFakeTimers()
+                await act(() => vi.advanceTimersByTime(debounceDelay + 1))
+                vi.useRealTimers()
+
+                await waitFor(() => expect(useSearchStore.getState().query).toBe("test"))
+                await user.clear(screen.getByRole("textbox"))
+
+                vi.useFakeTimers()
+                await act(() => vi.advanceTimersByTime(debounceDelay + 1))
+                vi.useRealTimers()
+
+                await expect(
+                    async () => await waitFor(() => expect(useSearchStore.getState().query).toBe("")),
+                ).rejects.toThrowError()
+                expect(useSearchStore.getState().query).toBe("test")
             })
 
             it("Should set search query with debounce delay after typing", async () => {
@@ -85,29 +115,6 @@ describe("Tool bar", () => {
                 vi.useRealTimers()
 
                 await waitFor(() => expect(useSearchStore.getState().query).toBe("test query"))
-            })
-
-            it("Should not change search query if search input changes to empty string", async () => {
-                useSearchStore.setState({ query: "test" })
-                const { user } = testComponent(
-                    <TestQueryProvider>
-                        <ToolBar />
-                    </TestQueryProvider>,
-                )
-                await user.click(screen.getByRole("button", { name: "Search" }))
-                await user.type(screen.getByRole("textbox"), "test")
-
-                vi.useFakeTimers()
-                await act(() => vi.advanceTimersByTime(debounceDelay + 1))
-                vi.useRealTimers()
-
-                await user.clear(screen.getByRole("textbox"))
-
-                vi.useFakeTimers()
-                await act(() => vi.advanceTimersByTime(debounceDelay + 1))
-                vi.useRealTimers()
-
-                await waitFor(() => expect(useSearchStore.getState().query).toBe("test"))
             })
         })
 
