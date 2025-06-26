@@ -1,16 +1,14 @@
 import { describe, it, expect } from "vitest"
-import { act, render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { SearchTopBar } from "../../../src/search/components/searchTopBar/SearchTopBar"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
-import { userEvent } from "@testing-library/user-event"
+import testComponent from "../../utils/testComponent.tsx"
 
 describe("SearchTopBar", () => {
-    it("Should set tracks as the only open category on click on tracks button", () => {
-        render(<SearchTopBar />)
+    it("Should set tracks as the only open category on click on tracks button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Track Tracks" }).click()
-        })
+        await user.click(screen.getByRole("button", { name: "Track Tracks" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(false)
@@ -18,14 +16,11 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(false)
     })
 
-    it("Should set all categories as open on second click on tracks button", () => {
-        const user = userEvent.setup()
-        render(<SearchTopBar />)
+    it("Should set all categories as open on second click on tracks button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            user.click(screen.getByRole("button", { name: "Track Tracks" }))
-            user.click(screen.getByRole("button", { name: "Track Tracks" }))
-        })
+        await user.click(screen.getByRole("button", { name: "Track Tracks" }))
+        await user.click(screen.getByRole("button", { name: "Track Tracks" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(true)
@@ -33,12 +28,10 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(true)
     })
 
-    it("Should set albums as the only open category on click on albums button", () => {
-        render(<SearchTopBar />)
+    it("Should set albums as the only open category on click on albums button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Album Albums" }).click()
-        })
+        await user.click(screen.getByRole("button", { name: "Album Albums" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(true)
@@ -46,14 +39,11 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(false)
     })
 
-    it("Should set all categories as open on second click on albums button", () => {
-        const user = userEvent.setup()
-        render(<SearchTopBar />)
+    it("Should set all categories as open on second click on albums button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            user.click(screen.getByRole("button", { name: "Album Albums" }))
-            user.click(screen.getByRole("button", { name: "Album Albums" }))
-        })
+        await user.click(screen.getByRole("button", { name: "Album Albums" }))
+        await user.click(screen.getByRole("button", { name: "Album Albums" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(true)
@@ -61,12 +51,10 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(true)
     })
 
-    it("Should set artists as the only open category on click on artists button", () => {
-        render(<SearchTopBar />)
+    it("Should set artists as the only open category on click on artists button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Artist Artists" }).click()
-        })
+        await user.click(screen.getByRole("button", { name: "Artist Artists" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(false)
@@ -74,14 +62,11 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(false)
     })
 
-    it("Should set all categories as open on second click on artists button", () => {
-        const user = userEvent.setup()
-        render(<SearchTopBar />)
+    it("Should set all categories as open on second click on artists button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            user.click(screen.getByRole("button", { name: "Artist Artists" }))
-            user.click(screen.getByRole("button", { name: "Artist Artists" }))
-        })
+        await user.click(screen.getByRole("button", { name: "Artist Artists" }))
+        await user.click(screen.getByRole("button", { name: "Artist Artists" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(true)
@@ -89,12 +74,10 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(true)
     })
 
-    it("Should set playlists as the only open category on click on playlists button", () => {
-        render(<SearchTopBar />)
+    it("Should set playlists as the only open category on click on playlists button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            screen.getByRole("button", { name: "Playlist Playlists" }).click()
-        })
+        await user.click(screen.getByRole("button", { name: "Playlist Playlists" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(false)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(false)
@@ -102,14 +85,11 @@ describe("SearchTopBar", () => {
         expect(useSearchStore.getState().isPlaylistOpened).toBe(true)
     })
 
-    it("Should set all categories as open on second click on playlists button", () => {
-        const user = userEvent.setup()
-        render(<SearchTopBar />)
+    it("Should set all categories as open on second click on playlists button", async () => {
+        const { user } = testComponent(<SearchTopBar />)
 
-        act(() => {
-            user.click(screen.getByRole("button", { name: "Playlist Playlists" }))
-            user.click(screen.getByRole("button", { name: "Playlist Playlists" }))
-        })
+        await user.click(screen.getByRole("button", { name: "Playlist Playlists" }))
+        await user.click(screen.getByRole("button", { name: "Playlist Playlists" }))
 
         expect(useSearchStore.getState().isTracksOpened).toBe(true)
         expect(useSearchStore.getState().isAlbumsOpened).toBe(true)

@@ -40,17 +40,21 @@ export const mockMultipleGets = ({ routes, returnHeader }: mockMultipleGets) => 
     const axiosMock = vi.spyOn(axios, "get")
 
     axiosMock.mockImplementation(async (url, ..._args) => {
-        let mockedData = undefined
+        let mockedData,
+            mockedError = undefined
         routes.forEach((routeMock) => {
             if ("test.server" + routeMock.route === url) {
                 if ("error" in routeMock) {
-                    throw routeMock.error
+                    mockedError = routeMock.error
+                } else {
+                    mockedData = routeMock.data
                 }
-                mockedData = routeMock.data
             }
         })
 
         if (mockedData !== undefined) {
+            return createMockData(mockedData, returnHeader)
+        } else if (mockedError !== undefined) {
             return createMockData(mockedData, returnHeader)
         }
         throw new Error(`Attempting to call an un-mocked GET route ${url}`)

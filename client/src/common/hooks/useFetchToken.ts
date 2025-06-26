@@ -7,6 +7,8 @@ export const useFetchToken = (code: string, state: string) => {
         fetchToken(code, state).then((tokenData) => {
             setToken(tokenData.access_token)
             window.history.replaceState(null, "", window.location.pathname)
+            return tokenData
         })
+        return null
     }
 }

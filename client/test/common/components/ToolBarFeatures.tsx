@@ -80,9 +80,7 @@ describe("Tool bar", () => {
             expect(useSearchStore.getState().query).toBe("")
 
             vi.useFakeTimers()
-
             await act(() => vi.advanceTimersByTime(debounceDelay + 1))
-
             vi.useRealTimers()
 
             await waitFor(() => expect(useSearchStore.getState().query).toBe("test query"))
@@ -100,9 +98,7 @@ describe("Tool bar", () => {
             await user.clear(screen.getByRole("textbox"))
 
             vi.useFakeTimers()
-
             await act(() => vi.advanceTimersByTime(debounceDelay + 1))
-
             vi.useRealTimers()
 
             await waitFor(() => expect(useSearchStore.getState().query).toBe("test"))
