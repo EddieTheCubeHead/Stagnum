@@ -1,51 +1,67 @@
 import { vi } from "vitest"
 import axios, { AxiosError, AxiosHeaders } from "axios"
-import { a } from "vitest/dist/suite-IbNSsUWN"
 
 export const mockAxiosGet = (data: any, return_header?: string) => {
-    mockAxiosCall("get", data, return_header)
+    return mockAxiosCall("get", data, return_header)
 }
 
 export const mockAxiosPost = (data: any, return_header?: string) => {
-    mockAxiosCall("post", data, return_header)
+    return mockAxiosCall("post", data, return_header)
 }
 
 export const mockAxiosDelete = (data: any, return_header?: string) => {
-    mockAxiosCall("delete", data, return_header)
+    return mockAxiosCall("delete", data, return_header)
 }
 
 const mockAxiosCall = (call: "get" | "post" | "delete", data: any, return_header?: string) => {
     const axiosMock = vi.spyOn(axios, call)
 
     axiosMock.mockResolvedValue(createMockData(data, return_header))
+    return axiosMock
 }
 
-interface mockGetRoute {
+interface MockGetRouteDataResult {
     route: string
     data: any
 }
 
+interface MockGetRouteErrorResult {
+    route: string
+    error: AxiosError
+}
+
+type MockGetRouteResult = MockGetRouteDataResult | MockGetRouteErrorResult
+
 interface mockMultipleGets {
-    routes: mockGetRoute[]
+    routes: MockGetRouteResult[]
     returnHeader?: string
 }
 
 export const mockMultipleGets = ({ routes, returnHeader }: mockMultipleGets) => {
     const axiosMock = vi.spyOn(axios, "get")
 
-    axiosMock.mockImplementation(async (url, ...args) => {
-        let mockedData = undefined
+    axiosMock.mockImplementation(async (url, ..._args) => {
+        let mockedData,
+            mockedError = undefined
         routes.forEach((routeMock) => {
             if ("test.server" + routeMock.route === url) {
-                mockedData = routeMock.data
+                if ("error" in routeMock) {
+                    mockedError = routeMock.error
+                } else {
+                    mockedData = routeMock.data
+                }
             }
         })
 
         if (mockedData !== undefined) {
             return createMockData(mockedData, returnHeader)
+        } else if (mockedError !== undefined) {
+            return createMockData(mockedData, returnHeader)
         }
         throw new Error(`Attempting to call an un-mocked GET route ${url}`)
     })
+
+    return axiosMock
 }
 
 export const mockAxiosGetError = (errorMessage: string) => {
@@ -63,7 +79,7 @@ export const mockAxiosDeleteError = (errorMessage: string) => {
 const mockAxiosError = (errorMessage: string, call: "get" | "post" | "delete") => {
     const axiosMock = vi.spyOn(axios, call)
     const mockErrorResponse = { data: { detail: errorMessage } }
-    // @ts-expect-error
+
     axiosMock.mockImplementation(async (..._) => {
         // @ts-expect-error - we are only interested in the error message
         throw new AxiosError(undefined, undefined, undefined, undefined, mockErrorResponse)

@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest"
 import { useTokenStore } from "../../../src/common/stores/tokenStore"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { EnsureLoginWrapper } from "../../../src/common/components/EnsureLoginWrapper"
+import testComponent from "../../utils/testComponent.tsx"
 
 describe("EnsureLoginWrapper", () => {
     it("Should open login popup if no token data", () => {
         useTokenStore.setState({ token: null })
-        render(
+        testComponent(
             <TestQueryProvider>
                 <EnsureLoginWrapper />
             </TestQueryProvider>,
@@ -18,7 +19,7 @@ describe("EnsureLoginWrapper", () => {
 
     it("Should not open login popup if token data is set", () => {
         useTokenStore.setState({ token: "my_test_token_1234" })
-        render(
+        testComponent(
             <TestQueryProvider>
                 <EnsureLoginWrapper />
             </TestQueryProvider>,

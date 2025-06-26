@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest"
 import { SearchCategoryTitleCard } from "../../../../src/search/components/cards/SearchCategoryTitleCard"
 import { useState } from "react"
 import { TrackIconSvg } from "../../../../src/common/icons/svgs/TrackIconSvg"
-import { act, render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
+import testComponent from "../../../utils/testComponent.tsx"
 
 const TestTitleCard = () => {
     const [isOpen, setIsOpen] = useState<boolean>(true)
@@ -11,21 +12,21 @@ const TestTitleCard = () => {
 
 describe("SearchCategoryTitleCardFeatures", () => {
     it("Should render header from given title", () => {
-        render(<TestTitleCard />)
+        testComponent(<TestTitleCard />)
 
         expect(screen.getByRole("heading", { name: "Test" })).toBeDefined()
     })
 
     it("Should render collapse icon initially", () => {
-        render(<TestTitleCard />)
+        testComponent(<TestTitleCard />)
 
         expect(screen.getByTitle("Collapse")).toBeDefined()
     })
 
-    it("Should render open icon after collapsing state", () => {
-        render(<TestTitleCard />)
+    it("Should render open icon after collapsing state", async () => {
+        const { user } = testComponent(<TestTitleCard />)
 
-        act(() => screen.getByRole("button", { name: "Collapse" }).click())
+        await user.click(screen.getByRole("button", { name: "Collapse" }))
 
         expect(screen.getByTitle("Open")).toBeDefined()
     })

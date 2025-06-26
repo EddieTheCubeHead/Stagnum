@@ -1,14 +1,15 @@
 import { expect, it, describe, vi, beforeEach } from "vitest"
-import { act, render, screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { useTokenStore } from "../../../src/common/stores/tokenStore"
 import { Main } from "../../../src/common/views/Main"
-import { mockAxiosDelete, mockAxiosGet, mockAxiosPost, mockMultipleGets } from "../../utils/mockAxios"
+import { mockAxiosDelete, mockAxiosPost, mockMultipleGets } from "../../utils/mockAxios"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { PoolState, usePoolStore } from "../../../src/common/stores/poolStore"
-import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
-import { userEvent } from "@testing-library/user-event"
+import { mockedTrackPoolData } from "../../search/data/mockPoolData"
 import { useAlertStore } from "../../../src/alertSystem/alertStore"
+import testComponent from "../../utils/testComponent.tsx"
+import { AxiosError } from "axios"
 
 const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
     let queryParams = vi.spyOn(window, "location", "get")
@@ -17,7 +18,6 @@ const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
 }
 
 describe("Main", () => {
-    // @ts-expect-error
     it("Should fetch login callback if code and state in url parameters", async () => {
         const testCode = "my_test_code"
         const testState = "my_test_state"
@@ -32,26 +32,23 @@ describe("Main", () => {
                 },
                 {
                     route: "/pool",
-                    data: null,
+                    error: new AxiosError("no pool", "404"),
                 },
             ],
             returnHeader: "my_access_token_1234",
         })
 
-        render(
+        testComponent(
             <TestQueryProvider>
                 <Main />
             </TestQueryProvider>,
         )
 
-        // @ts-expect-error
-        await new Promise((r: TimerHandler) => setTimeout(r))
+        await act(async () => await new Promise((r: TimerHandler) => setTimeout(r)))
         expect(useTokenStore.getState().token).toEqual(accessToken)
     })
 
     describe("Pool deletion operations", () => {
-        const user = userEvent.setup()
-
         beforeEach(() => {
             useSearchStore.setState({ isOpened: false })
             useTokenStore.setState({ token: "my_test_token_1234" })
@@ -72,9 +69,8 @@ describe("Main", () => {
             })
         })
 
-        // @ts-ignore
         it("Should prompt whether user wants to delete the pool when clicking delete pool", async () => {
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -92,9 +88,8 @@ describe("Main", () => {
             expect(screen.getByRole("button", { name: "Continue" })).toBeDefined()
         })
 
-        // @ts-expect-error
         it("Should not delete pool if cancelling on pool delete modal", async () => {
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -108,7 +103,6 @@ describe("Main", () => {
             expect(usePoolStore.getState().pool).toBeDefined()
         })
 
-        // @ts-expect-error
         it("Should delete pool if continuing on pool delete modal", async () => {
             mockAxiosDelete(null)
             mockMultipleGets({
@@ -124,7 +118,7 @@ describe("Main", () => {
                 ],
                 returnHeader: "my_access_token_1234",
             })
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -133,17 +127,15 @@ describe("Main", () => {
             await user.click(await screen.findByRole("button", { name: "Delete pool" }))
             await user.click(await screen.findByRole("button", { name: "Continue" }))
 
-            // @ts-expect-error
             await new Promise((r: TimerHandler) => setTimeout(r, 100))
 
             expect(screen.queryByText(mockedTrackPoolData().users[0].tracks[0].name)).toBeNull()
             expect(usePoolStore.getState().pool).toBeNull()
         })
 
-        // @ts-expect-error
         it("Should show alert after successfully deleting pool", async () => {
             mockAxiosDelete(null)
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -152,7 +144,6 @@ describe("Main", () => {
             await user.click(await screen.findByRole("button", { name: "Delete pool" }))
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
-            // @ts-expect-error
             await new Promise((r: TimerHandler) => setTimeout(r, 50))
 
             expect(useAlertStore.getState().alerts[0].message).toBe("Deleted your pool")
@@ -160,8 +151,6 @@ describe("Main", () => {
     })
 
     describe("Pool leaving operations", () => {
-        const user = userEvent.setup()
-
         beforeEach(() => {
             useSearchStore.setState({ isOpened: false })
             useTokenStore.setState({ token: "my_test_token_1234" })
@@ -182,9 +171,8 @@ describe("Main", () => {
             })
         })
 
-        // @ts-ignore
         it("Should prompt whether user wants to leave the pool when clicking leave pool", async () => {
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -200,9 +188,8 @@ describe("Main", () => {
             expect(screen.getByRole("button", { name: "Continue" })).toBeDefined()
         })
 
-        // @ts-expect-error
         it("Should not leave pool if cancelling on pool leave modal", async () => {
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -216,7 +203,6 @@ describe("Main", () => {
             expect(usePoolStore.getState().pool).toBeDefined()
         })
 
-        // @ts-expect-error
         it("Should leave pool if continuing on pool leave modal", async () => {
             mockAxiosPost(null)
             mockMultipleGets({
@@ -232,7 +218,7 @@ describe("Main", () => {
                 ],
                 returnHeader: "my_access_token_1234",
             })
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -241,18 +227,16 @@ describe("Main", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(await screen.findByRole("button", { name: "Continue" }))
 
-            // @ts-expect-error
             await new Promise((r: TimerHandler) => setTimeout(r, 100))
 
             expect(screen.queryByText(mockedTrackPoolData().users[0].tracks[0].name)).toBeNull()
             expect(usePoolStore.getState().pool).toBeNull()
         })
 
-        // @ts-expect-error
         it("Should show alert after successfully leaving pool", async () => {
             mockAxiosPost(null)
             const expectedUserName = mockedTrackPoolData().owner.display_name
-            render(
+            const { user } = testComponent(
                 <TestQueryProvider>
                     <Main />
                 </TestQueryProvider>,
@@ -261,7 +245,6 @@ describe("Main", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
-            // @ts-expect-error
             await new Promise((r: TimerHandler) => setTimeout(r, 50))
 
             expect(useAlertStore.getState().alerts[0].message).toBe(`Left ${expectedUserName}'s pool`)

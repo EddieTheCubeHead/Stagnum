@@ -1,5 +1,3 @@
-import { PlayableSpotifyResource } from "../../../src/search/models/PlayableSpotifyResource"
-import { SpotifyTrack } from "../../../src/search/models/SpotifyTrack"
 import { Pool } from "../../../src/common/models/Pool"
 
 export const mockedCollectionPoolData = (): Pool => {
@@ -100,7 +98,6 @@ export const mockedCollectionPoolData = (): Pool => {
             spotify_resource_uri: "spotify:track:0McOaAsK3oPy0X4XZtESls",
             duration_ms: 238560,
         },
-        share_code: null,
         owner: {
             display_name: "heiasi",
             icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
@@ -137,7 +134,6 @@ export const mockedTrackPoolData = (): Pool => {
             spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2DohZ",
             duration_ms: 204866,
         },
-        share_code: null,
         owner: {
             display_name: "heiasi",
             icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",

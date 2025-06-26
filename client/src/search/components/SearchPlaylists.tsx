@@ -13,10 +13,10 @@ export const SearchPlaylists = () => {
             <SearchCategoryTitleCard
                 title="Playlists"
                 iconSvg={<PlaylistIconSvg />}
-                isOpen={searchStore.isPlaylistOpened}
+                isOpen={searchStore.isPlaylistsOpened}
                 setIsOpen={searchStore.setIsPlaylistOpened}
             />
-            {searchStore.isPlaylistOpened ? (
+            {searchStore.isPlaylistsOpened ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
                     {data?.playlists.items.map((playlist: SpotifyPlaylist) => (
                         <SearchSpotifyPlaylistCard key={playlist.uri} playlist={playlist} />
