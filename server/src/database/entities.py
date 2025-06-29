@@ -147,7 +147,7 @@ class PlaybackSession(EntityBase):
 
 class PlayedPoolMember(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    joined_user_id: Mapped[str] = mapped_column(ForeignKey("PoolJoinedUser.user_id"))
-    pool_member_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"))
+    joined_user_id: Mapped[str | None] = mapped_column(ForeignKey("PoolJoinedUser.user_id"), nullable=True)
+    pool_member_id: Mapped[int | None] = mapped_column(ForeignKey("PoolMember.id"), nullable=True)
 
     played_time_ms: Mapped[int] = mapped_column(Integer(), nullable=False)
