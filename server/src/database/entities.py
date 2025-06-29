@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import datetime  # noqa: TC003
 
+from datetime_wrapper_raw import DateTimeWrapperRaw
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
-
-from datetime_wrapper_raw import DateTimeWrapperRaw
 
 
 class NowFactory:
@@ -126,7 +125,7 @@ class PoolJoinedUser(EntityBase):
 
     pool: Mapped[Pool] = relationship(lazy="joined", back_populates="joined_users")
     user: Mapped[User] = relationship(lazy="joined", back_populates="joined_pool")
-    promoted_track: Mapped[PoolMember] = relationship(lazy="joined")
+    promoted_track: Mapped[PoolMember | None] = relationship(lazy="joined")
 
 
 class PlaybackSession(EntityBase):
@@ -143,12 +142,12 @@ class PlaybackSession(EntityBase):
     current_track_image_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
     current_track_duration_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
 
-    current_track: Mapped[PoolMember] = relationship()
+    current_track: Mapped[PoolMember | None] = relationship()
 
 
 class PlayedPoolMember(EntityBase):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     joined_user_id: Mapped[str] = mapped_column(ForeignKey("PoolJoinedUser.user_id"))
-    pool_member_id: Mapped[str] = mapped_column(ForeignKey("PoolMember.id"))
+    pool_member_id: Mapped[int] = mapped_column(ForeignKey("PoolMember.id"))
 
     played_time_ms: Mapped[int] = mapped_column(Integer(), nullable=False)

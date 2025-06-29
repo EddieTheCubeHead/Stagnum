@@ -98,7 +98,7 @@ async def resume_playback(user: validated_user, pool_playback_service: PoolPlayb
 @router.post("/promote/{track_id}")
 async def promote_track(
     user: validated_user,
-    track_id: str,
+    track_id: int,
     database_connection: PoolDatabaseConnection,
     websocket_updater: WebsocketUpdater,
 ) -> PoolFullContents:

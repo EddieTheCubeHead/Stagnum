@@ -1,7 +1,7 @@
 import datetime
 import os
 from logging import getLogger
-from typing import Annotated, Any, ClassVar, Literal
+from typing import TYPE_CHECKING, Annotated, ClassVar, Literal, cast
 
 from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import and_, delete, exists, func, or_, select, update
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
 from api.common.helpers import build_auth_header, create_random_string, get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
-from api.common.spotify_models import PlaylistData
+from api.common.spotify_models import PlaylistData, TrackData
 from api.pool.helpers import (
     create_pool_return_model,
     map_pool_member_entity_to_model,
@@ -37,6 +37,9 @@ from database.entities import (
     PoolShareData,
     User,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _logger = getLogger("main.api.pool.dependencies")
 _PLAYBACK_UPDATE_CUTOFF_MS = 3000
@@ -74,7 +77,7 @@ def _build_tracks_without_image(tracks: list[dict]) -> list[UnsavedPoolTrack]:
 class PoolSpotifyClientRaw:
     def __init__(self, spotify_client: SpotifyClient) -> None:
         self._spotify_client = spotify_client
-        self._fetch_methods = {
+        self._fetch_methods: dict[str, Callable[[User, str], UnsavedPoolTrack | UnsavedPoolCollection]] = {
             "track": self._fetch_track,
             "album": self._fetch_album,
             "artist": self._fetch_artist,
@@ -440,7 +443,7 @@ def _validate_pool_member_additions(session: Session, contents: UnsavedPoolUserC
         _validate_pool_member_addition(session, collection, user)
 
 
-def _promote_user_track(session: Session, track_id: str, user: User, pool: Pool) -> None:
+def _promote_user_track(session: Session, track_id: int, user: User, pool: Pool) -> None:
     track = session.scalar(select(PoolMember).where(and_(PoolMember.pool_id == pool.id, PoolMember.id == track_id)))
     if track is None:
         raise HTTPException(400, "Could not find track to promote!")
@@ -671,7 +674,7 @@ class PoolDatabaseConnectionRaw:
             delta: datetime.timedelta = max(
                 existing_end_time_utc - self._datetime_wrapper.now(), datetime.timedelta(milliseconds=0)
             )
-            playtime = existing_playback.current_track.duration_ms - delta / datetime.timedelta(milliseconds=1)
+            playtime = existing_playback.current_track.duration_ms - delta // datetime.timedelta(milliseconds=1)
             session.add(
                 PlayedPoolMember(
                     pool_member_id=played_pool_member.id, joined_user_id=played_user.user_id, played_time_ms=playtime
@@ -713,7 +716,7 @@ class PoolDatabaseConnectionRaw:
             session.commit()
             return self.get_pool_data(pool_main_user)
 
-    def promote_track(self, track_id: str, user: User) -> list[PoolMember]:
+    def promote_track(self, track_id: int, user: User) -> list[PoolMember]:
         with self._database_connection.session() as session:
             pool = _get_pool_for_user(user, session)
             _promote_user_track(session, track_id, user, pool)
@@ -772,7 +775,7 @@ class WebsocketUpdaterRaw:
 WebsocketUpdater = Annotated[WebsocketUpdaterRaw, Depends()]
 
 
-def _get_additional_queue_part(queue_data: dict) -> list[dict]:
+def _get_additional_queue_part(queue_data: QueueData) -> list[TrackData]:
     last_song_uri = queue_data["queue"][-1]["uri"]
     additional_queue_part = []
     for track_data in queue_data["queue"]:
@@ -785,7 +788,7 @@ def _get_additional_queue_part(queue_data: dict) -> list[dict]:
     return additional_queue_part
 
 
-def _validate_spotify_state(spotify_state: dict[str, Any] | None) -> bool:
+def _validate_spotify_state(spotify_state: PlaybackStateData | None) -> bool:
     if not spotify_state:
         raise HTTPException(status_code=400, detail="Could not find active playback")
     if not spotify_state["is_playing"]:
@@ -893,7 +896,7 @@ class PoolPlaybackServiceRaw:
     async def resume_playback(self, user: User) -> PoolFullContents:
         pool_data = self._database_connection.set_playback_is_active(user, True)  # noqa: FBT003
         pool_model = create_pool_return_model(*pool_data)
-        pool_model.currently_playing = self.start_playback(user)
+        pool_model.currently_playing = cast("UnsavedPoolTrack", self.start_playback(user))
         user_ids = [user.user.spotify_id for user in pool_model.users]
         await self._websocket_updater.push_update(user_ids, "pool", pool_model.model_dump())
         return pool_model
@@ -909,7 +912,7 @@ class PoolPlaybackServiceRaw:
         song_left_at_fetch = spotify_state["item"]["duration_ms"] - spotify_state["progress_ms"]
         fetch_timestamp = ((fetch_end - fetch_start) / 2) + fetch_start
         fetch_lag = self._datetime_wrapper.now() - fetch_timestamp
-        song_left = song_left_at_fetch - (fetch_lag / datetime.timedelta(milliseconds=1))
+        song_left = song_left_at_fetch - fetch_lag.microseconds / 1000
         new_end_timestamp = self._datetime_wrapper.now() + datetime.timedelta(milliseconds=song_left)
         if song_left < _PLAYBACK_UPDATE_CUTOFF_MS:
             return new_end_timestamp
@@ -920,13 +923,13 @@ class PoolPlaybackServiceRaw:
             self._database_connection.update_playback_ts(playback, new_end_timestamp)
         return None
 
-    def _fetch_and_validate_spotify_state(self, user: User) -> dict:
+    def _fetch_and_validate_spotify_state(self, user: User) -> PlaybackStateData:
         spotify_state = self._spotify_client.get_user_playback(user)
         _validate_spotify_state(spotify_state)
         return spotify_state
 
     async def _fix_playback_data(
-        self, playback: PlaybackSession, actual_song_data: dict[str, Any], end_timestamp: datetime.datetime
+        self, playback: PlaybackSession, actual_song_data: TrackData, end_timestamp: datetime.datetime
     ) -> PoolMember:
         new_track = PoolMember(
             name=actual_song_data["name"],
