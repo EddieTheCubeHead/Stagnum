@@ -244,7 +244,7 @@ migrations into the server.
 
 *Note:* you don't need to follow the instructions in this chapter if you already know how to work with PostgreSQL, 
 in that case, just set up a local database, and set env variable `DATABASE_CONNECTION_URL` to a conn string for said
-database. (`postgresql://postgres:password@localhost:5432/my_database`). Then you can move on to 
+database. (`postgresql+psycopg://postgres:password@localhost:5432/my_database`). Then you can move on to 
 [Creating and running migrations](#creating-and-running-migrations)
 
 You can install PostgreSQL from [their website](https://www.postgresql.org/). Install PostgreSQL and pgAdmin 4.
@@ -257,7 +257,7 @@ Set environment variable `DATABASE_CONNECTION_URL` using the following template.
 braces with your port and password:
 
 ```bash
-postgresql://postgres:{password}@localhost:{port}/stagnum
+postgresql+psycopg://postgres:{password}@localhost:{port}/stagnum
 ```
 
 See [how to set environment variables](#how-to-set-environment-variables) for setting environment variables.
@@ -292,10 +292,10 @@ Setting an environment variable should be straightforward, here's how to do it w
 
 ```bash
 # bash
-export DATABASE_CONNECTION_URL="postgresql://postgres:my_pass@localhost:5432/stagnum"
+export DATABASE_CONNECTION_URL="postgresql+psycopg://postgres:my_pass@localhost:5432/stagnum"
 ```
 
 ```powershell
 # Powershell
-$Env:DATABASE_CONNECTION_URL = "postgresql://postgres:my_pass@localhost:5432/stagnum"
+$Env:DATABASE_CONNECTION_URL = "postgresql+psycopg://postgres:my_pass@localhost:5432/stagnum"
 ```

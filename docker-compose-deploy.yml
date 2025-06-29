@@ -29,7 +29,7 @@ services:
       - outgoing
       - internal
     environment:
-      DATABASE_CONNECTION_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${DATABASE_PORT}/${POSTGRES_DB}
+      DATABASE_CONNECTION_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${DATABASE_PORT}/${POSTGRES_DB}
       VERBOSE_SQLALCHEMY: false
       CORS_ORIGINS: "*"
     healthcheck:
