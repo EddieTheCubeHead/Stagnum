@@ -9,7 +9,6 @@ Create Date: 2025-06-21 22:31:46.005400
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -27,20 +26,8 @@ def upgrade() -> None:
         sa.Column("pool_member_id", sa.Integer(), nullable=False),
         sa.Column("played_time_ms", sa.Integer(), nullable=False),
         sa.Column("insert_time_stamp", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["joined_user_id"],
-            ["PoolJoinedUser.user_id"],
-            name="fk_played_pool_member_pool_joined_user",
-            onupdate="CASCADE",
-            ondelete="SET NULL",
-        ),
-        sa.ForeignKeyConstraint(
-            ["pool_member_id"],
-            ["PoolMember.id"],
-            name="fk_played_pool_member_pool_member",
-            onupdate="CASCADE",
-            ondelete="SET NULL",
-        ),
+        sa.ForeignKeyConstraint(["joined_user_id"], ["PoolJoinedUser.user_id"]),
+        sa.ForeignKeyConstraint(["pool_member_id"], ["PoolMember.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.drop_column("PoolJoinedUser", "playback_time_ms")
