@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import datetime  # noqa: TC003
 
-from datetime_wrapper_raw import DateTimeWrapperRaw
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
+
+from datetime_wrapper_raw import DateTimeWrapperRaw
 
 
 class NowFactory:
