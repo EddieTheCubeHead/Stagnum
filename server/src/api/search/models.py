@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 
@@ -40,7 +40,7 @@ class Playlist(SpotifyPlayable):
 PlayableType = TypeVar("PlayableType", bound=SpotifyPlayable)
 
 
-class PaginatedSearchResult(BaseModel, Generic[PlayableType]):
+class PaginatedSearchResult[PlayableType: SpotifyPlayable](BaseModel):
     limit: int
     offset: int
     total: int

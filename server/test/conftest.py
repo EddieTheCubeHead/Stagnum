@@ -3,7 +3,7 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -601,7 +601,7 @@ def mock_pool_content_fetches(
     mock_playlist_fetch: MockPlaylistFetch,
 ) -> MockPoolContentFetches:
     def wrapper(
-        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None
+        tracks: int = 0, artists: int = 0, albums: list[int] | None = None, playlists: list[int] | None = None
     ) -> PoolCreationDataDict:
         content_models: list[PoolContentData] = []
         content_models.extend([mock_track_fetch() for _ in range(tracks)])
@@ -618,7 +618,7 @@ def create_pool(
     mock_pool_content_fetches: MockPoolContentFetches, test_client: TestClient, valid_token_header: Headers
 ) -> CreatePool:
     def wrapper(
-        tracks: int = 0, artists: int = 0, albums: Optional[list[int]] = None, playlists: Optional[list[int]] = None
+        tracks: int = 0, artists: int = 0, albums: list[int] | None = None, playlists: list[int] | None = None
     ) -> httpx.Response:
         data_json = mock_pool_content_fetches(tracks, artists, albums, playlists)
         return test_client.post("/pool", json=data_json, headers=valid_token_header)
@@ -654,7 +654,7 @@ def create_spotify_me_fetch_data(default_image: ImageData) -> CreateSpotifyFetch
         country: str = "Finland",
         display_name: str = "Test User",
         user_id: str = "test user",
-        images: Optional[list[ImageData]] = None,
+        images: list[ImageData] | None = None,
         product: str = "premium",
     ) -> SpotifyFetchMeData:
         return {
@@ -679,7 +679,7 @@ def mock_spotify_user_data_fetch(
         country: str = "Finland",
         display_name: str = "Test User",
         user_id: str = "test user",
-        images: Optional[list[ImageData]] = None,
+        images: list[ImageData] | None = None,
         product: str = "premium",
     ) -> httpx.Response:
         return_json = create_spotify_me_fetch_data(country, display_name, user_id, images, product)

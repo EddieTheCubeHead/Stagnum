@@ -1,7 +1,7 @@
 import datetime
 import os
 from logging import getLogger
-from typing import Annotated, Any, ClassVar, Literal, Optional
+from typing import Annotated, Any, ClassVar, Literal
 
 from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import and_, delete, exists, func, or_, select, update
@@ -528,7 +528,7 @@ class PoolDatabaseConnectionRaw:
             return _get_playable_tracks(user, session)
 
     def save_playback_status(
-        self, user: User, playing_track: PoolMember, playback_end_timestamp: Optional[datetime.datetime] = None
+        self, user: User, playing_track: PoolMember, playback_end_timestamp: datetime.datetime | None = None
     ) -> None:
         with self._database_connection.session() as session:
             existing_playback = session.scalar(
@@ -556,7 +556,7 @@ class PoolDatabaseConnectionRaw:
         self,
         existing_playback: PlaybackSession,
         playing_track: PoolMember,
-        playback_end_timestamp: Optional[datetime.datetime] = None,
+        playback_end_timestamp: datetime.datetime | None = None,
     ) -> None:
         existing_playback.current_track_id = playing_track.id if playing_track.id is not None else None
         existing_playback.current_track_name = playing_track.name
@@ -725,7 +725,7 @@ class PoolDatabaseConnectionRaw:
             return _get_user_pool(user, session)
 
     def get_user_playtimes(
-        self, users: list[User], cutoff_timedelta: Optional[datetime.timedelta] = None
+        self, users: list[User], cutoff_timedelta: datetime.timedelta | None = None
     ) -> dict[str, int]:
         if cutoff_timedelta is None:
             cutoff_timedelta_minutes = int(os.getenv("HISTORY_LENGTH_MINUTES", "90"))
@@ -845,9 +845,7 @@ class PoolPlaybackServiceRaw:
             if skipped_queue:
                 self._spotify_client.skip_current_song(user)
 
-    async def _queue_next_song(
-        self, user: User, playback_end_timestamp: Optional[datetime.datetime] = None
-    ) -> PoolMember:
+    async def _queue_next_song(self, user: User, playback_end_timestamp: datetime.datetime | None = None) -> PoolMember:
         playable_tracks = self._database_connection.get_playable_tracks(user)
         pool_owner = self._database_connection.get_users_pools_main_user(user)
         self._database_connection.save_playtime(pool_owner)

@@ -19,74 +19,17 @@
 
 This section should contain everything you need to set up a local development environment.
 
-### Installing python
+### Installing uv
 
-Development is conducted in python 3.12. You can download it from
-[the official python website](https://www.python.org/downloads/). 
+Start by [installing uv from Astral](https://docs.astral.sh/uv/getting-started/installation/)
 
-**Please note that using an older version of python WILL BREAK the server, as we are actively using two 
-features (generics syntax, typing syntax) introduced in python 3.12!**
+### Syncing the project
 
-### Creating a virtual environment
-
-It's recommended to create a virtual environment (venv, from now on) for each python program you run locally.
-This prevents the packages you install from polluting the global package pool and prevents
-having multiple versions of the same package installed.
-
-You need to use the correct python executable to create the venv, as the executable used
-will become the interpreter for the venv created. You can check the version with
+Once you have uv running on your computer, run the sync command in server folder:
 
 ```bash
-python -V
+uv sync
 ```
-
-Notice the capital V.
-
-`python` uses python version from `PATH` in your computer. You can have multiple versions
-installed. Pointing to `python.exe` in the installation root directly lets you choose which
-version to use. For example on windows you could do:
-
-```bash
-C:\Users\user\AppData\Local\Programs\Python\Python311\python.exe -V
-> 3.11.7
-
-C:\Users\user\AppData\Local\Programs\Python\Python312\python.exe -V
-> 3.12.1
-```
-
-To create a venv, execute the command.
-
-```bash
-path-to-python-3-12-executable -m venv ./.venv
-```
-
-Then, you can use the following command to activate the venv (please choose the correct
-script depending on the type of your terminal, the examples are for bash and powershell!)
-
-
-```bash
-# bash
-.venv/Scripts/activate
-```
-
-```powershell
-# Powershell
-.venv/Scripts/activate.ps1
-```
-
-If the venv was activated correctly you should see line feeds start with `(.venv)` in your
-terminal.
-
-### Installing dependencies
-
-Once you have activated the venv, you can install dependencies by running
-
-```bash
-pip install -r server/requirements.txt
-```
-
-in the repository root. Leave the `server/` -part out if you are working directly in the
-server folder.
 
 ### Ensuring you have Spotify application credential
 
@@ -97,7 +40,7 @@ into the list of allowed Redirect URIs.
 
 ### Running the server
 
-The server can be run by simply running the `src/main.py` script. There are some environment variables you
+The server can be run by simply running the `src/main.py` script with uv. There are some environment variables you
 need to set beforehand, see [how to set environment variables](#how-to-set-environment-variables) for more info
 on setting environment variables:
 
@@ -136,6 +79,12 @@ integer percentage value of the whole pool length. Default `60`
 Please ensure `PSEUDO_RANDOM_FLOOR` is always smaller than `PSEUDO_RANDOM_CEILING`, or prepare wandering into the land
 of "undefined behaviour".
 
+Once all variables are set to your liking, use the following command in the server folder to start the server:
+
+```bash
+uv run src/main.py
+```
+
 You can validate the server is working by going to [`localhost:8080/health`](http://localhost:8080/health) in your 
 browser. The server should respond with healthcheck data that looks something like this:
 
@@ -155,19 +104,10 @@ browser. The server should respond with healthcheck data that looks something li
 
 ### Running the test set
 
-After you have the venv setup, you can install testing requirements by running the following command in
-repository root:
+You can run the test set at repository root with the command:
 
 ```bash
-pip install -r server/test_requirements.txt
-```
-
-This install both the requirements of the server **and** the requirements for testing (like `pytest`).
-
-After running this command you can run the test set at repository root with the command:
-
-```bash
-pytest server
+uv run pytest server
 ```
 
 ### Viewing API documentation
@@ -244,7 +184,7 @@ migrations into the server.
 
 *Note:* you don't need to follow the instructions in this chapter if you already know how to work with PostgreSQL, 
 in that case, just set up a local database, and set env variable `DATABASE_CONNECTION_URL` to a conn string for said
-database. (`postgresql://postgres:password@localhost:5432/my_database`). Then you can move on to 
+database. (`postgresql+psycopg://postgres:password@localhost:5432/my_database`). Then you can move on to 
 [Creating and running migrations](#creating-and-running-migrations)
 
 You can install PostgreSQL from [their website](https://www.postgresql.org/). Install PostgreSQL and pgAdmin 4.
@@ -257,7 +197,7 @@ Set environment variable `DATABASE_CONNECTION_URL` using the following template.
 braces with your port and password:
 
 ```bash
-postgresql://postgres:{password}@localhost:{port}/stagnum
+postgresql+psycopg://postgres:{password}@localhost:{port}/stagnum
 ```
 
 See [how to set environment variables](#how-to-set-environment-variables) for setting environment variables.
@@ -267,20 +207,19 @@ See [how to set environment variables](#how-to-set-environment-variables) for se
 For now migrations are not automatically ran with the server. This is subject to change as the team explores
 alembic more.
 
-All alembic-related commands should be run in the `server` folder.
+All alembic-related commands should be run in the `server` folder with `uv`.
 
-After you have installed requirements or test requirements in venv and set the environment variable for database
-connection string according to the previous chapter, you can run migrations with the following command:
+You can run migrations with the following command:
 
 ```bash
-alembic upgrade head
+uv run alembic upgrade head
 ```
 
 Creating migrations is easy. All you need to do is run the following command after making changes to SQLAlchemy
 ORM objects.
 
 ```bash
-alembic revision --autogenerate -m "My revision message"    
+uv run alembic revision --autogenerate -m "My revision message"    
 ```
 
 Then run the revision using the command above and verify it's working. I suggest removing the comments around
@@ -292,10 +231,10 @@ Setting an environment variable should be straightforward, here's how to do it w
 
 ```bash
 # bash
-export DATABASE_CONNECTION_URL="postgresql://postgres:my_pass@localhost:5432/stagnum"
+export DATABASE_CONNECTION_URL="postgresql+psycopg://postgres:my_pass@localhost:5432/stagnum"
 ```
 
 ```powershell
 # Powershell
-$Env:DATABASE_CONNECTION_URL = "postgresql://postgres:my_pass@localhost:5432/stagnum"
+$Env:DATABASE_CONNECTION_URL = "postgresql+psycopg://postgres:my_pass@localhost:5432/stagnum"
 ```
