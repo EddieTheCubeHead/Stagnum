@@ -134,7 +134,6 @@ python_files = "*_features.py"
 python_classes = "*Features"
 python_functions = "should_*"
 pythonpath = "src"
-pytest_alembic_enabled = true
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
