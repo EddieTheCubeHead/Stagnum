@@ -1,6 +1,6 @@
 import datetime
-from collections.abc import Awaitable, Coroutine
-from typing import Any, Callable, Optional, Protocol
+from collections.abc import Awaitable, Callable, Coroutine
+from typing import Any, Protocol
 
 import httpx
 from helpers.classes import MockedPlaylistPoolContent
@@ -184,7 +184,7 @@ class AssertEmptyTables(Protocol):
 
 
 class CreateParentlessPoolMember(Protocol):
-    def __call__(self, user: User, sort_order: int = 0, pool_id: Optional[int] = None) -> PoolMember: ...
+    def __call__(self, user: User, sort_order: int = 0, pool_id: int | None = None) -> PoolMember: ...
 
 
 class CreatePoolMembers(Protocol):
@@ -242,6 +242,6 @@ type AssertPlaybackStarted = Callable[[list[str]], None]
 type GetExistingPool = Callable[[], type[PoolFullContents]]
 type AssertPlaybackPaused = Callable[[], None]
 type CreateUsers = Callable[[int], list[User]]
-type GetDbPlaybackData = Callable[[], Optional[PlaybackSession]]
+type GetDbPlaybackData = Callable[[], PlaybackSession | None]
 
 type TimewarpToNextSong = Callable[[], Coroutine[Any, Any, None]]

@@ -1,4 +1,3 @@
-from typing import Optional
 from unittest.mock import Mock
 
 import httpx
@@ -56,7 +55,7 @@ def run_general_search_with_custom_images(
     test_client: TestClient,
     valid_token_header: Headers,
 ) -> RunGeneralSearchWithCustomImages:
-    def wrapper(query: str, limit: int = 20, images: Optional[list[ImageData]] = None) -> httpx.Response:
+    def wrapper(query: str, limit: int = 20, images: list[ImageData] | None = None) -> httpx.Response:
         requests_client_get_queue.append(build_general_search_with_custom_images(query, limit, images))
         return test_client.get(f"/search?query={query}", headers=valid_token_header)
 

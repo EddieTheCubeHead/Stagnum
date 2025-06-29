@@ -4,7 +4,7 @@ import functools
 import json
 from json import JSONDecodeError
 from logging import getLogger
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import requests
 from fastapi import Depends, Header, HTTPException
@@ -90,7 +90,7 @@ class SpotifyClientRaw:
         self._request_client = request_client
 
     def get(
-        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+        self, query: str | None = None, *args: str, override_url: str | None = None, **kwargs: dict[str, str]
     ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
@@ -98,7 +98,7 @@ class SpotifyClientRaw:
         return _validate_and_decode(raw_response)
 
     def post(
-        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+        self, query: str | None = None, *args: str, override_url: str | None = None, **kwargs: dict[str, str]
     ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
@@ -106,7 +106,7 @@ class SpotifyClientRaw:
         return _validate_and_decode(raw_response)
 
     def put(
-        self, query: Optional[str] = None, *args: str, override_url: Optional[str] = None, **kwargs: dict[str, str]
+        self, query: str | None = None, *args: str, override_url: str | None = None, **kwargs: dict[str, str]
     ) -> dict[str, Any] | None:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")

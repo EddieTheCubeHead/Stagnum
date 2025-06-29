@@ -116,7 +116,9 @@ def should_be_able_to_create_pool_from_album(
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
     assert len(user_pool["collections"][0]["tracks"]) == len(album["tracks"]["items"])
-    for expected_track, actual_track in zip(album["tracks"]["items"], user_pool["collections"][0]["tracks"]):
+    for expected_track, actual_track in zip(
+        album["tracks"]["items"], user_pool["collections"][0]["tracks"], strict=False
+    ):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -138,7 +140,7 @@ def should_save_whole_album_as_pool_in_database(
     assert actual_parent.name == album["name"]
     assert len(actual_parent.children) == len(album["tracks"]["items"])
     for expected_track, actual_track in zip(
-        album["tracks"]["items"], sorted(actual_parent.children, key=lambda x: x.sort_order)
+        album["tracks"]["items"], sorted(actual_parent.children, key=lambda x: x.sort_order), strict=False
     ):
         assert actual_track.duration_ms == expected_track["duration_ms"]
         assert actual_track.name == expected_track["name"]
@@ -165,7 +167,7 @@ def should_be_able_to_create_pool_from_artist(
     user_pool = pool_response["users"][0]
     assert user_pool["tracks"] == []
     assert len(user_pool["collections"][0]["tracks"]) == len(tracks)
-    for expected_track, actual_track in zip(tracks, user_pool["collections"][0]["tracks"]):
+    for expected_track, actual_track in zip(tracks, user_pool["collections"][0]["tracks"], strict=False):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -187,7 +189,9 @@ def should_save_artist_top_ten_tracks_as_pool_in_database(
         )
     assert actual_parent.name == artist["name"]
     assert len(actual_parent.children) == len(tracks)
-    for expected_track, actual_track in zip(tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)):
+    for expected_track, actual_track in zip(
+        tracks, sorted(actual_parent.children, key=lambda x: x.sort_order), strict=False
+    ):
         assert actual_track.duration_ms == expected_track["duration_ms"]
         assert actual_track.name == expected_track["name"]
 
@@ -210,7 +214,7 @@ def should_be_able_to_create_pool_from_playlist(
     assert user_pool["tracks"] == []
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks)
-    for expected_track, actual_track in zip(expected_tracks, user_pool["collections"][0]["tracks"]):
+    for expected_track, actual_track in zip(expected_tracks, user_pool["collections"][0]["tracks"], strict=False):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -236,7 +240,7 @@ def should_be_able_to_create_pool_from_playlist_even_if_some_tracks_return_none(
     assert user_pool["tracks"] == []
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks) - 1
-    for expected_track, actual_track in zip(expected_tracks[:-1], user_pool["collections"][0]["tracks"]):
+    for expected_track, actual_track in zip(expected_tracks[:-1], user_pool["collections"][0]["tracks"], strict=False):
         assert actual_track["name"] == expected_track["name"]
 
 
@@ -259,7 +263,7 @@ def should_save_whole_playlist_as_pool_in_database(
     expected_tracks = [track["track"] for track in playlist["tracks"]["items"]]
     assert len(actual_parent.children) == len(expected_tracks)
     for expected_track, actual_track in zip(
-        expected_tracks, sorted(actual_parent.children, key=lambda x: x.sort_order)
+        expected_tracks, sorted(actual_parent.children, key=lambda x: x.sort_order), strict=False
     ):
         assert actual_track.name == expected_track["name"]
         assert actual_track.duration_ms == expected_track["duration_ms"]

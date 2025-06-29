@@ -1,6 +1,6 @@
 import datetime
 from logging import getLogger
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import delete, select
@@ -35,7 +35,7 @@ class AuthDatabaseConnectionRaw:
         with self._database_connection.session() as session:
             return session.scalar(select(LoginState).where(LoginState.state_string == state_string)) is not None
 
-    def update_logged_in_user(self, user: User, token_result: ParsedTokenResponse, state: Optional[str] = None) -> None:
+    def update_logged_in_user(self, user: User, token_result: ParsedTokenResponse, state: str | None = None) -> None:
         _logger.debug(f"Updating user data for user {user}")
         with self._database_connection.session() as session:
             token_expiry = self._datetime_wrapper.now() + datetime.timedelta(seconds=token_result.expires_in)

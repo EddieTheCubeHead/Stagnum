@@ -1,7 +1,6 @@
 import datetime
 import json
 import random
-from typing import Optional
 from unittest.mock import Mock
 
 import pytest
@@ -198,7 +197,7 @@ def create_users(faker: FakerFixture) -> CreateUsers:
 
 @pytest.fixture
 def create_parentless_pool_member(faker: FakerFixture) -> CreateParentlessPoolMember:
-    def wrapper(user: User, sort_order: int = 0, pool_id: Optional[int] = None) -> PoolMember:
+    def wrapper(user: User, sort_order: int = 0, pool_id: int | None = None) -> PoolMember:
         return PoolMember(
             user_id=user.spotify_id,
             name=" ".join(faker.words(3)),

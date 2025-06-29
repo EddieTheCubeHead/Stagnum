@@ -1,7 +1,6 @@
 import json
 import random
 import string
-from typing import Optional
 
 import httpx
 import pytest
@@ -35,7 +34,7 @@ def base_auth_callback_call(
     test_client: TestClient,
     primary_valid_state_string: str,
 ) -> BaseAuthCallback:
-    def wrapper(state: Optional[str] = None) -> httpx.Response:
+    def wrapper(state: str | None = None) -> httpx.Response:
         state_string = state if state is not None else primary_valid_state_string
         return test_client.get(
             f"/auth/login/callback?state={state_string}&code=12345abcde&client_redirect_uri=test_url"
