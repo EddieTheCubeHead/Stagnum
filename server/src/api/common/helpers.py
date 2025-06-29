@@ -7,12 +7,13 @@ from typing import Never
 from fastapi import HTTPException
 
 from api.common.models import PoolJoinedUser, UserModel
+from api.common.spotify_models import ImageData
 from database.entities import User
 
 _logger = getLogger("main.api.common.helpers")
 
 
-def get_sharpest_icon(icons: list[dict]) -> str | None:
+def get_sharpest_icon(icons: list[ImageData]) -> str | None:
     _logger.debug(f"Finding sharpest icon from {icons}")
     if len(icons) == 0:
         return None

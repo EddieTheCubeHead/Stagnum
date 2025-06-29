@@ -1,9 +1,8 @@
 # Stagnum server
 
 - [Development setup](#development-setup)
-  - [Installing python](#installing-python)
-  - [Creating a virtual environment](#creating-a-virtual-environment)
-  - [Installing dependencies](#installing-dependencies)
+  - [Installing uv](#installing-uv)
+  - [Syncing the project](#syncing-the-project)
   - [Ensuring you have Spotify application credential](#ensuring-you-have-spotify-application-credential)
   - [Running the server](#running-the-server)
   - [Running the test set](#running-the-test-set)

@@ -50,7 +50,7 @@ async def add_content(
 
 @router.delete("/content/{content_id}")
 async def delete_content(
-    content_id: str,
+    content_id: int,
     user: validated_user,
     database_connection: PoolDatabaseConnection,
     websocket_updater: WebsocketUpdater,
@@ -98,7 +98,7 @@ async def resume_playback(user: validated_user, pool_playback_service: PoolPlayb
 @router.post("/promote/{track_id}")
 async def promote_track(
     user: validated_user,
-    track_id: str,
+    track_id: int,
     database_connection: PoolDatabaseConnection,
     websocket_updater: WebsocketUpdater,
 ) -> PoolFullContents:
