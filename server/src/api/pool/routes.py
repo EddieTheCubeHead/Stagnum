@@ -50,7 +50,7 @@ async def add_content(
 
 @router.delete("/content/{content_id}")
 async def delete_content(
-    content_id: str,
+    content_id: int,
     user: validated_user,
     database_connection: PoolDatabaseConnection,
     websocket_updater: WebsocketUpdater,
