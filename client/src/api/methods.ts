@@ -49,7 +49,7 @@ const useCommonApiCallDecorator = <T>(silent: boolean = false) => {
     const { addAlert } = useAlertStore()
     return async (request: Promise<AxiosResponse<T>>) => {
         const response = await handleRequestErrors(silent, request, addAlert)
-        const newHeader = response.config.headers["Authorization"] as string | undefined
+        const newHeader = response.config?.headers["Authorization"] as string | undefined
         setToken(newHeader ? newHeader : null)
         return response.data
     }
@@ -74,14 +74,7 @@ const handleRequestErrors = async <T>(
 }
 
 const useTokenHeader = () => {
-    let store
-    try {
-        store = useTokenStore()
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
-    const { token } = store
+    const { token } = useTokenStore()
     const headers = new AxiosHeaders()
     headers.set("Authorization", token)
     return headers

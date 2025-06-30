@@ -30,7 +30,7 @@ afterEach(() => {
     useSearchStore.setState({
         isOpened: false,
         query: "",
-        isPlaylistOpened: true,
+        isPlaylistsOpened: true,
         isArtistsOpened: true,
         isAlbumsOpened: true,
         isTracksOpened: true,
