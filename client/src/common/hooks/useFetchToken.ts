@@ -3,12 +3,10 @@ import { useTokenStore } from "../stores/tokenStore.ts"
 
 export const useFetchToken = (code: string, state: string) => {
     const { setToken } = useTokenStore()
-    return () => {
-        fetchToken(code, state).then((tokenData) => {
-            setToken(tokenData.access_token)
-            window.history.replaceState(null, "", window.location.pathname)
-            return tokenData
-        })
-        return null
+    return async () => {
+        const tokenData = await fetchToken(code, state)
+        setToken(tokenData.access_token)
+        window.history.replaceState(null, "", window.location.pathname)
+        return tokenData
     }
 }

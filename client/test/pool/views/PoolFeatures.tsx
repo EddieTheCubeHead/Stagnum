@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import { Pool } from "../../../src/pool/views/Pool"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
@@ -31,6 +31,8 @@ describe("Pool", () => {
                 <Pool />
             </TestQueryProvider>,
         )
+
+        await act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
 
         expect(await screen.findByText("Pool owner")).toBeDefined()
         expect(await screen.findByText("You")).toBeDefined()

@@ -7,7 +7,7 @@ export const useGetPool = () => {
     const getPoolApiCall = useApiGet<Pool>("/pool", true)
 
     return () => {
-        getPoolApiCall({})
+        getPoolApiCall()
             .then((poolModel) => {
                 if (poolModel) {
                     setPool(poolModel)

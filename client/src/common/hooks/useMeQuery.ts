@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { User } from "../models/User.ts"
 import { useApiGet } from "../../api/methods.ts"
 
-export const useMeQuery = (): { user: User; error: Error | null; isLoading: boolean } => {
+export const useMeQuery = (): { user: User | undefined; error: Error | null; isLoading: boolean } => {
     const { token, setToken } = useTokenStore()
     const { data, error, isLoading } = useQuery({
         queryKey: ["me"],
@@ -20,5 +20,5 @@ export const useMeQuery = (): { user: User; error: Error | null; isLoading: bool
         setToken(null)
     }
 
-    return { user: data, error, isLoading }
+    return { user: data as User | undefined, error, isLoading }
 }

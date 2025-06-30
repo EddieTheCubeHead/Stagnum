@@ -8,7 +8,7 @@ export const LoginPopupButton = () => {
         <div className="flex justify-center">
             <Button
                 onClick={() => {
-                    location.href = data.redirect_uri
+                    location.href = data!.redirect_uri
                 }}
                 text={"Login"}
             />

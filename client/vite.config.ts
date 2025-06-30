@@ -12,6 +12,7 @@ export default defineConfig({
         root: ".",
         include: ["**/*Features.ts", "**/*Features.tsx"],
         coverage: {
+            provider: "v8",
             reportsDirectory: "./coverage",
             include: ["src/**/*"],
             exclude: ["src/main.tsx", "src/App.tsx", "src/common/hooks/useStartWebSocket.ts"],
