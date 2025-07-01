@@ -12,6 +12,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
+from database.entities import PlaybackSession
+
 # revision identifiers, used by Alembic.
 revision: str = "3b8805c4d7db"
 down_revision: str | None = "7851701cd257"
@@ -49,4 +51,5 @@ def downgrade() -> None:
     op.create_foreign_key(
         "PlaybackSession_current_track_id_fkey", "PlaybackSession", "PoolMember", ["current_track_id"], ["id"]
     )
+    op.execute(sa.delete(PlaybackSession).where(PlaybackSession.current_track_id == None))
     op.alter_column("PlaybackSession", "current_track_id", existing_type=sa.INTEGER(), nullable=False)

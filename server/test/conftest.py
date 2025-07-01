@@ -2,9 +2,14 @@ import datetime
 import json
 import random
 import re
+from os import getcwd
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 from unittest.mock import Mock
+from testcontainers.postgres import PostgresContainer
+from testcontainers.core.generic import DbContainer
+from alembic.config import Config as AlembicConfig
+from alembic import command
 
 import httpx
 import pytest
@@ -109,15 +114,32 @@ def requests_client_put_queue(requests_client: RequestsClient) -> MockResponseQu
     return queue
 
 
+@pytest.fixture(scope="session")
+def postgres_database(request) -> DbContainer:
+    postgres = PostgresContainer("postgres:16", driver="psycopg")
+    postgres.start()
+    request.addfinalizer(postgres.stop)
+    return postgres
+
+
+@pytest.fixture
+def fresh_database(pytestconfig: pytest.Config, postgres_database: DbContainer, monkeypatch: MonkeyPatch) -> DbContainer:
+    connection_url = postgres_database.get_connection_url()
+    echo = "-v" in pytestconfig.invocation_params.args
+    monkeypatch.setenv("DATABASE_CONNECTION_URL", connection_url)
+    monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
+    alembic_config = AlembicConfig('alembic.ini')
+    command.upgrade(alembic_config, "head")
+    yield postgres_database
+    command.downgrade(alembic_config, "base")
+
+
 @pytest.fixture
 def db_connection(
-    tmp_path: Path, pytestconfig: Config, monkeypatch: MonkeyPatch, mock_datetime_wrapper: MockDateTimeWrapper
+    fresh_database, mock_datetime_wrapper: MockDateTimeWrapper
 ) -> ConnectionManager:
     # We need this to ensure insert timestamps are affected by fake time skips
     database.entities.now_factory.set_wrapper(mock_datetime_wrapper)
-    echo = "-v" in pytestconfig.invocation_params.args
-    monkeypatch.setenv("DATABASE_CONNECTION_URL", f"sqlite:///{tmp_path}/test_db")
-    monkeypatch.setenv("VERBOSE_SQLALCHEMY", str(echo))
     return ConnectionManager()
 
 

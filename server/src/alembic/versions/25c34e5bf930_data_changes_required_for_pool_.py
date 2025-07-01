@@ -12,6 +12,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
+from database.entities import PoolMember
+
 # revision identifiers, used by Alembic.
 revision: str = "25c34e5bf930"
 down_revision: str | None = "70e02357c5ff"
@@ -34,6 +36,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute(sa.delete(PoolMember))
     op.add_column("PoolMember", sa.Column("weight", sa.INTEGER(), autoincrement=False, nullable=False))
     op.drop_column("PoolJoinedUser", "playback_time_ms")
     op.drop_table("PoolMemberRandomizationParameters")

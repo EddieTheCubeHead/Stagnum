@@ -63,7 +63,7 @@ class SimplifiedTrackData(SpotifyResourceData):
     explicit: bool
     external_urs: ExternalUrlData
     is_playable: bool
-    linked_from: dict[Never]
+    linked_from: dict[Never, Never]
     restrictions: RestrictionData
     popularity: int
     preview_url: str

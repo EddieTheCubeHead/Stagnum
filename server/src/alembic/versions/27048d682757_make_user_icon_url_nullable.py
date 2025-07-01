@@ -12,6 +12,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
+from database.entities import User
+
 # revision identifiers, used by Alembic.
 revision: str = "27048d682757"
 down_revision: str | None = "aeb0c7f142d6"
@@ -24,4 +26,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute(sa.delete(User).where(User.spotify_avatar_url == None))
     op.alter_column("User", "spotify_avatar_url", existing_type=sa.VARCHAR(length=256), nullable=False)
