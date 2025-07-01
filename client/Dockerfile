@@ -1,4 +1,4 @@
-FROM node:18-alpine3.17 as build
+FROM node:24-alpine3.21 as build
 
 ARG VITE_BACKEND_URL
 ARG VITE_FRONTEND_URL
