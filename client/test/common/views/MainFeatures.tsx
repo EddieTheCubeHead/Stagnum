@@ -1,7 +1,6 @@
 import { expect, it, describe, vi, beforeEach } from "vitest"
 import { act, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
-import { useTokenStore } from "../../../src/common/stores/tokenStore"
 import { Main } from "../../../src/common/views/Main"
 import { mockAxiosDelete, mockAxiosPost, mockMultipleGets } from "../../utils/mockAxios"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
@@ -10,6 +9,8 @@ import { mockedTrackPoolData } from "../../search/data/mockPoolData"
 import { useAlertStore } from "../../../src/alertSystem/alertStore"
 import testComponent from "../../utils/testComponent.tsx"
 import { AxiosError } from "axios"
+import { useTokenQuery } from "../../../src/common/hooks/useTokenQuery.ts"
+import { mockLoginState } from "../../utils/mockLoginState.ts"
 
 const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
     let queryParams = vi.spyOn(window, "location", "get")
@@ -45,13 +46,13 @@ describe("Main", () => {
         )
 
         await act(async () => await new Promise((r: TimerHandler) => setTimeout(r)))
-        expect(useTokenStore.getState().token).toEqual(accessToken)
+        expect(useTokenQuery().token).toEqual(accessToken)
     })
 
     describe("Pool deletion operations", () => {
         beforeEach(() => {
             useSearchStore.setState({ isOpened: false })
-            useTokenStore.setState({ token: "my_test_token_1234" })
+            mockLoginState()
             const mockedPool = mockedTrackPoolData()
             usePoolStore.setState({ pool: mockedPool, confirmingOverwrite: null, poolState: PoolState.Normal })
             mockMultipleGets({
@@ -153,7 +154,7 @@ describe("Main", () => {
     describe("Pool leaving operations", () => {
         beforeEach(() => {
             useSearchStore.setState({ isOpened: false })
-            useTokenStore.setState({ token: "my_test_token_1234" })
+            mockLoginState()
             const mockedPool = mockedTrackPoolData()
             usePoolStore.setState({ pool: mockedPool, confirmingOverwrite: null, poolState: PoolState.Normal })
             mockMultipleGets({

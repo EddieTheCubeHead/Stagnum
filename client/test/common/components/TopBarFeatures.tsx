@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { TopBar } from "../../../src/common/components/TopBar"
-import { screen } from "@testing-library/react"
+import { renderHook, screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { mockAxiosGet } from "../../utils/mockAxios"
-import { useTokenStore } from "../../../src/common/stores/tokenStore"
 import testComponent from "../../utils/testComponent.tsx"
+import { mockLoginState } from "../../utils/mockLoginState.ts"
+import { useTokenQuery } from "../../../src/common/hooks/useTokenQuery.ts"
+import * as tanstackQuery from "@tanstack/react-query"
+import { QueryClient, useQueryClient } from "@tanstack/react-query"
+import { ReactNode } from "react"
+import { TOKEN } from "../../../src/common/constants/queryKey.ts"
 
 describe("Top bar", () => {
     it("Should render app name", () => {
@@ -18,7 +23,7 @@ describe("Top bar", () => {
     })
 
     it("Should render username first letter if image missing", () => {
-        useTokenStore.setState({ token: "my_test_token_1234" })
+        mockLoginState()
         mockAxiosGet({ display_name: "Test", icon_url: null, spotify_id: "1234" })
         testComponent(
             <TestQueryProvider>
@@ -30,7 +35,7 @@ describe("Top bar", () => {
     })
 
     it("Should render user icon if available", () => {
-        useTokenStore.setState({ token: "my_test_token_1234" })
+        mockLoginState()
         mockAxiosGet({ display_name: "Test", icon_url: "test.icon.png", spotify_id: "1234" })
         testComponent(
             <TestQueryProvider>
@@ -43,7 +48,7 @@ describe("Top bar", () => {
     })
 
     it("Should render user settings when clicking on top bar avatar", async () => {
-        useTokenStore.setState({ token: "my_test_token_1234" })
+        mockLoginState()
         mockAxiosGet({ display_name: "Test", icon_url: "test.icon.png", spotify_id: "1234" })
         const { user } = testComponent(
             <TestQueryProvider>
@@ -57,10 +62,15 @@ describe("Top bar", () => {
     })
 
     it("Should set token to null after clicking log out", async () => {
-        useTokenStore.setState({ token: "my_test_token_1234" })
+        const TokenSetter = () => {
+            const { setQueryData } = useQueryClient()
+            setQueryData([TOKEN], "test_token")
+            return <></>
+        }
         mockAxiosGet({ display_name: "Test", icon_url: "test.icon.png", spotify_id: "1234" })
         const { user } = testComponent(
             <TestQueryProvider>
+                <TokenSetter />
                 <TopBar />
             </TestQueryProvider>,
         )
@@ -68,6 +78,6 @@ describe("Top bar", () => {
         await user.click(screen.getByRole("button"))
         await user.click(await screen.findByRole("button", { name: "Log out" }))
 
-        expect(useTokenStore.getState().token).toBeNull()
+        expect(useTokenQuery().token).toBe(undefined)
     })
 })

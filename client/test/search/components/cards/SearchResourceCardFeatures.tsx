@@ -12,9 +12,9 @@ import { SearchSpotifyPlaylistCard } from "../../../../src/search/components/car
 import { mockAxiosPost } from "../../../utils/mockAxios"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../data/mockPoolData"
 import { usePoolStore } from "../../../../src/common/stores/poolStore"
-import { useTokenStore } from "../../../../src/common/stores/tokenStore"
 import { useAlertStore } from "../../../../src/alertSystem/alertStore"
 import testComponent from "../../../utils/testComponent.tsx"
+import { mockLoginState } from "../../../utils/mockLoginState.ts"
 
 describe("SearchResourceCard", () => {
     const mockArtist: SpotifyArtist = {
@@ -119,7 +119,7 @@ describe("SearchResourceCard", () => {
 
     describe("Pool manipulation", () => {
         beforeEach(() => {
-            useTokenStore.setState({ token: "my test token" })
+            mockLoginState()
         })
 
         it("Should start pool playback when clicking create pool without existing playback", async () => {

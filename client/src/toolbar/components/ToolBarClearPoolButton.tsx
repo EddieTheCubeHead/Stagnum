@@ -1,10 +1,10 @@
-import { IconButton } from "../../icons/IconButton.tsx"
-import { DeletePoolIconSvg } from "../../icons/svgs/DeletePoolIconSvg.tsx"
-import { Size } from "../../constants/size.ts"
-import { Icon } from "../../icons/Icon.tsx"
-import { PoolState, usePoolStore } from "../../stores/poolStore.ts"
-import { useMeQuery } from "../../hooks/useMeQuery.ts"
-import { LeavePoolIconSvg } from "../../icons/svgs/LeavePoolIconSvg.tsx"
+import { IconButton } from "../../common/icons/IconButton.tsx"
+import { DeletePoolIconSvg } from "../../common/icons/svgs/DeletePoolIconSvg.tsx"
+import { Size } from "../../common/constants/size.ts"
+import { Icon } from "../../common/icons/Icon.tsx"
+import { PoolState, usePoolStore } from "../../common/stores/poolStore.ts"
+import { useMeQuery } from "../../common/hooks/useMeQuery.ts"
+import { LeavePoolIconSvg } from "../../common/icons/svgs/LeavePoolIconSvg.tsx"
 
 export const ToolBarClearPoolButton = () => {
     const { pool, setPoolState } = usePoolStore()

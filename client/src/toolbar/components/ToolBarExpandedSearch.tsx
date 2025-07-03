@@ -1,11 +1,14 @@
-import { debounce } from "../../hooks/useDebounce.ts"
-import { useSearchStore } from "../../stores/searchStore.ts"
+import { debounce } from "../../common/hooks/useDebounce.ts"
 import { ToolBarOpenedField } from "./ToolBarOpenedField.tsx"
-import { SearchIconSvg } from "../../icons/svgs/SearchIconSvg.tsx"
+import { SearchIconSvg } from "../../common/icons/svgs/SearchIconSvg.tsx"
+import { useNavigate } from "@tanstack/react-router"
 
 export const ToolBarExpandedSearch = () => {
-    const { setQuery } = useSearchStore()
-    const debouncedSetQuery = debounce((query: string) => setQuery(query))
+    const navigate = useNavigate()
+    const debouncedSetQuery = debounce((query: string) => {
+        console.log(query)
+        void navigate({ to: `/search`, search: (prev) => ({ ...prev, query }) }).then()
+    })
     return (
         <ToolBarOpenedField
             action={

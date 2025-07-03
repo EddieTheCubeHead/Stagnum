@@ -1,7 +1,7 @@
 import { useThemeStore } from "../../../common/stores/themeStore.ts"
 
 export const LoginPopupBackgroundImage = () => {
-    const theme = useThemeStore().theme
+    const { theme } = useThemeStore()
     const capitalizedTheme = theme.charAt(0).toUpperCase() + theme.slice(1)
     return (
         // Force width usage with invisible div

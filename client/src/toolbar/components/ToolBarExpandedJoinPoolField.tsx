@@ -1,9 +1,9 @@
 import { ToolBarOpenedField } from "./ToolBarOpenedField.tsx"
-import { useJoinPool } from "../../../pool/hooks/useJoinPool.ts"
-import { JoinPoolIconSvg } from "../../icons/svgs/JoinPoolIconSvg.tsx"
+import { useJoinPool } from "../../pool/hooks/useJoinPool.ts"
+import { JoinPoolIconSvg } from "../../common/icons/svgs/JoinPoolIconSvg.tsx"
 import { useState } from "react"
-import { IconButton } from "../../icons/IconButton.tsx"
-import { PasteIconSvg } from "../../icons/svgs/PasteIconSvg.tsx"
+import { IconButton } from "../../common/icons/IconButton.tsx"
+import { PasteIconSvg } from "../../common/icons/svgs/PasteIconSvg.tsx"
 
 export const ToolBarExpandedJoinPoolField = () => {
     const [joinCode, setJoinCode] = useState("")

@@ -1,9 +1,12 @@
-import { useTokenStore } from "../stores/tokenStore.ts"
 import { usePoolStore } from "../stores/poolStore.ts"
+import { useTokenQuery } from "./useTokenQuery.ts"
 
 export const useStartWebSocket = () => {
-    const { token } = useTokenStore()
+    const { token } = useTokenQuery()
     const { setPool, setPlaybackState, clearPool } = usePoolStore()
+    if (!token) {
+        return () => {}
+    }
     return () => {
         const socket = new WebSocket(
             `${import.meta.env.VITE_BACKEND_URL.replace("http", "ws")}/websocket/connect?Authorization=${token}`,

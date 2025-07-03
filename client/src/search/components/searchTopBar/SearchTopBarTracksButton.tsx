@@ -1,20 +1,15 @@
 import { SearchTopBarButton } from "./SearchTopBarButton.tsx"
 import { TrackIconSvg } from "../../../common/icons/svgs/TrackIconSvg.tsx"
-import { useSearchStore } from "../../../common/stores/searchStore.ts"
+import { useSearchStates } from "../../hooks/useSearchStates.ts"
 
 export const SearchTopBarTracksButton = () => {
-    const searchStore = useSearchStore()
-    const isFocused =
-        searchStore.isTracksOpened &&
-        !searchStore.isAlbumsOpened &&
-        !searchStore.isArtistsOpened &&
-        !searchStore.isPlaylistsOpened
+    const { toggleTopBar, onlyTracksOpen } = useSearchStates()
     return (
         <SearchTopBarButton
             title="Tracks"
             svg={<TrackIconSvg />}
-            focusMethod={isFocused ? searchStore.openAll : searchStore.focusTracks}
-            isFocused={isFocused}
+            focusMethod={() => toggleTopBar("tracks")}
+            isFocused={onlyTracksOpen}
         />
     )
 }

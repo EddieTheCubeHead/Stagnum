@@ -1,10 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react-swc"
+import { tanstackRouter } from "@tanstack/router-plugin/vite"
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-    plugins: [react()],
+    plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react()],
     server: {
         port: 80,
     },

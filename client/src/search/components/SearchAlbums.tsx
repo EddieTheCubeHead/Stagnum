@@ -1,24 +1,27 @@
 import { SearchCategoryTitleCard } from "./cards/SearchCategoryTitleCard.tsx"
-import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { SearchSpotifyAlbumCard } from "./cards/SearchSpotifyAlbumCard.tsx"
 import { AlbumIconSvg } from "../../common/icons/svgs/AlbumIconSvg.tsx"
-import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
 import { SpotifyAlbum } from "../models/SpotifyAlbum.ts"
+import { GeneralSpotifySearchResult } from "../models/GeneralSpotifySearchResult.ts"
+import { useSearchStates } from "../hooks/useSearchStates.ts"
 
-export const SearchAlbums = () => {
-    const { data } = useSpotifyGeneralQuery()
-    const searchStore = useSearchStore()
+interface SearchAlbumsProps {
+    albums: GeneralSpotifySearchResult["albums"]
+}
+
+export const SearchAlbums = ({ albums }: SearchAlbumsProps) => {
+    const { isAlbumsOpen: isOpen, toggleSingle } = useSearchStates()
     return (
         <div className="flex-col px-2">
             <SearchCategoryTitleCard
                 title="Albums"
                 iconSvg={<AlbumIconSvg />}
-                isOpen={searchStore.isAlbumsOpened}
-                setIsOpen={searchStore.setIsAlbumsOpened}
+                isOpen={isOpen}
+                setIsOpen={() => toggleSingle("albums")}
             />
-            {searchStore.isAlbumsOpened ? (
+            {isOpen ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
-                    {data?.albums.items.map((album: SpotifyAlbum) => (
+                    {albums.items.map((album: SpotifyAlbum) => (
                         <SearchSpotifyAlbumCard key={album.uri} album={album} />
                     ))}
                 </div>

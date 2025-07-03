@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { act, screen, waitFor } from "@testing-library/react"
-import { ToolBar } from "../../../src/common/components/toolbar/ToolBar"
+import { ToolBar } from "../../../src/toolbar/components/ToolBar.tsx"
 import { useSearchStore } from "../../../src/common/stores/searchStore"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
@@ -9,8 +9,8 @@ import { mockAxiosGet, mockAxiosPost } from "../../utils/mockAxios"
 import axios from "axios"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import testComponent from "../../utils/testComponent.tsx"
-import { useTokenStore } from "../../../src/common/stores/tokenStore.ts"
 import { mockedSearchData } from "../../search/data/mockedSearchData.ts"
+import { mockLoginState } from "../../utils/mockLoginState.ts"
 
 describe("Tool bar", () => {
     beforeEach(() => {
@@ -166,7 +166,7 @@ describe("Tool bar", () => {
         })
 
         it("Should render delete pool as button if user has a pool", async () => {
-            useTokenStore.setState({ token: "my token" })
+            mockLoginState()
             usePoolStore.setState({ pool: mockedTrackPoolData() })
             mockAxiosGet(mockedTrackPoolData().owner)
             testComponent(

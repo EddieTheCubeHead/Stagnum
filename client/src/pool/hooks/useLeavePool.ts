@@ -1,17 +1,17 @@
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { useApiPost } from "../../api/methods.ts"
 import { useCallback } from "react"
 import { AlertType } from "../../alertSystem/Alert.ts"
+import { useTokenQuery } from "../../common/hooks/useTokenQuery.ts"
 
 export const useLeavePool = () => {
     const { pool, clearPool } = usePoolStore()
-    const { token } = useTokenStore()
+    const { token } = useTokenQuery()
     const { addAlert } = useAlertStore()
     const leavePool = useApiPost("/pool/leave")
     return useCallback(() => {
-        if (token === null) {
+        if (token === undefined) {
             throw new Error("Token null on pool deletion!")
         }
         leavePool({}).then(() => {

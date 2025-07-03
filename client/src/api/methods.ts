@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosHeaders, AxiosResponse } from "axios"
-import { useTokenStore } from "../common/stores/tokenStore.ts"
 import { useAlertStore } from "../alertSystem/alertStore.ts"
 import { Alert, AlertType } from "../alertSystem/Alert.ts"
+import { useTokenQuery } from "../common/hooks/useTokenQuery.ts"
+import { useQueryClient } from "@tanstack/react-query"
+import { TOKEN } from "../common/constants/queryKey.ts"
 
 export const apiGet = async <T>(path: string, token?: string, params?: object) => {
     const headers = new AxiosHeaders()
@@ -45,12 +47,12 @@ export const useApiDelete = <T>(path: string, silent: boolean = false) => {
 }
 
 const useCommonApiCallDecorator = <T>(silent: boolean = false) => {
-    const { setToken } = useTokenStore()
+    const client = useQueryClient()
     const { addAlert } = useAlertStore()
     return async (request: Promise<AxiosResponse<T>>) => {
         const response = await handleRequestErrors(silent, request, addAlert)
         const newHeader = response.config?.headers["Authorization"] as string | undefined
-        setToken(newHeader ? newHeader : null)
+        client.setQueryData([TOKEN], { access_token: newHeader ? newHeader : undefined })
         return response.data
     }
 }
@@ -74,7 +76,7 @@ const handleRequestErrors = async <T>(
 }
 
 const useTokenHeader = () => {
-    const { token } = useTokenStore()
+    const { token } = useTokenQuery()
     const headers = new AxiosHeaders()
     headers.set("Authorization", token)
     return headers

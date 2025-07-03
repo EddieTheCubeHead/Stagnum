@@ -1,5 +1,5 @@
-import { IconButton } from "../../icons/IconButton.tsx"
-import { Size } from "../../constants/size.ts"
+import { IconButton } from "../../common/icons/IconButton.tsx"
+import { Size } from "../../common/constants/size.ts"
 import { ReactNode } from "react"
 
 interface ToolBarHighlightedButtonProps {
