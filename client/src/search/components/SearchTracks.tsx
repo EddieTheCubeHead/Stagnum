@@ -3,22 +3,17 @@ import { TrackIconSvg } from "../../common/icons/svgs/TrackIconSvg.tsx"
 import { SearchSpotifyTrackCard } from "./cards/SearchSpotifyTrackCard.tsx"
 import { SpotifyTrack } from "../models/SpotifyTrack.ts"
 import { GeneralSpotifySearchResult } from "../models/GeneralSpotifySearchResult.ts"
-import { useSearchStates } from "../hooks/useSearchStates.ts"
 
 interface SearchTracksProps {
     tracks: GeneralSpotifySearchResult["tracks"]
+    isOpen: boolean
+    toggleOpen: () => void
 }
 
-export const SearchTracks = ({ tracks }: SearchTracksProps) => {
-    const { isTracksOpen: isOpen, toggleSingle } = useSearchStates()
+export const SearchTracks = ({ tracks, isOpen, toggleOpen }: SearchTracksProps) => {
     return (
         <div className="flex-col px-2">
-            <SearchCategoryTitleCard
-                title="Tracks"
-                iconSvg={<TrackIconSvg />}
-                isOpen={isOpen}
-                setIsOpen={() => toggleSingle("tracks")}
-            />
+            <SearchCategoryTitleCard title="Tracks" iconSvg={<TrackIconSvg />} isOpen={isOpen} setIsOpen={toggleOpen} />
             {isOpen ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
                     {tracks.items.map((track: SpotifyTrack) => (

@@ -1,12 +1,12 @@
 import { PoolTopBar } from "../components/poolTopBar/PoolTopBar.tsx"
 import { usePoolStore } from "../../common/stores/poolStore.ts"
 import { PoolMemberCard } from "../components/PoolMemberCard.tsx"
-import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { PoolCollectionSection } from "../components/PoolCollectionSection.tsx"
+import { useLocation } from "@tanstack/react-router"
 
 export const Pool = () => {
     const { pool } = usePoolStore()
-    const isSearchOpen = useSearchStore().query !== ""
+    const isSearchOpen = useLocation({ select: (location) => location.pathname.includes("search") })
     return (
         <div
             className={`flex-grow max-w-full basis-1/3 ${isSearchOpen && "max-lg:hidden lg:mr-1"} h-[calc(100vh-3rem)] overflow-y-auto space-y-2`}

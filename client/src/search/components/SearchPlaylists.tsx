@@ -3,21 +3,21 @@ import { PlaylistIconSvg } from "../../common/icons/svgs/PlaylistIconSvg.tsx"
 import { SearchSpotifyPlaylistCard } from "./cards/SearchSpotifyPlaylistCard.tsx"
 import { SpotifyPlaylist } from "../models/SpotifyPlaylist.ts"
 import { GeneralSpotifySearchResult } from "../models/GeneralSpotifySearchResult.ts"
-import { useSearchStates } from "../hooks/useSearchStates.ts"
 
 interface SearchPlaylistsProps {
     playlists: GeneralSpotifySearchResult["playlists"]
+    isOpen: boolean
+    toggleOpen: () => void
 }
 
-export const SearchPlaylists = ({ playlists }: SearchPlaylistsProps) => {
-    const { isPlaylistsOpen: isOpen, toggleSingle } = useSearchStates()
+export const SearchPlaylists = ({ playlists, isOpen, toggleOpen }: SearchPlaylistsProps) => {
     return (
         <div className="flex-col px-2">
             <SearchCategoryTitleCard
                 title="Playlists"
                 iconSvg={<PlaylistIconSvg />}
                 isOpen={isOpen}
-                setIsOpen={() => toggleSingle("playlists")}
+                setIsOpen={toggleOpen}
             />
             {isOpen ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">

@@ -11,7 +11,6 @@ import { Home } from "../common/views/Home.tsx"
 const redirectSearchSchema = z.object({
     code: z.optional(z.string()),
     state: z.optional(z.string()),
-    action: z.optional(z.enum(["search", "share", "join"])),
 })
 
 export const Route = createRootRouteWithContext<{

@@ -5,7 +5,11 @@ import { useState } from "react"
 import { IconButton } from "../../common/icons/IconButton.tsx"
 import { PasteIconSvg } from "../../common/icons/svgs/PasteIconSvg.tsx"
 
-export const ToolBarExpandedJoinPoolField = () => {
+interface ToolBarExpandedJoinPoolFieldProps {
+    resetState: () => void
+}
+
+export const ToolBarExpandedJoinPoolField = ({ resetState }: ToolBarExpandedJoinPoolFieldProps) => {
     const [joinCode, setJoinCode] = useState("")
     const joinPoolCallback = useJoinPool(joinCode)
     return (
@@ -26,6 +30,7 @@ export const ToolBarExpandedJoinPoolField = () => {
                     ></input>
                 </>
             }
+            resetState={resetState}
             onClick={joinPoolCallback}
             svg={<JoinPoolIconSvg />}
         />
