@@ -892,7 +892,7 @@
   dependencies:
     "@tanstack/query-core" "5.81.5"
 
-"@tanstack/react-router@^1.124.0":
+"@tanstack/react-router@1.124.0":
   version "1.124.0"
   resolved "https://registry.yarnpkg.com/@tanstack/react-router/-/react-router-1.124.0.tgz#cf99ab7721c1ef88ed7bd1a1bada44ab78762aed"
   integrity sha512-jJxuLbPP/Cxirnft3CoiGWyH0aj94VTmLNcYauvjTGRNbUitK4udvGaHXVEP8bcifYvpko7ptsqqBlisaosugA==
@@ -939,7 +939,7 @@
     tsx "^4.19.2"
     zod "^3.24.2"
 
-"@tanstack/router-plugin@^1.124.0":
+"@tanstack/router-plugin@1.124.0":
   version "1.124.0"
   resolved "https://registry.yarnpkg.com/@tanstack/router-plugin/-/router-plugin-1.124.0.tgz#93a6f98c3953e166b74fbb8c60eae2b2cadf0f38"
   integrity sha512-CqV3PCVoMrHw0HyTioIGHTTjaMRgfwbW4ax2Pule++smyetn+3KPLV6C3VWc0vdukZMQz13JvLORSSeM0B2cYQ==
@@ -981,7 +981,7 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-file-routes/-/virtual-file-routes-1.121.21.tgz#5ff6bbb62b21d22d911a302c5a8ef1e98f6183f1"
   integrity sha512-3nuYsTyaq6ZN7jRZ9z6Gj3GXZqBOqOT0yzd/WZ33ZFfv4yVNIvsa5Lw+M1j3sgyEAxKMqGu/FaNi7FCjr3yOdw==
 
-"@tanstack/zod-adapter@^1.124.0":
+"@tanstack/zod-adapter@1.124.0":
   version "1.124.0"
   resolved "https://registry.yarnpkg.com/@tanstack/zod-adapter/-/zod-adapter-1.124.0.tgz#e99dd40ab4d9787d7892686c5068b7f1b4cdb46d"
   integrity sha512-AxvWKDnPbHUipUoxXe1TBdjSGicF7Ri1WwL68UVRryRNw8wxI4ZTSBtgqB5LuBXuFfwyZYydrngP0CnXeb/g3w==

@@ -6,6 +6,6 @@ interface MockQueryProviderProps {
     client?: QueryClient
 }
 
-export const TestQueryProvider = ({ children }: MockQueryProviderProps) => {
-    return <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
+export const TestQueryProvider = ({ children, client }: MockQueryProviderProps) => {
+    return <QueryClientProvider client={client ?? new QueryClient()}>{children}</QueryClientProvider>
 }
