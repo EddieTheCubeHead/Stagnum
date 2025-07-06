@@ -87,8 +87,8 @@ describe("Tool bar", () => {
         })
 
         it("Should close search field when pressing close", async () => {
-            window.location.pathname = "/search?query=test"
-            const { user } = testComponent(<ToolBar />)
+            const { router, user } = testComponent(<ToolBar />)
+            await act(async () => await router.navigate({to: "/search", search: {query: "test"}}));
             await user.click(await screen.findByRole("button", { name: "Search" }))
             await user.click(screen.getByRole("button", { name: "Close" }))
 
