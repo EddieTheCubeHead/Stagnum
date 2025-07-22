@@ -3,7 +3,7 @@ import { useAlertStore } from "../../src/alertSystem/alertStore"
 import { AlertType } from "../../src/alertSystem/Alert"
 import { act, screen } from "@testing-library/react"
 import { AlertHandler } from "../../src/alertSystem/AlertHandler"
-import testComponent from "../utils/testComponent.tsx"
+import { testComponent } from "../utils/testComponent.tsx"
 
 describe("Alert system", () => {
     beforeEach(() => {

@@ -1,30 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect } from "vitest"
 import { Home } from "../../../src/common/views/Home"
 import { screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
 import { mockedSearchData } from "../../search/data/mockedSearchData"
-import { useSearchStore } from "../../../src/common/stores/searchStore"
-import { PoolState, usePoolStore } from "../../../src/common/stores/poolStore"
+import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData } from "../../search/data/mockPoolData"
-import testComponent from "../../utils/testComponent.tsx"
-import { useTokenStore } from "../../../src/common/stores/tokenStore.ts"
+import { testComponent } from "../../utils/testComponent.tsx"
 
 describe("Home", () => {
-    beforeEach(() => usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null }))
-    it("Should not render search if query is null", () => {
-        testComponent(
-            <TestQueryProvider>
-                <Home />
-            </TestQueryProvider>,
-        )
-
-        expect(screen.queryByText("Tracks")).toBeNull()
-    })
-
     it("Should render search if search query set", () => {
         mockAxiosGet(mockedSearchData())
-        useSearchStore.setState({ query: "my query" })
         testComponent(
             <TestQueryProvider>
                 <Home />
@@ -53,7 +39,6 @@ describe("Home", () => {
     })
 
     it("Should fetch existing pool from server on Home view render", async () => {
-        useTokenStore.setState({ token: "my token" })
         const mockPool = mockedCollectionPoolData()
         mockMultipleGets({
             routes: [

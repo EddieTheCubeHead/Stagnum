@@ -11,8 +11,10 @@ interface ToolBarExpandedSearchProps {
 export const ToolBarExpandedSearch = ({ resetState }: ToolBarExpandedSearchProps) => {
     const navigate = useNavigate()
     const debouncedSetQuery = debounce((query: string) => {
-        console.log(query)
-        void navigate({ to: `/search`, search: (prev) => ({ ...prev, query }) }).then()
+        if (query === "") {
+            return
+        }
+        void navigate({ to: `/search`, search: (prev) => ({ ...prev, query }) })
     })
     const { query } = useSearch({ strict: false })
     const defaultSearch = useMemo(() => query ?? "", [])

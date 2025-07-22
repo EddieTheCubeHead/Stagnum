@@ -21,7 +21,7 @@ export const ToolBar = () => {
         resetState()
         void navigate({ to: "/" })
     }
-    console.log(pathname)
+
     return (
         <div className="select-none w-full justify-center items-center p-8 fixed bottom-0 flex z-30 pointer-events-none">
             <div className="flex-col space-y-4 min-w-72 max-w-80 grow">

@@ -5,6 +5,8 @@ import { useAlertStore } from "./src/alertSystem/alertStore"
 import { PoolState, usePoolStore } from "./src/common/stores/poolStore"
 import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPost, mockAxiosPostError } from "./test/utils/mockAxios"
 
+export const TEST_BACKEND_URL = "test.server"
+
 beforeEach(() => {
     vi.mock("./src/common/hooks/useStartWebSocket", () => {
         return {
@@ -13,7 +15,7 @@ beforeEach(() => {
             },
         }
     })
-    vi.stubEnv("VITE_BACKEND_URL", "test.server")
+    vi.stubEnv("VITE_BACKEND_URL", TEST_BACKEND_URL)
     mockAxiosGetError("Network GET event called without mocking it!")
     mockAxiosPostError("Network POST event called without mocking it!")
     mockAxiosDeleteError("Network DELETE event called without mocking it!")
