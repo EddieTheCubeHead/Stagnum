@@ -16,13 +16,9 @@ export const ToolBarExpandedSearch = ({ resetState }: ToolBarExpandedSearchProps
         }
         void navigate({
             to: `/search`,
-            search: (prev: any) => ({
+            search: (...prev: any) => ({
                 ...prev,
                 query,
-                openedTabs:
-                    prev.openedTabs === undefined
-                        ? { tracks: true, albums: true, artists: true, playlists: true }
-                        : prev.openedTabs,
             }),
             mask: {
                 to: "/search",

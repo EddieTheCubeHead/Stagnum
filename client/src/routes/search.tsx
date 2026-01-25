@@ -16,7 +16,7 @@ const openedSearchTabsSchema = z.object({
 
 const searchOpenedSchema = z.object({
     query: z.string(),
-    openedTabs: openedSearchTabsSchema,
+    openedTabs: z.optional(openedSearchTabsSchema),
 })
 
 export const Route = createFileRoute("/search")({

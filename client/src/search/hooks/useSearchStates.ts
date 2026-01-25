@@ -11,8 +11,8 @@ const constructNavigateParams = (tracks: boolean, albums: boolean, artists: bool
         mask: {
             to: "/search",
             params: (prev: any) => prev,
-            search: ({ openedTabs, ...prev }: { openedTabs: any }) => ({
-                ...prev,
+            search: ({ query }: { query: string }) => ({
+                query,
             }),
         },
         replace: true,
@@ -21,7 +21,12 @@ const constructNavigateParams = (tracks: boolean, albums: boolean, artists: bool
 
 export const useSearchStates = () => {
     const {
-        openedTabs: { tracks, albums, artists, playlists },
+        openedTabs: { tracks, albums, artists, playlists } = {
+            tracks: true,
+            albums: true,
+            artists: true,
+            playlists: true,
+        },
     } = useSearch({ from: "/search" })
     const isTracksFocused = tracks && !albums && !artists && !playlists
     const isAlbumsFocused = !tracks && albums && !artists && !playlists
