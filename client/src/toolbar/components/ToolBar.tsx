@@ -13,7 +13,6 @@ import { ToolBarState } from "../types/toolBarState.ts"
 
 export const ToolBar = () => {
     const { pool } = usePoolStore()
-    const { pathname } = useLocation()
     const [state, setState] = useState<ToolBarState>("normal")
     const resetState = () => setState("normal")
     const navigate = useNavigate()

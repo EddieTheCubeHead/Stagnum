@@ -13,21 +13,21 @@ describe("Tool bar", () => {
     describe("Search", () => {
         it("Should render toolbarSearch button initially", async () => {
             await testComponentWithRouter(<ToolBar />)
-            expect(screen.getByRole("button", { name: "Search" })).toBeDefined()
+            expect(screen.getByRole("button", { name: "Search" })).toBeVisible()
         })
 
         it("Should not initially render toolbarSearch field and close toolbarSearch buttons", async () => {
             await testComponentWithRouter(<ToolBar />)
-            expect(screen.queryByRole("button", { name: "Close search" })).toBeNull()
-            expect(screen.queryByPlaceholderText("Search...")).toBeNull()
+            expect(screen.queryByRole("button", { name: "Close search" })).not.toBeInTheDocument()
+            expect(screen.queryByPlaceholderText("Search...")).not.toBeInTheDocument()
         })
 
         it("Should render toolbarSearch field and close toolbarSearch buttons after click on open toolbarSearch button", async () => {
             const { user } = await testComponentWithRouter(<ToolBar />)
             await user.click(screen.getByRole("button", { name: "Search" }))
 
-            expect(screen.getByRole("button", { name: "Close" })).toBeDefined()
-            expect(screen.getByPlaceholderText("Search...")).toBeDefined()
+            expect(screen.getByRole("button", { name: "Close" })).toBeVisible()
+            expect(screen.getByPlaceholderText("Search...")).toBeVisible()
         })
 
         it("Should not set search query immediately after typing", async () => {
@@ -110,7 +110,7 @@ describe("Tool bar", () => {
             await user.click(screen.getByRole("button", { name: "Search" }))
             await user.click(screen.getByRole("button", { name: "Close" }))
 
-            expect(await screen.findByRole("button", { name: "Share pool" })).toBeDefined()
+            expect(await screen.findByRole("button", { name: "Share pool" })).toBeVisible()
         })
 
         it("Should clear search query when pressing home", async () => {
@@ -125,14 +125,14 @@ describe("Tool bar", () => {
     describe("Delete", () => {
         it("Should render delete pool as disabled if user has no pool", async () => {
             await testComponentWithRouter(<ToolBar />)
-            expect(await screen.findByTitle("Delete pool")).toBeDefined()
-            expect(screen.queryByRole("button", { name: "Delete pool" })).toBeNull()
+            expect(await screen.findByTitle("Delete pool")).not.toBeVisible()
+            expect(screen.queryByRole("button", { name: "Delete pool" })).not.toBeInTheDocument()
         })
 
         it("Should not render delete pool at all if search field is opened", async () => {
             const { user } = await testComponentWithRouter(<ToolBar />)
             await user.click(screen.getByRole("button", { name: "Search" }))
-            expect(screen.queryByTitle("Delete pool")).toBeNull()
+            expect(screen.queryByTitle("Delete pool")).not.toBeInTheDocument()
         })
 
         it("Should render delete pool as button if user has a pool", async () => {
@@ -141,7 +141,7 @@ describe("Tool bar", () => {
             mockAxiosGet(mockedTrackPoolData().owner)
             await testComponentWithRouter(<ToolBar />)
 
-            expect(screen.getByRole("button", { name: "Delete pool" })).toBeDefined()
+            expect(screen.getByRole("button", { name: "Delete pool" })).toBeVisible()
         })
 
         it("Should display leave pool instead of delete pool if user is part of another user's pool", async () => {
@@ -151,7 +151,7 @@ describe("Tool bar", () => {
 
             await testComponentWithRouter(<ToolBar />)
 
-            expect(screen.getByRole("button", { name: "Leave pool" })).toBeDefined()
+            expect(screen.getByRole("button", { name: "Leave pool" })).toBeVisible()
         })
     })
 
@@ -165,7 +165,7 @@ describe("Tool bar", () => {
 
             await user.click(await screen.findByRole("button", { name: "Share pool" }))
 
-            expect(screen.getByText("123456")).toBeDefined()
+            await waitFor(() => expect(screen.getByText("123456")).toBeVisible())
         })
 
         it("Should render share pool skeleton after clicking on share pool if pool is loading", async () => {
@@ -182,7 +182,7 @@ describe("Tool bar", () => {
 
             await user.click(await screen.findByRole("button", { name: "Share pool" }))
 
-            expect(screen.queryByText("123456")).toBeNull()
+            expect(screen.queryByText("123456")).not.toBeInTheDocument()
         })
     })
 
@@ -191,7 +191,7 @@ describe("Tool bar", () => {
             const { user } = await testComponentWithRouter(<ToolBar />)
             await user.click(screen.getByRole("button", { name: "Join pool" }))
 
-            expect(screen.getByPlaceholderText("Pool code")).toBeDefined()
+            expect(screen.getByPlaceholderText("Pool code")).toBeVisible()
         })
 
         it("Should join pool after filling pool code and clicking join pool", async () => {
@@ -215,8 +215,8 @@ describe("Tool bar", () => {
             await testComponentWithRouter(<ToolBar />)
             expect(
                 screen.getByRole("img", { name: `Currently playing ${mockPool.currently_playing.name} icon` }),
-            ).toBeDefined()
-            expect(screen.getByText(mockPool.currently_playing.name)).toBeDefined()
+            ).toBeVisible()
+            expect(screen.getByText(mockPool.currently_playing.name)).toBeVisible()
         })
 
         it("Should pause playback on clicking pause on playback display", async () => {
@@ -225,7 +225,7 @@ describe("Tool bar", () => {
             mockAxiosPost({ ...mockPool, is_active: false })
             const { user } = await testComponentWithRouter(<ToolBar />)
             await user.click(screen.getByRole("button", { name: "Pause" }))
-            expect(screen.getByRole("button", { name: "Play" })).toBeDefined()
+            expect(screen.getByRole("button", { name: "Play" })).toBeVisible()
         })
     })
 })
