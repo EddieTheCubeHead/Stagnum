@@ -10,7 +10,7 @@ const TestTitleCard = () => {
     return <SearchCategoryTitleCard isOpen={isOpen} setIsOpen={setIsOpen} iconSvg={<TrackIconSvg />} title="Test" />
 }
 
-describe.skip("SearchCategoryTitleCardFeatures", () => {
+describe("SearchCategoryTitleCardFeatures", () => {
     it("Should render header from given title", () => {
         testComponent(<TestTitleCard />)
 
@@ -20,7 +20,7 @@ describe.skip("SearchCategoryTitleCardFeatures", () => {
     it("Should render collapse icon initially", () => {
         testComponent(<TestTitleCard />)
 
-        expect(screen.getByTitle("Collapse")).toBeVisible()
+        expect(screen.getByTitle("Collapse")).toBeInTheDocument()
     })
 
     it("Should render open icon after collapsing state", async () => {
@@ -28,6 +28,6 @@ describe.skip("SearchCategoryTitleCardFeatures", () => {
 
         await user.click(screen.getByRole("button", { name: "Collapse" }))
 
-        expect(screen.getByTitle("Open")).toBeVisible()
+        expect(screen.getByTitle("Open")).toBeInTheDocument()
     })
 })

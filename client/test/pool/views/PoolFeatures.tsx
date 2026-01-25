@@ -8,6 +8,7 @@ import { TestQueryProvider } from "../../utils/TestQueryProvider"
 import { useAlertStore } from "../../../src/alertSystem/alertStore"
 import testComponent from "../../utils/testComponent.tsx"
 
+// TODO move to acceptance tests
 describe.skip("Pool", () => {
     it("Should render pool contents if present", () => {
         usePoolStore.setState({ pool: mockedTrackPoolData() })

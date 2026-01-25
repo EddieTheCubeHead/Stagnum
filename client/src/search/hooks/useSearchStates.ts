@@ -1,90 +1,86 @@
-import { useCallback, useMemo, useReducer } from "react"
-import { SearchOpenedFields } from "../models/SearchOpenedFields.ts"
+import { useNavigate, useSearch } from "@tanstack/react-router"
+import { useCallback } from "react"
 
-export type toggledCategory = "tracks" | "albums" | "artists" | "playlists"
-type actionType = "toggle" | "toggleFocus"
-interface ToggleAction {
-    category: toggledCategory
-    actionType: actionType
-}
+type toggledType = "tracks" | "albums" | "artists" | "playlists"
 
-const hasTrackFocus = ({ tracks, albums, artists, playlists }: SearchOpenedFields) => {
-    return tracks && !albums && !artists && !playlists
-}
-
-const hasAlbumFocus = ({ tracks, albums, artists, playlists }: SearchOpenedFields) => {
-    return !tracks && albums && !artists && !playlists
-}
-
-const hasArtistFocus = ({ tracks, albums, artists, playlists }: SearchOpenedFields) => {
-    return !tracks && !albums && artists && !playlists
-}
-
-const hasPlaylistFocus = ({ tracks, albums, artists, playlists }: SearchOpenedFields) => {
-    return !tracks && !albums && !artists && playlists
+const constructNavigateParams = (tracks: boolean, albums: boolean, artists: boolean, playlists: boolean) => {
+    return {
+        to: "/search",
+        params: (prev: any) => prev,
+        search: (prev: any) => ({ ...prev, openedTabs: { tracks, albums, artists, playlists } }),
+        mask: {
+            to: "/search",
+            params: (prev: any) => prev,
+            search: ({ openedTabs, ...prev }: { openedTabs: any }) => ({
+                ...prev,
+            }),
+        },
+        replace: true,
+    }
 }
 
 export const useSearchStates = () => {
-    const reducer = useCallback(
-        (state: SearchOpenedFields, { category, actionType }: ToggleAction): SearchOpenedFields => {
-            switch (actionType) {
-                case "toggle":
-                    const { tracks, albums, artists, playlists } = state
-                    return {
-                        tracks: (category === "tracks") !== tracks,
-                        albums: (category === "albums") !== albums,
-                        artists: (category === "artists") !== artists,
-                        playlists: (category === "playlists") !== playlists,
+    const {
+        openedTabs: { tracks, albums, artists, playlists },
+    } = useSearch({ from: "/search" })
+    const isTracksFocused = tracks && !albums && !artists && !playlists
+    const isAlbumsFocused = !tracks && albums && !artists && !playlists
+    const isArtistsFocused = !tracks && !albums && artists && !playlists
+    const isPlaylistsFocused = !tracks && !albums && !artists && playlists
+    const navigate = useNavigate()
+
+    const toggleCategory = useCallback(
+        (toggledType: toggledType) => {
+            void navigate(
+                constructNavigateParams(
+                    (toggledType === "tracks") !== tracks,
+                    (toggledType === "albums") !== albums,
+                    (toggledType === "artists") !== artists,
+                    (toggledType === "playlists") !== playlists,
+                ),
+            )
+        },
+        [tracks, albums, artists, playlists],
+    )
+
+    const toggleFocus = useCallback(
+        (toggledType: toggledType) => {
+            switch (toggledType) {
+                case "tracks":
+                    if (isTracksFocused) {
+                        return void navigate(constructNavigateParams(true, true, true, true))
                     }
-                case "toggleFocus":
-                    switch (category) {
-                        case "tracks":
-                            if (hasTrackFocus(state)) {
-                                return { tracks: true, albums: true, artists: true, playlists: true }
-                            }
-                            return { tracks: true, albums: false, artists: false, playlists: false }
-                        case "albums":
-                            if (hasAlbumFocus(state)) {
-                                return { tracks: true, albums: true, artists: true, playlists: true }
-                            }
-                            return { tracks: false, albums: true, artists: false, playlists: false }
-                        case "artists":
-                            if (hasArtistFocus(state)) {
-                                return { tracks: true, albums: true, artists: true, playlists: true }
-                            }
-                            return { tracks: false, albums: false, artists: true, playlists: false }
-                        case "playlists":
-                            if (hasPlaylistFocus(state)) {
-                                return { tracks: true, albums: true, artists: true, playlists: true }
-                            }
-                            return { tracks: false, albums: false, artists: false, playlists: true }
+                    return void navigate(constructNavigateParams(true, false, false, false))
+                case "albums":
+                    if (isAlbumsFocused) {
+                        return void navigate(constructNavigateParams(true, true, true, true))
                     }
+                    return void navigate(constructNavigateParams(false, true, false, false))
+                case "artists":
+                    if (isArtistsFocused) {
+                        return void navigate(constructNavigateParams(true, true, true, true))
+                    }
+                    return void navigate(constructNavigateParams(false, false, true, false))
+                case "playlists":
+                    if (isPlaylistsFocused) {
+                        return void navigate(constructNavigateParams(true, true, true, true))
+                    }
+                    return void navigate(constructNavigateParams(false, false, false, true))
             }
         },
-        [],
+        [tracks, albums, artists, playlists],
     )
-    const [state, dispatch] = useReducer(reducer, {
-        tracks: true,
-        albums: true,
-        artists: true,
-        playlists: true,
-    })
-
-    const isTracksFocused = useMemo(() => hasTrackFocus(state), [state])
-    const isAlbumsFocused = useMemo(() => hasAlbumFocus(state), [state])
-    const isArtistsFocused = useMemo(() => hasArtistFocus(state), [state])
-    const isPlaylistsFocused = useMemo(() => hasPlaylistFocus(state), [state])
-
-    const toggleCategory = (category: toggledCategory) => dispatch({ category, actionType: "toggle" })
-    const toggleFocus = (category: toggledCategory) => dispatch({ category, actionType: "toggleFocus" })
 
     return {
-        ...state,
+        toggleFocus,
+        toggleCategory,
+        tracks,
+        albums,
+        artists,
+        playlists,
         isTracksFocused,
         isAlbumsFocused,
         isArtistsFocused,
         isPlaylistsFocused,
-        toggleCategory,
-        toggleFocus,
     }
 }

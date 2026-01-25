@@ -4,7 +4,7 @@ import { ThemeProvider } from "../src/ThemeProvider"
 import { Theme, useThemeStore } from "../src/common/stores/themeStore"
 import { testComponent } from "./utils/testComponent.tsx"
 
-describe.skip("ThemeProvider", () => {
+describe("ThemeProvider", () => {
     it("Should include theme in classname", () => {
         testComponent(<ThemeProvider>component under test</ThemeProvider>)
 

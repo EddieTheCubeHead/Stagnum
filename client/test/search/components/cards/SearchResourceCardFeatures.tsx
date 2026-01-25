@@ -13,10 +13,10 @@ import { mockAxiosPost } from "../../../utils/mockAxios"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../../data/mockPoolData"
 import { usePoolStore } from "../../../../src/common/stores/poolStore"
 import { useAlertStore } from "../../../../src/alertSystem/alertStore"
-import testComponent from "../../../utils/testComponent.tsx"
 import { mockLoginState } from "../../../utils/mockLoginState.ts"
+import { testComponentWithRouter } from "../../../utils/testComponent.tsx"
 
-describe.skip("SearchResourceCard", () => {
+describe("SearchResourceCard", () => {
     const mockArtist: SpotifyArtist = {
         name: "Cory Wong",
         link: "example.spotify.com/cory_wong",
@@ -50,68 +50,68 @@ describe.skip("SearchResourceCard", () => {
     }
 
     describe("TrackCard", () => {
-        it("Should render track name as link", () => {
-            testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+        it("Should render track name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             expect(screen.getByRole("link", { name: mockTrack.name })).toBeVisible()
         })
 
-        it("Should render artist name as link", () => {
-            testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+        it("Should render artist name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             expect(screen.getByRole("link", { name: mockTrack.artists[0].name })).toBeVisible()
         })
 
-        it("Should render track album icon", () => {
-            testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+        it("Should render track album icon", async () => {
+            await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             expect(screen.getByRole("img")).toHaveAttribute("src", mockTrack.album.icon_link)
         })
     })
 
     describe("AlbumCard", () => {
-        it("Should render album name as link", () => {
-            testComponent(<SearchSpotifyAlbumCard album={mockAlbum} />)
+        it("Should render album name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyAlbumCard album={mockAlbum} />)
 
             expect(screen.getByRole("link", { name: mockAlbum.name })).toBeVisible()
         })
 
-        it("Should render artist name as link", () => {
-            testComponent(<SearchSpotifyAlbumCard album={mockAlbum} />)
+        it("Should render artist name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyAlbumCard album={mockAlbum} />)
 
             expect(screen.getByRole("link", { name: mockAlbum.artists[0].name })).toBeVisible()
         })
 
-        it("Should render album icon", () => {
-            testComponent(<SearchSpotifyAlbumCard album={mockAlbum} />)
+        it("Should render album icon", async () => {
+            await testComponentWithRouter(<SearchSpotifyAlbumCard album={mockAlbum} />)
 
             expect(screen.getByRole("img")).toHaveAttribute("src", mockAlbum.icon_link)
         })
     })
 
     describe("ArtistCard", () => {
-        it("Should render artist name as link", () => {
-            testComponent(<SearchSpotifyArtistCard artist={mockArtist} />)
+        it("Should render artist name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyArtistCard artist={mockArtist} />)
 
             expect(screen.getByRole("link", { name: mockArtist.name })).toBeVisible()
         })
 
-        it("Should render artist icon", () => {
-            testComponent(<SearchSpotifyArtistCard artist={mockArtist} />)
+        it("Should render artist icon", async () => {
+            await testComponentWithRouter(<SearchSpotifyArtistCard artist={mockArtist} />)
 
             expect(screen.getByRole("img")).toHaveAttribute("src", mockArtist.icon_link)
         })
     })
 
     describe("PlaylistCard", () => {
-        it("Should render playlist name as link", () => {
-            testComponent(<SearchSpotifyPlaylistCard playlist={mockPlaylist} />)
+        it("Should render playlist name as link", async () => {
+            await testComponentWithRouter(<SearchSpotifyPlaylistCard playlist={mockPlaylist} />)
 
             expect(screen.getByRole("link", { name: mockPlaylist.name })).toBeVisible()
         })
 
-        it("Should render playlist icon", () => {
-            testComponent(<SearchSpotifyPlaylistCard playlist={mockPlaylist} />)
+        it("Should render playlist icon", async () => {
+            await testComponentWithRouter(<SearchSpotifyPlaylistCard playlist={mockPlaylist} />)
 
             expect(screen.getByRole("img")).toHaveAttribute("src", mockPlaylist.icon_link)
         })
@@ -125,7 +125,7 @@ describe.skip("SearchResourceCard", () => {
         it("Should start pool playback when clicking create pool without existing playback", async () => {
             const mock_pool_data = mockedTrackPoolData()
             mockAxiosPost(mock_pool_data)
-            const { user } = testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+            const { user } = await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             await user.click(screen.getByRole("button", { name: "Play" }))
 
@@ -135,7 +135,7 @@ describe.skip("SearchResourceCard", () => {
         it("Should show alert when successfully creating a pool", async () => {
             const mock_pool_data = mockedTrackPoolData()
             mockAxiosPost(mock_pool_data)
-            const { user } = testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+            const { user } = await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             await user.click(screen.getByRole("button", { name: "Play" }))
 
@@ -144,7 +144,7 @@ describe.skip("SearchResourceCard", () => {
 
         it("Should confirm overriding pool creation with a modal", async () => {
             usePoolStore.setState({ pool: mockedTrackPoolData() })
-            const { user } = testComponent(<SearchSpotifyArtistCard artist={mockArtist} />)
+            const { user } = await testComponentWithRouter(<SearchSpotifyArtistCard artist={mockArtist} />)
 
             await user.click(screen.getByRole("button", { name: "Play" }))
 
@@ -156,7 +156,7 @@ describe.skip("SearchResourceCard", () => {
         it("Should add resource to pool when pressing add button", async () => {
             const mock_pool_data = mockedTrackPoolData()
             mockAxiosPost(mock_pool_data)
-            const { user } = testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+            const { user } = await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             await user.click(screen.getByRole("button", { name: "Add" }))
 
@@ -169,7 +169,7 @@ describe.skip("SearchResourceCard", () => {
             const mock_pool_data = mockedTrackPoolData()
             mockAxiosPost(mock_pool_data)
             usePoolStore.setState({ pool: mockedCollectionPoolData() })
-            const { user } = testComponent(<SearchSpotifyTrackCard track={mockTrack} />)
+            const { user } = await testComponentWithRouter(<SearchSpotifyTrackCard track={mockTrack} />)
 
             await user.click(screen.getByRole("button", { name: "Add" }))
 

@@ -14,6 +14,7 @@ const mockQueryParamCodeAndState = (testCode: string, testState: string) => {
     queryParams.mockReturnValueOnce({ search: `code=${testCode}&state=${testState}` })
 }
 
+// TODO move to acceptance tests
 describe.skip("Main", () => {
     describe("Pool deletion operations", () => {
         beforeEach(() => {

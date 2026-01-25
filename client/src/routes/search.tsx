@@ -7,8 +7,16 @@ import { SearchTopBar } from "../search/components/searchTopBar/SearchTopBar.tsx
 import { SearchResults } from "../search/components/SearchResults.tsx"
 import { useSearchStates } from "../search/hooks/useSearchStates.ts"
 
+const openedSearchTabsSchema = z.object({
+    tracks: z.boolean(),
+    albums: z.boolean(),
+    artists: z.boolean(),
+    playlists: z.boolean(),
+})
+
 const searchOpenedSchema = z.object({
     query: z.string(),
+    openedTabs: openedSearchTabsSchema,
 })
 
 export const Route = createFileRoute("/search")({

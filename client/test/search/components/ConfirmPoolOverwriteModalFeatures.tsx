@@ -6,6 +6,7 @@ import { mockAxiosPost } from "../../utils/mockAxios"
 import { mockedCollectionPoolData, mockedTrackPoolData } from "../data/mockPoolData"
 import testComponent from "../../utils/testComponent.tsx"
 
+// TODO move to acceptance tests
 describe.skip("ConfirmPoolOverwriteModal", () => {
     beforeEach(() => {
         usePoolStore.setState({ pool: mockedTrackPoolData() })
