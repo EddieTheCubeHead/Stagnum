@@ -8,13 +8,15 @@ import { useEffect } from "react"
 import { useGetPoolQuery } from "../hooks/useGetPoolQuery.ts"
 import { ConfirmPoolLeaveModal } from "../../pool/components/ConfirmPoolLeaveModal.tsx"
 import { Outlet } from "@tanstack/react-router"
+import { useTokenQuery } from "../hooks/useTokenQuery.ts"
 
 export const Home = () => {
-    const { pool, poolState } = usePoolStore()
-    const { confirmingOverwrite } = usePoolStore()
+    const { token } = useTokenQuery()
+    const { confirmingOverwrite, pool, poolState, setPool, setPlaybackState, clearPool } = usePoolStore()
     useGetPoolQuery()
-    const startWebSocket = useStartWebSocket()
+    const startWebSocket = useStartWebSocket({ token, setPool, setPlaybackState, clearPool })
     useEffect(() => {
+        console.log("Websocket effect")
         startWebSocket()
     }, [startWebSocket])
     return (
