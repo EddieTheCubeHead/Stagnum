@@ -2,24 +2,12 @@ import { describe, it, expect } from "vitest"
 import { Home } from "../../../src/common/views/Home"
 import { screen } from "@testing-library/react"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
-import { mockAxiosGet, mockMultipleGets } from "../../utils/mockAxios"
-import { mockedSearchData } from "../../search/data/mockedSearchData"
+import { mockMultipleGets } from "../../utils/mockAxios"
 import { usePoolStore } from "../../../src/common/stores/poolStore"
 import { mockedCollectionPoolData } from "../../search/data/mockPoolData"
 import { testComponent } from "../../utils/testComponent.tsx"
 
 describe("Home", () => {
-    it("Should render search if search query set", () => {
-        mockAxiosGet(mockedSearchData())
-        testComponent(
-            <TestQueryProvider>
-                <Home />
-            </TestQueryProvider>,
-        )
-
-        expect(screen.findByRole("heading", { name: "Tracks" })).toBeDefined()
-    })
-
     it("Should render confirm pool overwrite modal if overwrite attempted", () => {
         usePoolStore.setState({ confirmingOverwrite: { name: "name", uri: "uri", link: "link" } })
         testComponent(

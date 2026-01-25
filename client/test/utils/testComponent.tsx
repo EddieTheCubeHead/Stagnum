@@ -102,6 +102,7 @@ export const testApp = async (queryClient?: QueryClient, userEventOptions?: Opti
 
     return {
         user,
+        router,
         ...renderResult,
     }
 }

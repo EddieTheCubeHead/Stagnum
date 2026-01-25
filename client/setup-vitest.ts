@@ -3,7 +3,8 @@ import { cleanup } from "@testing-library/react"
 import { Theme, useThemeStore } from "./src/common/stores/themeStore"
 import { useAlertStore } from "./src/alertSystem/alertStore"
 import { PoolState, usePoolStore } from "./src/common/stores/poolStore"
-import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPost, mockAxiosPostError } from "./test/utils/mockAxios"
+import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPostError } from "./test/utils/mockAxios"
+import "@testing-library/jest-dom"
 
 export const TEST_BACKEND_URL = "test.server"
 

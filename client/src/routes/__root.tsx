@@ -1,4 +1,4 @@
-import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router"
+import { createRootRouteWithContext, useNavigate } from "@tanstack/react-router"
 import type { QueryClient } from "@tanstack/react-query"
 import { TopBar } from "../common/components/TopBar.tsx"
 import { ToolBar } from "../toolbar/components/ToolBar.tsx"
@@ -44,7 +44,6 @@ function RootComponent() {
         <div className="bg-background text-text min-h-screen font-default">
             <TopBar />
             <Home />
-            <Outlet />
             <ToolBar />
         </div>
     )

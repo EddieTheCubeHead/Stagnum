@@ -14,7 +14,7 @@ export const ToolBarExpandedSearch = ({ resetState }: ToolBarExpandedSearchProps
         if (query === "") {
             return
         }
-        void navigate({ to: `/search`, search: (prev) => ({ ...prev, query }) })
+        void navigate({ to: `/search`, search: (prev: any) => ({ ...prev, query }) })
     })
     const { query } = useSearch({ strict: false })
     const defaultSearch = useMemo(() => query ?? "", [])

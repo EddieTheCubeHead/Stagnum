@@ -1,6 +1,6 @@
 import { GeneralSpotifySearchResult } from "../../../src/search/models/GeneralSpotifySearchResult.ts"
 
-export const search: GeneralSpotifySearchResult = {
+export const mockSearchData: GeneralSpotifySearchResult = {
     tracks: {
         limit: 20,
         offset: 0,
