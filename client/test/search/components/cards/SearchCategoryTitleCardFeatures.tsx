@@ -20,14 +20,14 @@ describe("SearchCategoryTitleCardFeatures", () => {
     it("Should render collapse icon initially", () => {
         testComponent(<TestTitleCard />)
 
-        expect(screen.getByTitle("Collapse")).toBeInTheDocument()
+        expect(screen.getByTitle("Collapse test")).toBeInTheDocument()
     })
 
     it("Should render open icon after collapsing state", async () => {
         const { user } = testComponent(<TestTitleCard />)
 
-        await user.click(screen.getByRole("button", { name: "Collapse" }))
+        await user.click(screen.getByRole("button", { name: "Collapse test" }))
 
-        expect(screen.getByTitle("Open")).toBeInTheDocument()
+        expect(screen.getByTitle("Open test")).toBeInTheDocument()
     })
 })

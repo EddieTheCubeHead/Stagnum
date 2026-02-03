@@ -23,7 +23,9 @@ export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemb
     const deleteFromPool = useDeletePoolContent(poolMember)
     return (
         <CardBase isTopLevel={isTopLevel}>
-            {parentProps && <CollapseIconButton open={parentProps.open} setOpen={parentProps.setOpen} />}
+            {parentProps && (
+                <CollapseIconButton open={parentProps.open} setOpen={parentProps.setOpen} category={poolMember.name} />
+            )}
             <img
                 src={poolMember.spotify_icon_uri}
                 alt={`Pool member ${poolMember.name} icon`}

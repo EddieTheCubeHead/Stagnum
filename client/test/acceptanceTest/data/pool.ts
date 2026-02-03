@@ -98,9 +98,9 @@ export const mockedCollectionPoolData: Pool = {
         duration_ms: 238560,
     },
     owner: {
-        display_name: "heiasi",
-        icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-        spotify_id: "heiasi",
+        display_name: "Tester user",
+        icon_url: "tester.user.avatar.png",
+        spotify_id: "tester_user",
     },
     is_active: true,
 }

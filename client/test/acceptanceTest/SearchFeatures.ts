@@ -13,15 +13,12 @@ describe("Search acceptance tests", () => {
         server.listen()
     })
 
-    beforeEach(() => {
-        vi.resetAllMocks()
-    })
-
     afterEach(() => server.resetHandlers())
 
     afterAll(() => server.close())
 
     beforeEach(() => {
+        vi.resetAllMocks()
         usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
         mockLoginState()
     })
@@ -54,43 +51,72 @@ describe("Search acceptance tests", () => {
         expect(await screen.findByRole("heading", { name: "Tracks" })).toBeVisible()
     })
 
-    it("Should render search result categories if query exists", async () => {
-        const { user } = await testApp()
+    describe("SearchTopBar", () => {
+        const getCardOpenedStates = () => {
+            return {
+                isTracksOpened: screen.queryByRole("button", { name: "Collapse tracks" }) !== null,
+                isAlbumsOpened: screen.queryByRole("button", { name: "Collapse albums" }) !== null,
+                isArtistsOpened: screen.queryByRole("button", { name: "Collapse artists" }) !== null,
+                isPlaylistsOpened: screen.queryByRole("button", { name: "Collapse playlists" }) !== null,
+            }
+        }
+        describe.each(["Track", "Album", "Artist", "Playlist"])("%s", (resourceType) => {
+            it("Should render search result categories if query exists", async () => {
+                const { user } = await testApp()
 
-        await search(user, "My search query")
+                await search(user, "My search query")
 
-        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+                expect(await screen.findByRole("heading", { name: `${resourceType}s` })).toBeVisible()
+            })
 
-        categories.map(async (category) => expect(await screen.findByRole("heading", { name: category })).toBeVisible())
-    })
+            it("Should not render empty categories when data is loading", async () => {
+                server.use(get("search", mockSearchData, "infinite"))
+                const { user } = await testApp()
+                await search(user, "My search query")
 
-    it("Should not render empty categories when data is loading", async () => {
-        server.use(get("search", mockSearchData, "infinite"))
-        const { user } = await testApp()
-        await search(user, "My search query")
+                expect(screen.queryByRole("heading", { name: `${resourceType}s` })).not.toBeInTheDocument()
+            })
 
-        const categories = ["Tracks", "Albums", "Artists", "Playlists"]
+            it("Should render category buttons in top bar", async () => {
+                const { user } = await testApp()
+                await search(user, "My search query")
 
-        categories.map((category) => expect(screen.queryByRole("heading", { name: category })).not.toBeInTheDocument())
-    })
+                expect(await screen.findByRole("button", { name: `${resourceType}s` })).toBeInTheDocument()
+            })
 
-    it("Should render category buttons in top bar", async () => {
-        const { user } = await testApp()
-        await search(user, "My search query")
+            it("Should not render category buttons when data is loading", async () => {
+                server.use(get("search", mockSearchData, "infinite"))
+                const { user } = await testApp()
+                await search(user, "My search query")
 
-        // It sees both the icon title and the icon button text
-        const categories = ["Track Tracks", "Album Albums", "Artist Artists", "Playlist Playlists"]
+                expect(screen.queryByRole("button", { name: `${resourceType}s` })).not.toBeInTheDocument()
+            })
 
-        categories.map((category) => expect(screen.getByRole("button", { name: category })).toBeVisible())
-    })
+            it(`Should set ${resourceType.toLowerCase()}s as the only open category on click ${resourceType.toLowerCase()}s button`, async () => {
+                const { user } = await testApp()
+                await search(user, "My search query")
 
-    it("Should not render category buttons when data is loading", async () => {
-        server.use(get("search", mockSearchData, "infinite"))
-        const { user } = await testApp()
-        await search(user, "My search query")
+                await user.click(await screen.findByRole("button", { name: `${resourceType}s` }))
 
-        const categories = ["Track Tracks", "Album Albums", "Artist Artists", "Playlist Playlists"]
+                const searchState = getCardOpenedStates()
 
-        categories.map((category) => expect(screen.queryByRole("button", { name: category })).not.toBeInTheDocument())
+                for (const field in searchState) {
+                    expect(searchState[field as keyof typeof searchState]).toBe(field === `is${resourceType}sOpened`)
+                }
+            })
+
+            it(`Should set all categories as open on second click on ${resourceType.toLowerCase()}s button`, async () => {
+                const { user } = await testApp()
+                await search(user, "My search query")
+
+                await user.click(await screen.findByRole("button", { name: `${resourceType}s` }))
+                await user.click(screen.getByRole("button", { name: `${resourceType}s` }))
+
+                const searchState = getCardOpenedStates()
+                for (const field in searchState) {
+                    expect(searchState[field as keyof typeof searchState]).toBe(true)
+                }
+            })
+        })
     })
 })

@@ -4,11 +4,13 @@ import { Size } from "../constants/size.ts"
 interface IconButtonProps extends IconProps {
     onClick: () => void
     title?: string
+    label?: string
 }
 
-export const IconButton = ({ svg, onClick, title, toggled, size }: IconButtonProps) => {
+export const IconButton = ({ svg, onClick, title, label, toggled, size }: IconButtonProps) => {
     return (
         <button
+            aria-label={label ?? title}
             onClick={onClick}
             className={`fill-clickable hover:fill-stroke group ${size === Size.l ? "size-12" : "size-8"} flex-col grow-0 shrink-0 justify-center items-center`}
         >
