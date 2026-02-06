@@ -9,7 +9,7 @@ export const AvatarUserSettingsButton = () => {
             <button aria-label="User settings" onClick={() => setIsOpened(!isOpened)} className="hover:scale-105">
                 <MeAvatar />
             </button>
-            {isOpened && <UserSettingsMenu />}
+            {isOpened && <UserSettingsMenu closeCallback={() => setIsOpened(false)} />}
         </div>
     )
 }

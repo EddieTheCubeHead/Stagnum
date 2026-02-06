@@ -1,6 +1,6 @@
-import { skipToken, useQuery } from "@tanstack/react-query"
-import { useFetchToken } from "./useFetchToken.ts"
+import { useQuery } from "@tanstack/react-query"
 import { TOKEN } from "../constants/queryKey.ts"
+import { fetchToken } from "../../api/fetchToken.ts"
 
 interface UseGetTokenQueryProps {
     code?: string
@@ -8,13 +8,13 @@ interface UseGetTokenQueryProps {
 }
 
 export const useTokenQuery = ({ code, state }: UseGetTokenQueryProps = {}) => {
-    const queryFn = (code: string, state: string) => useFetchToken(code, state)
+    const unwrappedQueryFn = (code?: string, state?: string) => () => fetchToken(code, state)
     const { data, ...props } = useQuery({
-        queryKey: [TOKEN],
+        queryKey: [TOKEN, code, state],
         // We only enable the query if both are non-null
-        queryFn: code && state ? queryFn(code, state) : skipToken,
+        queryFn: unwrappedQueryFn(code, state),
         staleTime: Infinity,
-        select: (token) => token.access_token,
+        select: (token) => token?.access_token ?? undefined,
     })
 
     return {

@@ -2,7 +2,7 @@ import { describe, it, beforeAll, beforeEach, vi, afterEach, afterAll, expect } 
 import { testApp } from "../utils/testComponent.tsx"
 import { server } from "./server.ts"
 import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
-import { act, screen } from "@testing-library/react"
+import { act, screen, waitFor } from "@testing-library/react"
 import { mockMeData } from "./data/me.ts"
 import { get } from "./handlers.ts"
 
@@ -36,7 +36,7 @@ describe("Login acceptance tests", () => {
         const { router } = await testApp()
         expect(screen.queryByRole("button", { name: "User Avatar owner avatar" })).not.toBeInTheDocument()
         await act(async () => await router.navigate({ to: "/", search: { code: "123", state: "456" } }))
-        expect(router.state.location.search).toEqual({})
+        await waitFor(() => expect(router.state.location.search).toEqual({}))
         expect(screen.getByRole("img", { name: `User ${mockMeData.display_name} avatar` })).toBeVisible()
         expect(screen.getByRole("button", { name: "User settings" })).toBeVisible()
     })
