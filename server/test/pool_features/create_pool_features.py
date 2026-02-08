@@ -282,7 +282,8 @@ def should_delete_previous_pool_on_post_pool_call(
 
     with db_connection.session() as session:
         actual_results = (
-            session.scalars(
+            session
+            .scalars(
                 select(PoolMember)
                 .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
                 .options(joinedload(PoolMember.children))
@@ -309,7 +310,8 @@ def should_be_able_to_post_multiple_pool_members_on_creation(
     assert len(user_pool["collections"]) == 3
     with db_connection.session() as session:
         actual_results = (
-            session.scalars(
+            session
+            .scalars(
                 select(PoolMember)
                 .where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
                 .options(joinedload(PoolMember.children))

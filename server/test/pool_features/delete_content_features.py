@@ -67,7 +67,8 @@ def should_be_able_to_delete_separate_child_from_collection(
     assert len(user_pool["collections"][0]["tracks"]) == len(expected_tracks) - 1
     with db_connection.session() as session:
         all_tracks = (
-            session.scalars(
+            session
+            .scalars(
                 select(PoolMember).where(and_(PoolMember.parent_id != None, PoolMember.user_id == logged_in_user_id))  # noqa: E711
             )
             .unique()
@@ -99,7 +100,8 @@ def should_delete_all_children_on_parent_deletion(
     assert len(user_pool["collections"]) == 0
     with db_connection.session() as session:
         all_tracks = (
-            session.scalars(
+            session
+            .scalars(
                 select(PoolMember).where(
                     and_(PoolMember.parent_id is not None, PoolMember.user_id == logged_in_user_id)
                 )
