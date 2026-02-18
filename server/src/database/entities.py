@@ -77,7 +77,7 @@ class PoolMember(EntityBase):
         ForeignKey("PoolMember.id", onupdate="CASCADE", ondelete="CASCADE"), default=None, nullable=True
     )
 
-    parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")
+    parent: Mapped[PoolMember] = relationship(lazy="joined", remote_side=[id], back_populates="children")  # noqa: A003
     children: Mapped[list[PoolMember]] = relationship(
         lazy="joined", back_populates="parent", order_by="PoolMember.sort_order"
     )
