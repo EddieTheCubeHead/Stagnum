@@ -3,11 +3,11 @@ import { SearchAlbums } from "./SearchAlbums.tsx"
 import { SearchArtists } from "./SearchArtists.tsx"
 import { SearchPlaylists } from "./SearchPlaylists.tsx"
 import { GeneralSpotifySearchResult } from "../models/GeneralSpotifySearchResult.ts"
-import { toggledCategory } from "../hooks/useSearchStates.ts"
+import { toggledType } from "../hooks/useSearchStates.ts"
 
 interface SearchResultsProps {
     results: GeneralSpotifySearchResult
-    toggleCategory: (category: toggledCategory) => void
+    toggleCategory: (category: toggledType) => void
     tracks: boolean
     albums: boolean
     artists: boolean

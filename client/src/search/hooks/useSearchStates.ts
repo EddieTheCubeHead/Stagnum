@@ -1,7 +1,7 @@
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { useCallback } from "react"
 
-type toggledType = "tracks" | "albums" | "artists" | "playlists"
+export type toggledType = "tracks" | "albums" | "artists" | "playlists"
 
 const constructNavigateParams = (tracks: boolean, albums: boolean, artists: boolean, playlists: boolean) => {
     return {

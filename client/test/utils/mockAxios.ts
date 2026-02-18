@@ -80,7 +80,7 @@ const mockAxiosError = (errorMessage: string, call: "get" | "post" | "delete") =
     const axiosMock = vi.spyOn(axios, call)
     const mockErrorResponse = { data: { detail: errorMessage } }
 
-    axiosMock.mockImplementation(async (..._) => {
+    axiosMock.mockImplementation(async (..._: any) => {
         // @ts-expect-error - we are only interested in the error message
         throw new AxiosError(undefined, undefined, undefined, undefined, mockErrorResponse)
     })

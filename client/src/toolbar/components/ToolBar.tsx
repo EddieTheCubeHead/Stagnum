@@ -7,7 +7,7 @@ import { ToolBarExpandedSharePoolField } from "./ToolBarExpandedSharePoolField.t
 import { ToolBarExpandedJoinPoolField } from "./ToolBarExpandedJoinPoolField.tsx"
 import { PlaybackDisplay } from "../../common/components/playbackDisplay/PlaybackDisplay.tsx"
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useLocation, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { ToolBarState } from "../types/toolBarState.ts"
 

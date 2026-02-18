@@ -1,13 +1,13 @@
 import { SubviewTopBar } from "../../../common/components/SubviewTopBar.tsx"
 import { PlaylistIconSvg } from "../../../common/icons/svgs/PlaylistIconSvg.tsx"
 import { SearchTopBarButton } from "./SearchTopBarButton.tsx"
-import { toggledCategory } from "../../hooks/useSearchStates.ts"
+import { toggledType } from "../../hooks/useSearchStates.ts"
 import { TrackIconSvg } from "../../../common/icons/svgs/TrackIconSvg.tsx"
 import { AlbumIconSvg } from "../../../common/icons/svgs/AlbumIconSvg.tsx"
 import { ArtistIconSvg } from "../../../common/icons/svgs/ArtistIconSvg.tsx"
 
 interface SearchTopBarProps {
-    toggleFocus: (category: toggledCategory) => void
+    toggleFocus: (category: toggledType) => void
     isTracksFocused: boolean
     isAlbumsFocused: boolean
     isArtistsFocused: boolean

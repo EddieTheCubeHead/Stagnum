@@ -5,6 +5,7 @@ export const mockLoginState = (token?: string) => {
     const mockToken = token ?? "mockedAccessToken"
     vi.spyOn(useGetTokenQuery, "useTokenQuery").mockReturnValue({
         token: mockToken,
+        isEnabled: true,
         isError: false,
         isLoading: false,
         isPending: false,
