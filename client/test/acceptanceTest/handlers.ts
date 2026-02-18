@@ -1,7 +1,7 @@
 import { delay, http, HttpResponse } from "msw"
 import { TEST_BACKEND_URL } from "../../setup-vitest.ts"
 import { mockMeData } from "./data/me.ts"
-import { mockedCollectionPoolData } from "./data/pool.ts"
+import { foreignPool, mockedCollectionPoolData, pausedPool, sharedPool } from "./data/pool.ts"
 import { mockSearchData } from "./data/search"
 import { mockTokenData } from "./data/token.ts"
 import { mockLoginData } from "./data/login.ts"
@@ -43,4 +43,7 @@ export const handlers = [
     get("auth/login", mockLoginData),
     del("pool/content/*", mockedCollectionPoolData),
     post("pool/leave", null),
+    post("pool/playback/pause", pausedPool),
+    post("pool/join/*", foreignPool),
+    post("pool/share", sharedPool),
 ]

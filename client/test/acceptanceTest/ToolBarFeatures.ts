@@ -1,29 +1,42 @@
-import { describe, it, expect, vi, afterEach, beforeEach, beforeAll } from "vitest"
+import { describe, it, expect, vi, afterEach, beforeEach, beforeAll, afterAll } from "vitest"
 import { act, screen, waitFor } from "@testing-library/react"
-import { ToolBar } from "../../../src/toolbar/components/ToolBar.tsx"
-import { usePoolStore } from "../../../src/common/stores/poolStore"
-import { mockedCollectionPoolData, mockedTrackPoolData } from "../../search/data/mockPoolData"
-import { mockAxiosGet, mockAxiosPost } from "../../utils/mockAxios"
-import axios from "axios"
-import { testComponentWithRouter } from "../../utils/testComponent.tsx"
-import { mockedSearchData } from "../../search/data/mockedSearchData.ts"
-import { mockLoginState } from "../../utils/mockLoginState.ts"
+import { testApp } from "../utils/testComponent.tsx"
+import { mockLoginState } from "../utils/mockLoginState.ts"
+import { server } from "./server.ts"
+import { post, defaultToken, get } from "./handlers.ts"
+import { foreignPool, mockedCollectionPoolData, sharedPool } from "./data/pool.ts"
+import { mockSearchData } from "./data/search"
+import { http, HttpResponse } from "msw"
+import { TEST_BACKEND_URL } from "../../setup-vitest"
 
 describe("Tool bar", () => {
+    beforeAll(() => {
+        server.listen()
+    })
+
+    afterEach(() => server.resetHandlers())
+
+    afterAll(() => server.close())
+
+    beforeEach(() => {
+        vi.resetAllMocks()
+        mockLoginState()
+    })
+
     describe("Search", () => {
         it("Should render toolbarSearch button initially", async () => {
-            await testComponentWithRouter(<ToolBar />)
+            await testApp()
             expect(screen.getByRole("button", { name: "Search" })).toBeVisible()
         })
 
         it("Should not initially render toolbarSearch field and close toolbarSearch buttons", async () => {
-            await testComponentWithRouter(<ToolBar />)
+            await testApp()
             expect(screen.queryByRole("button", { name: "Close search" })).not.toBeInTheDocument()
             expect(screen.queryByPlaceholderText("Search...")).not.toBeInTheDocument()
         })
 
         it("Should render toolbarSearch field and close toolbarSearch buttons after click on open toolbarSearch button", async () => {
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Search" }))
 
             expect(screen.getByRole("button", { name: "Close" })).toBeVisible()
@@ -31,7 +44,7 @@ describe("Tool bar", () => {
         })
 
         it("Should not set search query immediately after typing", async () => {
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Search" }))
             await user.type(screen.getByRole("textbox"), "test query")
 
@@ -67,35 +80,48 @@ describe("Tool bar", () => {
             })
 
             it("Should not change search query if search input changes to empty string", async () => {
-                const { user } = await testComponentWithRouter(<ToolBar />, {
-                    bonusRoutes: ["search"],
-                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
-                })
-                await user.click(screen.getByRole("button", { name: "Search" }))
-                await user.type(screen.getByRole("textbox"), "test")
+                const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+                server.use(get("pool", {}))
+                server.use(
+                    http.get(`${TEST_BACKEND_URL}/search`, async ({ request }) => {
+                        const url = new URL(request.url)
+                        if (url.searchParams.get("query") === "") {
+                            throw new Error("Expected not to call search with empty query")
+                        }
+                        return HttpResponse.json(mockSearchData, { headers: { Authorization: defaultToken } })
+                    }),
+                )
 
-                await act(() => vi.advanceTimersByTime(debounceDelay + 100))
+                expect(screen.queryByText("Tracks")).not.toBeInTheDocument()
+
+                await user.click(screen.getByRole("button", { name: "Search" }))
+                await user.type(screen.getByPlaceholderText("Search..."), "test")
+
+                await act(async () => await vi.advanceTimersByTimeAsync(debounceDelay + 100))
+
                 expect(window.location.pathname).toBe("/search")
                 expect(window.location.search).toBe("?query=test")
-                await user.clear(screen.getByRole("textbox"))
 
-                await expect(
-                    async () => await waitFor(() => expect(window.location.pathname).toBe("/search?query=")),
-                ).rejects.toThrowError()
+                await user.clear(screen.getByRole("textbox"))
+                await act(() => vi.advanceTimersByTime(debounceDelay + 100))
+
+                expect(window.location.pathname).toBe("/search")
                 expect(window.location.search).toBe("?query=test")
             })
 
             it("Should set search query with debounce delay after typing", async () => {
-                const { user } = await testComponentWithRouter(<ToolBar />, {
-                    bonusRoutes: ["search"],
-                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
-                })
+                const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
 
                 await user.click(screen.getByRole("button", { name: "Search" }))
                 await user.type(screen.getByRole("textbox"), "test")
+
+                expect(window.location.pathname).toBe("/")
+                expect(window.location.search).toBe("")
+
                 await user.type(screen.getByRole("textbox"), " query")
 
                 expect(window.location.pathname).toBe("/")
+                expect(window.location.search).toBe("")
 
                 await act(() => vi.advanceTimersByTime(debounceDelay + 100))
 
@@ -105,7 +131,7 @@ describe("Tool bar", () => {
         })
 
         it("Should close search field when pressing close", async () => {
-            const { router, user } = await testComponentWithRouter(<ToolBar />, { bonusRoutes: ["search"] })
+            const { router, user } = await testApp()
             await act(async () => await router.navigate({ to: "/search", search: { query: "test" } }))
             await user.click(screen.getByRole("button", { name: "Search" }))
             await user.click(screen.getByRole("button", { name: "Close" }))
@@ -114,7 +140,7 @@ describe("Tool bar", () => {
         })
 
         it("Should clear search query when pressing home", async () => {
-            const { router, user } = await testComponentWithRouter(<ToolBar />, { bonusRoutes: ["search"] })
+            const { router, user } = await testApp()
             await act(async () => await router.navigate({ to: "/search", search: { query: "test" } }))
             await user.click(screen.getByRole("button", { name: "Home" }))
 
@@ -124,32 +150,27 @@ describe("Tool bar", () => {
 
     describe("Delete", () => {
         it("Should render delete pool as disabled if user has no pool", async () => {
-            await testComponentWithRouter(<ToolBar />)
+            server.use(get("pool", null))
+            await testApp()
             expect(await screen.findByTitle("Delete pool")).not.toBeVisible()
             expect(screen.queryByRole("button", { name: "Delete pool" })).not.toBeInTheDocument()
         })
 
         it("Should not render delete pool at all if search field is opened", async () => {
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Search" }))
             expect(screen.queryByTitle("Delete pool")).not.toBeInTheDocument()
         })
 
         it("Should render delete pool as button if user has a pool", async () => {
-            mockLoginState()
-            usePoolStore.setState({ pool: mockedTrackPoolData() })
-            mockAxiosGet(mockedTrackPoolData().owner)
-            await testComponentWithRouter(<ToolBar />)
+            await testApp()
 
             expect(screen.getByRole("button", { name: "Delete pool" })).toBeVisible()
         })
 
         it("Should display leave pool instead of delete pool if user is part of another user's pool", async () => {
-            mockAxiosGet({ display_name: "Test", icon_url: null, spotify_id: "1234" })
-            const mockPool = mockedCollectionPoolData()
-            usePoolStore.setState({ pool: mockPool })
-
-            await testComponentWithRouter(<ToolBar />)
+            server.use(get("pool", foreignPool))
+            await testApp()
 
             expect(screen.getByRole("button", { name: "Leave pool" })).toBeVisible()
         })
@@ -157,28 +178,17 @@ describe("Tool bar", () => {
 
     describe("Share", () => {
         it("Should render share pool share field after clicking on share pool", async () => {
-            const mockPool = mockedTrackPoolData()
-            usePoolStore.setState({ pool: mockPool })
-            mockPool.share_code = "123456"
-            mockAxiosPost(mockPool)
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
 
             await user.click(await screen.findByRole("button", { name: "Share pool" }))
 
-            await waitFor(() => expect(screen.getByText("123456")).toBeVisible())
+            await waitFor(() => expect(screen.getByText(sharedPool.share_code!)).toBeVisible())
         })
 
         it("Should render share pool skeleton after clicking on share pool if pool is loading", async () => {
-            const mockPool = mockedTrackPoolData()
-            usePoolStore.setState({ pool: { ...mockPool } })
-            mockPool.share_code = "123456"
+            server.use(post("/pool/share", null, "infinite"))
 
-            vi.spyOn(axios, "post").mockImplementation(async (_url, _config) => {
-                await new Promise((resolve) => setTimeout(resolve, 999999))
-                return mockedSearchData()
-            })
-
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
 
             await user.click(await screen.findByRole("button", { name: "Share pool" }))
 
@@ -188,31 +198,26 @@ describe("Tool bar", () => {
 
     describe("Join", () => {
         it("Should render code input after clicking join pool", async () => {
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Join pool" }))
 
             expect(screen.getByPlaceholderText("Pool code")).toBeVisible()
         })
 
         it("Should join pool after filling pool code and clicking join pool", async () => {
-            const mockPool = mockedTrackPoolData()
-            usePoolStore.setState({ pool: mockPool })
-            mockPool.share_code = "123456"
-            mockAxiosPost(mockPool)
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Join pool" }))
             await user.type(screen.getByPlaceholderText("Pool code"), "123456")
             await user.click(screen.getByRole("button", { name: "Join pool" }))
 
-            expect(usePoolStore.getState().pool?.share_code).toBe("123456")
+            await waitFor(() => expect(screen.getByText(foreignPool.owner.display_name)).toBeVisible())
         })
     })
 
     describe("Playback", () => {
         it("Should display playback state if pool exists", async () => {
-            const mockPool = mockedTrackPoolData()
-            usePoolStore.setState({ pool: mockPool })
-            await testComponentWithRouter(<ToolBar />)
+            const mockPool = mockedCollectionPoolData
+            await testApp()
             expect(
                 screen.getByRole("img", { name: `Currently playing ${mockPool.currently_playing.name} icon` }),
             ).toBeVisible()
@@ -220,10 +225,7 @@ describe("Tool bar", () => {
         })
 
         it("Should pause playback on clicking pause on playback display", async () => {
-            const mockPool = mockedTrackPoolData()
-            usePoolStore.setState({ pool: mockPool })
-            mockAxiosPost({ ...mockPool, is_active: false })
-            const { user } = await testComponentWithRouter(<ToolBar />)
+            const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Pause" }))
             expect(screen.getByRole("button", { name: "Play" })).toBeVisible()
         })

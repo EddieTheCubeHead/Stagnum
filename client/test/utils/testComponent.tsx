@@ -83,7 +83,12 @@ export const testComponent = (component: ReactNode, userEventOptions?: Options) 
     }
 }
 
-export const testApp = async (queryClient?: QueryClient, userEventOptions?: Options) => {
+interface TestAppOptions {
+    queryClient?: QueryClient
+    userEventOptions?: Options
+}
+
+export const testApp = async ({ queryClient, userEventOptions }: TestAppOptions = {}) => {
     const client = queryClient ?? new QueryClient()
     const router = createAppRouter(client, false)
     const user = userEvent.setup(userEventOptions)
