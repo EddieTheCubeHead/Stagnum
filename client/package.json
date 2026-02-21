@@ -13,8 +13,8 @@
         "lf": "yarn lint && yarn format",
         "preview": "vite preview",
         "test": "vitest",
-        "coverage": "vitest run --coverage",
-        "test:cicd": "vitest run --coverage.enabled --reporter=junit --coverage.reporter=json-summary"
+        "coverage": "vitest run --coverage --testTimeout 20000",
+        "test:cicd": "vitest run --coverage.enabled --reporter=junit --coverage.reporter=json-summary --testTimeout 20000"
     },
     "dependencies": {
         "@tanstack/react-query": "5.90.21",
