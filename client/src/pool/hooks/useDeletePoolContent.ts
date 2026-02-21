@@ -1,19 +1,19 @@
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useCallback } from "react"
 import { useApiDelete } from "../../api/methods.ts"
 import { Pool } from "../../common/models/Pool.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { AlertType } from "../../alertSystem/Alert.ts"
 import { PoolMember } from "../../common/models/PoolMember.ts"
+import { useTokenQuery } from "../../common/hooks/useTokenQuery.ts"
 
 export const useDeletePoolContent = (resource: PoolMember) => {
     const poolStore = usePoolStore()
-    const token = useTokenStore().token
+    const { token } = useTokenQuery()
     const { addAlert } = useAlertStore()
     const deletePoolContent = useApiDelete<Pool>(`/pool/content/${resource.id}`)
     return useCallback(() => {
-        if (token === null) {
+        if (token === undefined) {
             throw new Error("Token null on pool addition!")
         }
         deletePoolContent().then((poolData) => {

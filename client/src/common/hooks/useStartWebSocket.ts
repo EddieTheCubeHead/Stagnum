@@ -1,10 +1,16 @@
-import { useTokenStore } from "../stores/tokenStore.ts"
-import { usePoolStore } from "../stores/poolStore.ts"
+import { PoolStore } from "../stores/poolStore.ts"
+import { useTokenQuery } from "./useTokenQuery.ts"
+import { useCallback } from "react"
 
-export const useStartWebSocket = () => {
-    const { token } = useTokenStore()
-    const { setPool, setPlaybackState, clearPool } = usePoolStore()
-    return () => {
+type UseStartWebSocketProps = {
+    token: ReturnType<typeof useTokenQuery>["token"]
+} & Pick<PoolStore, "setPool" | "setPlaybackState" | "clearPool">
+
+export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool }: UseStartWebSocketProps) => {
+    return useCallback(() => {
+        if (!token) {
+            return () => {}
+        }
         const socket = new WebSocket(
             `${import.meta.env.VITE_BACKEND_URL.replace("http", "ws")}/websocket/connect?Authorization=${token}`,
         )
@@ -29,5 +35,5 @@ export const useStartWebSocket = () => {
         }
 
         return socket
-    }
+    }, [token, setPool, setPlaybackState, clearPool])
 }

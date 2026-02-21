@@ -13,7 +13,7 @@ interface SearchCategoryTitleCardProps {
 export const SearchCategoryTitleCard = ({ title, iconSvg, isOpen, setIsOpen }: SearchCategoryTitleCardProps) => {
     return (
         <CardBase>
-            <CollapseIconButton open={isOpen} setOpen={setIsOpen} />
+            <CollapseIconButton open={isOpen} setOpen={setIsOpen} category={title.toLowerCase()} />
             <Icon svg={iconSvg} />
             <h3 className="font-semibold text-lg">{title}</h3>
         </CardBase>

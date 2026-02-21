@@ -74,7 +74,7 @@ def _ensure_file(file_name: str) -> None:
 def _get_file_handler(file_name: str) -> FileHandler:
     if file_name not in _FILE_HANDLERS:
         _ensure_file(file_name)
-        _FILE_HANDLERS[file_name] = FileHandler(file_name)
+        _FILE_HANDLERS[file_name] = FileHandler(file_name, "a", "utf-8")
     return _FILE_HANDLERS[file_name]
 
 

@@ -1,11 +1,12 @@
 import { beforeEach, afterEach, vi } from "vitest"
 import { cleanup } from "@testing-library/react"
-import { useTokenStore } from "./src/common/stores/tokenStore"
 import { Theme, useThemeStore } from "./src/common/stores/themeStore"
 import { useAlertStore } from "./src/alertSystem/alertStore"
 import { PoolState, usePoolStore } from "./src/common/stores/poolStore"
-import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPost, mockAxiosPostError } from "./test/utils/mockAxios"
-import { useSearchStore } from "./src/common/stores/searchStore"
+import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPostError } from "./test/utils/mockAxios"
+import "@testing-library/jest-dom"
+
+export const TEST_BACKEND_URL = "test.server"
 
 beforeEach(() => {
     vi.mock("./src/common/hooks/useStartWebSocket", () => {
@@ -15,7 +16,7 @@ beforeEach(() => {
             },
         }
     })
-    vi.stubEnv("VITE_BACKEND_URL", "test.server")
+    vi.stubEnv("VITE_BACKEND_URL", TEST_BACKEND_URL)
     mockAxiosGetError("Network GET event called without mocking it!")
     mockAxiosPostError("Network POST event called without mocking it!")
     mockAxiosDeleteError("Network DELETE event called without mocking it!")
@@ -23,16 +24,7 @@ beforeEach(() => {
 
 afterEach(() => {
     cleanup()
-    useTokenStore.setState({ token: null })
     useThemeStore.setState({ theme: Theme.Dark })
     useAlertStore.setState({ alerts: [] })
     usePoolStore.setState({ pool: null, confirmingOverwrite: null, poolState: PoolState.Normal })
-    useSearchStore.setState({
-        isOpened: false,
-        query: "",
-        isPlaylistsOpened: true,
-        isArtistsOpened: true,
-        isAlbumsOpened: true,
-        isTracksOpened: true,
-    })
 })

@@ -5,15 +5,22 @@ import { OpenIconSvg } from "../icons/svgs/OpenIconSvg.tsx"
 interface CollapseIconButtonProps {
     open: boolean
     setOpen: (collapsed: boolean) => void
+    category?: string
 }
 
-export const CollapseIconButton = ({ open, setOpen }: CollapseIconButtonProps) => {
+export const CollapseIconButton = ({ open, setOpen, category }: CollapseIconButtonProps) => {
     return (
         <>
             {open ? (
-                <IconButton svg={<CollapseIconSvg />} onClick={() => setOpen(false)} />
+                <IconButton
+                    svg={<CollapseIconSvg label={`Collapse${category ? ` ${category}` : ""}`} />}
+                    onClick={() => setOpen(false)}
+                />
             ) : (
-                <IconButton svg={<OpenIconSvg />} onClick={() => setOpen(true)} />
+                <IconButton
+                    svg={<OpenIconSvg label={`Open${category ? ` ${category}` : ""}`} />}
+                    onClick={() => setOpen(true)}
+                />
             )}
         </>
     )

@@ -273,7 +273,8 @@ def _get_user_pool(user: User, session: Session) -> list[PoolMember]:
     if pool is None:
         raise HTTPException(status_code=404, detail=f"Could not find pool for user {user.spotify_username}")
     return list(
-        session.scalars(
+        session
+        .scalars(
             select(PoolMember)
             # because SQLAlchemy doesn't support is None
             .where(and_(PoolMember.pool_id == pool.id, PoolMember.parent_id == None))  # noqa: E711
@@ -289,7 +290,8 @@ def _get_playable_tracks(user: User, session: Session) -> list[PoolMember]:
     _logger.debug(f"Getting playable tracks for user {user.spotify_username}")
     pool = _get_pool_for_user(user, session)
     return list(
-        session.scalars(
+        session
+        .scalars(
             select(PoolMember).where(
                 and_(PoolMember.pool_id == pool.id, PoolMember.content_uri.like("spotify:track:%"))
             )
@@ -397,7 +399,8 @@ def _update_skips_since_last_play(session: Session, pool: Pool, playing_track: P
 def _remove_played_promoted_songs(session: Session, user: User, track: PoolMember) -> None:
     pool = _get_pool_for_user(user, session)
     promoted_users = (
-        session.scalars(
+        session
+        .scalars(
             select(PoolJoinedUser).where(
                 and_(PoolJoinedUser.pool_id == pool.id, PoolJoinedUser.promoted_track_id == track.id)
             )
@@ -593,7 +596,8 @@ class PoolDatabaseConnectionRaw:
         cutoff_time = self._datetime_wrapper.now() + cutoff_delta
         with self._database_connection.session() as session:
             return (
-                session.scalars(
+                session
+                .scalars(
                     select(PlaybackSession).where(
                         and_(PlaybackSession.is_active, PlaybackSession.next_song_change_timestamp < cutoff_time)
                     )
@@ -618,7 +622,8 @@ class PoolDatabaseConnectionRaw:
                 )
             )
             return (
-                session.scalars(
+                session
+                .scalars(
                     select(User)
                     .where(
                         or_(
@@ -736,9 +741,8 @@ class PoolDatabaseConnectionRaw:
         cutoff_time = self._datetime_wrapper.now() - cutoff_timedelta
         with self._database_connection.session() as session:
             playtime_raw_mapping = (
-                session.query(
-                    PlayedPoolMember.joined_user_id, func.sum(PlayedPoolMember.played_time_ms).label("playtime_ms")
-                )
+                session
+                .query(PlayedPoolMember.joined_user_id, func.sum(PlayedPoolMember.played_time_ms).label("playtime_ms"))
                 .filter(
                     and_(
                         PlayedPoolMember.joined_user_id.in_([user.spotify_id for user in users]),

@@ -6,10 +6,10 @@ export const AvatarUserSettingsButton = () => {
     const [isOpened, setIsOpened] = useState<boolean>(false)
     return (
         <div>
-            <button onClick={() => setIsOpened(!isOpened)} className="hover:scale-105">
+            <button aria-label="User settings" onClick={() => setIsOpened(!isOpened)} className="hover:scale-105">
                 <MeAvatar />
             </button>
-            {isOpened && <UserSettingsMenu />}
+            {isOpened && <UserSettingsMenu closeCallback={() => setIsOpened(false)} />}
         </div>
     )
 }

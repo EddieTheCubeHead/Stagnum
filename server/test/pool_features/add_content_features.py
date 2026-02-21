@@ -171,7 +171,8 @@ def should_correctly_construct_pool_after_collection_addition(
 
     with db_connection.session() as session:
         actual_pool_content = (
-            session.scalars(
+            session
+            .scalars(
                 select(PoolMember).where(and_(PoolMember.user_id == logged_in_user_id, PoolMember.parent_id == None))  # noqa: E711
             )
             .unique()

@@ -119,6 +119,13 @@ export const mockedTrackPoolData = (): Pool => {
                         spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2DohZ",
                         duration_ms: 204866,
                     },
+                    {
+                        id: 1,
+                        name: "Itket ja kuuntelet",
+                        spotify_icon_uri: "https://i.scdn.co/image/ab67616d0000b273ab00476f3bf0c7eca81ae6ed",
+                        spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2Doh",
+                        duration_ms: 204866,
+                    },
                 ],
                 collections: [],
                 user: {
@@ -129,15 +136,15 @@ export const mockedTrackPoolData = (): Pool => {
             },
         ],
         currently_playing: {
-            name: "Hauki",
+            name: "Itket ja kuuntelet",
             spotify_icon_uri: "https://i.scdn.co/image/ab67616d0000b273ab00476f3bf0c7eca81ae6ed",
             spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2DohZ",
             duration_ms: 204866,
         },
         owner: {
-            display_name: "heiasi",
-            icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-            spotify_id: "heiasi",
+            display_name: "Tester user",
+            icon_url: "tester.user.avatar.png",
+            spotify_id: "tester_user",
         },
         is_active: true,
     }

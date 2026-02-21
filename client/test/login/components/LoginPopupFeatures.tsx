@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react"
 import { LoginPopup } from "../../../src/login/components/loginPopup/LoginPopup"
 import { Theme, useThemeStore } from "../../../src/common/stores/themeStore"
 import { TestQueryProvider } from "../../utils/TestQueryProvider"
-import testComponent from "../../utils/testComponent.tsx"
+import { testComponent } from "../../utils/testComponent.tsx"
 
 describe("LoginPopup", () => {
     it("Should display stagnum logo", () => {
@@ -13,7 +13,7 @@ describe("LoginPopup", () => {
             </TestQueryProvider>,
         )
 
-        expect(screen.getByText("Stagnum")).toBeDefined()
+        expect(screen.getByText("Stagnum")).toBeVisible()
     })
 
     it("Should prompt the user to use Spotify for logging in", () => {
@@ -23,7 +23,7 @@ describe("LoginPopup", () => {
             </TestQueryProvider>,
         )
 
-        expect(screen.getByText("Please log in with your Spotify account")).toBeDefined()
+        expect(screen.getByText("Please log in with your Spotify account")).toBeVisible()
     })
 
     it.each([Theme.Dark, Theme.Light])(
@@ -38,7 +38,7 @@ describe("LoginPopup", () => {
 
             expect(
                 screen.getByAltText(`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme login background image`),
-            ).toBeDefined()
+            ).toBeVisible()
         },
     )
 
@@ -49,6 +49,6 @@ describe("LoginPopup", () => {
             </TestQueryProvider>,
         )
 
-        expect(screen.getByRole("button", { name: "Login" })).toBeDefined()
+        expect(screen.getByRole("button", { name: "Login" })).toBeVisible()
     })
 })

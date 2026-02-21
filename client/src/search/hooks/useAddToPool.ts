@@ -1,15 +1,15 @@
 import { usePoolStore } from "../../common/stores/poolStore.ts"
-import { useTokenStore } from "../../common/stores/tokenStore.ts"
 import { useCallback } from "react"
 import { useApiPost } from "../../api/methods.ts"
 import { Pool } from "../../common/models/Pool.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { AlertType } from "../../alertSystem/Alert.ts"
 import { PlayableSpotifyResource } from "../models/PlayableSpotifyResource.ts"
+import { useTokenQuery } from "../../common/hooks/useTokenQuery.ts"
 
 export const useAddToPool = (resource: PlayableSpotifyResource) => {
     const poolStore = usePoolStore()
-    const token = useTokenStore().token
+    const { token } = useTokenQuery()
     const { addAlert } = useAlertStore()
     const postAddToPool = useApiPost<Pool>("/pool/content")
     return useCallback(() => {

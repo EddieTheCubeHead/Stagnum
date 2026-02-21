@@ -1,24 +1,27 @@
-import { useSearchStore } from "../../common/stores/searchStore.ts"
 import { SearchCategoryTitleCard } from "./cards/SearchCategoryTitleCard.tsx"
 import { PlaylistIconSvg } from "../../common/icons/svgs/PlaylistIconSvg.tsx"
 import { SearchSpotifyPlaylistCard } from "./cards/SearchSpotifyPlaylistCard.tsx"
-import { useSpotifyGeneralQuery } from "../hooks/useSpotifyGeneralQuery.ts"
 import { SpotifyPlaylist } from "../models/SpotifyPlaylist.ts"
+import { GeneralSpotifySearchResult } from "../models/GeneralSpotifySearchResult.ts"
 
-export const SearchPlaylists = () => {
-    const { data } = useSpotifyGeneralQuery()
-    const searchStore = useSearchStore()
+interface SearchPlaylistsProps {
+    playlists: GeneralSpotifySearchResult["playlists"]
+    isOpen: boolean
+    toggleOpen: () => void
+}
+
+export const SearchPlaylists = ({ playlists, isOpen, toggleOpen }: SearchPlaylistsProps) => {
     return (
         <div className="flex-col px-2">
             <SearchCategoryTitleCard
                 title="Playlists"
                 iconSvg={<PlaylistIconSvg />}
-                isOpen={searchStore.isPlaylistsOpened}
-                setIsOpen={searchStore.setIsPlaylistOpened}
+                isOpen={isOpen}
+                setIsOpen={toggleOpen}
             />
-            {searchStore.isPlaylistsOpened ? (
+            {isOpen ? (
                 <div className="flex-col space-y-1 pl-10 pr-1 pt-1">
-                    {data?.playlists.items.map((playlist: SpotifyPlaylist) => (
+                    {playlists.items.map((playlist: SpotifyPlaylist) => (
                         <SearchSpotifyPlaylistCard key={playlist.uri} playlist={playlist} />
                     ))}
                 </div>

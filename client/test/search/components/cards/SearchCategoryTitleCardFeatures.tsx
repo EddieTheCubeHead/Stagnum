@@ -3,7 +3,7 @@ import { SearchCategoryTitleCard } from "../../../../src/search/components/cards
 import { useState } from "react"
 import { TrackIconSvg } from "../../../../src/common/icons/svgs/TrackIconSvg"
 import { screen } from "@testing-library/react"
-import testComponent from "../../../utils/testComponent.tsx"
+import { testComponent } from "../../../utils/testComponent.tsx"
 
 const TestTitleCard = () => {
     const [isOpen, setIsOpen] = useState<boolean>(true)
@@ -14,20 +14,20 @@ describe("SearchCategoryTitleCardFeatures", () => {
     it("Should render header from given title", () => {
         testComponent(<TestTitleCard />)
 
-        expect(screen.getByRole("heading", { name: "Test" })).toBeDefined()
+        expect(screen.getByRole("heading", { name: "Test" })).toBeVisible()
     })
 
     it("Should render collapse icon initially", () => {
         testComponent(<TestTitleCard />)
 
-        expect(screen.getByTitle("Collapse")).toBeDefined()
+        expect(screen.getByTitle("Collapse test")).toBeInTheDocument()
     })
 
     it("Should render open icon after collapsing state", async () => {
         const { user } = testComponent(<TestTitleCard />)
 
-        await user.click(screen.getByRole("button", { name: "Collapse" }))
+        await user.click(screen.getByRole("button", { name: "Collapse test" }))
 
-        expect(screen.getByTitle("Open")).toBeDefined()
+        expect(screen.getByTitle("Open test")).toBeInTheDocument()
     })
 })
