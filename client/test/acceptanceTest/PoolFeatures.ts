@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
 import { testApp } from "../utils/testComponent.tsx"
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
 import { mockLoginState } from "../utils/mockLoginState.ts"
 import { del, get, post } from "./handlers.ts"
@@ -13,6 +13,8 @@ import {
     mockedTrackPoolData,
 } from "./data/pool.ts"
 import { anotherUser } from "./data/anotherUser.ts"
+import { mockSearchData } from "./data/search.ts"
+import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
 
 describe("Pool", () => {
     beforeAll(() => {
@@ -112,10 +114,43 @@ describe("Pool", () => {
     })
 
     describe("Confirm pool overwrite modal", () => {
-        it("Should render confirm pool overwrite modal if overwrite attempted", async () => {
-            const { user } = await testApp()
+        // Workaround for bug in @testing-library/react when using user-event with `vi.useFakeTimers()`
+        // gotten from https://github.com/testing-library/user-event/issues/1115#issuecomment-1506220345
+        beforeAll(() => {
+            // @ts-expect-error - global fuckery
+            const _jest = globalThis.jest
+
+            // @ts-expect-error - global fuckery
+            globalThis.jest = {
+                // @ts-expect-error - global fuckery
+                ...globalThis.jest,
+                advanceTimersByTime: vi.advanceTimersByTime.bind(vi),
+            }
+
+            // @ts-expect-error - global fuckery
+            return () => void (globalThis.jest = _jest)
+        })
+
+        const debounceDelay = 511
+        const search = async (user: UserEvent, router: Awaited<ReturnType<typeof testApp>>["router"], text: string) => {
             await user.click(screen.getByRole("button", { name: "Search" }))
-            await user.type(screen.getByPlaceholderText("Search..."), "text")
+            await user.type(screen.getByPlaceholderText("Search..."), text)
+            await act(async () => {
+                vi.advanceTimersByTime(debounceDelay)
+                await router.invalidate()
+            })
+        }
+
+        afterEach(() => {
+            vi.useRealTimers()
+        })
+
+        beforeEach(() => {
+            vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+        })
+        it("Should render confirm pool overwrite modal if overwrite attempted", async () => {
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+            await search(user, router, "Text")
             await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
 
             expect(screen.getByRole("heading", { name: "Warning!" })).toBeVisible()
@@ -129,9 +164,8 @@ describe("Pool", () => {
         })
 
         it("Should wipe confirming state on cancel button", async () => {
-            const { user } = await testApp()
-            await user.click(screen.getByRole("button", { name: "Search" }))
-            await user.type(screen.getByPlaceholderText("Search..."), "text")
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+            await search(user, router, "Text")
             await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
             await user.click(screen.getByRole("button", { name: "Cancel" }))
 
@@ -141,13 +175,12 @@ describe("Pool", () => {
 
         it("Should call create pool on confirm button", async () => {
             server.use(post("pool", mockedTrackPoolData))
-            const { user } = await testApp()
-            await user.click(screen.getByRole("button", { name: "Search" }))
-            await user.type(screen.getByPlaceholderText("Search..."), "text")
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+            await search(user, router, "Text")
             await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
-            expect(screen.getByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
+            expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
         })
     })
 
