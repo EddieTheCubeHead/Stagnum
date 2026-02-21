@@ -78,12 +78,15 @@ describe("Search acceptance tests", () => {
     })
 
     describe("SearchTopBar", () => {
-        const getCardOpenedStates = () => {
-            return {
-                isTracksOpened: screen.queryByText("Collapse tracks") !== null,
-                isAlbumsOpened: screen.queryByText("Collapse albums") !== null,
-                isArtistsOpened: screen.queryByText("Collapse artists") !== null,
-                isPlaylistsOpened: screen.queryByText("Collapse playlists") !== null,
+        const searchCategories = ["tracks", "albums", "artists", "playlists"] as const
+        type openStatesType = {
+            [C in (typeof searchCategories)[number]]: boolean
+        }
+        const assertSearchCategoriesOpenState = (openStates: openStatesType): void => {
+            for (const [category, shouldBeOpen] of Object.entries(openStates)) {
+                expect(
+                    screen.getByRole("button", { name: `${shouldBeOpen ? "Collapse" : "Open"} ${category}` }),
+                ).toBeVisible()
             }
         }
         describe.each(["Track", "Album", "Artist", "Playlist"])("%s", (resourceType) => {
@@ -124,11 +127,15 @@ describe("Search acceptance tests", () => {
 
                 await user.click(await screen.findByRole("button", { name: `${resourceType}s` }))
 
-                const searchState = getCardOpenedStates()
-
-                for (const field in searchState) {
-                    expect(searchState[field as keyof typeof searchState]).toBe(field === `is${resourceType}sOpened`)
-                }
+                assertSearchCategoriesOpenState(
+                    searchCategories.reduce(
+                        (accumulator, currentValue) => {
+                            accumulator[currentValue] = currentValue === `${resourceType.toLowerCase()}s`
+                            return accumulator
+                        },
+                        { tracks: false, albums: false, artists: false, playlists: false } as openStatesType,
+                    ),
+                )
             })
 
             it(`Should set all categories as open on second click on ${resourceType.toLowerCase()}s button`, async () => {
@@ -138,10 +145,7 @@ describe("Search acceptance tests", () => {
                 await user.click(await screen.findByRole("button", { name: `${resourceType}s` }))
                 await user.click(screen.getByRole("button", { name: `${resourceType}s` }))
 
-                const searchState = getCardOpenedStates()
-                for (const field in searchState) {
-                    expect(searchState[field as keyof typeof searchState]).toBe(true)
-                }
+                assertSearchCategoriesOpenState({ tracks: true, albums: true, artists: true, playlists: true })
             })
         })
     })
