@@ -13,7 +13,6 @@ import {
     mockedTrackPoolData,
 } from "./data/pool.ts"
 import { anotherUser } from "./data/anotherUser.ts"
-import { mockSearchData } from "./data/search.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
 
 describe("Pool", () => {
