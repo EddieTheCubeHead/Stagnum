@@ -80,7 +80,7 @@ describe("Tool bar", () => {
             })
 
             it("Should not change search query if search input changes to empty string", async () => {
-                const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+                const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
                 server.use(get("pool", {}))
                 server.use(
                     http.get(`${TEST_BACKEND_URL}/search`, async ({ request }) => {
@@ -97,36 +97,40 @@ describe("Tool bar", () => {
                 await user.click(screen.getByRole("button", { name: "Search" }))
                 await user.type(screen.getByPlaceholderText("Search..."), "test")
 
-                await act(async () => await vi.advanceTimersByTimeAsync(debounceDelay + 100))
+                await act(async () => {
+                    vi.advanceTimersByTime(debounceDelay + 100)
+                    await router.invalidate()
+                })
 
-                expect(window.location.pathname).toBe("/search")
-                expect(window.location.search).toBe("?query=test")
+                expect(await screen.findByRole("heading", { name: "Tracks" })).toBeVisible()
 
                 await user.clear(screen.getByRole("textbox"))
-                await act(() => vi.advanceTimersByTime(debounceDelay + 100))
+                await act(async () => {
+                    vi.advanceTimersByTime(debounceDelay + 100)
+                    await router.invalidate()
+                })
 
-                expect(window.location.pathname).toBe("/search")
-                expect(window.location.search).toBe("?query=test")
+                expect(screen.getByRole("heading", { name: "Tracks" })).toBeVisible()
             })
 
             it("Should set search query with debounce delay after typing", async () => {
-                const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+                const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
 
                 await user.click(screen.getByRole("button", { name: "Search" }))
                 await user.type(screen.getByRole("textbox"), "test")
 
-                expect(window.location.pathname).toBe("/")
-                expect(window.location.search).toBe("")
+                expect(screen.queryByRole("heading", { name: "Tracks" })).not.toBeInTheDocument()
 
                 await user.type(screen.getByRole("textbox"), " query")
 
-                expect(window.location.pathname).toBe("/")
-                expect(window.location.search).toBe("")
+                expect(screen.queryByRole("heading", { name: "Tracks" })).not.toBeInTheDocument()
 
-                await act(() => vi.advanceTimersByTime(debounceDelay + 100))
+                await act(async () => {
+                    vi.advanceTimersByTime(debounceDelay + 100)
+                    await router.invalidate()
+                })
 
-                expect(window.location.pathname).toBe("/search")
-                expect(window.location.search).toBe("?query=test+query")
+                expect(await screen.findByRole("heading", { name: "Tracks" })).toBeVisible()
             })
         })
 

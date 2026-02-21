@@ -8,86 +8,88 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as SearchRouteImport } from "./routes/search"
-import { Route as LoginRouteImport } from "./routes/login"
-import { Route as IndexRouteImport } from "./routes/index"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as IndexRouteImport } from './routes/index'
 
 const SearchRoute = SearchRouteImport.update({
-    id: "/search",
-    path: "/search",
-    getParentRoute: () => rootRouteImport,
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
-    id: "/login",
-    path: "/login",
-    getParentRoute: () => rootRouteImport,
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
-    id: "/",
-    path: "/",
-    getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-    "/": typeof IndexRoute
-    "/login": typeof LoginRoute
-    "/search": typeof SearchRoute
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
 }
 export interface FileRoutesByTo {
-    "/": typeof IndexRoute
-    "/login": typeof LoginRoute
-    "/search": typeof SearchRoute
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
 }
 export interface FileRoutesById {
-    __root__: typeof rootRouteImport
-    "/": typeof IndexRoute
-    "/login": typeof LoginRoute
-    "/search": typeof SearchRoute
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
 }
 export interface FileRouteTypes {
-    fileRoutesByFullPath: FileRoutesByFullPath
-    fullPaths: "/" | "/login" | "/search"
-    fileRoutesByTo: FileRoutesByTo
-    to: "/" | "/login" | "/search"
-    id: "__root__" | "/" | "/login" | "/search"
-    fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/login' | '/search'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/login' | '/search'
+  id: '__root__' | '/' | '/login' | '/search'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-    IndexRoute: typeof IndexRoute
-    LoginRoute: typeof LoginRoute
-    SearchRoute: typeof SearchRoute
+  IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
 }
 
-declare module "@tanstack/react-router" {
-    interface FileRoutesByPath {
-        "/search": {
-            id: "/search"
-            path: "/search"
-            fullPath: "/search"
-            preLoaderRoute: typeof SearchRouteImport
-            parentRoute: typeof rootRouteImport
-        }
-        "/login": {
-            id: "/login"
-            path: "/login"
-            fullPath: "/login"
-            preLoaderRoute: typeof LoginRouteImport
-            parentRoute: typeof rootRouteImport
-        }
-        "/": {
-            id: "/"
-            path: "/"
-            fullPath: "/"
-            preLoaderRoute: typeof IndexRouteImport
-            parentRoute: typeof rootRouteImport
-        }
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-    IndexRoute: IndexRoute,
-    LoginRoute: LoginRoute,
-    SearchRoute: SearchRoute,
+  IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
 }
-export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
