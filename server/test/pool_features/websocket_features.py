@@ -3,6 +3,11 @@ import random
 
 import pytest
 from starlette.testclient import TestClient
+
+from api.common.spotify_models import TrackData
+from api.pool import queue_next_songs
+from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.models import PoolFullContents, PoolTrack
 from test_types.callables import (
     BuildQueue,
     CreateSpotifyPlayback,
@@ -15,11 +20,6 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
-
-from api.common.spotify_models import TrackData
-from api.pool import queue_next_songs
-from api.pool.dependencies import PoolPlaybackServiceRaw
-from api.pool.models import PoolFullContents, PoolTrack
 
 
 def should_get_update_when_pool_contents_added(

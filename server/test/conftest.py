@@ -2,6 +2,7 @@ import datetime
 import json
 import random
 import re
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
@@ -13,14 +14,34 @@ from _pytest.fixtures import FixtureRequest
 from _pytest.monkeypatch import MonkeyPatch
 from faker import Faker
 from fastapi import FastAPI
-from helpers.classes import ErrorData, ErrorResponse, MockDateTimeWrapper, MockedArtistPoolContent, MockedPoolContents
 from pydantic import BaseModel
 from sqlalchemy import select
 from starlette.responses import Response
 from starlette.testclient import TestClient
+
+import database.entities
+from api.application import create_app
+from api.auth.dependencies import AuthDatabaseConnection
+from api.auth.spotify_models import SpotifyFetchMeData
+from api.common.dependencies import (
+    AuthSpotifyClient,
+    DateTimeWrapperRaw,
+    RequestsClient,
+    RequestsClientRaw,
+    SpotifyClient,
+    TokenHolder,
+    UserDatabaseConnection,
+)
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import AlbumData, ArtistData, ImageData, PlaylistData, TrackData
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember, User
+from helpers.classes import ErrorData, ErrorResponse, MockDateTimeWrapper, MockedArtistPoolContent, MockedPoolContents
 from test_types.aliases import MockResponseQueue, SpotifySecrets
 from test_types.callables import (
     AssertTokenInHeaders,
+    BuildErrorResponse,
     BuildSuccessResponse,
     CreateHeaderFromTokenResponse,
     CreatePool,
@@ -50,25 +71,6 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
-
-import database.entities
-from api.application import create_app
-from api.auth.dependencies import AuthDatabaseConnection
-from api.auth.spotify_models import SpotifyFetchMeData
-from api.common.dependencies import (
-    AuthSpotifyClient,
-    DateTimeWrapperRaw,
-    RequestsClient,
-    RequestsClientRaw,
-    SpotifyClient,
-    TokenHolder,
-    UserDatabaseConnection,
-)
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import AlbumData, ArtistData, ImageData, PlaylistData, TrackData
-from api.pool.models import PoolContent, PoolCreationData, PoolFullContents
-from database.database_connection import ConnectionManager
-from database.entities import PoolMember, User
 
 
 @pytest.fixture
@@ -237,8 +239,21 @@ def logged_in_user_id(faker: Faker) -> str:
 def build_success_response() -> BuildSuccessResponse:
     def wrapper(data: dict[str, Any]) -> Mock:
         response = Mock()
-        response.status_code = 200
+        response.status_code = HTTPStatus.OK
         response.content = json.dumps(data).encode("utf-8")
+        return response
+
+    return wrapper
+
+
+@pytest.fixture
+def build_error_response() -> BuildErrorResponse:
+    def wrapper(status_code: HTTPStatus, message: str, reason: str) -> Mock:
+        response = Mock()
+        response.status_code = status_code
+        response.content = json.dumps({"error": {"status": status_code, "message": message, "reason": reason}}).encode(
+            "utf-8"
+        )
         return response
 
     return wrapper
@@ -415,15 +430,23 @@ def get_query_parameter() -> GetQueryParameter:
     return wrapper
 
 
-@pytest.fixture(params=[401, 403, 404, 500])
-def spotify_error_message(request: FixtureRequest, requests_client: RequestsClient) -> ErrorData:
+@pytest.fixture(
+    params=[
+        HTTPStatus.BAD_REQUEST,
+        HTTPStatus.UNAUTHORIZED,
+        HTTPStatus.PAYMENT_REQUIRED,
+        HTTPStatus.FORBIDDEN,
+        HTTPStatus.NOT_FOUND,
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+    ]
+)
+def spotify_error_message(
+    request: FixtureRequest, requests_client: RequestsClient, build_error_response: BuildErrorResponse
+) -> ErrorData:
     code = request.param
     expected_error_message = "my error message"
     for mock_method in (requests_client.get, requests_client.post, requests_client.put):
-        mock_return = Mock()
-        mock_return.status_code = code
-        mock_return.content = json.dumps({"error": expected_error_message}).encode("utf-8")
-        mock_method.return_value = mock_return
+        mock_method.return_value = build_error_response(code, expected_error_message, "SPOTIFY_ERROR")
     return ErrorData(expected_error_message, code)
 
 
@@ -501,7 +524,17 @@ def validate_model(validate_response: ValidateResponse) -> ValidateModel:
 def validate_error_response(validate_response: ValidateResponse) -> ValidateErrorResponse:
     def wrapper(response: httpx.Response, code: int, message: str) -> None:
         exception = ErrorResponse.model_validate(validate_response(response, code))
-        assert message == exception.detail
+        assert exception.detail == message
+
+    return wrapper
+
+
+@pytest.fixture
+def validate_spotify_error_response(validate_error_response: ValidateErrorResponse) -> ValidateErrorResponse:
+    def wrapper(response: httpx.Response, code: int, message: str) -> None:
+        validate_error_response(
+            response, HTTPStatus.BAD_GATEWAY, f'Error received while calling Spotify API:\n\n{code}: "{message}"'
+        )
 
     return wrapper
 

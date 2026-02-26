@@ -1,15 +1,30 @@
 import datetime
+from http import HTTPStatus
 from typing import Any
 from unittest.mock import Mock
 
 import pytest
-from helpers.classes import ApproxDatetime, MockDateTimeWrapper, MockedPoolContents
+from _pytest.monkeypatch import MonkeyPatch
 from sqlalchemy import and_, select
 from starlette.testclient import TestClient
+
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import TokenHolder
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import TrackData
+from api.pool.dependencies import PoolPlaybackServiceRaw
+from api.pool.models import PoolFullContents
+from api.pool.spotify_models import PlaybackContextData
+from api.pool.tasks import queue_next_songs
+from database.database_connection import ConnectionManager
+from database.entities import PlaybackSession, User
+from helpers.classes import ApproxDatetime, MockDateTimeWrapper, MockedPoolContents
+from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     AssertPlaybackPaused,
     AssertPlaybackStarted,
     AssertTokenInHeaders,
+    BuildErrorResponse,
     BuildQueue,
     CreatePool,
     CreateSpotifyPlayback,
@@ -25,17 +40,6 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
-
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import TokenHolder
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import TrackData
-from api.pool.dependencies import PoolPlaybackServiceRaw
-from api.pool.models import PoolFullContents
-from api.pool.spotify_models import PlaybackContextData
-from api.pool.tasks import queue_next_songs
-from database.database_connection import ConnectionManager
-from database.entities import PlaybackSession, User
 
 
 @pytest.fixture
@@ -596,3 +600,35 @@ def should_raise_error_on_skip_on_playback_context_changed(
         "playback from Stagnum by creating another pool."
     )
     validate_error_response(response, 400, expected_error_message)
+
+
+@pytest.mark.usefixtures("existing_playback")
+def should_not_raise_error_on_no_playback_available_when_pausing(
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_response: ValidateResponse,
+    #  Fixture ordering is important here so no mark.usefixtures for this one
+    no_playback_spotify_error: None,  # noqa: ARG001
+) -> None:
+    response = test_client.post("/pool/playback/pause", headers=valid_token_header)
+
+    validate_response(response)
+
+
+@pytest.mark.parametrize("environment", ("development", "production"))
+def should_return_spotify_errors_with_readable_error_message_in_both_environments(
+    monkeypatch: MonkeyPatch,
+    environment: str,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_spotify_error_response: ValidateErrorResponse,
+    build_error_response: BuildErrorResponse,
+    requests_client_put_queue: MockResponseQueue,
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    requests_client_put_queue.append(
+        build_error_response(HTTPStatus.BAD_REQUEST, "Spotify API error response", "SOME_ERROR_TYPE")
+    )
+    response = test_client.post("/pool/playback/pause", headers=valid_token_header)
+
+    validate_spotify_error_response(response, HTTPStatus.BAD_REQUEST, "Spotify API error response")

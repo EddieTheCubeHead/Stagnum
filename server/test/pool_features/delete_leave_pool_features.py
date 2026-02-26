@@ -4,12 +4,12 @@ import httpx
 import pytest
 from sqlalchemy import select
 from starlette.testclient import TestClient
-from test_types.callables import AssertEmptyPoolModel, AssertEmptyTables, MockPlaylistFetch, ValidateModel
-from test_types.typed_dictionaries import Headers
 
 from api.pool.models import PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, PoolJoinedUser, PoolMember, User
+from test_types.callables import AssertEmptyPoolModel, AssertEmptyTables, MockPlaylistFetch, ValidateModel
+from test_types.typed_dictionaries import Headers
 
 
 @pytest.fixture
@@ -67,3 +67,18 @@ def should_wipe_leavers_pool_members_on_leave_pool(
     with db_connection.session() as session:
         assert session.scalar(select(PoolMember).where(PoolMember.user_id == user_id)) is None
         assert session.scalar(select(PoolJoinedUser).where(PoolJoinedUser.user_id == user_id)) is None
+
+
+@pytest.mark.usefixtures("existing_playback")
+def should_not_throw_on_pool_delete_if_spotify_playback_not_found(
+    test_client: TestClient,
+    assert_empty_pool_model: AssertEmptyPoolModel,
+    assert_empty_tables: AssertEmptyTables,
+    valid_token_header: Headers,
+    #  Fixture ordering is important here so no mark.usefixtures for this one
+    no_playback_spotify_error: None,  # noqa: ARG001
+) -> None:
+    response = test_client.delete("/pool", headers=valid_token_header)
+
+    assert_empty_pool_model(response)
+    assert_empty_tables(Pool, PoolMember, PoolJoinedUser, PlaybackSession)

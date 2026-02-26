@@ -1,7 +1,11 @@
 import pytest
-from helpers.classes import ErrorData, MockedPoolContents
 from sqlalchemy import and_, select
 from starlette.testclient import TestClient
+
+from api.pool.models import PoolContent, PoolFullContents
+from database.database_connection import ConnectionManager
+from database.entities import PoolMember
+from helpers.classes import ErrorData, MockedPoolContents
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     AssertTokenInHeaders,
@@ -17,10 +21,6 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
-
-from api.pool.models import PoolContent, PoolFullContents
-from database.database_connection import ConnectionManager
-from database.entities import PoolMember
 
 
 def should_create_a_pool_member_for_user_even_if_user_pool_is_empty(
@@ -41,7 +41,7 @@ def should_propagate_errors_from_spotify_api(
     create_mock_track_search_result: MockTrackSearchResult,
     test_client: TestClient,
     valid_token_header: Headers,
-    validate_response: ValidateResponse,
+    validate_spotify_error_response: ValidateErrorResponse,
     spotify_error_message: ErrorData,
 ) -> None:
     track = create_mock_track_search_result()
@@ -49,11 +49,7 @@ def should_propagate_errors_from_spotify_api(
 
     response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
 
-    json_data = validate_response(response, 502)
-    assert json_data["detail"] == (
-        f"Error code {spotify_error_message.code} received while calling Spotify API. "
-        f"Message: {spotify_error_message.message}"
-    )
+    validate_spotify_error_response(response, spotify_error_message.code, spotify_error_message.message)
 
 
 def should_save_the_pool_member_to_database_even_if_user_pool_is_empty(

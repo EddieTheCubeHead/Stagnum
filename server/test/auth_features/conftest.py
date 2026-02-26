@@ -6,11 +6,11 @@ import httpx
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
-from test_types.aliases import MockResponseQueue, SpotifySecrets
-from test_types.callables import BaseAuthCallback, BaseAuthLogin, CreateValidStateString, MockDefaultMeReturn
 
 from database.database_connection import ConnectionManager
 from database.entities import LoginState
+from test_types.aliases import MockResponseQueue, SpotifySecrets
+from test_types.callables import BaseAuthCallback, BaseAuthLogin, CreateValidStateString, MockDefaultMeReturn
 
 
 @pytest.fixture

@@ -7,7 +7,13 @@ from fastapi import Depends, HTTPException, WebSocket
 from sqlalchemy import and_, delete, exists, func, or_, select, update
 from sqlalchemy.orm import Session, joinedload
 
-from api.common.dependencies import DatabaseConnection, DateTimeWrapper, SpotifyClient, TokenHolder
+from api.common.dependencies import (
+    DatabaseConnection,
+    DateTimeWrapper,
+    NoSpotifyPlaybackError,
+    SpotifyClient,
+    TokenHolder,
+)
 from api.common.helpers import build_auth_header, create_random_string, get_sharpest_icon, map_user_entity_to_model
 from api.common.models import UserModel
 from api.common.spotify_models import PlaylistData, TrackData
@@ -179,6 +185,14 @@ class PoolSpotifyClientRaw:
     def stop_playback(self, user: User) -> None:
         header = build_auth_header(user)
         return self._spotify_client.put("me/player/pause", headers=header)
+
+    def try_stop_playback(self, user: User) -> None:
+        header = build_auth_header(user)
+        try:
+            return self._spotify_client.put("me/player/pause", headers=header)
+
+        except NoSpotifyPlaybackError:
+            return None
 
 
 PoolSpotifyClient = Annotated[PoolSpotifyClientRaw, Depends()]
@@ -887,7 +901,7 @@ class PoolPlaybackServiceRaw:
         )
 
     async def pause_playback(self, user: User) -> PoolFullContents:
-        self._spotify_client.stop_playback(user)
+        self._spotify_client.try_stop_playback(user)
         return await self._inactivate_playback_session(user)
 
     async def _inactivate_playback_session(self, user: User) -> PoolFullContents:

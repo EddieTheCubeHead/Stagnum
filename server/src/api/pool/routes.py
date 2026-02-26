@@ -144,7 +144,7 @@ async def delete_pool(
     spotify_client: PoolSpotifyClient,
 ) -> PoolFullContents:
     pool_users = pool_database_connection.stop_and_purge_playback(user)
-    spotify_client.stop_playback(user)
+    spotify_client.try_stop_playback(user)
     empty_pool = PoolFullContents(users=[], share_code=None, currently_playing=None, is_active=False)
     await websocket_updater.push_update([user.spotify_id for user in pool_users], "pool", empty_pool.model_dump())
     return empty_pool
