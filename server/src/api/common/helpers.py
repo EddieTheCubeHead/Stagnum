@@ -54,7 +54,7 @@ def create_random_string(length: int) -> str:
 
 
 def raise_internal_server_error(message: str) -> Never:
-    environment = _get_environment()
+    environment = get_environment()
     if environment == "production":
         message = "Internal server error"
     raise HTTPException(status_code=500, detail=message)
@@ -74,7 +74,7 @@ def _get_client_secret() -> str:
     return client_secret
 
 
-def _get_environment() -> str:
+def get_environment() -> str:
     return os.getenv("ENVIRONMENT", default="production").lower()
 
 

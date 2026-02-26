@@ -4,10 +4,14 @@ from unittest.mock import Mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import HTTPException
-from helpers.classes import ErrorData, SubscriptionType
 from sqlalchemy import select
 from starlette import status
 from starlette.testclient import TestClient
+
+from api.common.dependencies import TokenHolder, validated_user_raw
+from database.database_connection import ConnectionManager
+from database.entities import LoginState, User
+from helpers.classes import ErrorData, SubscriptionType
 from test_types.aliases import SpotifySecrets
 from test_types.callables import (
     AuthTestCallable,
@@ -18,10 +22,6 @@ from test_types.callables import (
     ValidateErrorResponse,
     ValidateResponse,
 )
-
-from api.common.dependencies import TokenHolder, validated_user_raw
-from database.database_connection import ConnectionManager
-from database.entities import LoginState, User
 
 
 @pytest.fixture
@@ -173,14 +173,12 @@ def should_save_token_on_success_and_auth_with_token_afterwards(
 
 @pytest.mark.usefixtures("correct_env_variables")
 def should_throw_exception_on_login_if_spotify_token_fetch_fails(
-    validate_response: ValidateResponse, base_auth_callback_call: BaseAuthCallback, spotify_error_message: ErrorData
+    validate_spotify_error_response: ValidateErrorResponse,
+    base_auth_callback_call: BaseAuthCallback,
+    spotify_error_message: ErrorData,
 ) -> None:
     response = base_auth_callback_call()
-    json_data = validate_response(response, 502)
-    assert json_data["detail"] == (
-        f"Error code {spotify_error_message.code} received while calling Spotify API. "
-        f"Message: {spotify_error_message.message}"
-    )
+    validate_spotify_error_response(response, spotify_error_message.code, spotify_error_message.message)
 
 
 @pytest.mark.usefixtures("correct_env_variables")

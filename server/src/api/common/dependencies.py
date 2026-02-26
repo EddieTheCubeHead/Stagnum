@@ -2,9 +2,10 @@ import base64
 import datetime
 import functools
 import json
+from http import HTTPStatus
 from json import JSONDecodeError
 from logging import getLogger
-from typing import Annotated, Any
+from typing import Annotated, Any, TypedDict
 
 import requests
 from fastapi import Depends, Header, HTTPException
@@ -13,7 +14,7 @@ from requests import Response as RequestsResponse
 from sqlalchemy import or_, select
 from starlette import status
 
-from api.common.helpers import _get_client_id, _get_client_secret
+from api.common.helpers import _get_client_id, _get_client_secret, get_environment
 from api.common.models import SpotifyTokenResponse
 from api.common.spotify_models import RefreshTokenData, RequestTokenData
 from database.database_connection import ConnectionManager
@@ -69,7 +70,26 @@ class RequestsClientRaw:  # pragma: no cover - we're always mocking this class
 RequestsClient = Annotated[RequestsClientRaw, Depends()]
 
 
-def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
+class SpotifyErrorFormat(TypedDict):
+    status: HTTPStatus
+    message: str
+    reason: str
+
+
+class SpotifyError(HTTPException):
+    def __init__(self, spotify_error: SpotifyErrorFormat) -> None:
+        message = (
+            f'Error received while calling Spotify API:\n\n{spotify_error["status"]}: "{spotify_error["message"]}"'
+        )
+        super().__init__(status_code=502, detail=message)
+
+
+# Separate Error type for no playback to enable catching it silently if needed
+class NoSpotifyPlaybackError(SpotifyError):
+    pass
+
+
+def _validate_and_decode_spotify_response(response: RequestsResponse) -> dict[str, Any] | None:
     response_string = response.content.decode("utf8")
     try:
         parsed_data = json.loads(response_string) if response_string else None
@@ -78,10 +98,9 @@ def _validate_and_decode(response: RequestsResponse) -> dict[str, Any] | None:
     except JSONDecodeError:
         parsed_data = None
     if response.status_code >= status.HTTP_400_BAD_REQUEST:
-        error_message = (
-            f"Error code {response.status_code} received while calling Spotify API. Message: {parsed_data['error']}"
-        )
-        raise HTTPException(status_code=502, detail=error_message)
+        if parsed_data["error"].get("reason") == "NO_ACTIVE_DEVICE":
+            raise NoSpotifyPlaybackError(parsed_data["error"])
+        raise SpotifyError(parsed_data["error"])
     return parsed_data
 
 
@@ -95,7 +114,7 @@ class SpotifyClientRaw:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at GET {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.get(f"{query}", *args, **kwargs)
-        return _validate_and_decode(raw_response)
+        return _validate_and_decode_spotify_response(raw_response)
 
     def post(
         self, query: str | None = None, *args: str, override_url: str | None = None, **kwargs: dict[str, str]
@@ -103,7 +122,7 @@ class SpotifyClientRaw:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at POST {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.post(f"{query}", *args, **kwargs)
-        return _validate_and_decode(raw_response)
+        return _validate_and_decode_spotify_response(raw_response)
 
     def put(
         self, query: str | None = None, *args: str, override_url: str | None = None, **kwargs: dict[str, str]
@@ -111,7 +130,7 @@ class SpotifyClientRaw:
         query = f"https://api.spotify.com/v1/{query}" if override_url is None else override_url
         _logger.info(f"Calling spotify API at PUT {query} with args: {args} and kwargs: {kwargs}")
         raw_response = self._request_client.put(f"{query}", *args, **kwargs)
-        return _validate_and_decode(raw_response)
+        return _validate_and_decode_spotify_response(raw_response)
 
 
 SpotifyClient = Annotated[SpotifyClientRaw, Depends()]

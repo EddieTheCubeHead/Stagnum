@@ -1,9 +1,9 @@
 import datetime
 from collections.abc import Awaitable, Callable, Coroutine
+from http import HTTPStatus
 from typing import Any, Protocol
 
 import httpx
-from helpers.classes import MockedPlaylistPoolContent
 from pydantic import BaseModel
 
 from api.auth.spotify_models import SpotifyFetchMeData
@@ -21,6 +21,7 @@ from api.pool.randomization_algorithms import RandomizationParameters
 from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
 from api.search.spotify_models import GeneralSearchResultData
 from database.entities import EntityBase, PlaybackSession, PoolMember, User
+from helpers.classes import MockedPlaylistPoolContent
 from test_types.typed_dictionaries import Headers, PoolContentData, PoolCreationDataDict
 
 
@@ -216,6 +217,7 @@ type CreateToken = Callable[[], ParsedTokenResponse]
 type LogUserIn = Callable[[User, ParsedTokenResponse], None]
 type CreateHeaderFromTokenResponse = Callable[[ParsedTokenResponse], Headers]
 type BuildSuccessResponse = Callable[[dict[str, Any]], httpx.Response]
+type BuildErrorResponse = Callable[[HTTPStatus, str, str], httpx.Response]
 type MockArtistSearchResult = Callable[[], ArtistData]
 type GetQueryParameter = Callable[[str, str], str]
 type CreateValidStateString = Callable[[], str]

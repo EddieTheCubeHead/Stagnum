@@ -3,8 +3,10 @@ from unittest.mock import Mock
 import httpx
 import pytest
 from _pytest.fixtures import FixtureRequest
-from helpers.classes import ErrorData
 from starlette.testclient import TestClient
+
+from helpers.classes import ErrorData
+from test.test_types.callables import ValidateErrorResponse
 from test_types.callables import (
     AssertTokenInHeaders,
     CreateSearchResponse,
@@ -37,16 +39,12 @@ def run_search_resource_call(
 def should_propagate_errors_from_spotify_api(
     test_client: TestClient,
     valid_token_header: Headers,
-    validate_response: ValidateResponse,
+    validate_spotify_error_response: ValidateErrorResponse,
     search_item_type: str,
     spotify_error_message: ErrorData,
 ) -> None:
     response = test_client.get(f"/search/{search_item_type}s?query=test", headers=valid_token_header)
-    json_data = validate_response(response, 502)
-    assert json_data["detail"] == (
-        f"Error code {spotify_error_message.code} received while calling Spotify API. "
-        f"Message: {spotify_error_message.message}"
-    )
+    validate_spotify_error_response(response, spotify_error_message.code, spotify_error_message.message)
 
 
 def should_include_current_token_in_response_headers(

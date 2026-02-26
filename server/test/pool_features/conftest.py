@@ -1,19 +1,38 @@
 import datetime
 import json
 import random
+from http import HTTPStatus
 from unittest.mock import Mock
 
 import httpx
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from faker import Faker
-from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent, MockedPoolContents
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from starlette.testclient import TestClient
+
+from api.auth.dependencies import AuthDatabaseConnection
+from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
+from api.common.models import ParsedTokenResponse
+from api.common.spotify_models import PaginatedSearchResultData, PlaylistTrackData, TrackData
+from api.pool import queue_next_songs
+from api.pool.dependencies import (
+    PoolDatabaseConnectionRaw,
+    PoolPlaybackServiceRaw,
+    PoolSpotifyClientRaw,
+    WebsocketUpdaterRaw,
+)
+from api.pool.models import PoolFullContents, PoolTrack
+from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
+from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
+from database.database_connection import ConnectionManager
+from database.entities import EntityBase, PlaybackSession, User
+from helpers.classes import CurrentPlaybackData, MockDateTimeWrapper, MockedPlaylistPoolContent, MockedPoolContents
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     AssertEmptyTables,
+    BuildErrorResponse,
     BuildQueue,
     BuildSuccessResponse,
     CreatePlayback,
@@ -36,23 +55,6 @@ from test_types.callables import (
 )
 from test_types.faker import FakerFixture
 from test_types.typed_dictionaries import Headers
-
-from api.auth.dependencies import AuthDatabaseConnection
-from api.common.dependencies import RequestsClient, SpotifyClientRaw, TokenHolderRaw
-from api.common.models import ParsedTokenResponse
-from api.common.spotify_models import PaginatedSearchResultData, PlaylistTrackData, TrackData
-from api.pool import queue_next_songs
-from api.pool.dependencies import (
-    PoolDatabaseConnectionRaw,
-    PoolPlaybackServiceRaw,
-    PoolSpotifyClientRaw,
-    WebsocketUpdaterRaw,
-)
-from api.pool.models import PoolFullContents, PoolTrack
-from api.pool.randomization_algorithms import NextSongProvider, RandomizationParameters
-from api.pool.spotify_models import PlaybackContextData, PlaybackStateData, QueueData
-from database.database_connection import ConnectionManager
-from database.entities import EntityBase, PlaybackSession, User
 
 
 @pytest.fixture
@@ -590,3 +592,12 @@ def get_db_playback_data(db_connection: ConnectionManager, logged_in_user_id: st
             )
 
     return wrapper
+
+
+@pytest.fixture
+def no_playback_spotify_error(
+    requests_client_put_queue: MockResponseQueue, build_error_response: BuildErrorResponse
+) -> None:
+    requests_client_put_queue.append(
+        build_error_response(HTTPStatus.NOT_FOUND, "Player command failer: No active device found", "NO_ACTIVE_DEVICE")
+    )

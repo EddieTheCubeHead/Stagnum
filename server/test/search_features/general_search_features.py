@@ -4,6 +4,10 @@ import httpx
 import pytest
 from conftest import ErrorData
 from starlette.testclient import TestClient
+
+from api.common.spotify_models import ImageData
+from api.search.models import GeneralSearchResult
+from test.test_types.callables import ValidateErrorResponse
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     AssertTokenInHeaders,
@@ -19,9 +23,6 @@ from test_types.callables import (
     ValidateResponse,
 )
 from test_types.typed_dictionaries import Headers
-
-from api.common.spotify_models import ImageData
-from api.search.models import GeneralSearchResult
 
 
 @pytest.fixture
@@ -179,15 +180,11 @@ def should_accept_any_date_starting_with_year(
 def should_propagate_errors_from_spotify_api(
     test_client: TestClient,
     valid_token_header: Headers,
-    validate_response: ValidateResponse,
+    validate_spotify_error_response: ValidateErrorResponse,
     spotify_error_message: ErrorData,
 ) -> None:
     response = test_client.get("/search?query=test", headers=valid_token_header)
-    json_data = validate_response(response, 502)
-    assert json_data["detail"] == (
-        f"Error code {spotify_error_message.code} received while calling Spotify API. "
-        f"Message: {spotify_error_message.message}"
-    )
+    validate_spotify_error_response(response, spotify_error_message.code, spotify_error_message.message)
 
 
 def should_include_current_token_in_response_headers(
