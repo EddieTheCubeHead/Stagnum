@@ -4,10 +4,10 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from sqlalchemy import select
 from starlette.testclient import TestClient
-from test_types.callables import BaseAuthLogin, GetQueryParameter, ValidateResponse
 
 from api.common.dependencies import DatabaseConnection
 from database.entities import LoginState
+from test_types.callables import BaseAuthLogin, GetQueryParameter, ValidateResponse
 
 
 @pytest.fixture

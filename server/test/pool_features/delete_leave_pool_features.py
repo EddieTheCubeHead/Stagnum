@@ -1,4 +1,3 @@
-from http import HTTPStatus
 from unittest.mock import Mock
 
 import httpx
@@ -9,14 +8,7 @@ from starlette.testclient import TestClient
 from api.pool.models import PoolFullContents
 from database.database_connection import ConnectionManager
 from database.entities import PlaybackSession, Pool, PoolJoinedUser, PoolMember, User
-from test_types.aliases import MockResponseQueue
-from test_types.callables import (
-    AssertEmptyPoolModel,
-    AssertEmptyTables,
-    BuildErrorResponse,
-    MockPlaylistFetch,
-    ValidateModel,
-)
+from test_types.callables import AssertEmptyPoolModel, AssertEmptyTables, MockPlaylistFetch, ValidateModel
 from test_types.typed_dictionaries import Headers
 
 

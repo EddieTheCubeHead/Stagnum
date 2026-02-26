@@ -3,6 +3,9 @@ import random
 import httpx
 import pytest
 from starlette.testclient import TestClient
+
+from api.common.spotify_models import PaginatedSearchResultData, SpotifyResourceData
+from api.search.spotify_models import GeneralSearchResultData
 from test_types.aliases import MockResponseQueue
 from test_types.callables import (
     BuildSuccessResponse,
@@ -17,9 +20,6 @@ from test_types.callables import (
     ValidatePaginatedResultLength,
 )
 from test_types.typed_dictionaries import Headers
-
-from api.common.spotify_models import PaginatedSearchResultData, SpotifyResourceData
-from api.search.spotify_models import GeneralSearchResultData
 
 
 @pytest.fixture
