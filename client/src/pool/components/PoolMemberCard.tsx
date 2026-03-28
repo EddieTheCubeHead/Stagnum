@@ -7,6 +7,7 @@ import { Size } from "../../common/constants/size.ts"
 import { IconButton } from "../../common/icons/IconButton.tsx"
 import { useDeletePoolContent } from "../hooks/useDeletePoolContent.ts"
 import { PromotePoolTrackIconButton } from "./PromotePoolTrackIconButton.tsx"
+import { useMutatePool } from "../hooks/useMutatePool.ts"
 
 interface PoolMemberParentExtraProps {
     setOpen: (open: boolean) => void
@@ -19,8 +20,11 @@ interface PoolMemberCardProps {
     isTopLevel?: boolean
 }
 
+const MUTATION_DELETE = "delete"
+
 export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemberCardProps) => {
-    const deleteFromPool = useDeletePoolContent(poolMember)
+    const { mutationFn, optimisticOperation } = useDeletePoolContent(poolMember)
+    const { mutate } = useMutatePool({ mutationFn, optimisticOperation, mutationKey: [MUTATION_DELETE] })
     return (
         <CardBase isTopLevel={isTopLevel}>
             {parentProps && (
@@ -34,7 +38,7 @@ export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemb
             <CardText title={poolMember.name} text={poolMember.name} size={Size.s} />
             <div className="grow"></div>
             <PromotePoolTrackIconButton poolMember={poolMember} />
-            <IconButton svg={<DeleteIconSvg />} onClick={deleteFromPool} />
+            <IconButton svg={<DeleteIconSvg />} onClick={() => mutate(undefined)} />
         </CardBase>
     )
 }

@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosHeaders, AxiosResponse } from "axios"
+import axios, { AxiosHeaders, AxiosResponse } from "axios"
 import { useAlertStore } from "../alertSystem/alertStore.ts"
 import { Alert, AlertType } from "../alertSystem/Alert.ts"
 import { useTokenQuery } from "../common/hooks/useTokenQuery.ts"
@@ -64,11 +64,9 @@ const handleRequestErrors = async <T>(
 ): Promise<AxiosResponse<T>> => {
     try {
         return await request
-
-        // https://github.com/axios/axios/issues/3612
-        // @ts-expect-error - Correctly typing catches with axios error seems convoluted, not going to waste time on it
-    } catch (error: AxiosError) {
+    } catch (error) {
         if (!silent) {
+            // @ts-expect-error Axios error typing
             addAlert({ type: AlertType.Error, message: error.response.data.detail })
         }
         throw error

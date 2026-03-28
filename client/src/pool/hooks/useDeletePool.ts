@@ -6,17 +6,16 @@ import { AlertType } from "../../alertSystem/Alert.ts"
 import { useTokenQuery } from "../../common/hooks/useTokenQuery.ts"
 
 export const useDeletePool = () => {
-    const { pool, clearPool } = usePoolStore()
+    const { pool } = usePoolStore()
     const { token } = useTokenQuery()
     const { addAlert } = useAlertStore()
     const deletePool = useApiDelete("/pool")
-    return useCallback(() => {
+    return useCallback(async () => {
         if (token === undefined) {
             throw new Error("Token null on pool deletion!")
         }
-        deletePool().then(() => {
-            clearPool()
-            addAlert({ type: AlertType.Success, message: "Deleted your pool" })
-        })
+        await deletePool()
+        addAlert({ type: AlertType.Success, message: "Deleted your pool" })
+        return null
     }, [pool, token])
 }

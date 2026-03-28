@@ -214,7 +214,7 @@ describe("Tool bar", () => {
             await user.type(screen.getByPlaceholderText("Pool code"), "123456")
             await user.click(screen.getByRole("button", { name: "Join pool" }))
 
-            await waitFor(() => expect(screen.getByText(foreignPool.owner.display_name)).toBeVisible())
+            expect(await screen.findByText(foreignPool.owner.display_name)).toBeVisible()
         })
     })
 

@@ -8,6 +8,7 @@ import { PlayableSpotifyResource } from "../../models/PlayableSpotifyResource.ts
 import { usePoolStore } from "../../../common/stores/poolStore.ts"
 import { AddIconSvg } from "../../../common/icons/svgs/AddIconSvg.tsx"
 import { useAddToPool } from "../../hooks/useAddToPool.ts"
+import { useMutatePool } from "../../../pool/hooks/useMutatePool.ts"
 
 interface SearchResourceCardProps {
     resource: PlayableSpotifyResource
@@ -15,11 +16,14 @@ interface SearchResourceCardProps {
     nameField: ReactNode
 }
 
+const CREATE_MUTATION = "create"
+
 export const SearchResourceCard = ({ resource, iconSource, nameField }: SearchResourceCardProps) => {
     const createPool = useCreatePool(resource)
+    const { mutate } = useMutatePool({ mutationFn: createPool, mutationKey: [CREATE_MUTATION] })
     const addToPool = useAddToPool(resource)
     const { setConfirmingOverwrite, pool } = usePoolStore()
-    const createPoolOnClick = pool === null ? createPool : () => setConfirmingOverwrite(resource)
+    const createPoolOnClick = pool === null ? () => mutate(undefined) : () => setConfirmingOverwrite(resource)
     return (
         <CardBase>
             <img

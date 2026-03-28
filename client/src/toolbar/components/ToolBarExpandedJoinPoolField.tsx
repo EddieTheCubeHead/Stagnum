@@ -4,14 +4,18 @@ import { JoinPoolIconSvg } from "../../common/icons/svgs/JoinPoolIconSvg.tsx"
 import { useState } from "react"
 import { IconButton } from "../../common/icons/IconButton.tsx"
 import { PasteIconSvg } from "../../common/icons/svgs/PasteIconSvg.tsx"
+import { useMutatePool } from "../../pool/hooks/useMutatePool.ts"
 
 interface ToolBarExpandedJoinPoolFieldProps {
     resetState: () => void
 }
 
+const JOIN_MUTATION = "join"
+
 export const ToolBarExpandedJoinPoolField = ({ resetState }: ToolBarExpandedJoinPoolFieldProps) => {
     const [joinCode, setJoinCode] = useState("")
     const joinPoolCallback = useJoinPool(joinCode)
+    const { mutate } = useMutatePool({ mutationFn: joinPoolCallback, mutationKey: [JOIN_MUTATION] })
     return (
         <ToolBarOpenedField
             action={
@@ -26,12 +30,12 @@ export const ToolBarExpandedJoinPoolField = ({ resetState }: ToolBarExpandedJoin
                         placeholder="Pool code"
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value)}
-                        onSubmit={joinPoolCallback}
+                        onSubmit={() => mutate(undefined)}
                     ></input>
                 </>
             }
             resetState={resetState}
-            onClick={joinPoolCallback}
+            onClick={() => mutate(undefined)}
             svg={<JoinPoolIconSvg />}
         />
     )

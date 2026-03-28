@@ -6,11 +6,9 @@ export const usePostPausePlayback = () => {
     const { setPool } = usePoolStore()
     const pausePlaybackApiCall = useApiPost<Pool>("/pool/playback/pause")
 
-    return () => {
-        pausePlaybackApiCall({}).then((poolModel) => {
-            setPool(poolModel)
-            return poolModel
-        })
-        return null
+    return async () => {
+        const poolModel = await pausePlaybackApiCall({})
+        setPool(poolModel)
+        return poolModel
     }
 }

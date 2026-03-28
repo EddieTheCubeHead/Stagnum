@@ -4,7 +4,7 @@ import { testApp } from "../utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
 import { mockLoginState } from "../utils/mockLoginState.ts"
-import { del, get, post } from "./handlers.ts"
+import { del, delError, get, post } from "./handlers.ts"
 import {
     createMockedCollectionPoolData,
     createMockedTrackPoolData,
@@ -67,49 +67,137 @@ describe("Pool", () => {
         expect(screen.getByText(mockedCollectionPoolData.users[0].collections[0].tracks[0].name)).toBeVisible()
     })
 
-    it("Should delete track from pool when pressing delete button", async () => {
-        server.use(get("pool", mockedTrackPoolData))
-        const mockedPoolData = createMockedTrackPoolData()
-        mockedPoolData.users[0].tracks.shift()
-        server.use(del("pool/content/*", mockedPoolData))
-        const { user } = await testApp()
+    describe("Member deletion", () => {
+        it("Should delete track from pool when pressing delete button", async () => {
+            server.use(get("pool", mockedTrackPoolData))
+            const mockedPoolData = createMockedTrackPoolData()
+            mockedPoolData.users[0].tracks.shift()
+            server.use(del("pool/content/*", mockedPoolData))
+            const { user } = await testApp()
 
-        await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
-        expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
-    })
+            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+            expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
+        })
 
-    it("Should delete collection from pool when pressing delete button", async () => {
-        const mockedPoolData = createMockedCollectionPoolData()
-        mockedPoolData.users[0].collections.shift()
-        server.use(del("pool/content/*", { ...mockedPoolData }))
-        const { user } = await testApp()
+        it("Should delete collection from pool when pressing delete button", async () => {
+            const mockedPoolData = createMockedCollectionPoolData()
+            mockedPoolData.users[0].collections.shift()
+            server.use(del("pool/content/*", { ...mockedPoolData }))
+            const { user } = await testApp()
 
-        await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
 
-        expect(screen.queryByText(mockedCollectionPoolData.users[0].collections[0].name)).not.toBeInTheDocument()
-    })
+            expect(screen.queryByText(mockedCollectionPoolData.users[0].collections[0].name)).not.toBeInTheDocument()
+        })
 
-    it("Should delete collection child from pool when pressing delete button", async () => {
-        const mockedPoolData = createMockedCollectionPoolData()
-        mockedPoolData.users[0].collections[0].tracks.shift()
-        server.use(del("pool/content/*", { ...mockedPoolData }))
-        const { user } = await testApp()
+        it("Should delete collection child from pool when pressing delete button", async () => {
+            const mockedPoolData = createMockedCollectionPoolData()
+            mockedPoolData.users[0].collections[0].tracks.shift()
+            server.use(del("pool/content/*", { ...mockedPoolData }))
+            const { user } = await testApp()
 
-        await user.click(screen.getByRole("button", { name: `Open ${mockedPoolData.users[0].collections[0].name}` }))
-        await user.click(screen.getAllByRole("button", { name: "Delete" })[1])
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedPoolData.users[0].collections[0].name}` }),
+            )
+            await user.click(screen.getAllByRole("button", { name: "Delete" })[1])
 
-        expect(
-            screen.queryByText(mockedCollectionPoolData.users[0].collections[0].tracks[0].name),
-        ).not.toBeInTheDocument()
-    })
+            expect(
+                screen.queryByText(mockedCollectionPoolData.users[0].collections[0].tracks[0].name),
+            ).not.toBeInTheDocument()
+        })
 
-    it("Should create alert when successfully deleting pool resource", async () => {
-        const { user } = await testApp()
-        await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+        it("Should create alert when successfully deleting pool resource", async () => {
+            const { user } = await testApp()
+            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
 
-        expect(
-            await screen.findByText(`Deleted "${mockedCollectionPoolData.users[0].collections[0].name}" from pool`),
-        ).toBeVisible()
+            expect(
+                await screen.findByText(`Deleted "${mockedCollectionPoolData.users[0].collections[0].name}" from pool`),
+            ).toBeVisible()
+        })
+
+        describe("Optimistic updates", () => {
+            // Workaround for bug in @testing-library/react when using user-event with `vi.useFakeTimers()`
+            // gotten from https://github.com/testing-library/user-event/issues/1115#issuecomment-1506220345
+            beforeAll(() => {
+                // @ts-expect-error - global fuckery
+                const _jest = globalThis.jest
+
+                // @ts-expect-error - global fuckery
+                globalThis.jest = {
+                    // @ts-expect-error - global fuckery
+                    ...globalThis.jest,
+                    advanceTimersByTime: vi.advanceTimersByTime.bind(vi),
+                }
+
+                // @ts-expect-error - global fuckery
+                return () => void (globalThis.jest = _jest)
+            })
+
+            beforeEach(() => {
+                vi.useFakeTimers()
+            })
+
+            afterEach(() => {
+                vi.useRealTimers()
+            })
+
+            it("Should optimistically set pool data on deletion", async () => {
+                server.use(get("pool", mockedTrackPoolData))
+                const mockedPoolData = createMockedTrackPoolData()
+                mockedPoolData.users[0].tracks.shift()
+                server.use(del("pool/content/*", mockedPoolData, "infinite"))
+                const { user } = await testApp({
+                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
+                })
+                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
+            })
+
+            it("Should not display success alert based on only optimistic data", async () => {
+                server.use(get("pool", mockedTrackPoolData))
+                const mockedPoolData = createMockedTrackPoolData()
+                mockedPoolData.users[0].tracks.shift()
+                server.use(del("pool/content/*", mockedPoolData, "infinite"))
+                const { user } = await testApp({
+                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
+                })
+                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                expect(
+                    screen.queryByText(`Deleted ${mockedTrackPoolData.users[0].tracks[0].name} from pool`),
+                ).not.toBeInTheDocument()
+            })
+
+            it("Should display success alert after update succeeds", async () => {
+                server.use(get("pool", mockedTrackPoolData))
+                const mockedPoolData = createMockedTrackPoolData()
+                mockedPoolData.users[0].tracks.shift()
+                server.use(del("pool/content/*", mockedPoolData, 10000))
+                const { user } = await testApp({
+                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
+                })
+                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                await act(async () => {
+                    await vi.advanceTimersByTimeAsync(11000)
+                })
+                expect(
+                    screen.getByText(`Deleted "${mockedTrackPoolData.users[0].tracks[0].name}" from pool`),
+                ).toBeVisible()
+            })
+
+            it("Should revert pool state if delete call fails", async () => {
+                server.use(get("pool", mockedTrackPoolData))
+                server.use(delError("pool/content/*", 500, "Server error", 10000))
+                const { user } = await testApp({
+                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
+                })
+                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
+                await act(async () => {
+                    await vi.advanceTimersByTimeAsync(11000)
+                })
+                expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
+            })
+        })
     })
 
     describe("Confirm pool overwrite modal", () => {

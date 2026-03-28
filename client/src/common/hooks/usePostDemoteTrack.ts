@@ -8,10 +8,9 @@ export const usePostDemoteTrack = (track: PoolMember) => {
     const { addAlert } = useAlertStore()
     const demote = useApiPost<Pool>("/pool/demote")
 
-    return () => {
-        demote({}).then(() => {
-            addAlert({ type: AlertType.Success, message: `Track '${track.name}' demoted successfully` })
-        })
-        return null
+    return async () => {
+        const pool = await demote({})
+        addAlert({ type: AlertType.Success, message: `Track '${track.name}' demoted successfully` })
+        return pool
     }
 }

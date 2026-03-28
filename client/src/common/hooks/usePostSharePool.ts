@@ -7,13 +7,12 @@ export const usePostSharePool = () => {
     const { pool } = usePoolStore()
     const sharePoolApiCall = useApiPost<Pool>("/pool/share")
 
-    return () => {
+    return async () => {
         if (!pool?.share_code) {
-            sharePoolApiCall({}).then((poolModel) => {
-                setPool(poolModel)
-                return poolModel
-            })
+            const poolModel = await sharePoolApiCall({})
+            setPool(poolModel)
+            return poolModel
         }
-        return null
+        return pool
     }
 }
