@@ -9,7 +9,6 @@ type UseStartWebSocketProps = {
 export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool }: UseStartWebSocketProps) => {
     return useCallback(() => {
         if (!token) {
-            console.log("paska")
             return () => {}
         }
         const socket = new WebSocket(
