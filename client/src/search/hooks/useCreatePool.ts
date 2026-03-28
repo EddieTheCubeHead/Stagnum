@@ -19,13 +19,12 @@ export const useCreatePool = (resource: PlayableSpotifyResource) => {
             },
         ],
     }
-    return useCallback(() => {
+    return useCallback(async () => {
         if (token === null) {
             throw new Error("Token null on pool creation!")
         }
-        postCreatePool(postBody).then((poolData) => {
-            poolStore.setPool(poolData)
-            addAlert({ type: AlertType.Success, message: `Created a pool from "${resource.name}"` })
-        })
+        const poolData = await postCreatePool(postBody)
+        addAlert({ type: AlertType.Success, message: `Created a pool from "${resource.name}"` })
+        return poolData
     }, [resource, poolStore, token])
 }

@@ -6,11 +6,9 @@ export const usePostResumePlayback = () => {
     const { setPool } = usePoolStore()
     const resumePlaybackApiCall = useApiPost<Pool>("/pool/playback/resume")
 
-    return () => {
-        resumePlaybackApiCall({}).then((poolModel) => {
-            setPool(poolModel)
-            return poolModel
-        })
-        return null
+    return async () => {
+        const poolModel = await resumePlaybackApiCall({})
+        setPool(poolModel)
+        return poolModel
     }
 }

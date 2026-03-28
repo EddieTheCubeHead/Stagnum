@@ -2,6 +2,7 @@ import { Pool } from "../../common/models/Pool.ts"
 import { useMutation } from "@tanstack/react-query"
 import { usePoolStore } from "../../common/stores/poolStore.ts"
 import { AxiosError } from "axios"
+import { useCallback, useMemo } from "react"
 
 export const POOl_MUTATION = "pool"
 
@@ -17,18 +18,28 @@ export const useMutatePool = <TVariables>({
     optimisticOperation,
 }: UseMutatePoolProps<TVariables>) => {
     const { pool, setPool } = usePoolStore()
-    const onMutate = optimisticOperation
-        ? (variables: TVariables) => {
-              setPool(pool ? optimisticOperation({ ...pool }, variables) : null)
-              return pool
-          }
-        : undefined
-    const onError = (_error: AxiosError, _variables: TVariables, pool: Pool | null | undefined) => {
-        setPool(pool ?? null)
-    }
-    const onSuccess = (data: Pool | null, _variables: TVariables, _wtf: Pool | null | undefined) => {
-        setPool(data)
-    }
+    const onMutate = useMemo(
+        () =>
+            optimisticOperation
+                ? (variables: TVariables) => {
+                      setPool(pool ? optimisticOperation({ ...pool }, variables) : null)
+                      return pool
+                  }
+                : undefined,
+        [optimisticOperation, pool, setPool],
+    )
+    const onError = useCallback(
+        (_error: AxiosError, _variables: TVariables, pool: Pool | null | undefined) => {
+            setPool(pool ?? null)
+        },
+        [pool, setPool],
+    )
+    const onSuccess = useCallback(
+        (data: Pool | null) => {
+            setPool(data)
+        },
+        [pool, setPool],
+    )
     return useMutation({
         mutationFn,
         mutationKey: [POOl_MUTATION, ...mutationKey],

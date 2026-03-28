@@ -25,7 +25,7 @@ export interface PoolStore {
 
 export const usePoolStore = create<PoolStore>((set) => ({
     pool: null,
-    setPool: (pool: Pool) => set({ pool }),
+    setPool: (pool: Pool | null) => set({ pool }),
     setPlaybackState: (poolMember: PoolTrack) => {
         set((state) => ({ pool: state.pool ? { ...state.pool, currently_playing: poolMember } : null }))
     },
