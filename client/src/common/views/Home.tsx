@@ -16,6 +16,7 @@ export const Home = () => {
     useGetPoolQuery()
     const startWebSocket = useStartWebSocket({ token, setPool, setPlaybackState, clearPool })
     useEffect(() => {
+        console.log("StartWebSocket")
         startWebSocket()
     }, [startWebSocket])
     return (

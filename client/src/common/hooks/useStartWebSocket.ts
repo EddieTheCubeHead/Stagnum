@@ -9,6 +9,7 @@ type UseStartWebSocketProps = {
 export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool }: UseStartWebSocketProps) => {
     return useCallback(() => {
         if (!token) {
+            console.log("paska")
             return () => {}
         }
         const socket = new WebSocket(
@@ -19,6 +20,7 @@ export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool 
 
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data)
+            console.log(message)
             if (message.type === "pool") {
                 // Stupid workaround because backend sends stupid data
                 // TODO clear up once old UI is gone and we can change backend data models

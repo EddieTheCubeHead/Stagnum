@@ -11,7 +11,7 @@ export const enum PoolState {
 
 export interface PoolStore {
     pool: Pool | null
-    setPool: (pool: Pool) => void
+    setPool: (pool: Pool | null) => void
     setPlaybackState: (poolMember: PoolTrack) => void
     clearPool: () => void
 

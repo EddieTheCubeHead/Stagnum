@@ -8,17 +8,43 @@ import { PoolMember } from "../../common/models/PoolMember.ts"
 import { useTokenQuery } from "../../common/hooks/useTokenQuery.ts"
 
 export const useDeletePoolContent = (resource: PoolMember) => {
-    const poolStore = usePoolStore()
+    const { setPool } = usePoolStore()
     const { token } = useTokenQuery()
     const { addAlert } = useAlertStore()
     const deletePoolContent = useApiDelete<Pool>(`/pool/content/${resource.id}`)
-    return useCallback(() => {
+    const mutationFn = useCallback(async () => {
         if (token === undefined) {
             throw new Error("Token null on pool addition!")
         }
-        deletePoolContent().then((poolData) => {
-            poolStore.setPool(poolData)
-            addAlert({ type: AlertType.Success, message: `Deleted "${resource.name}" from pool` })
-        })
-    }, [resource, poolStore, token])
+        const poolData = await deletePoolContent()
+        addAlert({ type: AlertType.Success, message: `Deleted "${resource.name}" from pool` })
+        return poolData
+    }, [resource, token])
+    const optimisticOperation = useCallback(
+        (pool: Pool | null): Pool | null => {
+            if (pool === null) {
+                return null
+            }
+            return {
+                ...pool,
+                users: pool.users.map((user) => {
+                    return {
+                        ...user,
+                        collections: user.collections
+                            .filter((collection) => collection.id !== resource.id)
+                            .map((collection) => {
+                                return {
+                                    ...collection,
+                                    tracks: collection.tracks.filter((track) => track.id !== resource.id),
+                                }
+                            }),
+                        tracks: user.tracks.filter((track) => track.id !== resource.id),
+                    }
+                }),
+            }
+        },
+        [resource, setPool],
+    )
+
+    return { mutationFn, optimisticOperation }
 }

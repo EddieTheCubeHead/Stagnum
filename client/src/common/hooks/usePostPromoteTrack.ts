@@ -8,10 +8,9 @@ export const usePostPromoteTrack = (track: PoolMember) => {
     const { addAlert } = useAlertStore()
     const promoteApiCall = useApiPost<Pool>(`/pool/promote/${track.id}`)
 
-    return () => {
-        promoteApiCall({}).then(() => {
-            addAlert({ type: AlertType.Success, message: `Track '${track.name}' promoted successfully` })
-        })
-        return null
+    return async () => {
+        const pool = await promoteApiCall({})
+        addAlert({ type: AlertType.Success, message: `Track '${track.name}' promoted successfully` })
+        return pool
     }
 }
