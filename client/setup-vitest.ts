@@ -9,13 +9,6 @@ import "@testing-library/jest-dom"
 export const TEST_BACKEND_URL = "test.server"
 
 beforeEach(() => {
-    vi.mock("./src/common/hooks/useStartWebSocket", () => {
-        return {
-            useStartWebSocket: () => {
-                return () => {}
-            },
-        }
-    })
     vi.stubEnv("VITE_BACKEND_URL", TEST_BACKEND_URL)
     mockAxiosGetError("Network GET event called without mocking it!")
     mockAxiosPostError("Network POST event called without mocking it!")

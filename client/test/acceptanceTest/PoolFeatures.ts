@@ -4,13 +4,14 @@ import { testApp } from "../utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
 import { mockLoginState } from "../utils/mockLoginState.ts"
-import { del, delError, get, post } from "./handlers.ts"
+import { del, delError, get, post, webSocket } from "./handlers.ts"
 import {
     createMockedCollectionPoolData,
     createMockedTrackPoolData,
     foreignPool,
     mockedCollectionPoolData,
     mockedTrackPoolData,
+    promotedPool,
 } from "./data/pool.ts"
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
@@ -75,7 +76,9 @@ describe("Pool", () => {
             server.use(del("pool/content/*", mockedPoolData))
             const { user } = await testApp()
 
-            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+            await user.click(
+                screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+            )
             expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
         })
 
@@ -85,7 +88,9 @@ describe("Pool", () => {
             server.use(del("pool/content/*", { ...mockedPoolData }))
             const { user } = await testApp()
 
-            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+            await user.click(
+                screen.getByRole("button", { name: `Delete ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
 
             expect(screen.queryByText(mockedCollectionPoolData.users[0].collections[0].name)).not.toBeInTheDocument()
         })
@@ -99,7 +104,11 @@ describe("Pool", () => {
             await user.click(
                 screen.getByRole("button", { name: `Open ${mockedPoolData.users[0].collections[0].name}` }),
             )
-            await user.click(screen.getAllByRole("button", { name: "Delete" })[1])
+            await user.click(
+                screen.getByRole("button", {
+                    name: `Delete ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            )
 
             expect(
                 screen.queryByText(mockedCollectionPoolData.users[0].collections[0].tracks[0].name),
@@ -108,7 +117,9 @@ describe("Pool", () => {
 
         it("Should create alert when successfully deleting pool resource", async () => {
             const { user } = await testApp()
-            await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+            await user.click(
+                screen.getByRole("button", { name: `Delete ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
 
             expect(
                 await screen.findByText(`Deleted "${mockedCollectionPoolData.users[0].collections[0].name}" from pool`),
@@ -149,7 +160,9 @@ describe("Pool", () => {
                 const { user } = await testApp({
                     userEventOptions: { advanceTimers: vi.advanceTimersByTime },
                 })
-                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                await user.click(
+                    screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+                )
                 expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
             })
 
@@ -161,7 +174,9 @@ describe("Pool", () => {
                 const { user } = await testApp({
                     userEventOptions: { advanceTimers: vi.advanceTimersByTime },
                 })
-                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                await user.click(
+                    screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+                )
                 expect(
                     screen.queryByText(`Deleted ${mockedTrackPoolData.users[0].tracks[0].name} from pool`),
                 ).not.toBeInTheDocument()
@@ -175,7 +190,9 @@ describe("Pool", () => {
                 const { user } = await testApp({
                     userEventOptions: { advanceTimers: vi.advanceTimersByTime },
                 })
-                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                await user.click(
+                    screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+                )
                 await act(async () => {
                     await vi.advanceTimersByTimeAsync(11000)
                 })
@@ -190,7 +207,9 @@ describe("Pool", () => {
                 const { user } = await testApp({
                     userEventOptions: { advanceTimers: vi.advanceTimersByTime },
                 })
-                await user.click(screen.getAllByRole("button", { name: "Delete" })[0])
+                await user.click(
+                    screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+                )
                 expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
                 await act(async () => {
                     await vi.advanceTimersByTimeAsync(11000)
@@ -271,7 +290,7 @@ describe("Pool", () => {
         })
     })
 
-    describe("Pool deletion operations", () => {
+    describe("Deleting a pool", () => {
         it("Should prompt whether user wants to delete the pool when clicking delete pool", async () => {
             const { user } = await testApp()
 
@@ -321,7 +340,7 @@ describe("Pool", () => {
         })
     })
 
-    describe("Pool leaving operations", () => {
+    describe("Leaving a pool", () => {
         beforeEach(() => {
             server.use(get("pool", foreignPool))
         })
@@ -369,6 +388,140 @@ describe("Pool", () => {
             await new Promise((r: TimerHandler) => setTimeout(r, 50))
 
             expect(screen.getByText(`Left ${foreignPool.owner.display_name}'s pool`)).toBeVisible()
+        })
+    })
+
+    describe("Promoting songs", () => {
+        it("Should set song as promoted on song promote button click", async () => {
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
+            await user.click(
+                screen.getByRole("button", {
+                    name: `Promote ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            )
+
+            expect(
+                await screen.findByRole("button", {
+                    name: `Remove ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name} promotion`,
+                }),
+            ).toBeVisible()
+        })
+
+        it("Should remove song promotion on promote button reclick", async () => {
+            server.use(get("pool", promotedPool))
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
+            await user.click(
+                screen.getByRole("button", {
+                    name: `Remove ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name} promotion`,
+                }),
+            )
+
+            expect(
+                screen.getByRole("button", {
+                    name: `Promote ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            ).toBeVisible()
+        })
+    })
+
+    describe("WebSockets", () => {
+        it("Should update pool on websocket pool event", async () => {
+            await testApp()
+            await act(async () => {
+                webSocket.broadcast(JSON.stringify({ type: "pool", model: mockedTrackPoolData }))
+            })
+            expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
+        })
+
+        it("Should update playback status on playback event", async () => {
+            await testApp()
+            await act(async () => {
+                webSocket.broadcast(
+                    JSON.stringify({
+                        type: "current_track",
+                        model: mockedCollectionPoolData.users[0].collections[0].tracks[0],
+                    }),
+                )
+            })
+
+            // Because the collection is collapsed by default, we only see the playing track name if the playback
+            // status was updated correctly
+            expect(
+                await screen.findByText(mockedCollectionPoolData.users[0].collections[0].tracks[0].name),
+            ).toBeVisible()
+        })
+
+        it("Should reset promoted track status on playback event if new track is the promoted one", async () => {
+            server.use(get("pool", mockedTrackPoolData))
+            const promotedPool = {
+                ...mockedTrackPoolData,
+                users: [
+                    {
+                        ...mockedTrackPoolData.users[0],
+                        user: {
+                            ...mockedTrackPoolData.users[0].user,
+                            promotedTrackId: mockedTrackPoolData.users[0].tracks[0].id,
+                        },
+                    },
+                ],
+            }
+            server.use(post("pool/promote/*", promotedPool))
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Promote ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+            )
+            await act(async () => {
+                webSocket.broadcast(
+                    JSON.stringify({
+                        type: "current_track",
+                        model: mockedTrackPoolData.users[0].tracks[0],
+                    }),
+                )
+            })
+
+            expect(
+                await screen.findByRole("button", { name: `Promote ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+            ).toBeVisible()
+        })
+
+        it("Should not reset promoted track status on playback event if new track is not the promoted one", async () => {
+            server.use(get("pool", mockedTrackPoolData))
+            const promotedPool = {
+                ...mockedTrackPoolData,
+                users: [
+                    {
+                        ...mockedTrackPoolData.users[0],
+                        user: {
+                            ...mockedTrackPoolData.users[0].user,
+                            promoted_track_id: mockedTrackPoolData.users[0].tracks[0].id,
+                        },
+                    },
+                ],
+            }
+            server.use(post("pool/promote/*", promotedPool))
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Promote ${mockedTrackPoolData.users[0].tracks[0].name}` }),
+            )
+            await act(async () => {
+                webSocket.broadcast(
+                    JSON.stringify({
+                        type: "current_track",
+                        model: mockedTrackPoolData.users[0].tracks[1],
+                    }),
+                )
+            })
+            expect(
+                await screen.findByRole("button", {
+                    name: `Remove ${mockedTrackPoolData.users[0].tracks[0].name} promotion`,
+                }),
+            ).toBeVisible()
         })
     })
 })

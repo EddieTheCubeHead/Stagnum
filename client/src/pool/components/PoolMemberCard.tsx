@@ -38,7 +38,7 @@ export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemb
             <CardText title={poolMember.name} text={poolMember.name} size={Size.s} />
             <div className="grow"></div>
             <PromotePoolTrackIconButton poolMember={poolMember} />
-            <IconButton svg={<DeleteIconSvg />} onClick={() => mutate(undefined)} />
+            <IconButton svg={<DeleteIconSvg label={`Delete ${poolMember.name}`} />} onClick={() => mutate(undefined)} />
         </CardBase>
     )
 }

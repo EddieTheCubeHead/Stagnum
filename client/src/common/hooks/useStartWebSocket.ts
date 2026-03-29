@@ -1,12 +1,14 @@
 import { PoolStore } from "../stores/poolStore.ts"
 import { useTokenQuery } from "./useTokenQuery.ts"
 import { useCallback } from "react"
+import { useHandleWebSocketEvent } from "./useHandleWebSocketEvent.ts"
 
 type UseStartWebSocketProps = {
     token: ReturnType<typeof useTokenQuery>["token"]
 } & Pick<PoolStore, "setPool" | "setPlaybackState" | "clearPool">
 
 export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool }: UseStartWebSocketProps) => {
+    const handleWebSocketEvent = useHandleWebSocketEvent()
     return useCallback(() => {
         if (!token) {
             return () => {}
@@ -17,23 +19,7 @@ export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool 
 
         socket.onopen
 
-        socket.onmessage = (event) => {
-            const message = JSON.parse(event.data)
-            console.log(message)
-            if (message.type === "pool") {
-                // Stupid workaround because backend sends stupid data
-                // TODO clear up once old UI is gone and we can change backend data models
-                if (message.model.owner === null) {
-                    clearPool()
-                } else {
-                    setPool(message.model)
-                }
-            }
-
-            if (message.type === "current_track") {
-                setPlaybackState(message.model)
-            }
-        }
+        socket.onmessage = handleWebSocketEvent
 
         return socket
     }, [token, setPool, setPlaybackState, clearPool])

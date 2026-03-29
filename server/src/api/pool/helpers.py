@@ -78,6 +78,7 @@ def map_pool_member_entity_to_model(pool_member: PoolMember) -> PoolTrack:
 
 def map_unsaved_pool_member_entity_to_model(pool_member: PoolMember) -> UnsavedPoolTrack:
     return UnsavedPoolTrack(
+        id=pool_member.id,
         name=pool_member.name,
         spotify_icon_uri=pool_member.image_url,
         spotify_resource_uri=pool_member.content_uri,

@@ -27,7 +27,24 @@ export const usePoolStore = create<PoolStore>((set) => ({
     pool: null,
     setPool: (pool: Pool | null) => set({ pool }),
     setPlaybackState: (poolMember: PoolTrack) => {
-        set((state) => ({ pool: state.pool ? { ...state.pool, currently_playing: poolMember } : null }))
+        set((state) => ({
+            pool: state.pool
+                ? {
+                      ...state.pool,
+                      currently_playing: poolMember,
+                      users: state.pool.users.map((poolUser) => ({
+                          ...poolUser,
+                          user: {
+                              ...poolUser.user,
+                              promoted_track_id:
+                                  poolUser.user.promoted_track_id === poolMember.id
+                                      ? undefined
+                                      : poolUser.user.promoted_track_id,
+                          },
+                      })),
+                  }
+                : null,
+        }))
     },
     clearPool: () => set({ pool: null }),
 
