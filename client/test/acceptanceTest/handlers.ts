@@ -78,5 +78,6 @@ export const handlers = [
     post("pool/join/*", foreignPool),
     post("pool/share", sharedPool),
     post("pool/promote/*", promotedPool),
+    post("pool/demote", mockedCollectionPoolData),
     webSocket.addEventListener("connection", () => {}),
 ]

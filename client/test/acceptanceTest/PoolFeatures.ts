@@ -11,6 +11,7 @@ import {
     foreignPool,
     mockedCollectionPoolData,
     mockedTrackPoolData,
+    promotedPool,
 } from "./data/pool.ts"
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
@@ -387,6 +388,45 @@ describe("Pool", () => {
             await new Promise((r: TimerHandler) => setTimeout(r, 50))
 
             expect(screen.getByText(`Left ${foreignPool.owner.display_name}'s pool`)).toBeVisible()
+        })
+    })
+
+    describe("Promoting songs", () => {
+        it("Should set song as promoted on song promote button click", async () => {
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
+            await user.click(
+                screen.getByRole("button", {
+                    name: `Promote ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            )
+
+            expect(
+                await screen.findByRole("button", {
+                    name: `Remove ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name} promotion`,
+                }),
+            ).toBeVisible()
+        })
+
+        it("Should remove song promotion on promote button reclick", async () => {
+            server.use(get("pool", promotedPool))
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
+            await user.click(
+                screen.getByRole("button", {
+                    name: `Remove ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name} promotion`,
+                }),
+            )
+
+            expect(
+                screen.getByRole("button", {
+                    name: `Promote ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            ).toBeVisible()
         })
     })
 
