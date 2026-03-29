@@ -36,7 +36,19 @@ export const PromotePoolTrackIconButton = ({ poolMember }: PromotePoolTrackIconB
         <div className="relative">
             {poolMember.spotify_resource_uri.startsWith("spotify:track:") && (
                 <>
-                    <IconButton svg={<StarIconSvg />} onClick={() => callback(undefined)} toggled={!!promotedByUser} />
+                    <IconButton
+                        svg={
+                            <StarIconSvg
+                                label={
+                                    isPromotedBySelf
+                                        ? `Remove ${poolMember.name} promotion`
+                                        : `Promote ${poolMember.name}`
+                                }
+                            />
+                        }
+                        onClick={() => callback(undefined)}
+                        toggled={!!promotedByUser}
+                    />
                     {promotedByUser && (
                         <span className="absolute bottom-0 right-0 z-10">
                             <Avatar avatarUser={promotedByUser} size={Size.xs} />

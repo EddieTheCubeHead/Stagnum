@@ -86,11 +86,7 @@ export const mockedCollectionPoolData: Pool = {
                     ],
                 },
             ],
-            user: {
-                display_name: "heiasi",
-                icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-                spotify_id: "heiasi",
-            },
+            user: mockMeData,
         },
     ],
     currently_playing: {
@@ -106,6 +102,18 @@ export const mockedCollectionPoolData: Pool = {
 export const pausedPool: Pool = { ...mockedCollectionPoolData, is_active: false }
 export const foreignPool: Pool = { ...mockedCollectionPoolData, owner: anotherUser, share_code: "322" }
 export const sharedPool: Pool = { ...mockedCollectionPoolData, share_code: "31415" }
+export const promotedPool: Pool = {
+    ...mockedCollectionPoolData,
+    users: [
+        {
+            ...mockedCollectionPoolData.users[0],
+            user: {
+                ...mockedCollectionPoolData.users[0].user,
+                promoted_track_id: mockedCollectionPoolData.users[0].collections[0].tracks[0].id,
+            },
+        },
+    ],
+}
 
 export const createMockedCollectionPoolData = (): Pool => {
     return {
@@ -192,11 +200,7 @@ export const createMockedCollectionPoolData = (): Pool => {
                         ],
                     },
                 ],
-                user: {
-                    display_name: "heiasi",
-                    icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-                    spotify_id: "heiasi",
-                },
+                user: mockMeData,
             },
         ],
         currently_playing: {
@@ -222,7 +226,7 @@ export const mockedTrackPoolData: Pool = {
                     duration_ms: 204866,
                 },
                 {
-                    id: 1,
+                    id: 2,
                     name: "Itket ja kuuntelet",
                     spotify_icon_uri: "https://i.scdn.co/image/ab67616d0000b273ab00476f3bf0c7eca81ae6ed",
                     spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2Doh",
@@ -230,11 +234,7 @@ export const mockedTrackPoolData: Pool = {
                 },
             ],
             collections: [],
-            user: {
-                display_name: "heiasi",
-                icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-                spotify_id: "heiasi",
-            },
+            user: mockMeData,
         },
     ],
     currently_playing: {
@@ -243,11 +243,7 @@ export const mockedTrackPoolData: Pool = {
         spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2DohZ",
         duration_ms: 204866,
     },
-    owner: {
-        display_name: "Tester user",
-        icon_url: "tester.user.avatar.png",
-        spotify_id: "tester_user",
-    },
+    owner: mockMeData,
     is_active: true,
 }
 
@@ -272,11 +268,7 @@ export const createMockedTrackPoolData = (): Pool => {
                     },
                 ],
                 collections: [],
-                user: {
-                    display_name: "heiasi",
-                    icon_url: "https://i.scdn.co/image/ab67757000003b82cee014d4fbe9c04281950e28",
-                    spotify_id: "heiasi",
-                },
+                user: mockMeData,
             },
         ],
         currently_playing: {
@@ -285,11 +277,7 @@ export const createMockedTrackPoolData = (): Pool => {
             spotify_resource_uri: "spotify:track:7f05wyGvli2YmljnP2DohZ",
             duration_ms: 204866,
         },
-        owner: {
-            display_name: "Tester user",
-            icon_url: "tester.user.avatar.png",
-            spotify_id: "tester_user",
-        },
+        owner: mockMeData,
         is_active: true,
     }
 }

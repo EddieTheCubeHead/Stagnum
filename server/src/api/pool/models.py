@@ -31,6 +31,7 @@ class PoolCollection(SavedPoolMember):
 
 class UnsavedPoolTrack(PoolMember):
     duration_ms: int
+    id: int | None = None
 
 
 class UnsavedPoolCollection(PoolMember):

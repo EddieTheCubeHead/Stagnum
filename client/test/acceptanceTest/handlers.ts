@@ -1,7 +1,7 @@
-import { delay, http, HttpResponse } from "msw"
+import { delay, http, HttpResponse, ws } from "msw"
 import { TEST_BACKEND_URL } from "../../setup-vitest.ts"
 import { mockMeData } from "./data/me.ts"
-import { foreignPool, mockedCollectionPoolData, pausedPool, sharedPool } from "./data/pool.ts"
+import { foreignPool, mockedCollectionPoolData, pausedPool, promotedPool, sharedPool } from "./data/pool.ts"
 import { mockSearchData } from "./data/search"
 import { mockTokenData } from "./data/token.ts"
 import { mockLoginData } from "./data/login.ts"
@@ -62,6 +62,10 @@ export const postError = (url: string, code: number, message: string, delayAmoun
     })
 }
 
+export const webSocket = ws.link(
+    `ws://localhost:3000/${TEST_BACKEND_URL}/websocket/connect?Authorization=mockedAccessToken`,
+)
+
 export const handlers = [
     get("me", mockMeData),
     get("pool", mockedCollectionPoolData),
@@ -73,4 +77,6 @@ export const handlers = [
     post("pool/playback/pause", pausedPool),
     post("pool/join/*", foreignPool),
     post("pool/share", sharedPool),
+    post("pool/promote/*", promotedPool),
+    webSocket.addEventListener("connection", () => {}),
 ]

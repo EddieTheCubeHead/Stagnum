@@ -894,6 +894,7 @@ class PoolPlaybackServiceRaw:
         next_song = await self._queue_next_song(user)
         self._spotify_client.skip_current_song(user)
         return UnsavedPoolTrack(
+            id=next_song.id,
             name=next_song.name,
             spotify_icon_uri=next_song.image_url,
             spotify_resource_uri=next_song.content_uri,

@@ -83,6 +83,7 @@ async def should_send_update_when_scheduled_queue_job_updates_playback(
         assert model_data["spotify_icon_uri"] in [track["album"]["images"][0]["url"] for track in existing_playback]
         assert model_data["spotify_resource_uri"] in [track["uri"] for track in existing_playback]
         assert model_data["duration_ms"] == fixed_track_length_ms
+        assert model_data["id"] is not None
 
 
 def should_send_update_when_other_user_in_pool_skips(
