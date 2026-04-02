@@ -102,6 +102,22 @@ export const mockedCollectionPoolData: Pool = {
 export const pausedPool: Pool = { ...mockedCollectionPoolData, is_active: false }
 export const foreignPool: Pool = { ...mockedCollectionPoolData, owner: anotherUser, share_code: "322" }
 export const sharedPool: Pool = { ...mockedCollectionPoolData, share_code: "31415" }
+export const contentDeletedPool: Pool = {
+    ...mockedCollectionPoolData,
+    users: [
+        {
+            ...mockedCollectionPoolData.users[0],
+            collections: [
+                {
+                    ...mockedCollectionPoolData.users[0].collections[0],
+                    tracks: mockedCollectionPoolData.users[0].collections[0].tracks.filter(
+                        (_track, index) => index !== 0,
+                    ),
+                },
+            ],
+        },
+    ],
+}
 export const promotedPool: Pool = {
     ...mockedCollectionPoolData,
     users: [
