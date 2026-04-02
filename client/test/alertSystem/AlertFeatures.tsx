@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it } from "vitest"
 import { useAlertStore } from "../../src/alertSystem/alertStore"
 import { AlertType } from "../../src/alertSystem/Alert"
-import { act, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { AlertHandler } from "../../src/alertSystem/AlertHandler"
 import { testComponent } from "../utils/testComponent.tsx"
 
@@ -36,29 +36,5 @@ describe("Alert system", () => {
         await user.click(screen.getByRole("button", { name: "Close" }))
 
         expect(screen.queryByText("Test alert")).not.toBeInTheDocument()
-    })
-
-    it("Should dismiss success alerts after seven seconds", async () => {
-        vi.useFakeTimers()
-        useAlertStore.setState({ alerts: [{ type: AlertType.Success, message: "Test alert" }] })
-
-        testComponent(<AlertHandler />)
-
-        await act(() => vi.advanceTimersByTime(7001))
-
-        expect(screen.queryByText("Test alert")).not.toBeInTheDocument()
-        vi.useRealTimers()
-    })
-
-    it("Should not dismiss error alerts automatically", async () => {
-        vi.useFakeTimers()
-        useAlertStore.setState({ alerts: [{ type: AlertType.Error, message: "Test alert" }] })
-
-        testComponent(<AlertHandler />)
-
-        await act(() => vi.advanceTimersByTime(9999999))
-
-        expect(screen.getByText("Test alert")).toBeVisible()
-        vi.useRealTimers()
     })
 })

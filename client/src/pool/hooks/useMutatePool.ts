@@ -3,6 +3,8 @@ import { useMutation } from "@tanstack/react-query"
 import { usePoolStore } from "../../common/stores/poolStore.ts"
 import { AxiosError } from "axios"
 import { useCallback, useMemo } from "react"
+import { useAlertStore } from "../../alertSystem/alertStore.ts"
+import { AlertType } from "../../alertSystem/Alert.ts"
 
 export const POOl_MUTATION = "pool"
 
@@ -18,6 +20,7 @@ export const useMutatePool = <TVariables>({
     optimisticOperation,
 }: UseMutatePoolProps<TVariables>) => {
     const { pool, setPool } = usePoolStore()
+    const { addAlert } = useAlertStore()
     const onMutate = useMemo(
         () =>
             optimisticOperation
@@ -29,7 +32,9 @@ export const useMutatePool = <TVariables>({
         [optimisticOperation, pool, setPool],
     )
     const onError = useCallback(
-        (_error: AxiosError, _variables: TVariables, pool: Pool | null | undefined) => {
+        (error: AxiosError, _variables: TVariables, pool: Pool | null | undefined) => {
+            // @ts-expect-error problems with typing axios errors
+            addAlert({ type: AlertType.Error, message: error.response?.data.error })
             setPool(pool ?? null)
         },
         [pool, setPool],
