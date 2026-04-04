@@ -20,7 +20,7 @@ describe("Login acceptance tests", () => {
     afterAll(() => server.close())
 
     beforeEach(() => {
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
+        usePoolStore.setState({ poolState: PoolState.Normal })
     })
 
     it("Should open login modal if token is not available", async () => {

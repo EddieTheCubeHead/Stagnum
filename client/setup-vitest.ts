@@ -19,5 +19,5 @@ afterEach(() => {
     cleanup()
     useThemeStore.setState({ theme: Theme.Dark })
     useAlertStore.setState({ alerts: [] })
-    usePoolStore.setState({ pool: null, confirmingOverwrite: null, poolState: PoolState.Normal })
+    usePoolStore.setState({ pool: null, poolState: PoolState.Normal })
 })

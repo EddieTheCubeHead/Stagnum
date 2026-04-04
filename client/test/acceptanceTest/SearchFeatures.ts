@@ -41,7 +41,7 @@ describe("Search acceptance tests", () => {
     beforeEach(() => {
         vi.resetAllMocks()
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
+        usePoolStore.setState({ poolState: PoolState.Normal })
         mockLoginState()
     })
 

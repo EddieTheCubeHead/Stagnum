@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { Pool } from "../models/Pool"
-import { PlayableSpotifyResource } from "../../search/models/PlayableSpotifyResource.ts"
 import { PoolTrack } from "../models/PoolTrack.ts"
 
 export const enum PoolState {
@@ -14,9 +13,6 @@ export interface PoolStore {
     setPool: (pool: Pool | null) => void
     setPlaybackState: (poolMember: PoolTrack) => void
     clearPool: () => void
-
-    confirmingOverwrite: PlayableSpotifyResource | null
-    setConfirmingOverwrite: (confirming: PlayableSpotifyResource | null) => void
 
     poolState: PoolState
     setPoolState: (poolState: PoolState) => void
@@ -47,9 +43,6 @@ export const usePoolStore = create<PoolStore>((set) => ({
         }))
     },
     clearPool: () => set({ pool: null }),
-
-    confirmingOverwrite: null,
-    setConfirmingOverwrite: (confirmingOverwrite: PlayableSpotifyResource | null) => set({ confirmingOverwrite }),
 
     poolState: PoolState.Normal,
     setPoolState: (poolState: PoolState) => set({ poolState }),

@@ -1,4 +1,3 @@
-import { ConfirmPoolOverwriteModal } from "../../pool/components/ConfirmPoolOverwriteModal.tsx"
 import { PoolState, usePoolStore } from "../stores/poolStore.ts"
 import { Pool } from "../../pool/views/Pool.tsx"
 import { ConfirmPoolDeleteModal } from "../../pool/components/ConfirmPoolDeleteModal.tsx"
@@ -8,11 +7,12 @@ import { useEffect } from "react"
 import { useGetPoolQuery } from "../hooks/useGetPoolQuery.ts"
 import { ConfirmPoolLeaveModal } from "../../pool/components/ConfirmPoolLeaveModal.tsx"
 import { Outlet } from "@tanstack/react-router"
-import { useTokenQuery } from "../hooks/useTokenQuery.ts"
+import { ModalRenderer } from "../modals/ModalRenderer.tsx"
+import { useTokenStore } from "../stores/tokenStore.ts"
 
 export const Home = () => {
-    const { token } = useTokenQuery()
-    const { confirmingOverwrite, pool, poolState, setPool, setPlaybackState, clearPool } = usePoolStore()
+    const { token } = useTokenStore()
+    const { pool, poolState, setPool, setPlaybackState, clearPool } = usePoolStore()
     useGetPoolQuery()
     const startWebSocket = useStartWebSocket({ token, setPool, setPlaybackState, clearPool })
     useEffect(() => {
@@ -21,7 +21,7 @@ export const Home = () => {
     return (
         <>
             <AlertHandler />
-            {confirmingOverwrite !== null && <ConfirmPoolOverwriteModal />}
+            <ModalRenderer />
             {poolState === PoolState.Deleting && <ConfirmPoolDeleteModal />}
             {poolState === PoolState.Leaving && <ConfirmPoolLeaveModal />}
             <div className="flex grow min-w-0">

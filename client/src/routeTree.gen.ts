@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as LoginRedirectRouteImport } from './routes/loginRedirect'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRedirectRoute = LoginRedirectRouteImport.update({
+  id: '/loginRedirect',
+  path: '/loginRedirect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -32,30 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loginRedirect': typeof LoginRedirectRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loginRedirect': typeof LoginRedirectRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loginRedirect': typeof LoginRedirectRoute
   '/search': typeof SearchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/search'
+  fullPaths: '/' | '/login' | '/loginRedirect' | '/search'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/search'
-  id: '__root__' | '/' | '/login' | '/search'
+  to: '/' | '/login' | '/loginRedirect' | '/search'
+  id: '__root__' | '/' | '/login' | '/loginRedirect' | '/search'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  LoginRedirectRoute: typeof LoginRedirectRoute
   SearchRoute: typeof SearchRoute
 }
 
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loginRedirect': {
+      id: '/loginRedirect'
+      path: '/loginRedirect'
+      fullPath: '/loginRedirect'
+      preLoaderRoute: typeof LoginRedirectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  LoginRedirectRoute: LoginRedirectRoute,
   SearchRoute: SearchRoute,
 }
 export const routeTree = rootRouteImport

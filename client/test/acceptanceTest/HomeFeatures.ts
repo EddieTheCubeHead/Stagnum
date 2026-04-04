@@ -18,7 +18,7 @@ describe("Home acceptance tests", () => {
 
     beforeEach(() => {
         vi.resetAllMocks()
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
+        usePoolStore.setState({ poolState: PoolState.Normal })
         mockLoginState()
     })
 

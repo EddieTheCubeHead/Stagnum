@@ -38,7 +38,7 @@ describe("Alerts features", () => {
 
     beforeEach(() => {
         vi.resetAllMocks()
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
+        usePoolStore.setState({ poolState: PoolState.Normal })
         mockLoginState()
         vi.useFakeTimers()
     })
