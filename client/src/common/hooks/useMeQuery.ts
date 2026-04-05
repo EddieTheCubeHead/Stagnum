@@ -1,12 +1,12 @@
-import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query"
+import { skipToken, useQuery } from "@tanstack/react-query"
 import { User } from "../models/User.ts"
 import { useApiGet } from "../../api/methods.ts"
 import { useTokenQuery } from "./useTokenQuery.ts"
-import { TOKEN } from "../constants/queryKey.ts"
+import { useLogOut } from "./useLogOut.ts"
 
 export const useMeQuery = (): { user: User | undefined; error: Error | null; isLoading: boolean } => {
+    const logOut = useLogOut()
     const { token } = useTokenQuery()
-    const client = useQueryClient()
     const getFn = useApiGet<User>("/me")
     const { data, error, isLoading } = useQuery({
         queryKey: ["me"],
@@ -19,7 +19,7 @@ export const useMeQuery = (): { user: User | undefined; error: Error | null; isL
     })
 
     if (error && token !== undefined) {
-        client.setQueryData([TOKEN], { access_token: undefined })
+        void logOut()
     }
 
     return { user: data as User | undefined, error, isLoading }

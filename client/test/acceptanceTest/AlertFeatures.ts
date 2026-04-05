@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { server } from "./server.ts"
-import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
 import { mockLoginState } from "../utils/mockLoginState.ts"
 import { testApp } from "../utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
@@ -38,7 +37,6 @@ describe("Alerts features", () => {
 
     beforeEach(() => {
         vi.resetAllMocks()
-        usePoolStore.setState({ poolState: PoolState.Normal })
         mockLoginState()
         vi.useFakeTimers()
     })

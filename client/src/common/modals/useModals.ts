@@ -3,13 +3,15 @@ import { z } from "zod"
 import { ModalSchema } from "./modalTypes.ts"
 import { useNavigate } from "@tanstack/react-router"
 
+type Modal = z.infer<typeof ModalSchema> | undefined
+
 export const useModals = () => {
-    const { modal }: { modal: z.infer<typeof ModalSchema> | undefined } = Route.useSearch()
+    const { modal }: { modal: Modal } = Route.useSearch()
     const navigate = useNavigate()
-    const setModal = (modal: z.infer<typeof ModalSchema> | undefined) => {
+    const setModal = (newModal: Modal) => {
         void navigate({
             to: ".",
-            search: (prev: any) => ({ ...prev, modal }),
+            search: ({ modal, ...prev }: { modal: Modal }) => ({ ...prev, modal: newModal }),
         })
     }
     const clearModal = () => {

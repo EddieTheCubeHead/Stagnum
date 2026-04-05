@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
+import { usePoolStore } from "../../src/common/stores/poolStore.ts"
 import { testApp } from "../utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
@@ -27,7 +27,6 @@ describe("Pool", () => {
 
     beforeEach(() => {
         vi.resetAllMocks()
-        usePoolStore.setState({ poolState: PoolState.Normal })
         mockLoginState()
     })
 

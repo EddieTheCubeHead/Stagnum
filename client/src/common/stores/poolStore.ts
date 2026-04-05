@@ -13,10 +13,6 @@ export interface PoolStore {
     setPool: (pool: Pool | null) => void
     setPlaybackState: (poolMember: PoolTrack) => void
     clearPool: () => void
-
-    poolState: PoolState
-    setPoolState: (poolState: PoolState) => void
-    clearPoolState: () => void
 }
 
 export const usePoolStore = create<PoolStore>((set) => ({
@@ -43,8 +39,4 @@ export const usePoolStore = create<PoolStore>((set) => ({
         }))
     },
     clearPool: () => set({ pool: null }),
-
-    poolState: PoolState.Normal,
-    setPoolState: (poolState: PoolState) => set({ poolState }),
-    clearPoolState: () => set({ poolState: PoolState.Normal }),
 }))
