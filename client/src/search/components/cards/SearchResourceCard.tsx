@@ -9,6 +9,7 @@ import { usePoolStore } from "../../../common/stores/poolStore.ts"
 import { AddIconSvg } from "../../../common/icons/svgs/AddIconSvg.tsx"
 import { useAddToPool } from "../../hooks/useAddToPool.ts"
 import { useMutatePool } from "../../../pool/hooks/useMutatePool.ts"
+import { useModals } from "../../../common/modals/useModals.ts"
 
 interface SearchResourceCardProps {
     resource: PlayableSpotifyResource
@@ -20,10 +21,14 @@ const CREATE_MUTATION = "create"
 
 export const SearchResourceCard = ({ resource, iconSource, nameField }: SearchResourceCardProps) => {
     const createPool = useCreatePool(resource)
+    const { setModal } = useModals()
     const { mutate } = useMutatePool({ mutationFn: createPool, mutationKey: [CREATE_MUTATION] })
     const addToPool = useAddToPool(resource)
-    const { setConfirmingOverwrite, pool } = usePoolStore()
-    const createPoolOnClick = pool === null ? () => mutate(undefined) : () => setConfirmingOverwrite(resource)
+    const { pool } = usePoolStore()
+    const createPoolOnClick =
+        pool === null
+            ? () => mutate(undefined)
+            : () => setModal({ type: "ConfirmPoolOverwrite", props: { newPoolResource: resource } })
     return (
         <CardBase>
             <img

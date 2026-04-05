@@ -1,32 +1,32 @@
-import { createRootRouteWithContext, useNavigate } from "@tanstack/react-router"
-import { QueryClient, useQueryClient } from "@tanstack/react-query"
+import { createRootRouteWithContext, useLocation, useNavigate } from "@tanstack/react-router"
+import { QueryClient } from "@tanstack/react-query"
 import { TopBar } from "../common/components/TopBar.tsx"
 import { ToolBar } from "../toolbar/components/ToolBar.tsx"
 import { useEffect } from "react"
 import { useTokenQuery } from "../common/hooks/useTokenQuery.ts"
 import { z } from "zod"
-import { zodValidator } from "@tanstack/zod-adapter"
 import { Home } from "../common/views/Home.tsx"
-import { TOKEN } from "../common/constants/queryKey.ts"
-import { LOCALSTORAGE_TOKEN_KEY } from "../common/constants/localStorage.ts"
+import { ModalSchema } from "../common/modals/modalTypes.ts"
 
-const redirectSearchSchema = z.object({
-    code: z.optional(z.string()),
-    state: z.optional(z.string()),
+export const rootSearchSchema = z.object({
+    modal: ModalSchema.optional(),
 })
 
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient
 }>()({
     component: RootComponent,
-    notFoundComponent: () => <div>Not found TODO</div>,
-    validateSearch: zodValidator(redirectSearchSchema),
+    notFoundComponent: NotFoundComponent,
+    validateSearch: rootSearchSchema,
 })
 
+function NotFoundComponent() {
+    return <div>Not found TODO</div>
+}
+
 function RootComponent() {
-    const { code, state } = Route.useSearch()
-    const { token, isLoading, isFetching } = useTokenQuery({ code, state })
-    const client = useQueryClient()
+    const { token, isLoading, isFetching } = useTokenQuery()
+    const location = useLocation()
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -34,15 +34,10 @@ function RootComponent() {
             return
         }
 
-        if (!code && !state && token === undefined) {
+        if (!token && !location.pathname.includes("login")) {
             void navigate({ to: "/login" })
         }
-
-        if (code && state && token !== undefined) {
-            localStorage.setItem(LOCALSTORAGE_TOKEN_KEY, token)
-            client.invalidateQueries({ queryKey: [TOKEN] }).then(() => void navigate({ to: "/" }))
-        }
-    }, [token, code, state, isLoading, isFetching])
+    }, [token, isLoading, isFetching, location])
 
     return (
         <div className="bg-background text-text min-h-screen font-default">

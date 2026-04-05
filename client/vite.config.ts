@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react-swc"
+import react from "@vitejs/plugin-react"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import mkcert from "vite-plugin-mkcert"
 
@@ -10,6 +10,7 @@ export default defineConfig({
     server: {
         port: 80,
     },
+    // @ts-expect-error UserConfig does not include test config
     test: {
         root: ".",
         include: ["**/*Features.ts", "**/*Features.tsx"],

@@ -8,13 +8,6 @@ const constructNavigateParams = (tracks: boolean, albums: boolean, artists: bool
         to: "/search",
         params: (prev: any) => prev,
         search: (prev: any) => ({ ...prev, openedTabs: { tracks, albums, artists, playlists } }),
-        mask: {
-            to: "/search",
-            params: (prev: any) => prev,
-            search: ({ query }: { query: string }) => ({
-                query,
-            }),
-        },
         replace: true,
     }
 }

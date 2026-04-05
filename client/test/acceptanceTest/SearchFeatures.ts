@@ -1,7 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { testApp } from "../utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
-import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
 import { mockLoginState } from "../utils/mockLoginState.ts"
 import { server } from "./server.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
@@ -41,7 +40,6 @@ describe("Search acceptance tests", () => {
     beforeEach(() => {
         vi.resetAllMocks()
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
         mockLoginState()
     })
 

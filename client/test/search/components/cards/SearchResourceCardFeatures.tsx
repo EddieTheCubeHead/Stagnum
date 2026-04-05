@@ -144,13 +144,15 @@ describe("SearchResourceCard", () => {
 
         it("Should confirm overriding pool creation with a modal", async () => {
             usePoolStore.setState({ pool: mockedTrackPoolData() })
-            const { user } = await testComponentWithRouter(<SearchSpotifyArtistCard artist={mockArtist} />)
+            const { user, router } = await testComponentWithRouter(<SearchSpotifyArtistCard artist={mockArtist} />)
 
             await user.click(screen.getByRole("button", { name: "Play" }))
 
             await new Promise((resolve: TimerHandler) => setTimeout(resolve, 50))
 
-            expect(usePoolStore.getState().confirmingOverwrite).toBe(mockArtist)
+            expect(router.state.location.search).toEqual({
+                modal: { type: "ConfirmPoolOverwrite", props: { newPoolResource: mockArtist } },
+            })
         })
 
         it("Should add resource to pool when pressing add button", async () => {

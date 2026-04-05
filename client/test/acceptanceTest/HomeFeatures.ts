@@ -3,7 +3,6 @@ import { server } from "./server.ts"
 import { testApp } from "../utils/testComponent.tsx"
 import { screen } from "@testing-library/react"
 import { mockLoginState } from "../utils/mockLoginState.ts"
-import { PoolState, usePoolStore } from "../../src/common/stores/poolStore.ts"
 import { mockMeData } from "./data/me.ts"
 import { get } from "./handlers.ts"
 
@@ -18,7 +17,6 @@ describe("Home acceptance tests", () => {
 
     beforeEach(() => {
         vi.resetAllMocks()
-        usePoolStore.setState({ poolState: PoolState.Normal, confirmingOverwrite: null })
         mockLoginState()
     })
 

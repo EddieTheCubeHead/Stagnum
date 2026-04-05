@@ -1,6 +1,7 @@
 import { apiGet } from "./methods.ts"
 import { SpotifyToken } from "../login/models/SpotifyToken.ts"
 import { LOCALSTORAGE_TOKEN_KEY } from "../common/constants/localStorage.ts"
+import { REDIRECT_URI } from "../common/constants/uris.ts"
 
 export const fetchToken = async (code?: string, state?: string): Promise<SpotifyToken | null> => {
     const localToken = localStorage.getItem(LOCALSTORAGE_TOKEN_KEY)
@@ -10,7 +11,7 @@ export const fetchToken = async (code?: string, state?: string): Promise<Spotify
     if (!state || !code) {
         return null
     }
-    const client_redirect_uri = import.meta.env.VITE_FRONTEND_URL
+    const client_redirect_uri = REDIRECT_URI
     const tokenData = await apiGet<SpotifyToken>("/auth/login/callback", undefined, {
         code,
         state,

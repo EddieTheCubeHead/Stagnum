@@ -2,7 +2,7 @@ import { beforeEach, afterEach, vi } from "vitest"
 import { cleanup } from "@testing-library/react"
 import { Theme, useThemeStore } from "./src/common/stores/themeStore"
 import { useAlertStore } from "./src/alertSystem/alertStore"
-import { PoolState, usePoolStore } from "./src/common/stores/poolStore"
+import { usePoolStore } from "./src/common/stores/poolStore"
 import { mockAxiosDeleteError, mockAxiosGetError, mockAxiosPostError } from "./test/utils/mockAxios"
 import "@testing-library/jest-dom"
 
@@ -19,5 +19,5 @@ afterEach(() => {
     cleanup()
     useThemeStore.setState({ theme: Theme.Dark })
     useAlertStore.setState({ alerts: [] })
-    usePoolStore.setState({ pool: null, confirmingOverwrite: null, poolState: PoolState.Normal })
+    usePoolStore.setState({ pool: null })
 })
