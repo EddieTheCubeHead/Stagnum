@@ -100,7 +100,7 @@ module "ec2_instance" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer-key"
-  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOgP6TjSCjZS/VWhixYYevHGdzVN4jmlT5KH9va5CiBs elias.samuli@gmail.com"
+  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA35JwIz4+3MFomg4fmAK34QYAP/53ip4pYmxXr8yPlV elias.samuli@gmail.com"
 }
 
 data "aws_ami" "amazon_linux" {
