@@ -30,7 +30,7 @@ jobs:
           ref: ${{ github.head_ref}}
 
       - name: Install uv and set python ${{matrix.python-version}}
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v8
         with:
           version: "0.7.17"
           python-version: ${{matrix.python-version}}
@@ -39,7 +39,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Commit automatic cleans
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Apply formatting changes
           branch: ${{ github.head_ref }}
