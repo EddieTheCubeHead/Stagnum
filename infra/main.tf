@@ -81,7 +81,7 @@ module "ec2_instance" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t4g.micro"
 
-  key_name                    = "deployer-key"
+  key_name                    = "infra-key"
   monitoring                  = true
   vpc_security_group_ids      = [module.security_group.security_group_id]
   subnet_id                   = element(module.vpc.public_subnets, 0)
@@ -95,11 +95,11 @@ module "ec2_instance" {
   }
 
   tags       = local.tags
-  depends_on = [aws_key_pair.deployer, module.vpc]
+  depends_on = [aws_key_pair.infra, module.vpc]
 }
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
+resource "aws_key_pair" "infra" {
+  key_name   = "infra-key"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA35JwIz4+3MFomg4fmAK34QYAP/53ip4pYmxXr8yPlV elias.samuli@gmail.com"
 }
 
