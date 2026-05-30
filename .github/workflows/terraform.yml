@@ -34,11 +34,11 @@ jobs:
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
         # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
           terraform_version: 1.4.7
@@ -85,7 +85,7 @@ jobs:
 
       # Save plan to artifacts
       - name: Publish Terraform Plan
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tfplan
           path: infra/tfplan
@@ -117,7 +117,7 @@ jobs:
       # If this is a PR post the changes
       - name: Push Terraform Output to PR
         if: github.ref != 'refs/heads/master'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         env:
           SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
         with:
@@ -144,11 +144,11 @@ jobs:
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
         # Install the latest version of Terraform CLI and configure the Terraform CLI configuration.
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
           terraform_version: 1.4.7

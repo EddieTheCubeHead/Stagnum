@@ -5,9 +5,9 @@ name: Python CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 permissions:
   contents: read
@@ -22,47 +22,47 @@ jobs:
         python-version: [3.13]
     defaults:
       run:
-        working-directory: './server'
+        working-directory: "./server"
 
     steps:
-    - uses: actions/checkout@v4
-      with:  
-        ref: ${{ github.head_ref}}
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref}}
 
-    - name: Install uv and set python ${{matrix.python-version}}
-      uses: astral-sh/setup-uv@v5
-      with:
-        version: "0.7.17"
-        python-version: ${{matrix.python-version}}
+      - name: Install uv and set python ${{matrix.python-version}}
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.7.17"
+          python-version: ${{matrix.python-version}}
 
-    - name: Install the project
-      run: uv sync --locked --all-extras --dev
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
-    - name: Commit automatic cleans
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: Apply formatting changes
-        branch: ${{ github.head_ref }}
+      - name: Commit automatic cleans
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}
 
-    - name: Check formatting
-      uses: chartboost/ruff-action@v1
-      with:
-        args: 'format --check'
+      - name: Check formatting
+        uses: chartboost/ruff-action@v1
+        with:
+          args: "format --check"
 
-    - name: Lint with ruff
-      uses: chartboost/ruff-action@v1
-      with:
-        args: 'check --no-fix'
+      - name: Lint with ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          args: "check --no-fix"
 
-    - name: Test with pytest
-      run: |
-        uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src test/ | tee pytest-coverage.txt
+      - name: Test with pytest
+        run: |
+          uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src test/ | tee pytest-coverage.txt
 
-    - name: Pytest coverage report
-      if: github.event_name == 'pull_request'
-      uses: MishaKav/pytest-coverage-comment@main
-      with:
-        title: Server coverage
-        badge-title: Server coverage
-        pytest-coverage-path: server/pytest-coverage.txt
-        junitxml-path: server/pytest.xml
+      - name: Pytest coverage report
+        if: github.event_name == 'pull_request'
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          title: Server coverage
+          badge-title: Server coverage
+          pytest-coverage-path: server/pytest-coverage.txt
+          junitxml-path: server/pytest.xml
