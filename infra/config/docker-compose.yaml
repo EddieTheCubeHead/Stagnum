@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: "traefik:v3.0"
+    image: "traefik:v3.6"
     container_name: "traefik"
     command:
       #- "--log.level=DEBUG"
@@ -39,6 +39,7 @@ services:
       - "traefik.http.routers.frontend.tls.domains[0].main=${DOMAIN}"
       - "traefik.http.routers.frontend.tls.domains[0].sans=*.${DOMAIN}"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - outgoing
       - internal
@@ -62,6 +63,7 @@ services:
       - "traefik.http.routers.backend.tls.domains[0].main=${DOMAIN}"
       - "traefik.http.routers.backend.tls.domains[0].sans=*.${DOMAIN}"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       database:
         condition: service_healthy
@@ -85,7 +87,7 @@ services:
       - .env
 
   database:
-    image: postgres:latest
+    image: postgres:17
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -109,6 +111,8 @@ services:
   watchtower:
     # This container is watching for updates in docker images and updating to latest
     image: containrrr/watchtower
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 1800
