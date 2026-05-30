@@ -78,8 +78,8 @@ module "ec2_instance" {
   version = "~> 5.0"
 
   name          = "Stagnum-stack"
-  ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t3.micro"
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t4g.micro"
 
   key_name                    = "deployer-key"
   monitoring                  = true
@@ -103,7 +103,7 @@ resource "aws_key_pair" "deployer" {
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA35JwIz4+3MFomg4fmAK34QYAP/53ip4pYmxXr8yPlV elias.samuli@gmail.com"
 }
 
-data "aws_ami" "amazon_linux" {
+data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
 
@@ -113,7 +113,7 @@ data "aws_ami" "amazon_linux" {
   }
   filter {
     name   = "architecture"
-    values = ["x86_64"]
+    values = ["arm64"]
   }
 }
 
