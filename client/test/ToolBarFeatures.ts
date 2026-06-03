@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, afterEach, beforeEach, beforeAll, afterAll } from "vitest"
 import { act, screen, waitFor } from "@testing-library/react"
-import { testApp } from "../utils/testComponent.tsx"
-import { mockLoginState } from "../utils/mockLoginState.ts"
+import { testApp } from "./utils/testComponent.tsx"
+import { mockLoginState } from "./utils/mockLoginState.ts"
 import { server } from "./server.ts"
 import { post, defaultToken, get } from "./handlers.ts"
 import { foreignPool, mockedCollectionPoolData, sharedPool } from "./data/pool.ts"
-import { mockSearchData } from "./data/search"
+import { mockSearchData } from "./data/search.ts"
 import { http, HttpResponse } from "msw"
-import { TEST_BACKEND_URL } from "../../setup-vitest"
+import { TEST_BACKEND_URL } from "../setup-vitest.ts"
 
 describe("Tool bar", () => {
     beforeAll(() => {
-        server.listen()
+        server.listen({ onUnhandledRequest: "error" })
     })
 
     afterEach(() => server.resetHandlers())

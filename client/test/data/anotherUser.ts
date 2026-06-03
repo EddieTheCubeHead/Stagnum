@@ -1,4 +1,4 @@
-import { User } from "../../../src/common/models/User.ts"
+import { User } from "../../src/common/models/User.ts"
 
 export const anotherUser: User = {
     display_name: "Another User",

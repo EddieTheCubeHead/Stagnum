@@ -1,5 +1,5 @@
 import { delay, http, HttpResponse, ws } from "msw"
-import { TEST_BACKEND_URL } from "../../setup-vitest.ts"
+import { TEST_BACKEND_URL } from "../setup-vitest.ts"
 import { mockMeData } from "./data/me.ts"
 import {
     contentDeletedPool,
@@ -9,7 +9,7 @@ import {
     promotedPool,
     sharedPool,
 } from "./data/pool.ts"
-import { mockSearchData } from "./data/search"
+import { mockSearchData } from "./data/search.ts"
 import { mockTokenData } from "./data/token.ts"
 import { mockLoginData } from "./data/login.ts"
 
@@ -47,7 +47,7 @@ export const delError = (url: string, code: number, message: string, delayAmount
         if (delayAmount !== undefined) {
             await delay(delayAmount)
         }
-        return HttpResponse.json({ error: message }, { status: code })
+        return HttpResponse.json({ detail: message }, { status: code })
     })
 }
 

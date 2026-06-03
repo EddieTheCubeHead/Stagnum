@@ -1,4 +1,4 @@
-import { Pool } from "../../../src/common/models/Pool"
+import { Pool } from "../../src/common/models/Pool.ts"
 import { mockMeData } from "./me.ts"
 import { anotherUser } from "./anotherUser.ts"
 

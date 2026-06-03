@@ -33,13 +33,13 @@ export const SearchResourceCard = ({ resource, iconSource, nameField }: SearchRe
         <CardBase>
             <img
                 src={iconSource.icon_link}
-                alt={`Album: ${iconSource.name} icon`}
+                alt={`Album ${iconSource.name} icon`}
                 className="h-iconSize w-iconSize pointer-events-none select-none"
             />
             {nameField}
             <div className="grow" />
-            <IconButton svg={<AddIconSvg />} onClick={addToPool} />
-            <IconButton svg={<PlayIconSvg />} onClick={createPoolOnClick} />
+            <IconButton svg={<AddIconSvg />} onClick={addToPool} label={`Add ${resource.name} to pool`} />
+            <IconButton svg={<PlayIconSvg />} onClick={createPoolOnClick} label={`Create pool from ${resource.name}`} />
         </CardBase>
     )
 }
