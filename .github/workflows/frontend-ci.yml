@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 permissions:
   contents: read
@@ -16,10 +16,10 @@ jobs:
 
     defaults:
       run:
-        working-directory: './client'
+        working-directory: "./client"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: yarn
