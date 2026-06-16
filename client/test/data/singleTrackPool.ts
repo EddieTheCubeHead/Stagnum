@@ -1,4 +1,4 @@
-import { Pool } from "../../../src/common/models/Pool.ts"
+import { Pool } from "../../src/common/models/Pool.ts"
 
 export const mockedTrackPoolData: Pool = {
     users: [

@@ -1,17 +1,26 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { testApp } from "../utils/testComponent.tsx"
+import { testApp } from "./utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
-import { mockLoginState } from "../utils/mockLoginState.ts"
+import { mockLoginState } from "./utils/mockLoginState.ts"
 import { server } from "./server.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
-import { get } from "./handlers.ts"
-import { mockSearchData } from "./data/search.ts"
+import { get, post } from "./handlers.ts"
+import { mockSearchData, mockUniqueResultSearchData } from "./data/search.ts"
+import { mockedTrackPoolData } from "./data/pool.ts"
+
+const searchCategories = ["tracks", "albums", "artists", "playlists"] as const
+const searchCategoryNames = ["Track", "Album", "Artist", "Playlist"] as const
+type openStatesType = {
+    [C in (typeof searchCategories)[number]]: boolean
+}
 
 describe("Search acceptance tests", () => {
     const debounceDelay = 511
     // Workaround for bug in @testing-library/react when using user-event with `vi.useFakeTimers()`
     // gotten from https://github.com/testing-library/user-event/issues/1115#issuecomment-1506220345
     beforeAll(() => {
+        server.listen({ onUnhandledRequest: "error" })
+
         // @ts-expect-error - global fuckery
         const _jest = globalThis.jest
 
@@ -24,10 +33,6 @@ describe("Search acceptance tests", () => {
 
         // @ts-expect-error - global fuckery
         return () => void (globalThis.jest = _jest)
-    })
-
-    beforeAll(() => {
-        server.listen()
     })
 
     afterEach(() => {
@@ -75,11 +80,60 @@ describe("Search acceptance tests", () => {
         expect(await screen.findByRole("heading", { name: "Tracks" })).toBeVisible()
     })
 
-    describe("SearchTopBar", () => {
-        const searchCategories = ["tracks", "albums", "artists", "playlists"] as const
-        type openStatesType = {
-            [C in (typeof searchCategories)[number]]: boolean
-        }
+    it("Should render data for search results", async () => {
+        server.use(get("search", mockUniqueResultSearchData))
+        const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+        await search(user, router, "My search query")
+        expect(await screen.findByRole("heading", { name: "Tracks" })).toBeVisible()
+        mockUniqueResultSearchData.tracks.items.forEach((track) => {
+            expect(screen.getByRole("link", { name: track.name })).toBeVisible()
+            expect(screen.getByRole("link", { name: track.artists[0].name })).toBeVisible()
+            expect(screen.getByAltText(`Album ${track.album.name} icon`)).toHaveAttribute("src", track.album.icon_link)
+        })
+        mockUniqueResultSearchData.albums.items.forEach((album) => {
+            expect(screen.getByRole("link", { name: album.name })).toBeVisible()
+            expect(screen.getByRole("link", { name: album.artists[0].name })).toBeVisible()
+            expect(screen.getByAltText(`Album ${album.name} icon`)).toHaveAttribute("src", album.icon_link)
+        })
+        mockUniqueResultSearchData.artists.items.forEach((artist) => {
+            expect(screen.getByRole("link", { name: artist.name })).toBeVisible()
+            expect(screen.getByAltText(`Album ${artist.name} icon`)).toHaveAttribute("src", artist.icon_link)
+        })
+        mockUniqueResultSearchData.playlists.items.forEach((playlist) => {
+            expect(screen.getByRole("link", { name: playlist.name })).toBeVisible()
+            expect(screen.getByAltText(`Album ${playlist.name} icon`)).toHaveAttribute("src", playlist.icon_link)
+        })
+    })
+
+    describe.each(searchCategoryNames)("Search category %s title card", (resourceType) => {
+        it("Should render header for category", async () => {
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+            await search(user, router, "My search query")
+
+            expect(await screen.findByRole("heading", { name: `${resourceType}s` })).toBeVisible()
+        })
+
+        it("Should render collapse icon initially", async () => {
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+            await search(user, router, "My search query")
+
+            expect(await screen.findByRole("button", { name: `Collapse ${resourceType.toLowerCase()}s` })).toBeVisible()
+        })
+
+        it("Should render open icon after collapsing category", async () => {
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+            await search(user, router, "My search query")
+
+            await user.click(await screen.findByRole("button", { name: `Collapse ${resourceType.toLowerCase()}s` }))
+            expect(await screen.findByRole("button", { name: `Open ${resourceType.toLowerCase()}s` })).toBeVisible()
+        })
+    })
+
+    describe("Search top bar", () => {
         const assertSearchCategoriesOpenState = (openStates: openStatesType): void => {
             for (const [category, shouldBeOpen] of Object.entries(openStates)) {
                 expect(
@@ -87,7 +141,7 @@ describe("Search acceptance tests", () => {
                 ).toBeVisible()
             }
         }
-        describe.each(["Track", "Album", "Artist", "Playlist"])("%s", (resourceType) => {
+        describe.each(searchCategoryNames)("%s", (resourceType) => {
             it("Should render search result categories if query exists", async () => {
                 const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
 
@@ -145,6 +199,37 @@ describe("Search acceptance tests", () => {
 
                 assertSearchCategoriesOpenState({ tracks: true, albums: true, artists: true, playlists: true })
             })
+        })
+    })
+
+    describe("Pool manipulation", () => {
+        it("Should start pool playback when clicking create pool without existing playback", async () => {
+            server.use(get("pool", null))
+            server.use(post("pool", mockedTrackPoolData))
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+            await search(user, router, "My search query")
+
+            await user.click(
+                await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
+            )
+
+            expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
+            expect(screen.getByText(`Created a pool from "${mockSearchData.tracks.items[1].name}"`))
+        })
+
+        it("Should add resource to pool when pressing add button", async () => {
+            server.use(post("pool/content", mockedTrackPoolData))
+            const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+
+            await search(user, router, "My search query")
+
+            await user.click(
+                await screen.findByRole("button", { name: `Add ${mockSearchData.tracks.items[1].name} to pool` }),
+            )
+
+            expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
+            expect(screen.getByText(`Added "${mockSearchData.tracks.items[1].name}" to pool`))
         })
     })
 })

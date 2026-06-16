@@ -1,14 +1,14 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { server } from "./server.ts"
-import { testApp } from "../utils/testComponent.tsx"
+import { testApp } from "./utils/testComponent.tsx"
 import { screen } from "@testing-library/react"
-import { mockLoginState } from "../utils/mockLoginState.ts"
+import { mockLoginState } from "./utils/mockLoginState.ts"
 import { mockMeData } from "./data/me.ts"
 import { get } from "./handlers.ts"
 
 describe("Home acceptance tests", () => {
     beforeAll(() => {
-        server.listen()
+        server.listen({ onUnhandledRequest: "error" })
     })
 
     afterEach(() => server.resetHandlers())

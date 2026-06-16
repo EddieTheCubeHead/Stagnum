@@ -1,9 +1,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { usePoolStore } from "../../src/common/stores/poolStore.ts"
-import { testApp } from "../utils/testComponent.tsx"
+import { usePoolStore } from "../src/common/stores/poolStore.ts"
+import { testApp } from "./utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
-import { mockLoginState } from "../utils/mockLoginState.ts"
+import { mockLoginState } from "./utils/mockLoginState.ts"
 import { del, delError, get, post, webSocket } from "./handlers.ts"
 import {
     createMockedCollectionPoolData,
@@ -15,10 +15,11 @@ import {
 } from "./data/pool.ts"
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
+import { mockSearchData } from "./data/search.ts"
 
 describe("Pool", () => {
     beforeAll(() => {
-        server.listen()
+        server.listen({ onUnhandledRequest: "error" })
     })
 
     afterEach(() => server.resetHandlers())
@@ -256,7 +257,9 @@ describe("Pool", () => {
         it("Should render confirm pool overwrite modal if overwrite attempted", async () => {
             const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
             await search(user, router, "Text")
-            await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
+            await user.click(
+                await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
+            )
 
             expect(screen.getByRole("heading", { name: "Warning!" })).toBeVisible()
             expect(
@@ -271,7 +274,9 @@ describe("Pool", () => {
         it("Should wipe confirming state on cancel button", async () => {
             const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
             await search(user, router, "Text")
-            await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
+            await user.click(
+                await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
+            )
             await user.click(screen.getByRole("button", { name: "Cancel" }))
 
             expect(await screen.findByText("Pool owner")).toBeVisible()
@@ -282,7 +287,9 @@ describe("Pool", () => {
             server.use(post("pool", mockedTrackPoolData))
             const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
             await search(user, router, "Text")
-            await user.click((await screen.findAllByRole("button", { name: "Play" }))[0])
+            await user.click(
+                await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
+            )
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
             expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()

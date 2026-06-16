@@ -1,13 +1,14 @@
 import { describe, it, beforeAll, beforeEach, vi, afterEach, afterAll, expect } from "vitest"
-import { testApp } from "../utils/testComponent.tsx"
+import { testApp } from "./utils/testComponent.tsx"
 import { server } from "./server.ts"
 import { act, screen, waitFor } from "@testing-library/react"
 import { mockMeData } from "./data/me.ts"
 import { get } from "./handlers.ts"
+import { Theme, useThemeStore } from "../src/common/stores/themeStore.ts"
 
 describe("Login acceptance tests", () => {
     beforeAll(() => {
-        server.listen()
+        server.listen({ onUnhandledRequest: "error" })
     })
 
     beforeEach(() => {
@@ -18,12 +19,41 @@ describe("Login acceptance tests", () => {
 
     afterAll(() => server.close())
 
-    it("Should open login modal if token is not available", async () => {
-        await testApp()
+    describe("Modal", () => {
+        it("Should open login modal if token is not available", async () => {
+            await testApp()
 
-        expect(await screen.findByRole("button", { name: "Login" })).toBeVisible()
-        expect(screen.getByText("Please log in with your Spotify account")).toBeVisible()
-        expect(screen.getByAltText("Spotify logo")).toBeVisible()
+            expect(await screen.findByRole("button", { name: "Login" })).toBeVisible()
+            expect(screen.getByText("Please log in with your Spotify account")).toBeVisible()
+            expect(screen.getByAltText("Spotify logo")).toBeVisible()
+        })
+
+        it("Should display stagnum logo", async () => {
+            await testApp()
+
+            // Top bar and popup
+            expect(screen.getAllByText("Stagnum").length).toEqual(2)
+        })
+
+        it("Should prompt the user to use Spotify for logging in", async () => {
+            await testApp()
+
+            expect(screen.getByText("Please log in with your Spotify account")).toBeVisible()
+        })
+
+        it.each([Theme.Dark, Theme.Light])(
+            "Should render appropriate image if screen is wide enough, theme: %s",
+            async (theme) => {
+                useThemeStore.setState({ theme: theme })
+                await testApp()
+
+                expect(
+                    screen.getByAltText(
+                        `${theme.charAt(0).toUpperCase() + theme.slice(1)} theme login background image`,
+                    ),
+                ).toBeVisible()
+            },
+        )
     })
 
     it("Should fetch login callback if code and state in url parameters", async () => {

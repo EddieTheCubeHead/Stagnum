@@ -1,4 +1,4 @@
-import { GeneralSpotifySearchResult } from "../../../src/search/models/GeneralSpotifySearchResult.ts"
+import { GeneralSpotifySearchResult } from "../../src/search/models/GeneralSpotifySearchResult.ts"
 
 export const mockSearchData: GeneralSpotifySearchResult = {
     tracks: {
@@ -1067,6 +1067,153 @@ export const mockSearchData: GeneralSpotifySearchResult = {
                 link: "https://api.spotify.com/v1/playlists/37i9dQZF1E8L3EmiYGfCjq",
                 uri: "spotify:playlist:37i9dQZF1E8L3EmiYGfCjq",
                 icon_link: "https://seeded-session-images.scdn.co/v2/img/540/r/track/2PlWrPhLjHhCnt2GSjFZhl/en",
+            },
+        ],
+    },
+}
+
+export const mockUniqueResultSearchData: GeneralSpotifySearchResult = {
+    tracks: {
+        limit: 20,
+        offset: 0,
+        total: 2,
+        self_page_link: "https://api.spotify.com/v1/search?query=caligula&type=track&offset=0&limit=20",
+        next_page_link: "",
+        items: [
+            {
+                name: "Caligula",
+                link: "https://api.spotify.com/v1/tracks/4m1gJt8vdmCRpE3nHsbMfw",
+                uri: "spotify:track:4m1gJt8vdmCRpE3nHsbMfw",
+                artists: [
+                    {
+                        name: "Paperi T",
+                        link: "https://api.spotify.com/v1/artists/3rOOythoKLiiyXJYh3XIMu",
+                    },
+                    {
+                        name: "Khid",
+                        link: "https://api.spotify.com/v1/artists/1c5w31aX2FMXBNnwfnL4Mc",
+                    },
+                ],
+                album: {
+                    name: "Ex ovis pullus non natis serò fit ullus",
+                    link: "https://api.spotify.com/v1/albums/4zQJa5akcDgQ7p6SHAaJGM",
+                    uri: "spotify:album:4zQJa5akcDgQ7p6SHAaJGM",
+                    artists: [
+                        {
+                            name: "Paperi T",
+                            link: "https://api.spotify.com/v1/artists/3rOOythoKLiiyXJYh3XIMu",
+                        },
+                        {
+                            name: "Khid",
+                            link: "https://api.spotify.com/v1/artists/1c5w31aX2FMXBNnwfnL4Mc",
+                        },
+                    ],
+                    year: 2013,
+                    icon_link: "https://i.scdn.co/image/ab67616d0000b273cfab6586b2a25bb54e4e2e2d",
+                },
+                duration_ms: 240000,
+            },
+            {
+                name: "Charcoal Grace I: Prey",
+                link: "https://api.spotify.com/v1/tracks/5fQ53YX1adoTkNWuFeoGVu",
+                uri: "spotify:track:5fQ53YX1adoTkNWuFeoGVu",
+                artists: [
+                    {
+                        name: "Caligula's Horse",
+                        link: "https://api.spotify.com/v1/artists/6Zd7AjXsoLaweP9FHyudVC",
+                    },
+                ],
+                album: {
+                    name: "Charcoal Grace",
+                    link: "https://api.spotify.com/v1/albums/2XZiBGEBzo5PqSMjgGV6IS",
+                    uri: "spotify:album:2XZiBGEBzo5PqSMjgGV6IS",
+                    artists: [
+                        {
+                            name: "Caligula's Horse",
+                            link: "https://api.spotify.com/v1/artists/6Zd7AjXsoLaweP9FHyudVC",
+                        },
+                    ],
+                    year: 2024,
+                    icon_link: "https://i.scdn.co/image/ab67616d0000b27347b2aca663d434e1445601e9",
+                },
+                duration_ms: 467533,
+            },
+        ],
+    },
+    albums: {
+        limit: 20,
+        offset: 0,
+        total: 2,
+        self_page_link: "https://api.spotify.com/v1/search?query=caligula&type=album&offset=0&limit=20",
+        next_page_link: "",
+        items: [
+            {
+                name: "Caligula Overdose Original Soundtrack",
+                link: "https://api.spotify.com/v1/albums/7jPsdSs2951Jh0TXGa9b6F",
+                uri: "spotify:album:7jPsdSs2951Jh0TXGa9b6F",
+                artists: [
+                    {
+                        name: "Various Artists",
+                        link: "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
+                    },
+                ],
+                year: 2018,
+                icon_link: "https://i.scdn.co/image/ab67616d0000b273fd5fe585b37899c30e880db2",
+            },
+            {
+                name: "CALIGULA",
+                link: "https://api.spotify.com/v1/albums/6z0Lgh5JU7DnMYyFuCTNub",
+                uri: "spotify:album:6z0Lgh5JU7DnMYyFuCTNub",
+                artists: [
+                    {
+                        name: "Simon Zion",
+                        link: "https://api.spotify.com/v1/artists/3qrNawSjdfCiAaTHmo5UOb",
+                    },
+                ],
+                year: 2017,
+                icon_link: "https://i.scdn.co/image/ab67616d0000b2732762216059514b0ed4b6c826",
+            },
+        ],
+    },
+    artists: {
+        limit: 20,
+        offset: 0,
+        total: 2,
+        self_page_link: "https://api.spotify.com/v1/search?query=caligula&type=artist&offset=0&limit=20",
+        next_page_link: "",
+        items: [
+            {
+                name: "Turmion Kätilöt",
+                link: "https://api.spotify.com/v1/artists/76t3VPzCEYAlrZhVAY7yjg",
+                uri: "spotify:artist:76t3VPzCEYAlrZhVAY7yjg",
+                icon_link: "https://i.scdn.co/image/ab6761610000e5eb962a0617748556fe98061cf7",
+            },
+            {
+                name: "Dominion Caligula",
+                link: "https://api.spotify.com/v1/artists/0P4ZukudoypjfvTpZr2RAT",
+                uri: "spotify:artist:0P4ZukudoypjfvTpZr2RAT",
+                icon_link: "https://i.scdn.co/image/ab67616d0000b2739b070ffe8271161efd84bb76",
+            },
+        ],
+    },
+    playlists: {
+        limit: 20,
+        offset: 0,
+        total: 2,
+        self_page_link: "https://api.spotify.com/v1/search?query=caligula&type=playlist&offset=0&limit=20",
+        next_page_link: "",
+        items: [
+            {
+                name: "This Is Caligula's Horse",
+                link: "https://api.spotify.com/v1/playlists/37i9dQZF1DZ06evO48bQLC",
+                uri: "spotify:playlist:37i9dQZF1DZ06evO48bQLC",
+                icon_link: "https://thisis-images.spotifycdn.com/37i9dQZF1DZ06evO48bQLC-large.jpg",
+            },
+            {
+                name: "This Is Apulanta",
+                link: "https://api.spotify.com/v1/playlists/37i9dQZF1DZ06evO38p4RE",
+                uri: "spotify:playlist:37i9dQZF1DZ06evO38p4RE",
+                icon_link: "https://thisis-images.spotifycdn.com/37i9dQZF1DZ06evO38p4RE-large.jpg",
             },
         ],
     },
