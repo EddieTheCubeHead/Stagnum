@@ -5,11 +5,11 @@ import { useStartWebSocket } from "../hooks/useStartWebSocket.ts"
 import { useEffect } from "react"
 import { useGetPoolQuery } from "../hooks/useGetPoolQuery.ts"
 import { Outlet } from "@tanstack/react-router"
-import { useTokenQuery } from "../hooks/useTokenQuery.ts"
 import { ModalRenderer } from "../modals/ModalRenderer.tsx"
+import { useToken } from "../../api/tokenHolder.ts"
 
 export const Home = () => {
-    const { token } = useTokenQuery()
+    const token = useToken()
     const { pool, setPool, setPlaybackState, clearPool } = usePoolStore()
     useGetPoolQuery()
     const startWebSocket = useStartWebSocket({ token, setPool, setPlaybackState, clearPool })

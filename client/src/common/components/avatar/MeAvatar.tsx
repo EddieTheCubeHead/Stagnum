@@ -1,11 +1,11 @@
 import { useMeQuery } from "../../hooks/useMeQuery.ts"
 import { AvatarSkeleton } from "./AvatarSkeleton.tsx"
 import { Avatar } from "./Avatar.tsx"
-import { useTokenQuery } from "../../hooks/useTokenQuery.ts"
+import { useToken } from "../../../api/tokenHolder.ts"
 
 export const MeAvatar = () => {
     const { user, error } = useMeQuery()
-    const { token } = useTokenQuery()
+    const token = useToken()
     if (!user || error || !token) {
         return <AvatarSkeleton />
     }

@@ -1,10 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { useTokenQuery } from "../common/hooks/useTokenQuery.ts"
-import { LOCALSTORAGE_TOKEN_KEY } from "../common/constants/localStorage.ts"
-import { TOKEN } from "../common/constants/queryKey.ts"
-import { useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
+import { tokenHolder } from "../api/tokenHolder.ts"
 
 const redirectSchema = z.object({
     code: z.string(),
@@ -19,12 +17,11 @@ export const Route = createFileRoute("/loginRedirect")({
 function LoginRedirect() {
     const { code, state } = Route.useSearch()
     const navigate = useNavigate()
-    const client = useQueryClient()
     const { token } = useTokenQuery({ code, state })
     useEffect(() => {
         if (token !== undefined) {
-            localStorage.setItem(LOCALSTORAGE_TOKEN_KEY, token)
-            client.invalidateQueries({ queryKey: [TOKEN] }).then(() => void navigate({ to: "/" }))
+            tokenHolder.setToken(token)
+            void navigate({ to: "/" })
         }
     }, [token])
     return <></>

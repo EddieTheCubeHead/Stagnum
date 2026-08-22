@@ -1,12 +1,12 @@
 import { skipToken, useQuery } from "@tanstack/react-query"
-import { useGetPool } from "./useGetPool.ts"
-import { useTokenQuery } from "./useTokenQuery.ts"
+import { getPool } from "./getPool.ts"
+import { useToken } from "../../api/tokenHolder.ts"
 
 export const useGetPoolQuery = () => {
-    const { token } = useTokenQuery()
-    const getPool = useGetPool()
+    const token = useToken()
+    const getPoolCall = getPool()
     useQuery({
         queryKey: ["get pool", token],
-        queryFn: token ? getPool : skipToken,
+        queryFn: token ? getPoolCall : skipToken,
     })
 }

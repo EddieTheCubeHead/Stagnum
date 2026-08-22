@@ -1,4 +1,4 @@
-import { useApiPost } from "../../api/methods.ts"
+import { apiPost } from "../../api/methods.ts"
 import { useAlertStore } from "../../alertSystem/alertStore.ts"
 import { AlertType } from "../../alertSystem/Alert.ts"
 import { Pool } from "../models/Pool.ts"
@@ -6,7 +6,7 @@ import { PoolMember } from "../models/PoolMember.ts"
 
 export const usePostPromoteTrack = (track: PoolMember) => {
     const { addAlert } = useAlertStore()
-    const promoteApiCall = useApiPost<Pool>(`/pool/promote/${track.id}`)
+    const promoteApiCall = apiPost<Pool>(`/pool/promote/${track.id}`)
 
     return async () => {
         const pool = await promoteApiCall({})
