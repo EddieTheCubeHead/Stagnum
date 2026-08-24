@@ -6,7 +6,7 @@ import { useEffect } from "react"
 import { z } from "zod"
 import { Home } from "../common/views/Home.tsx"
 import { ModalSchema } from "../common/modals/modalTypes.ts"
-import { useToken } from "../api/tokenHolder.ts"
+import { tokenHolder, useToken } from "../api/tokenHolder.ts"
 
 export const rootSearchSchema = z.object({
     modal: ModalSchema.optional(),
@@ -18,6 +18,12 @@ export const Route = createRootRouteWithContext<{
     component: RootComponent,
     notFoundComponent: NotFoundComponent,
     validateSearch: rootSearchSchema,
+    loader: async ({ context: { queryClient } }) => {
+        const token = tokenHolder.getToken()
+        if (token) {
+            await queryClient.prefetchQuery({ queryKey: ["get pool", token] })
+        }
+    },
 })
 
 function NotFoundComponent() {

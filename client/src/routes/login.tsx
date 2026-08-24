@@ -3,4 +3,7 @@ import { LoginPopup } from "../login/components/loginPopup/LoginPopup.tsx"
 
 export const Route = createFileRoute("/login")({
     component: LoginPopup,
+    loader: async ({ context: { queryClient } }) => {
+        await queryClient.prefetchQuery({ queryKey: ["redirect_uri"] })
+    },
 })
