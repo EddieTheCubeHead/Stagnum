@@ -3,8 +3,11 @@ import { testApp } from "./utils/testComponent.tsx"
 import { server } from "./server.ts"
 import { act, screen, waitFor } from "@testing-library/react"
 import { mockMeData } from "./data/me.ts"
-import { get } from "./handlers.ts"
+import { defaultToken, get } from "./handlers.ts"
 import { Theme, useThemeStore } from "../src/common/stores/themeStore.ts"
+import { tokenHolder } from "../src/api/tokenHolder.ts"
+import { mockLoginState } from "./utils/mockLoginState.ts"
+import axios, { AxiosHeaders } from "axios"
 
 describe("Login acceptance tests", () => {
     beforeAll(() => {
@@ -73,5 +76,18 @@ describe("Login acceptance tests", () => {
         await user.click(screen.getByRole("button", { name: "User settings" }))
         await user.click(screen.getByRole("button", { name: "Log out" }))
         expect(await screen.findByRole("button", { name: "Login" })).toBeVisible()
+    })
+
+    it("Should update token when server responds with a new one", async () => {
+        mockLoginState()
+        // For some reason MSW and Axios do not play nice with response headers, dropping the Auth header if we use MSW
+        // For this reason we spyOn on the axios method used for fetching and return a response with appropriate headers
+        vi.spyOn(axios, "get").mockResolvedValue({
+            data: null,
+            config: { headers: new AxiosHeaders({ Authorization: defaultToken }) },
+        })
+        expect(tokenHolder.getToken()).toEqual(null)
+        await testApp()
+        expect(tokenHolder.getToken()).toEqual(defaultToken)
     })
 })
