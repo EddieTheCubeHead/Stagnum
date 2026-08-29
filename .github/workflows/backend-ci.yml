@@ -30,9 +30,8 @@ jobs:
           ref: ${{ github.head_ref}}
 
       - name: Install uv and set python ${{matrix.python-version}}
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
         with:
-          version: "0.7.17"
           python-version: ${{matrix.python-version}}
 
       - name: Install the project
