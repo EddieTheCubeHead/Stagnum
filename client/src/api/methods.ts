@@ -41,7 +41,7 @@ export const apiDelete = <T>(path: string, silent: boolean = false) => {
 }
 
 const commonApiCallDecorator = <T>(silent: boolean = false) => {
-    const addAlert = useAlertStore().addAlert
+    const addAlert = useAlertStore.getState().addAlert
     return async (request: Promise<AxiosResponse<T>>) => {
         const response = await handleRequestErrors(silent, request, addAlert)
         const newHeader = response.config?.headers["Authorization"] as string | undefined

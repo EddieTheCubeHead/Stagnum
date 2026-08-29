@@ -7,6 +7,7 @@ import { z } from "zod"
 import { Home } from "../common/views/Home.tsx"
 import { ModalSchema } from "../common/modals/modalTypes.ts"
 import { tokenHolder, useToken } from "../api/tokenHolder.ts"
+import { getPoolOptions } from "../api/queryOptions.ts"
 
 export const rootSearchSchema = z.object({
     modal: ModalSchema.optional(),
@@ -21,7 +22,7 @@ export const Route = createRootRouteWithContext<{
     loader: async ({ context: { queryClient } }) => {
         const token = tokenHolder.getToken()
         if (token) {
-            await queryClient.prefetchQuery({ queryKey: ["get pool", token] })
+            await queryClient.prefetchQuery(getPoolOptions(token))
         }
     },
 })

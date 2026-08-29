@@ -1,9 +1,9 @@
-import { usePoolStore } from "../stores/poolStore.ts"
-import { apiGet } from "../../api/methods.ts"
-import { Pool } from "../models/Pool.ts"
+import { usePoolStore } from "../common/stores/poolStore.ts"
+import { apiGet } from "./methods.ts"
+import { Pool } from "../common/models/Pool.ts"
 
 export const getPool = () => {
-    const setPool = usePoolStore().setPool
+    const setPool = usePoolStore.getState().setPool
     const getPoolApiCall = apiGet<Pool>("/pool", true)
 
     return () => {

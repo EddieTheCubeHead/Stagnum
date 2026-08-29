@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
-import { useTokenQuery } from "../common/hooks/useTokenQuery.ts"
 import { useEffect } from "react"
 import { tokenHolder } from "../api/tokenHolder.ts"
+import { useQuery } from "@tanstack/react-query"
+import { tokenOptions } from "../api/queryOptions.ts"
 
 const redirectSchema = z.object({
     code: z.string(),
@@ -17,12 +18,12 @@ export const Route = createFileRoute("/loginRedirect")({
 function LoginRedirect() {
     const { code, state } = Route.useSearch()
     const navigate = useNavigate()
-    const { token } = useTokenQuery({ code, state })
+    const { data } = useQuery(tokenOptions(code, state))
     useEffect(() => {
-        if (token !== undefined) {
-            tokenHolder.setToken(token)
+        if (data?.token !== undefined) {
+            tokenHolder.setToken(data.token)
             void navigate({ to: "/" })
         }
-    }, [token])
+    }, [data])
     return <></>
 }
