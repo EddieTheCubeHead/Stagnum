@@ -8,6 +8,7 @@ import "@testing-library/jest-dom"
 export const TEST_BACKEND_URL = "test.server"
 
 beforeEach(() => {
+    Object.defineProperty(window, "scrollTo", { value: () => {}, writable: true })
     vi.stubEnv("VITE_BACKEND_URL", TEST_BACKEND_URL)
 })
 

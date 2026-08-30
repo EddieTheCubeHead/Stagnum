@@ -1,7 +1,8 @@
-import { vi } from "vitest"
-import * as TokenHolder from "../../src/api/tokenHolder.ts"
+import { tokenHolder } from "../../src/api/tokenHolder.ts"
+
+export const INITIAL_MOCK_TOKEN = "mockedAccessToken"
 
 export const mockLoginState = (token?: string) => {
-    const mockToken = token ?? "mockedAccessToken"
-    vi.spyOn(TokenHolder, "useToken").mockReturnValue(mockToken)
+    const mockToken = token ?? INITIAL_MOCK_TOKEN
+    tokenHolder.setToken(mockToken)
 }

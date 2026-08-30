@@ -277,6 +277,11 @@ describe("Pool", () => {
             await user.click(
                 await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
             )
+            await act(async () => {
+                await screen.findByText(
+                    "Creating a new playback pool will overwrite your current one! Are you sure you want to continue?",
+                )
+            })
             await user.click(screen.getByRole("button", { name: "Cancel" }))
 
             expect(await screen.findByText("Pool owner")).toBeVisible()
@@ -290,8 +295,18 @@ describe("Pool", () => {
             await user.click(
                 await screen.findByRole("button", { name: `Create pool from ${mockSearchData.tracks.items[1].name}` }),
             )
+            await act(async () => {
+                await screen.findByText(
+                    "Creating a new playback pool will overwrite your current one! Are you sure you want to continue?",
+                )
+            })
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
+            await act(async () => {
+                await screen.findByRole("button", { name: `Close` })
+            })
+
+            await user.click(screen.getAllByRole("button", { name: "Close" })[0])
             expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
         })
     })
