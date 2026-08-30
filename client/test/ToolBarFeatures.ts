@@ -3,7 +3,7 @@ import { act, screen, waitFor } from "@testing-library/react"
 import { testApp } from "./utils/testComponent.tsx"
 import { mockLoginState } from "./utils/mockLoginState.ts"
 import { server } from "./server.ts"
-import { post, defaultToken, get } from "./handlers.ts"
+import { post, DEFAULT_RESPONSE_AUTH_TOKEN, get } from "./handlers.ts"
 import { foreignPool, mockedCollectionPoolData, sharedPool } from "./data/pool.ts"
 import { mockSearchData } from "./data/search.ts"
 import { http, HttpResponse } from "msw"
@@ -81,14 +81,15 @@ describe("Tool bar", () => {
 
             it("Should not change search query if search input changes to empty string", async () => {
                 const { user, router } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
-                server.use(get("pool", {}))
                 server.use(
                     http.get(`${TEST_BACKEND_URL}/search`, async ({ request }) => {
                         const url = new URL(request.url)
                         if (url.searchParams.get("query") === "") {
                             throw new Error("Expected not to call search with empty query")
                         }
-                        return HttpResponse.json(mockSearchData, { headers: { Authorization: defaultToken } })
+                        return HttpResponse.json(mockSearchData, {
+                            headers: { Authorization: DEFAULT_RESPONSE_AUTH_TOKEN },
+                        })
                     }),
                 )
 

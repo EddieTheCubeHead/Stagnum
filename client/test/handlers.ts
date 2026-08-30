@@ -13,14 +13,14 @@ import { mockSearchData } from "./data/search.ts"
 import { mockTokenData } from "./data/token.ts"
 import { mockLoginData } from "./data/login.ts"
 
-export const defaultToken = "Bearer 12345"
+export const DEFAULT_RESPONSE_AUTH_TOKEN = "Bearer 12345"
 
 export const get = (url: string, model: Record<string, any> | null, delayAmount?: number | "infinite") => {
     return http.get(`${TEST_BACKEND_URL}/${url}`, async () => {
         if (delayAmount !== undefined) {
             await delay(delayAmount)
         }
-        return HttpResponse.json(model, { headers: { Authorization: defaultToken } })
+        return HttpResponse.json(model, { headers: { Authorization: DEFAULT_RESPONSE_AUTH_TOKEN } })
     })
 }
 
@@ -38,7 +38,7 @@ export const del = (url: string, model: Record<string, any> | null, delayAmount?
         if (delayAmount !== undefined) {
             await delay(delayAmount)
         }
-        return HttpResponse.json(model, { headers: { Authorization: defaultToken } })
+        return HttpResponse.json(model, { headers: { Authorization: DEFAULT_RESPONSE_AUTH_TOKEN } })
     })
 }
 
@@ -56,7 +56,7 @@ export const post = (url: string, model: Record<string, any> | null, delayAmount
         if (delayAmount !== undefined) {
             await delay(delayAmount)
         }
-        return HttpResponse.json(model, { headers: { Authorization: defaultToken } })
+        return HttpResponse.json(model, { headers: { Authorization: DEFAULT_RESPONSE_AUTH_TOKEN } })
     })
 }
 

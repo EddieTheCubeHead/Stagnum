@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { LoginPopup } from "../login/components/loginPopup/LoginPopup.tsx"
+import { redirectUriOptions } from "../api/queryOptions.ts"
 
 export const Route = createFileRoute("/login")({
     component: LoginPopup,
+    loader: async ({ context: { queryClient } }) => {
+        await queryClient.prefetchQuery(redirectUriOptions())
+    },
 })

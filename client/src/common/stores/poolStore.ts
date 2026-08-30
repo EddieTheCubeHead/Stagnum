@@ -2,12 +2,6 @@ import { create } from "zustand"
 import { Pool } from "../models/Pool"
 import { PoolTrack } from "../models/PoolTrack.ts"
 
-export const enum PoolState {
-    Normal,
-    Deleting,
-    Leaving,
-}
-
 export interface PoolStore {
     pool: Pool | null
     setPool: (pool: Pool | null) => void

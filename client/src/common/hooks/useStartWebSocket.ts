@@ -1,10 +1,10 @@
 import { PoolStore } from "../stores/poolStore.ts"
-import { useTokenQuery } from "./useTokenQuery.ts"
 import { useCallback } from "react"
 import { useHandleWebSocketEvent } from "./useHandleWebSocketEvent.ts"
+import { useToken } from "../../api/tokenHolder.ts"
 
 type UseStartWebSocketProps = {
-    token: ReturnType<typeof useTokenQuery>["token"]
+    token: ReturnType<typeof useToken>
 } & Pick<PoolStore, "setPool" | "setPlaybackState" | "clearPool">
 
 export const useStartWebSocket = ({ token, setPool, setPlaybackState, clearPool }: UseStartWebSocketProps) => {

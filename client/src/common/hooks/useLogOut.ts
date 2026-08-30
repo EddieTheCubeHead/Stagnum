@@ -1,7 +1,6 @@
 import { LOCALSTORAGE_TOKEN_KEY } from "../constants/localStorage.ts"
 import { usePoolStore } from "../stores/poolStore.ts"
-import { TOKEN } from "../constants/queryKey.ts"
-import { useQueryClient } from "@tanstack/react-query"
+import { tokenHolder } from "../../api/tokenHolder.ts"
 
 interface UseLogOutProps {
     callback?: () => void
@@ -9,11 +8,10 @@ interface UseLogOutProps {
 
 export const useLogOut = ({ callback }: UseLogOutProps = {}) => {
     const { clearPool } = usePoolStore()
-    const client = useQueryClient()
     return async () => {
         localStorage.removeItem(LOCALSTORAGE_TOKEN_KEY)
         clearPool()
-        await client.invalidateQueries({ queryKey: [TOKEN] })
+        tokenHolder.setToken(null)
         if (callback) {
             callback()
         }

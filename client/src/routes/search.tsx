@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import { zodValidator } from "@tanstack/zod-adapter"
-import { useSpotifyGeneralQuery } from "../search/hooks/useSpotifyGeneralQuery.ts"
 import { SearchSkeleton } from "../search/components/SearchSkeleton.tsx"
 import { SearchTopBar } from "../search/components/searchTopBar/SearchTopBar.tsx"
 import { SearchResults } from "../search/components/SearchResults.tsx"
 import { useSearchStates } from "../search/hooks/useSearchStates.ts"
+import { useToken } from "../api/tokenHolder.ts"
+import { useQuery } from "@tanstack/react-query"
+import { spotifyGeneralSearchOptions } from "../api/queryOptions.ts"
 
 const openedSearchTabsSchema = z.object({
     tracks: z.boolean(),
@@ -26,7 +28,8 @@ export const Route = createFileRoute("/search")({
 
 function SearchQueryComponent() {
     const { query } = Route.useSearch()
-    const { data, isLoading } = useSpotifyGeneralQuery({ query })
+    const token = useToken()
+    const { data, isLoading } = useQuery(spotifyGeneralSearchOptions(query, token))
     const {
         toggleCategory,
         toggleFocus,
