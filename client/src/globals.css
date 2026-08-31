@@ -10,6 +10,8 @@
         --color-element-base-high: 0deg 0% 20%;
         --color-text: 0deg 0% 90%;
         --color-clickable: 0deg 0% 48%;
+        --color-clickable-disabled: 0deg 0% 32%;
+        --color-clickable-toggled-disabled: 210deg 32% 46%;
         --color-stroke: 0deg 0% 74%;
         --color-accent: 210deg 79% 46%;
         --color-accent-purple: 281deg 86% 44%;
@@ -51,6 +53,7 @@
     --color-element-base-high: 0deg 0% 20%;
     --color-text: 0deg 0% 5%;
     --color-clickable: 0deg 0% 63%;
+    --color-clickable-disabled: 0deg 0% 39%;
     --color-stroke: 0deg 0% 22%;
 
     --color-confirm-bg: 133deg 47% 63%;

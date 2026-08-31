@@ -50,5 +50,19 @@ describe("Home acceptance tests", () => {
 
             expect(screen.getByRole("button", { name: "Log out" })).toBeVisible()
         })
+
+        it("Should disable share pool button if user has no pool", async () => {
+            server.use(get("pool", null))
+            await testApp()
+
+            expect(screen.getByRole("button", { name: "Share pool" })).toBeDisabled()
+        })
+
+        it("Should disable delete pool button if user has no pool", async () => {
+            server.use(get("pool", null))
+            await testApp()
+
+            expect(screen.getByRole("button", { name: "Delete pool" })).toBeDisabled()
+        })
     })
 })

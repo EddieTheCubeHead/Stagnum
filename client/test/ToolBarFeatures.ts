@@ -4,10 +4,11 @@ import { testApp } from "./utils/testComponent.tsx"
 import { mockLoginState } from "./utils/mockLoginState.ts"
 import { server } from "./server.ts"
 import { post, DEFAULT_RESPONSE_AUTH_TOKEN, get } from "./handlers.ts"
-import { foreignPool, mockedCollectionPoolData, sharedPool } from "./data/pool.ts"
+import { foreignPool, mockedCollectionPoolData, mockedSkippedPoolData, pausedPool, sharedPool } from "./data/pool.ts"
 import { mockSearchData } from "./data/search.ts"
 import { http, HttpResponse } from "msw"
 import { TEST_BACKEND_URL } from "../setup-vitest.ts"
+import { anotherUser } from "./data/anotherUser.ts"
 
 describe("Tool bar", () => {
     beforeAll(() => {
@@ -157,8 +158,7 @@ describe("Tool bar", () => {
         it("Should render delete pool as disabled if user has no pool", async () => {
             server.use(get("pool", null))
             await testApp()
-            expect(await screen.findByTitle("Delete pool")).not.toBeVisible()
-            expect(screen.queryByRole("button", { name: "Delete pool" })).not.toBeInTheDocument()
+            expect(screen.queryByRole("button", { name: "Delete pool" })).toBeDisabled()
         })
 
         it("Should not render delete pool at all if search field is opened", async () => {
@@ -233,6 +233,33 @@ describe("Tool bar", () => {
             const { user } = await testApp()
             await user.click(screen.getByRole("button", { name: "Pause" }))
             expect(screen.getByRole("button", { name: "Play" })).toBeVisible()
+        })
+
+        it("Should resume playback on clicking play when playback is paused", async () => {
+            server.use(get("pool", pausedPool))
+            const { user } = await testApp()
+            await user.click(screen.getByRole("button", { name: "Play" }))
+            expect(screen.getByText(mockedSkippedPoolData.currently_playing.name)).toBeVisible()
+            expect(screen.getByRole("button", { name: "Pause" })).toBeVisible()
+        })
+
+        it("Should disable skip when playback is paused", async () => {
+            const { user } = await testApp()
+            await user.click(screen.getByRole("button", { name: "Pause" }))
+            expect(screen.getByRole("button", { name: "Skip" })).toBeDisabled()
+        })
+
+        it("Should skip playback on clicking skip on playback display", async () => {
+            const { user } = await testApp()
+            await user.click(screen.getByRole("button", { name: "Skip" }))
+            expect(screen.getByText(mockedSkippedPoolData.currently_playing.name)).toBeVisible()
+        })
+
+        it("Should disable playback control when pool is owned by someone else", async () => {
+            server.use(get("me", anotherUser))
+            await testApp()
+            expect(screen.getByRole("button", { name: "Pause" })).toBeDisabled()
+            expect(screen.getByRole("button", { name: "Skip" })).toBeDisabled()
         })
     })
 })
