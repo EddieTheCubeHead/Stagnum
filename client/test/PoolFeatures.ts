@@ -16,7 +16,6 @@ import {
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
 import { mockSearchData } from "./data/search.ts"
-import { mockMeData } from "./data/me.ts"
 
 describe("Pool", () => {
     beforeAll(() => {
