@@ -1,7 +1,6 @@
 import { Alert, AlertType } from "./Alert.ts"
 import { IconButton } from "../common/icons/IconButton.tsx"
 import { CloseIconSvg } from "../common/icons/svgs/CloseIconSvg.tsx"
-import { Size } from "../common/constants/size.ts"
 import { useAlertStore } from "./alertStore.ts"
 
 interface AlertComponentBaseProps {
@@ -17,7 +16,7 @@ export const AlertComponent = ({ alert }: AlertComponentBaseProps) => {
             <p className="text-xs grow line-clamp-none pointer-events-none text-pretty whitespace-normal">
                 {alert.message}
             </p>
-            <IconButton onClick={() => removeAlert(alert)} svg={<CloseIconSvg />} size={Size.md} />
+            <IconButton onClick={() => removeAlert(alert)} svg={<CloseIconSvg />} />
         </div>
     )
 }

@@ -6,10 +6,13 @@ import { IconButton } from "../../icons/IconButton.tsx"
 import { useSkipCallback } from "../../hooks/useSkipCallback.ts"
 import { useCallback } from "react"
 import { TogglePlaybackStateButton } from "./TogglePlaybackStateButton.tsx"
+import { useMeQuery } from "../../hooks/useMeQuery.ts"
 
 export const PlaybackDisplay = () => {
     const { pool } = usePoolStore()
+    const { user } = useMeQuery()
     const skipCallback = useCallback(useSkipCallback(), [pool])
+    const isOwnPool = pool?.owner.spotify_id === user?.spotify_id
     if (!pool?.currently_playing) {
         return null
     }
@@ -23,7 +26,7 @@ export const PlaybackDisplay = () => {
             />
             <CardText size={Size.s} text={pool.currently_playing.name} title={pool.currently_playing.name} />
             <div className="grow" />
-            <IconButton svg={<SkipIconSvg />} size={Size.md} onClick={() => skipCallback()} />
+            <IconButton svg={<SkipIconSvg />} onClick={() => skipCallback()} disabled={!pool.is_active || !isOwnPool} />
         </div>
     )
 }

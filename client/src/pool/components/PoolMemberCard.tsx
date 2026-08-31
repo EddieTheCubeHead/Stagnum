@@ -18,11 +18,12 @@ interface PoolMemberCardProps {
     poolMember: PoolMember
     parentProps?: PoolMemberParentExtraProps
     isTopLevel?: boolean
+    isOwnedByCurrentUser: boolean
 }
 
 const MUTATION_DELETE = "delete"
 
-export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemberCardProps) => {
+export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel, isOwnedByCurrentUser }: PoolMemberCardProps) => {
     const { mutationFn, optimisticOperation } = useDeletePoolContent(poolMember)
     const { mutate } = useMutatePool({ mutationFn, optimisticOperation, mutationKey: [MUTATION_DELETE] })
     return (
@@ -37,8 +38,12 @@ export const PoolMemberCard = ({ poolMember, parentProps, isTopLevel }: PoolMemb
             />
             <CardText title={poolMember.name} text={poolMember.name} size={Size.s} />
             <div className="grow"></div>
-            <PromotePoolTrackIconButton poolMember={poolMember} />
-            <IconButton svg={<DeleteIconSvg label={`Delete ${poolMember.name}`} />} onClick={() => mutate(undefined)} />
+            <PromotePoolTrackIconButton poolMember={poolMember} disabled={!isOwnedByCurrentUser} />
+            <IconButton
+                svg={<DeleteIconSvg label={`Delete ${poolMember.name}`} />}
+                onClick={() => mutate(undefined)}
+                disabled={!isOwnedByCurrentUser}
+            />
         </CardBase>
     )
 }

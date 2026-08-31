@@ -297,3 +297,8 @@ export const createMockedTrackPoolData = (): Pool => {
         is_active: true,
     }
 }
+
+export const mockedSkippedPoolData: Pool = {
+    ...createMockedCollectionPoolData(),
+    currently_playing: mockedCollectionPoolData.users[0].collections[0].tracks[2],
+}

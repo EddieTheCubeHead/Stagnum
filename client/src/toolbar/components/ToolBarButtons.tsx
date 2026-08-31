@@ -6,16 +6,25 @@ import { ToolBarHighlightedButton } from "./ToolBarHighlightedButton.tsx"
 import { SearchIconSvg } from "../../common/icons/svgs/SearchIconSvg.tsx"
 import { ToolBarClearPoolButton } from "./ToolBarClearPoolButton.tsx"
 import { ToolBarState } from "../types/toolBarState.ts"
+import { usePoolStore } from "../../common/stores/poolStore.ts"
 
 interface ToolBarButtonProps {
     setState: (state: ToolBarState) => void
 }
 
 export const ToolBarButtons = ({ setState }: ToolBarButtonProps) => {
+    const { pool } = usePoolStore()
+    const hasPool = !!pool
+
     return (
         <div className="flex grow">
             <div className="flex basis-1/4 items-center justify-center">
-                <IconButton svg={<SharePoolIconSvg />} size={Size.l} onClick={() => setState("share")} />
+                <IconButton
+                    svg={<SharePoolIconSvg />}
+                    size={Size.l}
+                    onClick={() => setState("share")}
+                    disabled={!hasPool}
+                />
             </div>
             <div className="flex basis-1/4 items-center justify-center">
                 <ToolBarHighlightedButton svg={<SearchIconSvg />} onClick={() => setState("search")} />

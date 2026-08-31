@@ -16,6 +16,7 @@ import {
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
 import { mockSearchData } from "./data/search.ts"
+import { mockMeData } from "./data/me.ts"
 
 describe("Pool", () => {
     beforeAll(() => {
@@ -80,6 +81,15 @@ describe("Pool", () => {
                 screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
             )
             expect(screen.queryByText(mockedTrackPoolData.users[0].tracks[0].name)).not.toBeInTheDocument()
+        })
+
+        it("Should disable member deletion if member owner is not self", async () => {
+            server.use(get("me", anotherUser))
+            await testApp()
+
+            expect(
+                screen.getByRole("button", { name: `Delete ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            ).toBeDisabled()
         })
 
         it("Should delete collection from pool when pressing delete button", async () => {
@@ -429,6 +439,19 @@ describe("Pool", () => {
                     name: `Remove ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name} promotion`,
                 }),
             ).toBeVisible()
+        })
+
+        it("Should disable promoting songs not added by self", async () => {
+            server.use(get("me", anotherUser))
+            const { user } = await testApp()
+            await user.click(
+                screen.getByRole("button", { name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}` }),
+            )
+            expect(
+                screen.getByRole("button", {
+                    name: `Promote ${mockedCollectionPoolData.users[0].collections[0].tracks[0].name}`,
+                }),
+            ).toBeDisabled()
         })
 
         it("Should remove song promotion on promote button reclick", async () => {

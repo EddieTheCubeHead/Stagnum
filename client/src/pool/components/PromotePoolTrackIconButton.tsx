@@ -11,12 +11,13 @@ import { useMutatePool } from "../hooks/useMutatePool.ts"
 
 interface PromotePoolTrackIconButtonProps {
     poolMember: PoolMember
+    disabled: boolean
 }
 
 const MUTATION_PROMOTE = "promote"
 const MUTATION_DEMOTE = "demote"
 
-export const PromotePoolTrackIconButton = ({ poolMember }: PromotePoolTrackIconButtonProps) => {
+export const PromotePoolTrackIconButton = ({ poolMember, disabled }: PromotePoolTrackIconButtonProps) => {
     const promotePoolMember = usePostPromoteTrack(poolMember)
     const demotePoolMember = usePostDemoteTrack(poolMember)
     const promoteMutation = useMutatePool({
@@ -48,6 +49,7 @@ export const PromotePoolTrackIconButton = ({ poolMember }: PromotePoolTrackIconB
                         }
                         onClick={() => callback(undefined)}
                         toggled={!!promotedByUser}
+                        disabled={disabled}
                     />
                     {promotedByUser && (
                         <span className="absolute bottom-0 right-0 z-10">

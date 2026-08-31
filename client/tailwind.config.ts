@@ -13,7 +13,13 @@ const config: Config = {
                     3: "hsl(var(--color-element-base-high) / <alpha-value>)",
                 },
                 text: "hsl(var(--color-text) / <alpha-value>)",
-                clickable: "hsl(var(--color-clickable) / <alpha-value>)",
+                clickable: {
+                    DEFAULT: "hsl(var(--color-clickable) / <alpha-value>)",
+                    disabled: "hsl(var(--color-clickable-disabled) / <alpha-value>)",
+                    toggled: {
+                        disabled: "hsl(var(--color-clickable-toggled-disabled) / <alpha-value>)",
+                    },
+                },
                 stroke: "hsl(var(--color-stroke) / <alpha-value>)",
                 confirm: {
                     DEFAULT: "hsl(var(--color-confirm) / <alpha-value>)",
