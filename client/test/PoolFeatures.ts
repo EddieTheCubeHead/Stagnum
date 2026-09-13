@@ -4,7 +4,7 @@ import { testApp } from "./utils/testComponent.tsx"
 import { act, screen } from "@testing-library/react"
 import { server } from "./server.ts"
 import { mockLoginState } from "./utils/mockLoginState.ts"
-import { del, delError, get, post, webSocket } from "./handlers.ts"
+import { DEFAULT_RESPONSE_AUTH_TOKEN, del, delError, get, post, webSocket } from "./handlers.ts"
 import {
     createMockedCollectionPoolData,
     createMockedTrackPoolData,
@@ -16,6 +16,9 @@ import {
 import { anotherUser } from "./data/anotherUser.ts"
 import { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js"
 import { mockSearchData } from "./data/search.ts"
+import { delay, http, HttpResponse } from "msw"
+import { TEST_BACKEND_URL } from "../setup-vitest.ts"
+import { Pool } from "../src/common/models/Pool.ts"
 
 describe("Pool", () => {
     beforeAll(() => {
@@ -213,9 +216,7 @@ describe("Pool", () => {
             it("Should revert pool state if delete call fails", async () => {
                 server.use(get("pool", mockedTrackPoolData))
                 server.use(delError("pool/content/*", 500, "Server error", 10000))
-                const { user } = await testApp({
-                    userEventOptions: { advanceTimers: vi.advanceTimersByTime },
-                })
+                const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
                 await user.click(
                     screen.getByRole("button", { name: `Delete ${mockedTrackPoolData.users[0].tracks[0].name}` }),
                 )
@@ -225,6 +226,80 @@ describe("Pool", () => {
                 })
                 expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
             })
+
+            it.each([0, 1, 2, 3, 4])(
+                "Should correctly revert only the failed deletion when one deletion of multiple fails",
+                async (failingIndex) => {
+                    let deletedIndex = 0
+                    server.use(
+                        http.delete(`${TEST_BACKEND_URL}/pool/content/*`, async () => {
+                            let response
+                            const thisCallDeletedIndex = deletedIndex
+                            if (failingIndex === thisCallDeletedIndex) {
+                                response = HttpResponse.json({ error: "Server error" }, { status: 500 })
+                            } else {
+                                const pool = createMockedCollectionPoolData()
+                                const tracksAfterDeletion = pool.users[0].collections[0].tracks.filter(
+                                    (_, index) => index > thisCallDeletedIndex || index === failingIndex,
+                                )
+                                const newPool: Pool = {
+                                    ...pool,
+                                    users: [
+                                        {
+                                            ...pool.users[0],
+                                            collections: [
+                                                { ...pool.users[0].collections[0], tracks: tracksAfterDeletion },
+                                            ],
+                                        },
+                                    ],
+                                }
+                                response = HttpResponse.json(newPool, {
+                                    headers: { Authorization: DEFAULT_RESPONSE_AUTH_TOKEN },
+                                })
+                            }
+                            deletedIndex += 1
+                            await delay(600)
+                            return response
+                        }),
+                    )
+                    const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
+                    const deletedPoolData = createMockedCollectionPoolData()
+                    deletedPoolData.users[0].collections[0].tracks =
+                        deletedPoolData.users[0].collections[0].tracks.filter((_, index) => index >= failingIndex)
+                    server.use(get("pool", deletedPoolData))
+                    await user.click(
+                        screen.getByRole("button", {
+                            name: `Open ${mockedCollectionPoolData.users[0].collections[0].name}`,
+                        }),
+                    )
+                    for (let i = 0; i < 5; i++) {
+                        await user.click(
+                            screen.getByRole("button", {
+                                name: `Delete ${mockedCollectionPoolData.users[0].collections[0].tracks[i].name}`,
+                            }),
+                        )
+                        await act(async () => {
+                            await vi.advanceTimersByTimeAsync(300)
+                        })
+                    }
+                    await act(async () => {
+                        await vi.runAllTimersAsync()
+                    })
+                    expect(
+                        await screen.findByText(
+                            `${mockedCollectionPoolData.users[0].collections[0].tracks[failingIndex].name}`,
+                        ),
+                    ).toBeVisible()
+                    for (let i = 0; i < 5; i++) {
+                        if (i === failingIndex) {
+                            continue
+                        }
+                        expect(
+                            screen.queryByText(`${mockedCollectionPoolData.users[0].collections[0].tracks[i].name}`),
+                        ).not.toBeInTheDocument()
+                    }
+                },
+            )
         })
     })
 
@@ -403,7 +478,7 @@ describe("Pool", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(await screen.findByRole("button", { name: "Continue" }))
 
-            await new Promise((r: TimerHandler) => setTimeout(r, 100))
+            await act(async () => await new Promise((r: TimerHandler) => setTimeout(r, 100)))
 
             expect(screen.queryByText(foreignPool.users[0].collections[0].name)).not.toBeInTheDocument()
             expect(usePoolStore.getState().pool).not.toBeInTheDocument()
@@ -415,7 +490,7 @@ describe("Pool", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
-            await new Promise((r: TimerHandler) => setTimeout(r, 50))
+            await act(async () => await new Promise((r: TimerHandler) => setTimeout(r, 100)))
 
             expect(screen.getByText(`Left ${foreignPool.owner.display_name}'s pool`)).toBeVisible()
         })

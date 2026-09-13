@@ -14,7 +14,7 @@ export const useDeletePoolContent = (resource: PoolMember) => {
     const deletePoolContent = apiDelete<Pool>(`/pool/content/${resource.id}`)
     const mutationFn = useCallback(async () => {
         if (token === undefined) {
-            throw new Error("Token null on pool addition!")
+            throw new Error("Token null on pool deletion!")
         }
         const poolData = await deletePoolContent()
         addAlert({ type: AlertType.Success, message: `Deleted "${resource.name}" from pool` })

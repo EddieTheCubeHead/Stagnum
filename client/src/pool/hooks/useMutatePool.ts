@@ -1,8 +1,10 @@
 import { Pool } from "../../common/models/Pool.ts"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { usePoolStore } from "../../common/stores/poolStore.ts"
 import { AxiosError } from "axios"
 import { useCallback, useMemo } from "react"
+import { getPoolOptions } from "../../api/queryOptions.ts"
+import { useToken } from "../../api/tokenHolder.ts"
 
 export const POOl_MUTATION = "pool"
 
@@ -18,6 +20,8 @@ export const useMutatePool = <TVariables>({
     optimisticOperation,
 }: UseMutatePoolProps<TVariables>) => {
     const { pool, setPool } = usePoolStore()
+    const queryClient = useQueryClient()
+    const token = useToken()
     const onMutate = useMemo(
         () =>
             optimisticOperation
@@ -29,8 +33,8 @@ export const useMutatePool = <TVariables>({
         [optimisticOperation, pool, setPool],
     )
     const onError = useCallback(
-        (_error: AxiosError, _variables: TVariables, pool: Pool | null | undefined) => {
-            setPool(pool ?? null)
+        (_error: AxiosError, _variables: TVariables) => {
+            void queryClient.invalidateQueries(getPoolOptions(token))
         },
         [pool, setPool],
     )
@@ -46,5 +50,6 @@ export const useMutatePool = <TVariables>({
         onMutate,
         onError,
         onSuccess,
+        scope: { id: "pool" },
     })
 }
