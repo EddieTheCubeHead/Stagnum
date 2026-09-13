@@ -227,7 +227,7 @@ describe("Pool", () => {
                 expect(await screen.findByText(mockedTrackPoolData.users[0].tracks[0].name)).toBeVisible()
             })
 
-            it.each([4])(
+            it.each([0, 1, 2, 3, 4])(
                 "Should correctly revert only the failed deletion when one deletion of multiple fails",
                 async (failingIndex) => {
                     let deletedIndex = 0
@@ -265,9 +265,7 @@ describe("Pool", () => {
                     const { user } = await testApp({ userEventOptions: { advanceTimers: vi.advanceTimersByTime } })
                     const deletedPoolData = createMockedCollectionPoolData()
                     deletedPoolData.users[0].collections[0].tracks =
-                        deletedPoolData.users[0].collections[0].tracks.filter(
-                            (_, index) => index > 4 || index === failingIndex,
-                        )
+                        deletedPoolData.users[0].collections[0].tracks.filter((_, index) => index >= failingIndex)
                     server.use(get("pool", deletedPoolData))
                     await user.click(
                         screen.getByRole("button", {
@@ -480,7 +478,7 @@ describe("Pool", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(await screen.findByRole("button", { name: "Continue" }))
 
-            await new Promise((r: TimerHandler) => setTimeout(r, 100))
+            await act(async () => await new Promise((r: TimerHandler) => setTimeout(r, 100)))
 
             expect(screen.queryByText(foreignPool.users[0].collections[0].name)).not.toBeInTheDocument()
             expect(usePoolStore.getState().pool).not.toBeInTheDocument()
@@ -492,7 +490,7 @@ describe("Pool", () => {
             await user.click(await screen.findByRole("button", { name: "Leave pool" }))
             await user.click(screen.getByRole("button", { name: "Continue" }))
 
-            await new Promise((r: TimerHandler) => setTimeout(r, 50))
+            await act(async () => await new Promise((r: TimerHandler) => setTimeout(r, 100)))
 
             expect(screen.getByText(`Left ${foreignPool.owner.display_name}'s pool`)).toBeVisible()
         })
