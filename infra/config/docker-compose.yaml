@@ -115,7 +115,7 @@ services:
       - WATCHTOWER_LABEL_ENABLE=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 1800
+    command: --interval 1900
 
 secrets:
   spotify_client_id:
