@@ -32,6 +32,7 @@ from test_types.callables import (
     IncrementNow,
     MockNoPlayerStateResponse,
     MockPlaybackPausedResponse,
+    MockTrackFetch,
     MockTrackSearchResult,
     RunSchedulingJob,
     SkipSong,
@@ -84,6 +85,23 @@ def should_start_pool_playback_from_tracks_when_posting_new_pool_from_tracks(
     create_pool(tracks=15)
 
     track_uris = [track["uri"] for track in mocked_pool_contents.tracks]
+    assert_playback_started(track_uris)
+
+
+@pytest.mark.wip
+def should_start_pool_playback_on_creating_pool_from_added_member(
+    mock_track_fetch: MockTrackFetch,
+    test_client: TestClient,
+    valid_token_header: Headers,
+    validate_model: ValidateModel,
+    assert_playback_started: AssertPlaybackStarted,
+) -> None:
+    pool_content_data = mock_track_fetch()
+
+    response = test_client.post("/pool/content", json=pool_content_data, headers=valid_token_header)
+
+    pool_response = validate_model(PoolFullContents, response)
+    track_uris = [track.spotify_resource_uri for track in pool_response.users[0].tracks]
     assert_playback_started(track_uris)
 
 

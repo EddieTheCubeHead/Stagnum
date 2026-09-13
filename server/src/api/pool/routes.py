@@ -5,12 +5,18 @@ from fastapi import APIRouter
 from api.common.dependencies import validated_user
 from api.pool.dependencies import PoolDatabaseConnection, PoolPlaybackService, PoolSpotifyClient, WebsocketUpdater
 from api.pool.helpers import create_pool_return_model
-from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, UnsavedPoolTrack
+from api.pool.models import PoolContent, PoolCreationData, PoolFullContents, UnsavedPoolTrack, UnsavedPoolUserContents
 from database.entities import PoolMember, User
 
 _logger = getLogger("main.api.pool.routes")
 
 router = APIRouter(prefix="/pool", tags=["pool"])
+
+
+@router.get("")
+async def get_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
+    _logger.debug(f"GET /pool called with token {user}")
+    return create_pool_return_model(*database_connection.get_pool_data(user))
 
 
 @router.post("")
@@ -23,15 +29,7 @@ async def create_pool(
 ) -> PoolFullContents:
     _logger.debug(f"POST /pool called with collection {base_collection} and token {user.session.user_token}")
     unsaved_pool_user_content = spotify_client.get_unsaved_pool_content(user, *base_collection.spotify_uris)
-    database_connection.create_pool(unsaved_pool_user_content)
-    pool_playback_service.start_playback(user)
-    return create_pool_return_model(*database_connection.get_pool_data(user))
-
-
-@router.get("")
-async def get_pool(user: validated_user, database_connection: PoolDatabaseConnection) -> PoolFullContents:
-    _logger.debug(f"GET /pool called with token {user}")
-    return create_pool_return_model(*database_connection.get_pool_data(user))
+    return create_pool_and_start_playback(database_connection, pool_playback_service, unsaved_pool_user_content, user)
 
 
 @router.post("/content")
@@ -41,11 +39,25 @@ async def add_content(
     spotify_client: PoolSpotifyClient,
     database_connection: PoolDatabaseConnection,
     websocket_updater: WebsocketUpdater,
+    pool_playback_service: PoolPlaybackService,
 ) -> PoolFullContents:
     _logger.debug(f"POST /pool/content called with content {to_add} and token {user.session.user_token}")
     added_content = spotify_client.get_unsaved_pool_content(user, to_add)
+    if user.joined_pool is None:
+        return create_pool_and_start_playback(database_connection, pool_playback_service, added_content, user)
     whole_pool = database_connection.add_to_pool(added_content, user)
     return await _create_model_and_update_listeners(database_connection, websocket_updater, user, whole_pool)
+
+
+def create_pool_and_start_playback(
+    database_connection: PoolDatabaseConnection,
+    pool_playback_service: PoolPlaybackService,
+    new_pool_content: UnsavedPoolUserContents,
+    user: validated_user,
+) -> PoolFullContents:
+    database_connection.create_pool(new_pool_content)
+    pool_playback_service.start_playback(user)
+    return create_pool_return_model(*database_connection.get_pool_data(user))
 
 
 @router.delete("/content/{content_id}")
